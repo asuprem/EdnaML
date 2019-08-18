@@ -3,12 +3,12 @@ DATASET:
   TRAIN_FOLDER: "image_train"
   TEST_FOLDER: "image_test"
   QUERY_FOLDER: "image_query"
-  SHAPE: (208,208)
+  SHAPE: [208,208]
 
 TRANSFORMATION:
   NORMALIZATION_MEAN: 0.5
   NORMALIZATION_STD: 0.5
-  NORMALIZATION_SCALE: 1./255.
+  NORMALIZATION_SCALE: 255
   H_FLIP: 0.5
   T_CROP: True
   RANDOM_ERASE: True
@@ -16,12 +16,12 @@ TRANSFORMATION:
   CHANNELS: 3
   BATCH_SIZE: 36
   INSTANCES: 6
-  WORKERS: 8
+  WORKERS: 4
 
 MODEL:
   MODEL_BASE: 'resnet50'
   MODEL_WEIGHTS: True
-  MODEL_ATTENTION: None
+  MODEL_ATTENTION: ''
   EMB_DIM: 2048
   MODEL_NORMALIZATION: 'bn'
 
@@ -55,7 +55,7 @@ OPTIMIZER:
 
 SCHEDULER:
   LR_SCHEDULER: 'FineGrainedSteppedLR'
-  LR_KWARGS: {'lr_ops':[(2,'+',2e-5), (4,'+',2e-5), (6,'+',2e-5), (8,'+',2e-5), (10,'+',2e-5), (20,'*',0.9), (40,'+',0.8), (60,'+',0.7), (80,'+',0.7), (100,'+',0.6), (120,'+',0.5)]}
+  LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"+",0.8], [60,"+",0.7], [80,"+",0.7], [100,"+",0.6], [120,"+",0.5]]}'
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch

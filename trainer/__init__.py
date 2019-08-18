@@ -97,7 +97,7 @@ class SimpleTrainer:
                 for batch in self.train_loader:
                     if not self.global_batch:
                         lrs = self.scheduler.get_lr(); lrs = sum(lrs)/float(len(lrs))
-                        self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:0.5f}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10)), lrs)
+                        self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:0.5f}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
                     self.step(batch)
                     self.global_batch += 1
 
@@ -278,3 +278,10 @@ class SimpleTrainer:
             i = np.random.choice(indices)
             mask[i] = True
         return mask
+    class RunningAverage(object):
+        def __init__(self):
+            self.reset()
+        def reset(self):
+            self.avg, self.sum, self.cnt, self.last = 0, 0, 0, 0
+        def update(self, val, n=1):
+            self.last = val; self.sum += self.last * n; self.cnt += n; self.avg = self.sum / self.cnt;

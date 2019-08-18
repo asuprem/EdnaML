@@ -1,4 +1,4 @@
-import os, shutil, logging, glob, re
+import os, shutil, logging, glob, re, pdb, json
 import kaptan
 import click
 import utils
@@ -18,18 +18,13 @@ import config.base as cfgbase
 @click.option('--mode', default="train", help="Execution mode: [train/test]")
 @click.option('--weights', default=".", help="Path to weights if mode is test")
 def main(config, mode, weights):
-    #cfg = kaptan.Kaptan(handler='yaml')
-    #config = cfg.import_config(config)
-    cfg = cfgbase.get_cfg_defaults()
-    cfg.merge_from_file(config)
-    cfg.freeze()
-    print(cfg)
-
-
+    cfg = kaptan.Kaptan(handler='yaml')
+    config = cfg.import_config(config)
+    
+    
     MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(config)
-
     NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE = utils.fix_generator_arguments(config)
-    TRAINDATA_KWARGS = {"rea_value": RANDOM_ERASE_VALUE}
+    TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
 
     """ MODEL PARAMS """
     model_weights = {"resnet50":["https://download.pytorch.org/models/resnet50-19c8e357.pth", "resnet50-19c8e357.pth"]}
@@ -73,19 +68,18 @@ def main(config, mode, weights):
         raise RuntimeError("Not built for multi-GPU. Please start with single-GPU.")
     print("Found %i GPUs"%NUM_GPUS)
 
-
     # --------------------- BUILD GENERATORS ------------------------
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
     crawler = ReidDataCrawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
     train_generator = SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
-                                normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
+                                normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
                                 **TRAINDATA_KWARGS)
     train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance = config.get("TRANSFORMATION.INSTANCES"), workers = config.get("TRANSFORMATION.WORKERS"))
     logger.info("Generated training data generator")
     TRAIN_CLASSES = train_generator.num_entities
     test_generator=  SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
-                            normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
+                            normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                             h_flip = 0, t_crop = False, rea = False)
     test_generator.setup(crawler, mode='test', batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance=config.get("TRANSFORMATION.INSTANCES"), workers=config.get("TRANSFORMATION.WORKERS"))
     QUERY_CLASSES = test_generator.num_entities
@@ -93,6 +87,7 @@ def main(config, mode, weights):
 
     # --------------------- INSTANTIATE MODEL ------------------------
     reid_model = ResnetBase(base=config.get("MODEL.MODEL_BASE"), weights=MODEL_WEIGHTS, soft_dimensions = TRAIN_CLASSES, embedding_dimensions = config.get("MODEL.EMB_DIM"), normalization = config.get("MODEL.MODEL_NORMALIZATION"))
+    logger.info("Finished instantiating model")
 
     if mode == "test":
         reid_model.load_state_dict(torch.load(weights))
@@ -103,14 +98,17 @@ def main(config, mode, weights):
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
     loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    logger.info("Built loss function")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **config.get("OPTIMIZER.OPTIMIZER_KWARGS"))
+    logger.info("Build optimizer")
     # --------------------- INSTANTIATE SCHEDULER ------------------------
     scheduler_ = config.get("SCHEDULER.LR_SCHEDULER")
     scheduler = __import__("scheduler."+scheduler_, fromlist=[scheduler_])
     scheduler = getattr(scheduler, scheduler_)
-    scheduler = scheduler(optimizer, last_epoch = -1, **config.get("SCHEDULER.LR_KWARGS"))
+    scheduler = scheduler(optimizer, last_epoch = -1, **json.loads(config.get("SCHEDULER.LR_KWARGS")))
+    logger.info("Built scheduler")
     
     if DRIVE_BACKUP:
         fl_list = glob.glob(os.path.join(CHECKPOINT_DIRECTORY, "*.pth"))
@@ -124,7 +122,7 @@ def main(config, mode, weights):
         previous_stop = max(previous_stop) + 1
 
     loss_stepper = SimpleTrainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
-    loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("SAVE.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
+    loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     loss_stepper.train()
     
 

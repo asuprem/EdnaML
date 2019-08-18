@@ -1,5 +1,6 @@
 from torch import nn
 import torch
+import pdb
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -49,7 +50,7 @@ class Bottleneck(nn.Module):
             norm_layer = nn.BatchNorm2d
         width = int(planes * (base_width / 64.)) * groups
         
-        self.conv1 = nn.Conv2D(inplanes, width, kernel_size=1, bias=False,stride=1)
+        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False,stride=1)
         self.bn1 = norm_layer(width)
         self.conv2 = nn.Conv2d(width, width, kernel_size=3, stride=stride, padding=dilation, bias=False, groups=groups, dilation=dilation)
         self.bn2 = norm_layer(width)
@@ -156,7 +157,7 @@ class ResNet(nn.Module):
         for i in param_dict:
             if 'fc' in i and self.top_only:
                 continue
-        self.state_dict()[i].copy_(param_dict[i])
+            self.state_dict()[i].copy_(param_dict[i])
 
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):
     model = ResNet(block, layers, **kwargs)

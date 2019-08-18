@@ -1,6 +1,6 @@
 import torch
 from bisect import bisect_right
-
+import pdb
 
 class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
     """FineGrainedSteppedLR allows definition of additively or multiplicative changes to LR (either increasing or decreasing).
@@ -28,13 +28,13 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
     """
 
     def __init__(self,optimizer, last_epoch = -1, **kwargs):
+        lr_ops = kwargs.get('lr_ops')
         milestones = [item[0] for item in lr_ops]
         if milestones != sorted(milestones):
             raise ValueError("`milestones` in `lr_ops` should be a sorted `list`.")
 
-        lr_ops = kwargs.get('lr_ops')
         relative = kwargs.get('relative', False)
-        self.build_lr = [(-1, '*', 1)]
+        self.build_lr = [(-1, self.lr_mult, 1)]
         
         for _idx, _item in enumerate(lr_ops):
             _milestone, _op, _val = _item
@@ -50,13 +50,14 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
 
         self.milestones = milestones
         self.lr_ops = lr_ops
-
+        self.lr_idx = last_epoch
         # if relative milestones, then keep initial last_epoch, and use last_epoch-initial_last_epoch as comparison. Else use last_epoch as comparison.
         # use bisect_right to perform binary search to get the correct value using this comparison variable 
         super(FineGrainedSteppedLR, self).__init__(optimizer, last_epoch)
 
     def get_lr(self):
         if self.last_epoch == -1:
+            self.lr_idx = 0
             lr_idx = 0
         else:
             lr_idx = bisect_right(self.milestones, self.last_epoch)
@@ -64,7 +65,7 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
             return self.base_lrs
         else:
             self.lr_idx = lr_idx
-            self.base_lrs = [self.build_lr[1](base_lr, self.build_lr[2]) for base_lr in self.base_lrs]
+            self.base_lrs = [self.build_lr[lr_idx][1](base_lr, self.build_lr[lr_idx][2]) for base_lr in self.base_lrs]
             return self.base_lrs
 
     def lr_mult(self, val, operand):

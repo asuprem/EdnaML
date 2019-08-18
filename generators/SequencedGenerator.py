@@ -12,7 +12,77 @@ import os.path as osp
 import numpy as np
 
 import pdb
+class TDataSet(TorchDataset):
+  def __init__(self,dataset, transform):
+    self.dataset = dataset
+    self.transform = transform
+  def __len__(self):
+    return len(self.dataset)
+  def __getitem__(self,idx):
+    img, pid, cid = self.dataset[idx]
+    img_arr = self.transform(self.load(img))
+    return img_arr, pid, cid, img
+  
+  def load(self,img):
+    if not osp.exists(img):
+      raise IOError("{img} does not exist in path".format(img=img))
+    img_load = Image.open(img).convert('RGB')
+    return img_load
 
+class TSampler(Sampler):
+  """ Triplet sampler """
+  def __init__(self, dataset, batch_size, instance):
+    self.dataset = dataset
+    self.batch_size=batch_size
+    self.instance = instance
+    self.unique_ids = self.batch_size // self.instance
+    self.indices = defaultdict(list)
+    self.pids = set()
+    for idx, (img, pid, cid) in enumerate(self.dataset):
+      self.indices[pid].append(idx)
+      self.pids.add(pid)
+    self.pids = list(self.pids)
+    self.batch = 0
+    for pid in self.pids:
+      num_ids = len(self.indices[pid])
+      num_ids = self.instance if num_ids < self.instance else num_ids
+      self.batch += num_ids - num_ids % self.instance
+  
+  def __iter__(self):
+    batch_idx = defaultdict(list)
+    for pid in self.pids:
+      ids = [item for item in self.indices[pid]]
+      if len(ids) < self.instance:
+        ids = np.random.choice(ids, size=self.instance, replace=True)
+      random.shuffle(ids)
+      batch, batch_counter = [], 0
+      for idx in ids:
+        batch.append(idx)
+        batch_counter += 1
+        if len(batch) == self.instance:
+          batch_idx[pid].append(batch)
+          batch = []
+    _pids, r_pids = [item for item in self.pids], []
+    # Optimize this???
+    to_remove = {}
+    pid_len = len(_pids)
+    while pid_len >= self.unique_ids:
+      sampled = random.sample(_pids, self.unique_ids)
+      for pid in sampled:
+        batch = batch_idx[pid].pop(0)
+        r_pids.extend(batch)
+        if len(batch_idx[pid]) == 0:
+          to_remove[pid] = 1
+
+      _pids = [item for item in _pids if item not in to_remove]
+      pid_len = len(_pids)
+      to_remove = {}
+
+    self.__len = len(r_pids)
+    return iter(r_pids)
+  
+  def __len__(self):
+    return self.__len
 class SequencedGenerator:
   def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
     """ Data generator for training and testing.
@@ -43,19 +113,6 @@ class SequencedGenerator:
       transformer_primitive.append(T.RandomErasing(p=0.5, scale=(0.02, 0.4), value = kwargs.get('rea_value', 0)))
     self.transformer = T.Compose(transformer_primitive)
 
-    def collate_simple(batch):
-      img, pid, _, _ = zip(*batch)
-      pid = torch.tensor(pid, dtype=torch.int64)
-      return torch.stack(img, dim=0), pid
-    def collate_with_camera(batch):
-      img, pid, cid, path = zip(*batch)
-      pid = torch.tensor(pid, dtype=torch.int64)
-      cid = torch.tensor(cid, dtype=torch.int64)
-      return torch.stack(img, dim=0), pid, cid, path
-    self.collate = {}
-    self.collate["train"] = collate_simple
-    self.collate["test"] = collate_with_camera
-
   def setup(self,datacrawler, mode='train', batch_size=32, instance = 6, workers = 8):
     """ Setup the data generator.
 
@@ -69,92 +126,30 @@ class SequencedGenerator:
     self.workers = workers * self.gpus
 
     if mode == "train":
-      self.__dataset = self.__DataSet(datacrawler.metadata[mode]["crawl"], self.transformer)
+      self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"], self.transformer)
     elif mode == "test":
-      self.__dataset = self.__DataSet(datacrawler.metadata[mode]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
+      self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
     else:
       raise NotImplementedError()
     
     if mode == "train":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
-                                        sampler = self.__Sampler(datacrawler.metadata[mode]["crawl"], batch_size=batch_size*self.gpus, instance=instance*self.gpus), \
-                                        num_workers=self.workers, collate_fn=self.collate[mode])
+                                        sampler = TSampler(datacrawler.metadata[mode]["crawl"], batch_size=batch_size*self.gpus, instance=instance*self.gpus), \
+                                        num_workers=self.workers, collate_fn=self.collate_simple)
       self.num_entities = datacrawler.metadata[mode]["pids"]
     elif mode == "test":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle = False, 
-                                        num_workers=self.workers, collate_fn=self.collate[mode])
+                                        num_workers=self.workers, collate_fn=self.collate_with_camera)
       self.num_entities = len(datacrawler.metadata["query"]["crawl"])
     else:
       raise NotImplementedError()
-  class __DataSet(TorchDataset):
-    def __init__(self,dataset, transform):
-      self.dataset = dataset
-      self.transform = transform
-    def __len__(self):
-      return len(self.dataset)
-    def __getitem__(self,idx):
-      img, pid, cid = self.dataset[idx]
-      img_arr = self.transform(self.load(img))
-      return img_arr, pid, cid, img
-    
-    def load(self,img):
-      if not osp.exists(img):
-        raise IOError("{img} does not exist in path".format(img=img))
-      img_load = Image.open(img).convert('RGB')
-      return img_load
-  
-  class __Sampler(Sampler):
-    """ Triplet sampler """
-    def __init__(self, dataset, batch_size, instance):
-      self.dataset = dataset
-      self.batch_size=batch_size
-      self.instance = instance
-      self.unique_ids = self.batch_size // self.instance
-      self.indices = defaultdict(list)
-      self.pids = set()
-      for idx, (img, pid, cid) in enumerate(self.dataset):
-        self.indices[pid].append(idx)
-        self.pids.add(pid)
-      self.pids = list(self.pids)
-      self.batch = 0
-      for pid in self.pids:
-        num_ids = len(self.indices[pid])
-        num_ids = self.instance if num_ids < self.instance else num_ids
-        self.batch += num_ids - num_ids % self.instance
-    
-    def __iter__(self):
-      batch_idx = defaultdict(list)
-      for pid in self.pids:
-        ids = [item for item in self.indices[pid]]
-        if len(ids) < self.instance:
-          ids = np.random.choice(ids, size=self.instance, replace=True)
-        random.shuffle(ids)
-        batch, batch_counter = [], 0
-        for idx in ids:
-          batch.append(idx)
-          batch_counter += 1
-          if len(batch) == self.instance:
-            batch_idx[pid].append(batch)
-            batch = []
-      _pids, r_pids = [item for item in self.pids], []
-      # Optimize this???
-      to_remove = {}
-      pid_len = len(_pids)
-      while pid_len >= self.unique_ids:
-        sampled = random.sample(_pids, self.unique_ids)
-        for pid in sampled:
-          batch = batch_idx[pid].pop(0)
-          r_pids.extend(batch)
-          if len(batch_idx[pid]) == 0:
-            to_remove[pid] = 1
-
-        _pids = [item for item in _pids if item not in to_remove]
-        pid_len = len(_pids)
-        to_remove = {}
-
-      self.__len = len(r_pids)
-      return iter(r_pids)
-    
-    def __len__(self):
-      return self.__len
+  def collate_simple(self,batch):
+    img, pid, _, _ = zip(*batch)
+    pid = torch.tensor(pid, dtype=torch.int64)
+    return torch.stack(img, dim=0), pid
+  def collate_with_camera(self,batch):
+    img, pid, cid, path = zip(*batch)
+    pid = torch.tensor(pid, dtype=torch.int64)
+    cid = torch.tensor(cid, dtype=torch.int64)
+    return torch.stack(img, dim=0), pid, cid, path
