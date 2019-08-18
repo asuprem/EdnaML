@@ -100,9 +100,8 @@ class SimpleTrainer:
                         self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:0.5f}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
                     self.step(batch)
                     self.global_batch += 1
-
-                    if self.global_batch + 1 % self.step_verbose == 0:
-                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}, Current Learning Rate: {4:.2e}'.format(self.global_epoch, self.global_batch, self.running_loss.avg, self.running_softaccuracy.avg))
+                    if (self.global_batch + 1) % self.step_verbose == 0:
+                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, self.running_loss.avg, self.running_softaccuracy.avg))
                 self.global_batch = 0
                 self.scheduler.step()
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
@@ -119,7 +118,6 @@ class SimpleTrainer:
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
         OPTIM_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer.pth'
         SCHEDULER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler.pth'
-        LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
 
         torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
         torch.save(self.optimizer.state_dict(), os.path.join(self.save_directory, OPTIM_SAVE))
@@ -129,10 +127,11 @@ class SimpleTrainer:
             shutil.copy2(os.path.join(self.save_directory, OPTIM_SAVE), self.backup_directory)
             shutil.copy2(os.path.join(self.save_directory, SCHEDULER_SAVE), self.backup_directory)
             self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
-
-        if os.path.exists(LOGGER_SAVE):
-            os.remove(LOGGER_SAVE)
-        shutil.copy2(self.logger_file, LOGGER_SAVE)
+            
+            LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
+            if os.path.exists(LOGGER_SAVE):
+                os.remove(LOGGER_SAVE)
+            shutil.copy2(self.logger_file, LOGGER_SAVE)
     
     def load(self, load_epoch):
         self.logger.info("Resuming training from epoch %i. Loading saved state from %i"%(load_epoch+1,load_epoch))
@@ -157,6 +156,63 @@ class SimpleTrainer:
         self.logger.info("Finished loading optimizer state_dict from %s"%optim_load_path)
         self.scheduler.load_state_dict(torch.load(scheduler_load_path))
         self.logger.info("Finished loading scheduler state_dict from %s"%scheduler_load_path)
+    # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
+    def eval_veri(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
+        """Evaluation with veri metric
+        Key: for each query identity, its gallery images from the same camera view are discarded.
+        """
+        num_q, num_g = distmat.shape
+
+        if num_g < max_rank:
+            max_rank = num_g
+            print('Note: number of gallery samples is quite small, got {}'.format(num_g))
+
+        indices = np.argsort(distmat, axis=1)
+        matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+        # compute cmc curve for each query
+        all_cmc = []
+        all_AP = []
+        num_valid_q = 0.  # number of valid query
+
+        for q_idx in range(num_q):
+            # get query pid and camid
+            q_pid = q_pids[q_idx]
+            q_camid = q_camids[q_idx]
+
+            # remove gallery samples that have the same pid and camid with query
+            order = indices[q_idx]
+            remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
+            keep = np.invert(remove)
+
+            # compute cmc curve
+            raw_cmc = matches[q_idx][keep]  # binary vector, positions with value 1 are correct matches
+            if not np.any(raw_cmc):
+                # this condition is true when query identity does not appear in gallery
+                continue
+
+            cmc = raw_cmc.cumsum()
+            cmc[cmc > 1] = 1
+
+            all_cmc.append(cmc[:max_rank])
+            num_valid_q += 1.
+
+            # compute average precision
+            # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+            num_rel = raw_cmc.sum()
+            tmp_cmc = raw_cmc.cumsum()
+            tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+            tmp_cmc = np.asarray(tmp_cmc) * raw_cmc
+            AP = tmp_cmc.sum() / num_rel
+            all_AP.append(AP)
+
+        assert num_valid_q > 0, 'Error: all query identities do not appear in gallery'
+
+        all_cmc = np.asarray(all_cmc).astype(np.float32)
+        all_cmc = all_cmc.sum(0) / num_valid_q
+        mAP = np.mean(all_AP)
+
+        return all_cmc, mAP
 
 
     def evaluate(self):
@@ -182,14 +238,20 @@ class SimpleTrainer:
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat.numpy(), query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
+        v_cmc, _ = self.eval_veri(distmat.numpy(), query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        self.logger.info('Completed VeRi CMC')
         mAP = self.mean_ap(distmat.numpy(), query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
-        self.logger.info('mAP Calculation')
+
+
+        self.logger.info('Completed mAP Calculation')
         
         self.logger.info('mAP: {:.2%}'.format(mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
+        for r in [1,2, 3, 4, 5,10,15,20]:
+            self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
   
     def query_to_gallery_distances(self, qf, gf):
         # distancesis sqrt(sum((a-b)^2))

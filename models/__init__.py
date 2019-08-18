@@ -1,5 +1,6 @@
 from torch import nn
-
+import torch.nn.functional as F
+from utils import layers
 class ReidModel(nn.Module):
     def __init__(self, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
         super(ReidModel, self).__init__()
@@ -10,14 +11,17 @@ class ReidModel(nn.Module):
         self.normalization = normalization
 
         self.build_base(base, weights, **kwargs)
-
         
         if self.normalization == 'bn':
             self.bn_bottleneck = nn.BatchNorm1d(self.embedding_dimensions)
             self.bn_bottleneck.bias.requires_grad_(False)
             self.bn_bottleneck.apply(self.weights_init_kaiming)
+        elif self.normalization == 'l2':
+            self.bn_bottleneck = layers.L2Norm(self.embedding_dimensions,scale=1.0)
         elif self.normalization is None:
             self.bn_bottleneck = None
+        else:
+            raise NotImplementedError()
 
         if self.soft_dimensions is not None:
             self.softmax = nn.Linear(self.embedding_dimensions, self.soft_dimensions, bias=False)
@@ -76,3 +80,16 @@ class ReidModel(nn.Module):
                 self._lambda = lambd
         def forward(self, x):
                 return self._lambda(x)
+
+
+def model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
+    # First identify the architecture...
+    arch = arch+"Base"
+    
+    archbase = __import__("models."+arch, fromlist=[arch])
+    archbase = getattr(archbase, arch)
+
+    model = archbase(base = base, weights=weights, normalization = normalization, embedding_dimensions = embedding_dimensions, soft_dimensions = soft_dimensions, **kwargs)
+    return model
+
+

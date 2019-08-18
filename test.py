@@ -6,7 +6,7 @@ import torch, torchsummary
 
 from crawlers import ReidDataCrawler
 from generators.SequencedGenerator import SequencedGenerator
-from models.ResnetBase import ResnetBase
+from models import model_builder
 from loss import LossBuilder
 from optimizer import OptimizerBuilder
 from trainer import SimpleTrainer
@@ -30,8 +30,8 @@ def main(config, mode, weights):
     model_weights = {"resnet50":["https://download.pytorch.org/models/resnet50-19c8e357.pth", "resnet50-19c8e357.pth"]}
 
     MODEL_WEIGHTS = None
-    if mode=='train' and config.get("MODEL.MODEL_BASE") in model_weights:
-        if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]):
+    if config.get("MODEL.MODEL_BASE") in model_weights:
+        if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]) or mode == 'test':
             pass
         else:
             utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
@@ -86,7 +86,13 @@ def main(config, mode, weights):
     logger.info("Generated validation data/query generator")
 
     # --------------------- INSTANTIATE MODEL ------------------------
-    reid_model = ResnetBase(base=config.get("MODEL.MODEL_BASE"), weights=MODEL_WEIGHTS, soft_dimensions = TRAIN_CLASSES, embedding_dimensions = config.get("MODEL.EMB_DIM"), normalization = config.get("MODEL.MODEL_NORMALIZATION"))
+    reid_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
+                                base=config.get("MODEL.MODEL_BASE"), \
+                                weights=MODEL_WEIGHTS, \
+                                soft_dimensions = TRAIN_CLASSES, \
+                                embedding_dimensions = config.get("MODEL.EMB_DIM"), \
+                                normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
+                                **json.loads(config.get("MODEL.MODEL_KWARGS")))
     logger.info("Finished instantiating model")
 
     if mode == "test":
@@ -101,7 +107,7 @@ def main(config, mode, weights):
     logger.info("Built loss function")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
-    optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **config.get("OPTIMIZER.OPTIMIZER_KWARGS"))
+    optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
     logger.info("Build optimizer")
     # --------------------- INSTANTIATE SCHEDULER ------------------------
     scheduler_ = config.get("SCHEDULER.LR_SCHEDULER")
@@ -120,10 +126,15 @@ def main(config, mode, weights):
         previous_stop = 0
     else:
         previous_stop = max(previous_stop) + 1
-
+        logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
     loss_stepper = SimpleTrainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
-    loss_stepper.train()
+    if mode == 'train':
+      loss_stepper.train(continue_epoch=previous_stop)
+    elif mode == 'test':
+      loss_stepper.evaluate()
+    else:
+      raise NotImplementedError()
     
 
 if __name__ == "__main__":

@@ -70,5 +70,5 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
 
     def lr_mult(self, val, operand):
         return val*operand
-    def lr_plus(val, operand):
+    def lr_plus(self, val, operand):
         return val+operand

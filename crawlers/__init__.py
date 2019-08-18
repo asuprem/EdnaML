@@ -1,4 +1,4 @@
-import os.path as osp
+import os
 import re
 import glob
 
@@ -7,9 +7,9 @@ class ReidDataCrawler:
     self.metadata = {}
 
     self.data_folder = data_folder
-    self.train_folder = osp.join(self.data_folder, train_folder)
-    self.test_folder = osp.join(self.data_folder, test_folder)
-    self.query_folder = osp.join(self.data_folder, query_folder)
+    self.train_folder = os.path.join(self.data_folder, train_folder)
+    self.test_folder = os.path.join(self.data_folder, test_folder)
+    self.query_folder = os.path.join(self.data_folder, query_folder)
 
     self.logger = kwargs.get("logger")
 
@@ -21,7 +21,7 @@ class ReidDataCrawler:
     self.crawl()
 
   def __verify(self,folder):
-    if not osp.exists(folder):
+    if not os.path.exists(folder):
       raise IOError("Folder {data_folder} does not exist".format(data_folder=folder))
     else:
       self.logger.info("Found {data_folder}".format(data_folder = folder))
@@ -37,7 +37,7 @@ class ReidDataCrawler:
     self.logger.info("Query\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"]))
 
   def __crawl(self,folder, reset_labels=False):
-    imgs = glob.glob(osp.join(folder, "*.jpg"))
+    imgs = glob.glob(os.path.join(folder, "*.jpg"))
     _re = re.compile(r'([\d]+)_[a-z]([\d]+)')
     pid_labeler = 0
     pid_tracker, cid_tracker = {}, {}

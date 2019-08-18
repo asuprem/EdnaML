@@ -16,10 +16,11 @@ TRANSFORMATION:
   CHANNELS: 3
   BATCH_SIZE: 36
   INSTANCES: 6
-  WORKERS: 4
+  WORKERS: 8
 
 MODEL:
   MODEL_BASE: 'resnet50'
+  MODEL_ARCH: 'Resnet'
   MODEL_WEIGHTS: True
   MODEL_ATTENTION: ''
   EMB_DIM: 2048
@@ -28,7 +29,7 @@ MODEL:
 
 SAVE:
   SAVE_FREQUENCY: 5 # Epoch
-  MODEL_VERSION: 1
+  MODEL_VERSION: 2
   MODEL_CORE_NAME: "torch_reid"
   MODEL_BACKBONE: "res50"
   MODEL_QUALIFIER: "all"
@@ -47,16 +48,16 @@ LOSS:
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
-  OPTIMIZER_KWARGS: {}
+  OPTIMIZER_KWARGS: '{}'
   BASE_LR: 0.0001
   LR_BIAS_FACTOR: 1.0
   WEIGHT_DECAY: 0.0005
   WEIGHT_BIAS_FACTOR: 0.0005
-  FP16: True # Epoch
+  FP16: True
 
 SCHEDULER:
   LR_SCHEDULER: 'FineGrainedSteppedLR'
   LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"+",0.8], [60,"+",0.7], [80,"+",0.7], [100,"+",0.6], [120,"+",0.5]]}'
 
 LOGGING:
-  STEP_VERBOSE: 50 # Batch
+  STEP_VERBOSE: 100 # Batch
