@@ -41,7 +41,7 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
+                 base_width=64, dilation=1, norm_layer=None, attention=None):
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -54,7 +54,17 @@ class BasicBlock(nn.Module):
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False, groups=1, dilation=1)
-        self.bn2 = norm_layer(planes)
+        self.bn2 = norm_layer(planes)       
+        
+        if attention is None:
+            self.ca = None
+            self.sa = None
+        elif attention == 'cbam':
+            self.ca = ChannelAttention(planes)
+            self.sa = SpatialAttention()
+        else:
+            raise NotImplementedError()
+
         self.downsample = downsample
         self.stride = stride
 
@@ -68,6 +78,10 @@ class BasicBlock(nn.Module):
         out = self.conv2(out)
         out = self.bn2(out)
 
+        if self.ca is not None:
+            out = self.ca(out) * out
+            out = self.sa(out) * out
+
         if self.downsample is not None:
             identity = self.downsample(x)
 
@@ -79,7 +93,7 @@ class BasicBlock(nn.Module):
 class Bottleneck(nn.Module):
     expansion = 4
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, groups = 1, base_width = 64, dilation = 1, norm_layer=None):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, groups = 1, base_width = 64, dilation = 1, norm_layer=None, attention = None):
         super(Bottleneck, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -92,6 +106,16 @@ class Bottleneck(nn.Module):
         self.conv3 = nn.Conv2d(width, planes * self.expansion, kernel_size=1, bias=False, stride=1)
         self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
+        
+        if attention is None:
+            self.ca = None
+            self.sa = None
+        elif attention == 'cbam':
+            self.ca = ChannelAttention(planes*self.expansion)
+            self.sa = SpatialAttention()
+        else:
+            raise NotImplementedError()
+        
         self.downsample = downsample
         self.stride = stride
 
@@ -109,6 +133,10 @@ class Bottleneck(nn.Module):
         out = self.conv3(out)
         out = self.bn3(out)
 
+        if self.ca is not None:
+            out = self.ca(out) * out
+            out = self.sa(out) * out
+
         if self.downsample is not None:
             identity = self.downsample(x)
 
@@ -119,9 +147,9 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
     def __init__(self, block=Bottleneck, layers=[3, 4, 6, 3], last_stride=2, zero_init_residual=False, \
-                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None):
-        
+                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, attention=None):
         super().__init__()
+        self.attention=attention
         self.block=block
         self.inplanes = 64
         if norm_layer is None:
@@ -164,10 +192,10 @@ class ResNet(nn.Module):
             )
     
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer))
+        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=self.attention))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer))
+            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=self.attention))
         return nn.Sequential(*layers)
     
     def forward(self, x):

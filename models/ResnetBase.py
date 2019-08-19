@@ -10,7 +10,7 @@ class ResnetBase(ReidModel):
     def build_base(self,arch, weights, **kwargs):
         _resnet = __import__("backbones.resnet", fromlist=["resnet"])
         _resnet = getattr(_resnet, arch)
-        self.base = _resnet(last_stride=1)
+        self.base = _resnet(last_stride=1, **kwargs)
         if weights is not None:
             self.base.load_param(weights)
         

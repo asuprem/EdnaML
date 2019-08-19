@@ -6,7 +6,6 @@ We assume torch is the DNN framework of choice
 """
 
 import os, shutil, glob, json
-import tqdm 
 import math, random
 import logging
 import re

@@ -27,7 +27,7 @@ def main(config, mode, weights):
     TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
 
     """ MODEL PARAMS """
-    model_weights = {"resnet50":["https://download.pytorch.org/models/resnet50-19c8e357.pth", "resnet50-19c8e357.pth"]}
+    from utils import model_weights
 
     MODEL_WEIGHTS = None
     if config.get("MODEL.MODEL_BASE") in model_weights:
