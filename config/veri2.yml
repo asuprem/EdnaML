@@ -48,7 +48,7 @@ LOSS:
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
   OPTIMIZER_KWARGS: '{}'
-  BASE_LR: 0.0001
+  BASE_LR: 0.00001
   LR_BIAS_FACTOR: 1.0
   WEIGHT_DECAY: 0.0005
   WEIGHT_BIAS_FACTOR: 0.0005
@@ -56,7 +56,7 @@ OPTIMIZER:
 
 SCHEDULER:
   LR_SCHEDULER: 'FineGrainedSteppedLR'
-  LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"+",0.8], [60,"+",0.7], [80,"+",0.7], [100,"+",0.6], [120,"+",0.5]]}'
+  LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"*",0.8], [60,"*",0.7], [80,"*",0.7], [100,"*",0.6], [120,"*",0.5]]}'
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch
