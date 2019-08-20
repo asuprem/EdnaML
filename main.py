@@ -31,11 +31,12 @@ def main(config, mode, weights):
 
     MODEL_WEIGHTS = None
     if config.get("MODEL.MODEL_BASE") in model_weights:
-        if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]) or mode == 'test':
-            pass
-        else:
-            utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
-        MODEL_WEIGHTS = model_weights[config.get("MODEL.MODEL_BASE")][1]
+        if mode == "train":
+            if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]):
+                pass
+            else:
+                utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
+            MODEL_WEIGHTS = model_weights[config.get("MODEL.MODEL_BASE")][1]
     else:
         raise NotImplementedError("Model %s is not available. Please choose one of the following: %s"%(config.get("MODEL.MODEL_BASE"), str(model_weights.keys())))
 
@@ -110,9 +111,13 @@ def main(config, mode, weights):
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
     logger.info("Build optimizer")
     # --------------------- INSTANTIATE SCHEDULER ------------------------
-    scheduler_ = config.get("SCHEDULER.LR_SCHEDULER")
-    scheduler = __import__("scheduler."+scheduler_, fromlist=[scheduler_])
-    scheduler = getattr(scheduler, scheduler_)
+    try:
+        scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
+        scheduler = getattr(scheduler, config.get("SCHEDULER.LR_SCHEDULER"))
+    except (ModuleNotFoundError, AttributeError):
+        scheduler_ = config.get("SCHEDULER.LR_SCHEDULER")
+        scheduler = __import__("scheduler."+scheduler_, fromlist=[scheduler_])
+        scheduler = getattr(scheduler, scheduler_)
     scheduler = scheduler(optimizer, last_epoch = -1, **json.loads(config.get("SCHEDULER.LR_KWARGS")))
     logger.info("Built scheduler")
     

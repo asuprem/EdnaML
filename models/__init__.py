@@ -9,7 +9,6 @@ class ReidModel(nn.Module):
         self.embedding_dimensions = embedding_dimensions
         self.soft_dimensions = soft_dimensions
         self.normalization = normalization
-
         self.build_base(base, weights, **kwargs)
         
         if self.normalization == 'bn':
@@ -85,7 +84,6 @@ class ReidModel(nn.Module):
 def model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
     # First identify the architecture...
     arch = arch+"Base"
-    
     archbase = __import__("models."+arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
