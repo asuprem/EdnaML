@@ -11,8 +11,6 @@ from loss import LossBuilder
 from optimizer import OptimizerBuilder
 from trainer import SimpleTrainer
 
-import config.base as cfgbase
-
 @click.command()
 @click.argument('config')
 @click.option('--mode', default="train", help="Execution mode: [train/test]")
