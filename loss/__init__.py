@@ -32,8 +32,8 @@ class LossBuilder(object):
     if fn_len != kwargs_len:
       raise ValueError("Loss function list length is %i. Expected %i length loss_kwargs, got %i"%(fn_len, fn_len, kwargs_len))
     for idx, fn in enumerate(loss_functions):
-      self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=fn, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
       self.loss.append(self.LOSS_PARAMS[fn]['fn'](**loss_kwargs[idx]))
+      self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=fn, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
     self.loss_lambda = loss_lambda
     self.loss_fn = loss_functions
     
