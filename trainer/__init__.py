@@ -28,8 +28,8 @@ class SimpleTrainer:
         self.global_batch = 0
         self.global_epoch = 0
 
-        self.running_loss = self.RunningAverage()
-        self.running_softaccuracy = self.RunningAverage()
+        self.loss = []
+        self.softaccuracy = []
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
@@ -75,8 +75,8 @@ class SimpleTrainer:
         self.optimizer.step()
         
         softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
-        self.running_loss.update(loss.cpu().item())
-        self.running_softaccuracy.update(softmax_accuracy.cpu().item())
+        self.loss.append(loss.cpu().item())
+        self.softaccuracy.append(softmax_accuracy.cpu().item())
 
     def train(self,continue_epoch = 0):    
         self.logger.info("Starting training")
@@ -102,7 +102,7 @@ class SimpleTrainer:
                     self.step(batch)
                     self.global_batch += 1
                     if (self.global_batch + 1) % self.step_verbose == 0:
-                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, self.running_loss.avg, self.running_softaccuracy.avg))
+                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, self.loss[-1], self.softaccuracy[-1]))
                 self.global_batch = 0
                 self.scheduler.step()
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
@@ -348,10 +348,3 @@ class SimpleTrainer:
             i = np.random.choice(indices)
             mask[i] = True
         return mask
-    class RunningAverage(object):
-        def __init__(self):
-            self.reset()
-        def reset(self):
-            self.avg, self.sum, self.cnt, self.last = 0, 0, 0, 0
-        def update(self, val, n=1):
-            self.last = val; self.sum += self.last * n; self.cnt += n; self.avg = self.sum / self.cnt;
