@@ -15,8 +15,16 @@ class ReidModel(nn.Module):
             self.feat_norm = nn.BatchNorm1d(self.embedding_dimensions)
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
-        elif self.normalization == 'in':
-            self.feat_norm = nn.InstanceNorm1d(self.embedding_dimensions, affine=True)
+        elif self.normalization == "in":
+            self.feat_norm = layers.FixedInstanceNorm1d(self.embedding_dimensions, affine=True)
+            self.feat_norm.bias.requires_grad_(False)
+            self.feat_norm.apply(self.weights_init_kaiming)
+        elif self.normalization == "gn":
+            self.feat_norm = nn.GroupNorm(self.embedding_dimensions // 16, self.embedding_dimensions, affine=True)
+            self.feat_norm.bias.requires_grad_(False)
+            self.feat_norm.apply(self.weights_init_kaiming)
+        elif self.normalization == "ln":
+            self.feat_norm = nn.LayerNorm(self.embedding_dimensions,elementwise_affine=True)
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == 'l2':
