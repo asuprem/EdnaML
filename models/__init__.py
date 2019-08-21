@@ -8,7 +8,7 @@ class ReidModel(nn.Module):
         
         self.embedding_dimensions = embedding_dimensions
         self.soft_dimensions = soft_dimensions
-        self.normalization = normalization
+        self.normalization = normalization if normalization != '' else None
         self.build_base(base, weights, **kwargs)
         
         if self.normalization == 'bn':
