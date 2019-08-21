@@ -5,7 +5,7 @@ class Loss(object):
         raise NotImplementedError()
 
 from .SoftmaxLogitsLoss import SoftmaxLogitsLoss
-from .SoftmaxLossSmooth import SoftmaxLabelSmooth
+from .SoftmaxLabelSmooth import SoftmaxLabelSmooth
 from .TripletLoss import TripletLoss
 
 

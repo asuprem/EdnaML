@@ -16,18 +16,18 @@ TRANSFORMATION:
   CHANNELS: 3
   BATCH_SIZE: 36
   INSTANCES: 6
-  WORKERS: 8
+  WORKERS: 1
 
 MODEL:
-  MODEL_BASE: 'resnet18'
+  MODEL_BASE: 'resnet50'
   MODEL_ARCH: 'Resnet'
-  EMB_DIM: 512
+  EMB_DIM: 2048
   MODEL_NORMALIZATION: 'bn'
-  MODEL_KWARGS: '{"attention":"cbam"}'
+  MODEL_KWARGS: '{"attention":"cbam", "input_attention": true}'
 
 SAVE:
   SAVE_FREQUENCY: 5 # Epoch
-  MODEL_VERSION: 5
+  MODEL_VERSION: 6
   MODEL_CORE_NAME: "torch_reid"
   MODEL_BACKBONE: "res50"
   MODEL_QUALIFIER: "all"
@@ -35,26 +35,26 @@ SAVE:
 
 EXECUTION:
   MODEL_SERVING: None
-  EPOCHS: 200
+  EPOCHS: 260
   TEST_FREQUENCY: 5
 
 LOSS:
-  LOSSES: ['SoftmaxLogitsLoss', 'TripletLoss']
-  LOSS_KWARGS: [{}, {'margin':0.4, 'mine':'hard'}]
+  LOSSES: ['SoftmaxLabelSmooth', 'TripletLoss']
+  LOSS_KWARGS: [{'soft_dim':575}, {'margin':0.3, 'mine':'hard'}]
   LOSS_LAMBDAS: [1.0, 1.0]
 
 OPTIMIZER:
-  OPTIMIZER_NAME: "AdamW"
+  OPTIMIZER_NAME: "Adam"
   OPTIMIZER_KWARGS: '{}'
   BASE_LR: 0.00001
   LR_BIAS_FACTOR: 1.0
-  WEIGHT_DECAY: 0.0005  # Alexnet
+  WEIGHT_DECAY: 0.0005
   WEIGHT_BIAS_FACTOR: 0.0005
   FP16: True
 
 SCHEDULER:
   LR_SCHEDULER: 'FineGrainedSteppedLR'
-  LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"*",0.75], [60,"*",0.75], [80,"*",0.75], [100,"*",0.75], [120,"*",0.75]]}'
+  LR_KWARGS: '{"lr_ops":[[2,"+",2e-5], [4,"+",2e-5], [6,"+",2e-5], [8,"+",2e-5], [10,"+",2e-5], [20,"*",0.9], [40,"*",0.8], [60,"*",0.7], [80,"*",0.7], [100,"*",0.6], [120,"*",0.5]]}'
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch

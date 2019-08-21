@@ -5,6 +5,7 @@ import shutil
 import os
 import torch
 import numpy as np
+from scipy.spatial.distance import cdist
 
 class SimpleTrainer:
     try:
@@ -233,14 +234,15 @@ class SimpleTrainer:
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
         
         distmat = self.query_to_gallery_distances(query_features, gallery_features)
+        distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
-        m_cmc = self.cmc(distmat.numpy(), query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=False, first_match_break=False)
+        m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=False, first_match_break=False)
         self.logger.info('Completed market-1501 CMC')
-        c_cmc = self.cmc(distmat.numpy(), query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
+        c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, _ = self.eval_veri(distmat.numpy(), query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, _ = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VeRi CMC')
-        mAP = self.mean_ap(distmat.numpy(), query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+        mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
 
         self.logger.info('Completed mAP Calculation')
@@ -261,6 +263,12 @@ class SimpleTrainer:
         eu= torch.addmm(1,a2b2, -2, qf, gf.t())
         eu = eu.clamp(min=1e-12).sqrt()
         return eu
+
+    def cosine_query_to_gallery_distances(self, qf, gf):
+        # distancesis sqrt(sum((a-b)^2))
+        # so a^2 + b^2 - 2ab
+        return cdist(qf, gf, metric='cosine')
+
 
 
     # https://github.com/Cysu/open-reid/blob/master/reid/evaluation_metrics/ranking.py

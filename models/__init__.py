@@ -12,13 +12,17 @@ class ReidModel(nn.Module):
         self.build_base(base, weights, **kwargs)
         
         if self.normalization == 'bn':
-            self.bn_bottleneck = nn.BatchNorm1d(self.embedding_dimensions)
-            self.bn_bottleneck.bias.requires_grad_(False)
-            self.bn_bottleneck.apply(self.weights_init_kaiming)
+            self.feat_norm = nn.BatchNorm1d(self.embedding_dimensions)
+            self.feat_norm.bias.requires_grad_(False)
+            self.feat_norm.apply(self.weights_init_kaiming)
+        elif self.normalization == 'in':
+            self.feat_norm = nn.InstanceNorm1d(self.embedding_dimensions, affine=True)
+            self.feat_norm.bias.requires_grad_(False)
+            self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == 'l2':
-            self.bn_bottleneck = layers.L2Norm(self.embedding_dimensions,scale=1.0)
+            self.feat_norm = layers.L2Norm(self.embedding_dimensions,scale=1.0)
         elif self.normalization is None:
-            self.bn_bottleneck = None
+            self.feat_norm = None
         else:
             raise NotImplementedError()
 
@@ -31,8 +35,8 @@ class ReidModel(nn.Module):
     def forward(self,x):
         features = self.base_forward(x)
         
-        if self.bn_bottleneck is not None:
-            inference = self.bn_bottleneck(features)
+        if self.feat_norm is not None:
+            inference = self.feat_norm(features)
         else:
             inference = features
 
@@ -53,11 +57,15 @@ class ReidModel(nn.Module):
         elif classname.find('Conv') != -1:
                 nn.init.kaiming_normal_(m.weight, a=0, mode='fan_in')
                 if m.bias is not None:
-                        nn.init.constant_(m.bias, 0.0)
+                    nn.init.constant_(m.bias, 0.0)
         elif classname.find('BatchNorm') != -1:
                 if m.affine:
-                        nn.init.constant_(m.weight, 1.0)
-                        nn.init.constant_(m.bias, 0.0)
+                    nn.init.constant_(m.weight, 1.0)
+                    nn.init.constant_(m.bias, 0.0)
+        elif classname.find('InstanceNorm') != -1:
+                if m.affine:
+                    nn.init.constant_(m.weight, 1.0)
+                    nn.init.constant_(m.bias, 0.0)
 
     def weights_init_softmax(self, m):
         """ Initialize linear weights to standard normal. Mean 0. Standard Deviation 0.001 """
