@@ -19,8 +19,25 @@ def main(config, mode, weights):
     cfg = kaptan.Kaptan(handler='yaml')
     config = cfg.import_config(config)
     
-    
     MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(config)
+    logger = logging.getLogger(MODEL_SAVE_FOLDER)
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(LOGGER_SAVE_NAME)
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    
+    cs = logging.StreamHandler()
+    cs.setLevel(logging.DEBUG)
+    cs.setFormatter(logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S"))
+    logger.addHandler(cs)
+
+    logger.info("*"*40);logger.info("");logger.info("")
+    logger.info("Using the following configuration:")
+    logger.info(config.export("yaml", indent=4))
+    logger.info("");logger.info("");logger.info("*"*40)
+
     NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE = utils.fix_generator_arguments(config)
     TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
 
@@ -33,6 +50,7 @@ def main(config, mode, weights):
             if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]):
                 pass
             else:
+                logger.info("Model weights file {} does not exist. Downloading.".format(model_weights[config.get("MODEL.MODEL_BASE")][1]))
                 utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
             MODEL_WEIGHTS = model_weights[config.get("MODEL.MODEL_BASE")][1]
     else:
@@ -48,24 +66,12 @@ def main(config, mode, weights):
     else:
         backup_logger = None
 
-    logger = logging.getLogger(MODEL_SAVE_FOLDER)
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(LOGGER_SAVE_NAME)
-    fh.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    
-    cs = logging.StreamHandler()
-    cs.setLevel(logging.DEBUG)
-    cs.setFormatter(logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S"))
-    logger.addHandler(cs)
 
 
     NUM_GPUS = torch.cuda.device_count()
     if NUM_GPUS > 1:
         raise RuntimeError("Not built for multi-GPU. Please start with single-GPU.")
-    print("Found %i GPUs"%NUM_GPUS)
+    logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
