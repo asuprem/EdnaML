@@ -98,7 +98,7 @@ class SimpleTrainer:
                 for batch in self.train_loader:
                     if not self.global_batch:
                         lrs = self.scheduler.get_lr(); lrs = sum(lrs)/float(len(lrs))
-                        self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:0.5f}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
+                        self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:2.5E}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
                     self.step(batch)
                     self.global_batch += 1
                     if (self.global_batch + 1) % self.step_verbose == 0:
