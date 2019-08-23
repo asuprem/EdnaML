@@ -180,7 +180,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
     def __init__(self, block=Bottleneck, layers=[3, 4, 6, 3], last_stride=2, zero_init_residual=False, \
-                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, attention=None, input_attention = None, secondary_attention=True):
+                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, attention=None, input_attention = None, secondary_attention=None):
         super().__init__()
         self.attention=attention
         self.input_attention=input_attention
@@ -201,10 +201,23 @@ class ResNet(nn.Module):
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu1 = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(self.block, 64, layers[0], input_attention=self.input_attention)
-        self.layer2 = self._make_layer(self.block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(self.block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(self.block, 512, layers[3], stride=last_stride, dilate=replace_stride_with_dilation[2])
+
+        att = self.attention
+        if secondary_attention is not None and secondary_attention != 1: # leave alone if sec attention not set
+            att = None
+        self.layer1 = self._make_layer(self.block, 64, layers[0], attention = att, input_attention=self.input_attention)
+        att = self.attention
+        if secondary_attention is not None and secondary_attention != 2: # leave alone if sec attention not set
+            att = None
+        self.layer2 = self._make_layer(self.block, 128, layers[1], stride=2, attention = att, dilate=replace_stride_with_dilation[0])
+        att = self.attention
+        if secondary_attention is not None and secondary_attention != 3: # leave alone if sec attention not set
+            att = None
+        self.layer3 = self._make_layer(self.block, 256, layers[2], stride=2, attention = att, dilate=replace_stride_with_dilation[1])
+        att = self.attention
+        if secondary_attention is not None and secondary_attention != 4: # leave alone if sec attention not set
+            att = None
+        self.layer4 = self._make_layer(self.block, 512, layers[3], stride=last_stride, attention = att, dilate=replace_stride_with_dilation[2])
         
         self.top_only = top_only
         self.avgpool, self.fc = None, None
@@ -213,7 +226,7 @@ class ResNet(nn.Module):
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.fc = nn.Linear(512 * block.expansion, num_classes)
     
-    def _make_layer(self, block, planes, blocks, stride=1, dilate = False, input_attention=False):
+    def _make_layer(self, block, planes, blocks, stride=1, dilate = False, attention = None, input_attention=False):
         downsample = None
         previous_dilation = self.dilation
         if dilate:
@@ -227,11 +240,10 @@ class ResNet(nn.Module):
             )
     
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=self.attention, input_attention=input_attention))
+        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=attention, input_attention=input_attention))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            att = self.attention if self.secondary_attention else None
-            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=att))
+            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=attention))
         return nn.Sequential(*layers)
     
     def forward(self, x):
