@@ -6,6 +6,7 @@
 AIC
 VeRi
 goof
+drive
 
 # Ignore model artifacts
 *.pth
