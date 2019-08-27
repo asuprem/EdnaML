@@ -1,5 +1,20 @@
 from . import web as web
+import logging
 
+def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
+    logger = logging.getLogger(MODEL_SAVE_FOLDER)
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(LOGGER_SAVE_NAME)
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    cs = logging.StreamHandler()
+    cs.setLevel(logging.DEBUG)
+    cs.setFormatter(logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S"))
+    logger.addHandler(cs)
+    return logger
 
 def generate_save_names(cfg):
     MODEL_SAVE_NAME = "%s-v%i"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"))

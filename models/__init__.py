@@ -97,7 +97,7 @@ class ReidModel(nn.Module):
                 return self._lambda(x)
 
 
-def model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
+def veri_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
     # First identify the architecture...
     arch = arch+"Base"
     archbase = __import__("models."+arch, fromlist=[arch])
@@ -105,5 +105,12 @@ def model_builder(arch, base, weights=None, normalization=None, embedding_dimens
 
     model = archbase(base = base, weights=weights, normalization = normalization, embedding_dimensions = embedding_dimensions, soft_dimensions = soft_dimensions, **kwargs)
     return model
+
+def vaegan_model_builder(**kwargs):
+    # First identify the architecture...
+    model = None
+    return model
+
+model_builder = veri_model_builder
 
 
