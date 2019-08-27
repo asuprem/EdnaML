@@ -1,1 +1,1 @@
-from .FineGrainedSteppedLR import FineGrainedSteppedLR as FineGrainedSteppedLR
+from .FineGrainedSteppedLR import FineGrainedSteppedLR

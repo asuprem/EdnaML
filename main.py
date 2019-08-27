@@ -5,7 +5,7 @@ import utils
 import torch, torchsummary
 
 from crawlers import ReidDataCrawler
-from generators.SequencedGenerator import SequencedGenerator
+from generators import SequencedGenerator
 from models import model_builder
 from loss import LossBuilder
 from optimizer import OptimizerBuilder
