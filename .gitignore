@@ -1,8 +1,25 @@
+# General ignores
+.vscode
+*.pyc
+
+# Folder ignores
 AIC
 VeRi
-*.zip
-*.pth
-*.pyc
-*.log
-.vscode
 goof
+
+# Ignore model artifacts
+*.pth
+
+# Ignore compression artifacts
+*.zip
+
+# Ignore log artifacts
+*.log
+
+# Ignore unnecessary configurations
+**/*.yml
+
+
+# Allow 
+!config/veri_base.yml
+
