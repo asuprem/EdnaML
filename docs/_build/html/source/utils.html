@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>utils package &#8212; PyTorch Multi-Experiment Framework 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vae_gan module" href="vae_gan.html" />
+    <link rel="prev" title="trainer package" href="trainer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="utils-package">
+<h1>utils package<a class="headerlink" href="#utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-utils.layers">
+<span id="utils-layers-module"></span><h2>utils.layers module<a class="headerlink" href="#module-utils.layers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="utils.layers.FixedInstanceNorm1d">
+<em class="property">class </em><code class="sig-prename descclassname">utils.layers.</code><code class="sig-name descname">FixedInstanceNorm1d</code><span class="sig-paren">(</span><em class="sig-param">num_features</em>, <em class="sig-param">eps=1e-05</em>, <em class="sig-param">momentum=0.1</em>, <em class="sig-param">affine=False</em>, <em class="sig-param">track_running_stats=False</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.layers.FixedInstanceNorm1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.instancenorm._InstanceNorm</span></code></p>
+<p>Applies Instance Normalization over a 2D or 3D input (a mini-batch of 1D
+inputs with optional additional channel dimension) as described in the paper
+<a class="reference external" href="https://arxiv.org/abs/1607.08022">Instance Normalization: The Missing Ingredient for Fast Stylization</a> .
+.. math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="n">x</span> <span class="o">-</span> \<span class="n">mathrm</span><span class="p">{</span><span class="n">E</span><span class="p">}[</span><span class="n">x</span><span class="p">]}{</span> \<span class="n">sqrt</span><span class="p">{</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">Var</span><span class="p">}[</span><span class="n">x</span><span class="p">]</span> <span class="o">+</span> \<span class="n">epsilon</span><span class="p">}}</span> <span class="o">*</span> \<span class="n">gamma</span> <span class="o">+</span> \<span class="n">beta</span>
+</pre></div>
+</div>
+<p>The mean and standard-deviation are calculated per-dimension separately
+for each object in a mini-batch. <span class="math notranslate nohighlight">\(\gamma\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> are learnable parameter vectors
+of size <cite>C</cite> (where <cite>C</cite> is the input size) if <code class="xref py py-attr docutils literal notranslate"><span class="pre">affine</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+By default, this layer uses instance statistics computed from input data in
+both training and evaluation modes.
+If <code class="xref py py-attr docutils literal notranslate"><span class="pre">track_running_stats</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, during training this
+layer keeps running estimates of its computed mean and variance, which are
+then used for normalization during evaluation. The running estimates are
+kept with a default <code class="xref py py-attr docutils literal notranslate"><span class="pre">momentum</span></code> of 0.1.
+.. note:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>This :attr:`momentum` argument is different from one used in optimizer
+classes and the conventional notion of momentum. Mathematically, the
+update rule for running statistics here is
+:math:`\hat{x}_\text{new} = (1 - \text{momentum}) \times \hat{x} + \text{momemtum} \times x_t`,
+where :math:`\hat{x}` is the estimated statistic and :math:`x_t` is the
+new observed value.
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_features</strong> – <span class="math notranslate nohighlight">\(C\)</span> from an expected input of size
+<span class="math notranslate nohighlight">\((N, C, L)\)</span> or <span class="math notranslate nohighlight">\(L\)</span> from input of size <span class="math notranslate nohighlight">\((N, L)\)</span></p></li>
+<li><p><strong>eps</strong> – a value added to the denominator for numerical stability. Default: 1e-5</p></li>
+<li><p><strong>momentum</strong> – the value used for the running_mean and running_var computation. Default: 0.1</p></li>
+<li><p><strong>affine</strong> – a boolean value that when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, this module has
+learnable affine parameters, initialized the same way as done for batch normalization.
+Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>track_running_stats</strong> – a boolean value that when set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, this
+module tracks the running mean and variance, and when set to <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+this module does not track such statistics and always uses batch
+statistics in both training and eval modes. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Shape:</dt><dd><ul class="simple">
+<li><p>Input: <span class="math notranslate nohighlight">\((N, C, L)\)</span></p></li>
+<li><p>Output: <span class="math notranslate nohighlight">\((N, C, L)\)</span> (same shape as input)</p></li>
+</ul>
+</dd>
+<dt>Examples::</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Without Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">InstanceNorm1d</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># With Learnable Parameters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">InstanceNorm1d</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.layers.L2Norm">
+<em class="property">class </em><code class="sig-prename descclassname">utils.layers.</code><code class="sig-name descname">L2Norm</code><span class="sig-paren">(</span><em class="sig-param">n_channels</em>, <em class="sig-param">scale</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.layers.L2Norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<dl class="method">
+<dt id="utils.layers.L2Norm.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.layers.L2Norm.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="utils.layers.L2Norm.reset_parameters">
+<code class="sig-name descname">reset_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.layers.L2Norm.reset_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-utils.web">
+<span id="utils-web-module"></span><h2>utils.web module<a class="headerlink" href="#module-utils.web" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="utils.web.download">
+<code class="sig-prename descclassname">utils.web.</code><code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param">file_</em>, <em class="sig-param">url</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.web.download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="utils.fix_generator_arguments">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">fix_generator_arguments</code><span class="sig-paren">(</span><em class="sig-param">cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.fix_generator_arguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.generate_logger">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">generate_logger</code><span class="sig-paren">(</span><em class="sig-param">MODEL_SAVE_FOLDER</em>, <em class="sig-param">LOGGER_SAVE_NAME</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.generate_logger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.generate_save_names">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">generate_save_names</code><span class="sig-paren">(</span><em class="sig-param">cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.generate_save_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PyTorch Multi-Experiment Framework</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">generators package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loss.html">loss package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">models package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Contextual Invariants</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html">generators package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss.html">loss package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html">models package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serve.html">serve module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html">trainer package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="serve.html">serve module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trainer.html">trainer package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-utils.layers">utils.layers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-utils.web">utils.web module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Contextual Invariants</a><ul>
+      <li>Previous: <a href="trainer.html" title="previous chapter">trainer package</a></li>
+      <li>Next: <a href="vae_gan.html" title="next chapter">vae_gan module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Abhijit Suprem.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
