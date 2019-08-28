@@ -106,10 +106,15 @@ def veri_model_builder(arch, base, weights=None, normalization=None, embedding_d
     model = archbase(base = base, weights=weights, normalization = normalization, embedding_dimensions = embedding_dimensions, soft_dimensions = soft_dimensions, **kwargs)
     return model
 
-def vaegan_model_builder(**kwargs):
-    # First identify the architecture...
-    model = None
-    return model
+   
+    
+def vaegan_model_builder(latent_dimensions = None, **kwargs):
+    arch = "VAEGAN"
+    archbase = __import__("models."+arch, fromlist=[arch])
+    archbase = getattr(archbase, arch)
+    
+    return archbase(latent_dimensions=latent_dimensions, **kwargs)
+    
 
 model_builder = veri_model_builder
 
