@@ -24,23 +24,25 @@ def main(config, mode, weights):
     logger.info(config.export("yaml", indent=4))
     logger.info("");logger.info("");logger.info("*"*40)
 
+    """ SETUP IMPORTS """
+    #from crawlers import ReidDataCrawler
+    #from generators import SequencedGenerator
+    model_builder = __import__("models", fromlist=["*"])
+    model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER"))
+    logger.info("Loaded {} from {} to build VAEGAN model".format(config.get("EXECUTION.MODEL_BUILDER"), "models"))
+
+    #from loss import LossBuilder
+    
+    optimizer_builder = __import__("optimizer", fromlist=["*"])
+    optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
+    logger.info("Loaded {} from {} to build VAEGAN model".format(config.get("EXECUTION.OPTIMIZER_BUILDER"), "optimizer"))
+
+    #from trainer import SimpleTrainer
+
+
     NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE = utils.fix_generator_arguments(config)
     TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
 
-    """ MODEL PARAMS """
-    from utils import model_weights
-
-    MODEL_WEIGHTS = None
-    if config.get("MODEL.MODEL_BASE") in model_weights:
-        if mode == "train":
-            if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]):
-                pass
-            else:
-                logger.info("Model weights file {} does not exist. Downloading.".format(model_weights[config.get("MODEL.MODEL_BASE")][1]))
-                utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
-            MODEL_WEIGHTS = model_weights[config.get("MODEL.MODEL_BASE")][1]
-    else:
-        raise NotImplementedError("Model %s is not available. Please choose one of the following: %s"%(config.get("MODEL.MODEL_BASE"), str(model_weights.keys())))
 
     """ Load previousely saved logger, if it exists """
     DRIVE_BACKUP = config.get("SAVE.DRIVE_BACKUP")
@@ -61,9 +63,26 @@ def main(config, mode, weights):
 
 
     # --------------------- INSTANTIATE MODEL ------------------------
-    reid_model = vaegan_model_builder(
-                                **json.loads(config.get("MODEL.MODEL_KWARGS")))
+    vaegan_model = vaegan_model_builder(  latent_dimensions = config.get("MODEL.LATENT_DIMENSIONS"), \
+                                        **json.loads(config.get("MODEL.MODEL_KWARGS")))
     logger.info("Finished instantiating model")
+
+    if mode == "test":
+        vaegan_model.load_state_dict(torch.load(weights))
+        vaegan_model.cuda()
+        vaegan_model.eval()
+    else:
+        vaegan_model.cuda()
+        logger.info(torchsummary.summary(vaegan_model, input_size=(3, *config.get("DATASET.SHAPE"))))
+
+
+    # --------------------- INSTANTIATE LOSS ------------------------
+    # loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    # logger.info("Built loss function")
+    # --------------------- INSTANTIATE OPTIMIZER ------------------------
+    OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"))
+    optimizer = OPT.build(vaegan_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
+    logger.info("Built optimizer")
 
 
 
