@@ -24,4 +24,5 @@ venv
 
 # Allow 
 !config/veri_base.yml
+!config/vaegan_base.yml
 
