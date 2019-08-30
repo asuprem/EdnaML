@@ -3,7 +3,10 @@ EXECUTION:
   EPOCHS: 120
   TEST_FREQUENCY: 5
   OPTIMIZER_BUILDER: VAEGANOptimizerBuilder
-  MODEL_BUILDER: vaegan_model_builder # Not Used at the moment
+  MODEL_BUILDER: vaegan_model_builder 
+  TRAINER: VAEGANTrainer
+  DATASET_PRELOAD: "MNIST"
+  DATASET_PRELOAD_CLASS: [0]
 
 
 SAVE:
@@ -45,7 +48,7 @@ LOSS:
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
-  OPTIMIZER_KWARGS: '{}'
+  OPTIMIZER_KWARGS: '{"betas:[0.5, 0.999]"}'
   BASE_LR: 0.0001
   LR_BIAS_FACTOR: 1.0
   WEIGHT_DECAY: 0.0005
@@ -53,8 +56,8 @@ OPTIMIZER:
   FP16: True
 
 SCHEDULER:
-  LR_SCHEDULER: 'StepLR'
-  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+  ENCODER_LR_SCHEDULER: 'StepLR'
+  ENCODER_LR_KWARGS: '{"step_size":30, "gamma":0.25}'
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch
