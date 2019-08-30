@@ -8,6 +8,9 @@ VeRi
 goof
 drive
 venv
+MNIST
+CIFAR10
+CIFAR100
 
 # Ignore model artifacts
 *.pth
