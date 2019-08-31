@@ -1,9 +1,11 @@
 import torch
 
 class VAEGANOptimizerBuilder:
-  def __init__(self,base_lr, lr_bias, gpus, weight_decay, weight_bias):
+  def __init__(self,base_lr, gpus=1, lr_bias=None, weight_decay=None, weight_bias=None):
     self.base_lr = base_lr
     self.gpus = gpus
+    if self.gpus > 1:
+      raise NotImplementedError()
     #self.weight_decay = weight_decay
     #self.lr_bias = lr_bias
     #self.weight_bias = weight_bias
