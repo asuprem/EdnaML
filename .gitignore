@@ -18,9 +18,11 @@ CIFAR100
 
 # Ignore compression artifacts
 *.zip
+**/*.zip
 
 # Ignore log artifacts
 *.log
+**/*.log
 
 # Ignore unnecessary configurations
 **/*.yml
