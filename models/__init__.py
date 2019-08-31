@@ -108,12 +108,11 @@ def veri_model_builder(arch, base, weights=None, normalization=None, embedding_d
 
    
     
-def vaegan_model_builder(latent_dimensions = None, **kwargs):
-    arch = "VAEGAN"
+def vaegan_model_builder(arch, base, latent_dimensions = None, **kwargs):
     archbase = __import__("models."+arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
     
-    return archbase(latent_dimensions=latent_dimensions, **kwargs)
+    return archbase(base, latent_dimensions=latent_dimensions, **kwargs)
     
 
 model_builder = veri_model_builder
