@@ -41,7 +41,7 @@ class ClassedGenerator:
         if t_crop:
             transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())
-        transformer_primitive.append(T.Normalize(mean=normalization_mean, std=normalization_std))
+        #transformer_primitive.append(T.Normalize(mean=normalization_mean, std=normalization_std))
         if rea:
             transformer_primitive.append(T.RandomErasing(p=0.5, scale=(0.02, 0.4), value = kwargs.get('rea_value', 0)))
         self.transformer = T.Compose(transformer_primitive)

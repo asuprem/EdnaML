@@ -114,7 +114,7 @@ class Decoder(nn.Module):
         x = self.dconv1_bn(x)
         x = self.upsampler(x)
         x = self.dconv4(x)
-        x = self.tanh(x)
+        x = self.tanh(x) * 0.5 + 0.5
         return x        
 
     def weights_init(self,init="normal"):

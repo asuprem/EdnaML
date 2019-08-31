@@ -133,6 +133,7 @@ class VAEGANTrainer:
         regen = self.model.Decoder(latent.unsqueeze(-1))
         latent_d = self.model.LatentDiscriminator(latent.squeeze()).squeeze()
         ef_loss = 2.*self.loss_fn(latent_d, ones)
+        #pdb.set_trace()
         reconstruction = F.binary_cross_entropy(regen, img)
         ae_loss = ef_loss + reconstruction
         ae_loss.backward()
