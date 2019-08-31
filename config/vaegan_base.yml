@@ -43,10 +43,6 @@ MODEL:
   LATENT_DIMENSIONS: 128
   MODEL_KWARGS: '{"channels":3}'
 
-LOSS:
-  LOSSES: ['SoftmaxLogitsLoss', 'TripletLoss']
-  LOSS_KWARGS: [{}, {'margin':0.3, 'mine':'hard'}]
-  LOSS_LAMBDAS: [1.0, 1.0]
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
