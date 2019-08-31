@@ -10,7 +10,7 @@ from .TripletLoss import TripletLoss
 
 
 
-class LossBuilder(object):
+class ReIDLossBuilder(object):
   LOSS_PARAMS = {}
   LOSS_PARAMS['SoftmaxLogitsLoss'] = {}
   LOSS_PARAMS['SoftmaxLogitsLoss']['fn'] = SoftmaxLogitsLoss
@@ -50,3 +50,8 @@ class LossBuilder(object):
     for idx, fn in enumerate(self.loss):
       loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]))
     return loss
+
+
+
+
+LossBuilder = ReIDLossBuilder
