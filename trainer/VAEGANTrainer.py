@@ -38,7 +38,7 @@ class VAEGANTrainer:
 
         self.batch_size = batch_size
         self.latent_size = latent_size
-        self.e_loss, self.de_loss, self.d_loss, self.z_loss, self.ae_loss = 0,0,0,0,0
+        self.e_loss, self.de_loss, self.d_loss, self.z_loss, self.ae_loss = [],[],[],[],[]
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
@@ -69,6 +69,8 @@ class VAEGANTrainer:
         
     # TODO
     def step(self,batch):
+        if batch[0].shape[0] < self.batch_size:
+            return
         e_loss, de_loss, d_loss, z_loss, ae_loss = 0,0,0,0,0
         ones = torch.ones(self.batch_size).cuda()
         zeros = torch.zeros(self.batch_size).cuda()
@@ -129,7 +131,7 @@ class VAEGANTrainer:
         self.model.Decoder.zero_grad()
         latent = self.model.Encoder(img)
         regen = self.model.Decoder(latent.unsqueeze(-1))
-        latent_d = self.model.LatentDisriminator(latent.squeeze()).squeeze()
+        latent_d = self.model.LatentDiscriminator(latent.squeeze()).squeeze()
         ef_loss = 2.*self.loss_fn(latent_d, ones)
         reconstruction = F.binary_cross_entropy(regen, img)
         ae_loss = ef_loss + reconstruction
@@ -138,7 +140,11 @@ class VAEGANTrainer:
         e_loss = ef_loss.item()
         ae_loss = reconstruction.item()
 
-        self.e_loss, self.de_loss, self.d_loss, self.z_loss, self.ae_loss = e_loss, de_loss, d_loss, z_loss, ae_loss
+        self.e_loss.append(e_loss)
+        self.de_loss.append(de_loss)
+        self.d_loss.append(d_loss)
+        self.z_loss.append(z_loss)
+        self.ae_loss.append(ae_loss)
 
     def train(self,continue_epoch = 0):    
         self.logger.info("Starting training")
@@ -166,7 +172,8 @@ class VAEGANTrainer:
                     
                     self.global_batch += 1
                     if (self.global_batch + 1) % self.step_verbose == 0:
-                        self.logger.info('Epoch{0}.{1}\tEncoder: {2:.3f} Decoder: {2:.3f} AE: {2:.3f} Discriminator: {2:.3f} Latent: {2:.3f}'.format(self.global_epoch, self.global_batch, self.e_loss, self.de_loss, self.ae_loss, self.d_loss, self.z_loss))
+                        self.logger.info('Epoch{0}.{1}\tEncoder: {2:.3f} Decoder: {3:.3f} AE: {4:.3f} Discriminator: {5:.3f} Latent: {6:.3f}'.format(self.global_epoch, self.global_batch, np.mean(self.e_loss), np.mean(self.de_loss), np.mean(self.ae_loss), np.mean(self.d_loss), np.mean(self.z_loss)))
+                        self.e_loss, self.de_loss, self.d_loss, self.z_loss, self.ae_loss = [],[],[],[],[]
                 self.global_batch = 0
                 # TODO 
                 self.scheduler["Encoder"].step()
@@ -177,7 +184,8 @@ class VAEGANTrainer:
                 
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
                 if self.global_epoch % self.test_frequency == 0:
-                    self.evaluate()     # TODO 
+                    #self.evaluate()     # TODO 
+                    pass
                 if self.global_epoch % self.save_frequency == 0:
                     self.save()         # DONE TODO
                 self.global_epoch += 1
@@ -187,16 +195,47 @@ class VAEGANTrainer:
     def save(self):
         self.logger.info("Saving model, optimizer, and scheduler.")
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
-        OPTIM_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer.pth'
-        SCHEDULER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler.pth'
+        
+        OPTIM_ENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_encoder.pth'
+        OPTIM_DECODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_decoder.pth'
+        OPTIM_DISCRIMINATOR_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_discriminator.pth'
+        OPTIM_AUTOENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_autoencoder.pth'
+        OPTIM_LATENT_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_latent.pth'
+
+        SCHEDULER_ENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_encoder.pth'
+        SCHEDULER_DECODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_decoder.pth'
+        SCHEDULER_DISCRIMINATOR_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_discriminator.pth'
+        SCHEDULER_AUTOENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_autoencoder.pth'
+        SCHEDULER_LATENT_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_latent.pth'
 
         torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
-        torch.save(self.optimizer.state_dict(), os.path.join(self.save_directory, OPTIM_SAVE))
-        torch.save(self.scheduler.state_dict(), os.path.join(self.save_directory, SCHEDULER_SAVE))
+        torch.save(self.optimizer["Encoder"].state_dict(), os.path.join(self.save_directory, OPTIM_ENCODER_SAVE))
+        torch.save(self.optimizer["Decoder"].state_dict(), os.path.join(self.save_directory, OPTIM_DECODER_SAVE))
+        torch.save(self.optimizer["Discriminator"].state_dict(), os.path.join(self.save_directory, OPTIM_DISCRIMINATOR_SAVE))
+        torch.save(self.optimizer["Autoencoder"].state_dict(), os.path.join(self.save_directory, OPTIM_AUTOENCODER_SAVE))
+        torch.save(self.optimizer["LatentDiscriminator"].state_dict(), os.path.join(self.save_directory, OPTIM_LATENT_SAVE))
+
+        torch.save(self.scheduler["Encoder"].state_dict(), os.path.join(self.save_directory, SCHEDULER_ENCODER_SAVE))
+        torch.save(self.scheduler["Decoder"].state_dict(), os.path.join(self.save_directory, SCHEDULER_DECODER_SAVE))
+        torch.save(self.scheduler["Discriminator"].state_dict(), os.path.join(self.save_directory, SCHEDULER_DISCRIMINATOR_SAVE))
+        torch.save(self.scheduler["Autoencoder"].state_dict(), os.path.join(self.save_directory, SCHEDULER_AUTOENCODER_SAVE))
+        torch.save(self.scheduler["LatentDiscriminator"].state_dict(), os.path.join(self.save_directory, SCHEDULER_LATENT_SAVE))
+
         if self.save_backup:
             shutil.copy2(os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory)
-            shutil.copy2(os.path.join(self.save_directory, OPTIM_SAVE), self.backup_directory)
-            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_SAVE), self.backup_directory)
+
+            shutil.copy2(os.path.join(self.save_directory, OPTIM_ENCODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, OPTIM_DECODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, OPTIM_AUTOENCODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, OPTIM_DISCRIMINATOR_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, OPTIM_LATENT_SAVE), self.backup_directory)
+
+            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_ENCODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_DECODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_AUTOENCODER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_DISCRIMINATOR_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, SCHEDULER_LATENT_SAVE), self.backup_directory)
+
             self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
             
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
@@ -210,20 +249,61 @@ class VAEGANTrainer:
         optim_load = self.model_save_name + '_epoch%i'%load_epoch + '_optimizer.pth'
         scheduler_load = self.model_save_name + '_epoch%i'%load_epoch + '_scheduler.pth'
 
+        OPTIM_ENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_encoder.pth'
+        OPTIM_DECODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_decoder.pth'
+        OPTIM_DISCRIMINATOR_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_discriminator.pth'
+        OPTIM_AUTOENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_autoencoder.pth'
+        OPTIM_LATENT_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer_latent.pth'
+
+        SCHEDULER_ENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_encoder.pth'
+        SCHEDULER_DECODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_decoder.pth'
+        SCHEDULER_DISCRIMINATOR_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_discriminator.pth'
+        SCHEDULER_AUTOENCODER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_autoencoder.pth'
+        SCHEDULER_LATENT_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler_latent.pth'
+
         if self.save_backup:
             self.logger.info("Loading model, optimizer, and scheduler from drive backup.")
             model_load_path = os.path.join(self.backup_directory, model_load)
-            optim_load_path = os.path.join(self.backup_directory, optim_load)
-            scheduler_load_path = os.path.join(self.backup_directory, scheduler_load)
+            
+            optim_load_path_e = os.path.join(self.backup_directory, OPTIM_ENCODER_SAVE)
+            optim_load_path_de = os.path.join(self.backup_directory, OPTIM_DECODER_SAVE)
+            optim_load_path_ae = os.path.join(self.backup_directory, OPTIM_AUTOENCODER_SAVE)
+            optim_load_path_d = os.path.join(self.backup_directory, OPTIM_DISCRIMINATOR_SAVE)
+            optim_load_path_z = os.path.join(self.backup_directory, OPTIM_LATENT_SAVE)
+
+            scheduler_load_path_e = os.path.join(self.backup_directory, SCHEDULER_ENCODER_SAVE)
+            scheduler_load_path_de = os.path.join(self.backup_directory, SCHEDULER_DECODER_SAVE)
+            scheduler_load_path_ae = os.path.join(self.backup_directory, SCHEDULER_AUTOENCODER_SAVE)
+            scheduler_load_path_d = os.path.join(self.backup_directory, SCHEDULER_DISCRIMINATOR_SAVE)
+            scheduler_load_path_z = os.path.join(self.backup_directory, SCHEDULER_LATENT_SAVE)
         else:
             self.logger.info("Loading model, optimizer, and scheduler from local backup.")
             model_load_path = os.path.join(self.save_directory, model_load)
-            optim_load_path = os.path.join(self.save_directory, optim_load)
-            scheduler_load_path = os.path.join(self.save_directory, scheduler_load)
+            
+            optim_load_path_e = os.path.join(self.save_directory, OPTIM_ENCODER_SAVE)
+            optim_load_path_de = os.path.join(self.save_directory, OPTIM_DECODER_SAVE)
+            optim_load_path_ae = os.path.join(self.save_directory, OPTIM_AUTOENCODER_SAVE)
+            optim_load_path_d = os.path.join(self.save_directory, OPTIM_DISCRIMINATOR_SAVE)
+            optim_load_path_z = os.path.join(self.save_directory, OPTIM_LATENT_SAVE)
+
+            scheduler_load_path_e = os.path.join(self.save_directory, SCHEDULER_ENCODER_SAVE)
+            scheduler_load_path_de = os.path.join(self.save_directory, SCHEDULER_DECODER_SAVE)
+            scheduler_load_path_ae = os.path.join(self.save_directory, SCHEDULER_AUTOENCODER_SAVE)
+            scheduler_load_path_d = os.path.join(self.save_directory, SCHEDULER_DISCRIMINATOR_SAVE)
+            scheduler_load_path_z = os.path.join(self.save_directory, SCHEDULER_LATENT_SAVE)
 
         self.model.load_state_dict(torch.load(model_load_path))
         self.logger.info("Finished loading model state_dict from %s"%model_load_path)
-        self.optimizer.load_state_dict(torch.load(optim_load_path))
-        self.logger.info("Finished loading optimizer state_dict from %s"%optim_load_path)
-        self.scheduler.load_state_dict(torch.load(scheduler_load_path))
-        self.logger.info("Finished loading scheduler state_dict from %s"%scheduler_load_path)
+        self.optimizer["Encoder"].load_state_dict(torch.load(OPTIM_ENCODER_SAVE))
+        self.optimizer["Decoder"].load_state_dict(torch.load(OPTIM_DECODER_SAVE))
+        self.optimizer["Autoencoder"].load_state_dict(torch.load(OPTIM_AUTOENCODER_SAVE))
+        self.optimizer["Discriminator"].load_state_dict(torch.load(OPTIM_DISCRIMINATOR_SAVE))
+        self.optimizer["LatentDiscriminator"].load_state_dict(torch.load(OPTIM_LATENT_SAVE))
+        self.logger.info("Finished loading optimizer state_dict from %s"%OPTIM_ENCODER_SAVE)
+        
+        self.scheduler["Encoder"].load_state_dict(torch.load(SCHEDULER_ENCODER_SAVE))
+        self.scheduler["Decoder"].load_state_dict(torch.load(SCHEDULER_DECODER_SAVE))
+        self.scheduler["Autoencoder"].load_state_dict(torch.load(SCHEDULER_AUTOENCODER_SAVE))
+        self.scheduler["Discriminator"].load_state_dict(torch.load(SCHEDULER_DISCRIMINATOR_SAVE))
+        self.scheduler["LatentDiscriminator"].load_state_dict(torch.load(SCHEDULER_LATENT_SAVE))
+        self.logger.info("Finished loading scheduler state_dict from %s"%SCHEDULER_ENCODER_SAVE)

@@ -22,7 +22,7 @@ CIFAR100
 
 # Ignore log artifacts
 *.log
-**/*.log
+**/*.log*
 
 # Ignore unnecessary configurations
 **/*.yml
