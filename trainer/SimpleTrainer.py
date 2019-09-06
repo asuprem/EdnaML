@@ -237,14 +237,14 @@ class SimpleTrainer:
         distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
-        m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
-        #m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=False, first_match_break=False)
+        #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
+        m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, _ = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VeRi CMC')
-        #mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+        mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
 
         self.logger.info('Completed mAP Calculation')
@@ -278,6 +278,18 @@ class SimpleTrainer:
             query_cams=None, gallery_cams=None):
         distmat = distmat
         m, n = distmat.shape
+        if query_ids is None:
+            query_ids = np.arange(m)
+        if gallery_ids is None:
+            gallery_ids = np.arange(n)
+        if query_cams is None:
+            query_cams = np.zeros(m).astype(np.int32)
+        if gallery_cams is None:
+            gallery_cams = np.ones(n).astype(np.int32)
+        query_ids = np.asarray(query_ids)
+        gallery_ids = np.asarray(gallery_ids)
+        query_cams = np.asarray(query_cams)
+        gallery_cams = np.asarray(gallery_cams)
         # Sort and find correct matches
         indices = np.argsort(distmat, axis=1)
         matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
