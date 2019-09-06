@@ -102,7 +102,9 @@ class SimpleTrainer:
                     self.step(batch)
                     self.global_batch += 1
                     if (self.global_batch + 1) % self.step_verbose == 0:
-                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, self.loss[-1], self.softaccuracy[-1]))
+                        loss_avg = sum(self.loss[-100:]) / float(len(self.loss[-100:]))
+                        soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
+                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
                 self.global_batch = 0
                 self.scheduler.step()
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
@@ -183,8 +185,8 @@ class SimpleTrainer:
 
             # remove gallery samples that have the same pid and camid with query
             order = indices[q_idx]
-            #remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
-            remove = (g_pids[order] == -1)
+            remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
+            #remove = (g_pids[order] == -1)
             keep = np.invert(remove)
 
             # compute cmc curve
@@ -242,7 +244,7 @@ class SimpleTrainer:
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, _ = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, v_mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VeRi CMC')
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
@@ -250,6 +252,7 @@ class SimpleTrainer:
         self.logger.info('Completed mAP Calculation')
         
         self.logger.info('mAP: {:.2%}'.format(mAP))
+        self.logger.info('VeRi_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
