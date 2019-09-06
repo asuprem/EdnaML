@@ -193,6 +193,11 @@ class VAEGANTrainer:
             else:
                 self.global_epoch = epoch+1
 
+    def evaluate(self,):
+        
+
+        pass
+
     def save(self):
         self.logger.info("Saving model, optimizer, and scheduler.")
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
