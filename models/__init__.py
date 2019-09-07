@@ -1,6 +1,8 @@
 from torch import nn
 import torch.nn.functional as F
 from utils import layers
+import torch
+
 class ReidModel(nn.Module):
     def __init__(self, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
         super(ReidModel, self).__init__()
@@ -88,6 +90,13 @@ class ReidModel(nn.Module):
     def base_forward(self,x):
         raise NotImplementedError()
 
+    def partial_load(self,weights_path):
+        params = torch.load(weights_path)
+        for _key in params:
+            if _key not in self.state_dict().keys() or params[_key].shape != self.state_dict()[_key].shape: 
+                continue
+            self.state_dict()[_key].copy_(params[_key])
+
     class LambdaLayer(nn.Module):
         """ Torch lambda layer to act as an empty layer. It does not do anything """
         def __init__(self, lambd):
@@ -95,7 +104,6 @@ class ReidModel(nn.Module):
                 self._lambda = lambd
         def forward(self, x):
                 return self._lambda(x)
-
 
 def veri_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
     # First identify the architecture...
