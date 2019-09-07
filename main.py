@@ -14,7 +14,7 @@ from trainer import SimpleTrainer
 @click.command()
 @click.argument('config')
 @click.option('--mode', default="train", help="Execution mode: [train/test]")
-@click.option('--weights', default=".", help="Path to weights if mode is test")
+@click.option('--weights', default="", help="Path to weights if mode is test")
 def main(config, mode, weights):
     cfg = kaptan.Kaptan(handler='yaml')
     config = cfg.import_config(config)
@@ -105,6 +105,8 @@ def main(config, mode, weights):
         reid_model.cuda()
         reid_model.eval()
     else:
+        if weights != "":   # Load weights if train and starting from a another model base...
+            reid_model.partial_load(weights)
         reid_model.cuda()
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
