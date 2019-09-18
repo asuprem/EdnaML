@@ -101,18 +101,21 @@ def main(config, mode, weights):
         raise RuntimeError("Not built for multi-GPU. Please start with single-GPU.")
     logger.info("Found %i GPUs"%NUM_GPUS)
 
-    # --------------------- BUILD GENERATORS ------------------------
-    from generators import SequencedGenerator
-    
+    # --------------------- BUILD GENERATORS ------------------------    
     pdb.set_trace()
     
+    data_generator_ = config.get("EXECUTION.GENERATOR")
+    data_generator = __import__("generators."+data_generator_, fromlist=[data_generator_])
+    data_generator = getattr(data_generator, data_generator_)
+    
+
     data_crawler_ = config.get("EXECUTION.CRAWLER")
     data_crawler = __import__("crawlers."+data_crawler_, fromlist=[data_crawler_])
     data_crawler = getattr(data_crawler, data_crawler_)
     
     crawler = data_crawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
 
-    train_generator = SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
+    train_generator = data_generator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
                                 **TRAINDATA_KWARGS)
@@ -120,7 +123,7 @@ def main(config, mode, weights):
 
     logger.info("Generated training data generator")
     TRAIN_CLASSES = train_generator.num_entities
-    test_generator=  SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
+    test_generator=  data_generator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                             normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                             h_flip = 0, t_crop = False, rea = False)
     test_generator.setup(crawler, mode='test', batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance=config.get("TRANSFORMATION.INSTANCES"), workers=config.get("TRANSFORMATION.WORKERS"))
@@ -130,8 +133,7 @@ def main(config, mode, weights):
     # --------------------- INSTANTIATE MODEL ------------------------
 
     pdb.set_trace()
-
-
+    
 
 
 
