@@ -248,7 +248,7 @@ class VAEGAN(nn.Module):
         """
         super(VAEGAN, self).__init__()
         self.latent_dimensions = latent_dimensions
-        self.channels = kwargs.get("channels")
+        self.channels = kwargs.get("channels", 3)
         pass
         self.Encoder = Encoder(base, self.latent_dimensions, self.channels)
         self.Decoder = Decoder(base, self.latent_dimensions, self.channels)
