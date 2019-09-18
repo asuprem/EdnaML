@@ -106,7 +106,9 @@ def main(config, mode, weights):
         reid_model.eval()
     else:
         if weights != "":   # Load weights if train and starting from a another model base...
+            logger.info("Commencing partial model load from {}".format(weights))
             reid_model.partial_load(weights)
+            logger.info("Completed partial model load from {}".format(weights))
         reid_model.cuda()
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
