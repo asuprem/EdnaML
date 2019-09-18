@@ -23,7 +23,7 @@ class TDataSet(TorchDataset):
   def __getitem__(self,idx):
     img, pid, cid = self.dataset[idx]
     img_arr = self.transform(self.load(img))
-    return img_arr, pid, cid, img
+    return img_arr, pid, idx
   
   def load(self,img):
     if not osp.exists(img):
