@@ -13,10 +13,11 @@ import numpy as np
 
 import pdb
 class TDataSet(TorchDataset):
-  def __init__(self,dataset, transform):
-
-    self.dataset = dataset
+  def __init__(self,dataset, transform, valid_labels):
+    self.valid_labels=valid_labels
+    self.dataset = [item for item in dataset if item[1] in self.valid_labels]
     self.transform = transform
+    
   def __len__(self):
     return len(self.dataset)
 
@@ -127,10 +128,12 @@ class Cars196Generator:
       raise ValueError("Must pass DataCrawler instance. Passed `None`")
     self.workers = workers * self.gpus
 
+    # If training, get images whose labels are 0-97
+    # If testing, get images whose labels are 98-196
     if mode == "train":
-      self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"], self.transformer)
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,98))
     elif mode == "test":
-      self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(98,196))
     else:
       raise NotImplementedError()
     
@@ -138,20 +141,20 @@ class Cars196Generator:
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle=True, \
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
-      self.num_entities = datacrawler.metadata[mode]["pids"]
+      self.num_entities = 98
     elif mode == "test":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle = False, 
-                                        num_workers=self.workers, drop_last=True, collate_fn=self.collate_with_camera)
-      self.num_entities = len(datacrawler.metadata["query"]["crawl"])
+                                        num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
+      self.num_entities = 98
     else:
       raise NotImplementedError()
   def collate_simple(self,batch):
-    img, pid, _, _ = zip(*batch)
+    img, pid, _ = zip(*batch)
     pid = torch.tensor(pid, dtype=torch.int64)
     return torch.stack(img, dim=0), pid
   def collate_with_camera(self,batch):
-    img, pid, cid, path = zip(*batch)
+    img, pid, idx = zip(*batch)
     pid = torch.tensor(pid, dtype=torch.int64)
-    cid = torch.tensor(cid, dtype=torch.int64)
-    return torch.stack(img, dim=0), pid, cid, path
+    idx = torch.tensor(idx, dtype=torch.int64)
+    return torch.stack(img, dim=0), pid, idx
