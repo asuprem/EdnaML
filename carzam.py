@@ -86,6 +86,21 @@ def main(config, mode, weights):
     NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE = utils.fix_generator_arguments(config)
     TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
 
+    """ MODEL PARAMS """
+    from utils import model_weights
+
+    MODEL_WEIGHTS = None
+    if config.get("MODEL.MODEL_BASE") in model_weights:
+        if mode == "train":
+            if os.path.exists(model_weights[config.get("MODEL.MODEL_BASE")][1]):
+                pass
+            else:
+                logger.info("Model weights file {} does not exist. Downloading.".format(model_weights[config.get("MODEL.MODEL_BASE")][1]))
+                utils.web.download(model_weights[config.get("MODEL.MODEL_BASE")][1], model_weights[config.get("MODEL.MODEL_BASE")][0])
+            MODEL_WEIGHTS = model_weights[config.get("MODEL.MODEL_BASE")][1]
+    else:
+        raise NotImplementedError("Model %s is not available. Please choose one of the following: %s"%(config.get("MODEL.MODEL_BASE"), str(model_weights.keys())))
+
 
     """ Load previousely saved logger, if it exists """
     DRIVE_BACKUP = config.get("SAVE.DRIVE_BACKUP")
@@ -102,7 +117,6 @@ def main(config, mode, weights):
     logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------    
-    pdb.set_trace()
     
     data_generator_ = config.get("EXECUTION.GENERATOR")
     data_generator = __import__("generators."+data_generator_, fromlist=[data_generator_])
@@ -127,14 +141,41 @@ def main(config, mode, weights):
                             normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                             h_flip = 0, t_crop = False, rea = False)
     test_generator.setup(crawler, mode='test', batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance=config.get("TRANSFORMATION.INSTANCES"), workers=config.get("TRANSFORMATION.WORKERS"))
-    QUERY_CLASSES = test_generator.num_entities
+    TEST_CLASSES = test_generator.num_entities
     logger.info("Generated validation data/query generator")
 
     # --------------------- INSTANTIATE MODEL ------------------------
 
     pdb.set_trace()
-    
+    model_builder = __import__("models", fromlist=["*"])
+    model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER"))
+    logger.info("Loaded {} from {} to build CarZam model".format(config.get("EXECUTION.MODEL_BUILDER"), "models"))
 
+    carzam_model = model_builder(   arch=config.get("MODEL.MODEL_ARCH"), \
+                                    base=config.get("MODEL.MODEL_BASE"), \
+                                    weights=MODEL_WEIGHTS, \
+                                    embedding_dimensions = config.get("MODEL.EMBEDDING_DIMENSIONS"), \
+                                    normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
+                                    **json.loads(config.get("MODEL.MODEL_KWARGS")))
+    logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.ARCH")))
+
+    if mode == "test":
+        carzam_model.load_state_dict(torch.load(weights))
+        carzam_model.cuda()
+        carzam_model.eval()
+    else:
+        if weights != "":   # Load weights if train and starting from a another model base...
+            logger.info("Commencing partial model load from {}".format(weights))
+            carzam_model.partial_load(weights)
+            logger.info("Completed partial model load from {}".format(weights))
+        carzam_model.cuda()
+        logger.info(torchsummary.summary(carzam_model, input_size=(3, *config.get("DATASET.SHAPE"))))
+
+    # --------------------- INSTANTIATE LOSS ------------------------
+    # TODO...Make proxy NCA loss...
+    from loss import LossBuilder
+    loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    logger.info("Built loss function")
 
 
 
