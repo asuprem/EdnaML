@@ -7,7 +7,7 @@ import torch, torchsummary
 from crawlers import ReidDataCrawler
 from generators import SequencedGenerator
 from models import model_builder
-from loss import LossBuilder
+from loss import ReIDLossBuilder
 from optimizer import OptimizerBuilder
 from trainer import SimpleTrainer
 
@@ -112,7 +112,7 @@ def main(config, mode, weights):
         reid_model.cuda()
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
-    loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    loss_function = ReIDLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
