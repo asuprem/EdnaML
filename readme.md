@@ -10,7 +10,7 @@ You will need the following:
     - Torchvision 0.4.0
     - kaptan 0.5.12
 
-Multi-GPU training is currently not supported. You will need to ensure torch recognizes only one GPU.
+Multi-GPU training is currently not supported. You will need to ensure torch recognizes only one GPU, otherwise several functions will throw NotImplementedError(). 
 
 # Execution
 
