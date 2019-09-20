@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Contextual Invariants &#8212; PyTorch Multi-Experiment Framework 0.1 documentation</title>
+    <title>Contextual Invariants &#8212; EBKAFramework 0.2 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -43,18 +43,40 @@
 <li class="toctree-l2"><a class="reference internal" href="backbones.html#module-backbones">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crawlers.html">crawlers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.Cars196DataCrawler">crawlers.Cars196DataCrawler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.ClassedCrawler">crawlers.ClassedCrawler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.MTMCDataCrawler">crawlers.MTMCDataCrawler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.Market1501DataCrawler">crawlers.Market1501DataCrawler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.ReidDataCrawler">crawlers.ReidDataCrawler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers.VRICDataCrawler">crawlers.VRICDataCrawler module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="crawlers.html#module-crawlers">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">generators package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#module-generators.Cars196Generator">generators.Cars196Generator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#module-generators.ClassedGenerator">generators.ClassedGenerator module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#module-generators.SequencedGenerator">generators.SequencedGenerator module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#module-generators">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="loss.html">loss package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="loss.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="loss.builders.html">loss.builders package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="loss.builders.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="loss.builders.html#module-loss.builders.ReIDLossBuilders">loss.builders.ReIDLossBuilders module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="loss.builders.html#module-loss.builders">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.MarginLoss">loss.MarginLoss module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.ProxyNCALoss">loss.ProxyNCALoss module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.ProxyTripletLoss">loss.ProxyTripletLoss module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.SoftmaxLabelSmooth">loss.SoftmaxLabelSmooth module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.SoftmaxLogitsLoss">loss.SoftmaxLogitsLoss module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html#module-loss.TripletLoss">loss.TripletLoss module</a></li>
@@ -64,11 +86,17 @@
 <li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">models package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.CarzamResnet">models.CarzamResnet module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.ResnetBase">models.ResnetBase module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.VAEGAN">models.VAEGAN module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.abstracts">models.abstracts module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimizer.html">optimizer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimizer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizer.html#module-optimizer.ReIDOptimizerBuilder">optimizer.ReIDOptimizerBuilder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizer.html#module-optimizer.VAEGANOptimizerBuilder">optimizer.VAEGANOptimizerBuilder module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimizer.html#module-optimizer">Module contents</a></li>
 </ul>
 </li>
@@ -78,16 +106,18 @@
 <li class="toctree-l2"><a class="reference internal" href="scheduler.html#module-scheduler">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="serve.html">serve module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trainer.html">trainer package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="trainer.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trainer.html#module-trainer.SimpleTrainer">trainer.SimpleTrainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#module-trainer.VAEGANTrainer">trainer.VAEGANTrainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trainer.html#module-trainer">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.layers">utils.layers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.math">utils.math module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.torch_utils">utils.torch_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils.web">utils.web module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils">Module contents</a></li>
 </ul>
@@ -104,7 +134,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">PyTorch Multi-Experiment Framework</a></h1>
+<h1 class="logo"><a href="../index.html">EBKAFramework</a></h1>
 
 
 
@@ -117,13 +147,16 @@
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">generators package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loss.builders.html">loss.builders package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="loss.html">loss package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contextual Invariants</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html">generators package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html">loss package</a></li>
@@ -131,7 +164,6 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="serve.html">serve module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="trainer.html">trainer package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
@@ -139,7 +171,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="serve.html">serve module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trainer.html">trainer package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
@@ -177,7 +208,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Abhijit Suprem.
+      &copy;2019, Abhijit Supre.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>

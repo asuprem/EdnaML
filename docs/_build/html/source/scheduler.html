@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>scheduler package &#8212; PyTorch Multi-Experiment Framework 0.1 documentation</title>
+    <title>scheduler package &#8212; EBKAFramework 0.2 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -15,7 +15,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="serve module" href="serve.html" />
+    <link rel="next" title="trainer package" href="trainer.html" />
     <link rel="prev" title="optimizer package" href="optimizer.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -101,7 +101,7 @@ Epoch 4 – 2.1      previous_lr = previous_lr ‘+’ -0.1</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">PyTorch Multi-Experiment Framework</a></h1>
+<h1 class="logo"><a href="../index.html">EBKAFramework</a></h1>
 
 
 
@@ -114,21 +114,28 @@ Epoch 4 – 2.1      previous_lr = previous_lr ‘+’ -0.1</p>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">generators package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loss.builders.html">loss.builders package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="loss.html">loss package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Contextual Invariants</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html">generators package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html">loss package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">scheduler package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="serve.html">serve module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">scheduler package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-scheduler.FineGrainedSteppedLR">scheduler.FineGrainedSteppedLR module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-scheduler">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="trainer.html">trainer package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
@@ -141,7 +148,6 @@ Epoch 4 – 2.1      previous_lr = previous_lr ‘+’ -0.1</p>
 <li class="toctree-l2"><a class="reference internal" href="#module-scheduler">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="serve.html">serve module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trainer.html">trainer package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
@@ -153,7 +159,7 @@ Epoch 4 – 2.1      previous_lr = previous_lr ‘+’ -0.1</p>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="modules.html">Contextual Invariants</a><ul>
       <li>Previous: <a href="optimizer.html" title="previous chapter">optimizer package</a></li>
-      <li>Next: <a href="serve.html" title="next chapter">serve module</a></li>
+      <li>Next: <a href="trainer.html" title="next chapter">trainer package</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -181,7 +187,7 @@ Epoch 4 – 2.1      previous_lr = previous_lr ‘+’ -0.1</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Abhijit Suprem.
+      &copy;2019, Abhijit Supre.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>

@@ -5,6 +5,7 @@ Contextual Invariants
    :maxdepth: 4
 
    backbones
+   carzam
    crawlers
    generators
    loss
@@ -12,7 +13,6 @@ Contextual Invariants
    models
    optimizer
    scheduler
-   serve
    trainer
    utils
    vae_gan

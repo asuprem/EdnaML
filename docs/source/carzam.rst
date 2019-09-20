@@ -1,7 +1,7 @@
-serve module
-============
+carzam module
+=============
 
-.. automodule:: serve
+.. automodule:: carzam
    :members:
    :undoc-members:
    :show-inheritance:

@@ -6,15 +6,15 @@ from . import Loss
 class TripletLoss(Loss):
   """Standard triplet loss
 
-    Calculates the triplet loss of a mini-batch.
+  Calculates the triplet loss of a mini-batch.
 
-    Args (kwargs only):
-        margin (float, 0.3): Margin constraint to use in triplet loss. If not provided,
-        mine (str): Mining method. Default 'hard'. Supports ['hard', 'all']. 
+  Args (kwargs only):
+      margin (float, 0.3): Margin constraint to use in triplet loss. If not provided,
+      mine (str): Mining method. Default 'hard'. Supports ['hard', 'all']. 
 
-    Methods: 
-        __call__: Returns loss given features and labels.
-    """
+  Methods: 
+      __call__: Returns loss given features and labels.
+  """
   def __init__(self, **kwargs):
 
     self.margin = kwargs.get('margin', 0.3)
@@ -39,15 +39,19 @@ class TripletLoss(Loss):
 
   def hard_mining(self, features, labels, margin, squared=False, device='cpu'):
     """Build the triplet loss over a batch of features.
+
     For each anchor, we get the hardest positive and hardest negative to form a triplet.
+    
     Args:
         labels: labels of the batch, of size (batch_size,)
         features: tensor of shape (batch_size, embed_dim)
         margin: margin for triplet loss
         squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
                  If false, output is the pairwise euclidean distance matrix.
+    
     Returns:
         triplet_loss: scalar tensor containing the triplet loss
+        
     """
     # Get the pairwise distance matrix
     pairwise_dist = self._pairwise_distances(features, squared=squared)
@@ -82,15 +86,19 @@ class TripletLoss(Loss):
 
   def all_mining(self, features, labels, margin, squared=False):
     """Build the triplet loss over a batch of features.
+
     We generate all the valid triplets and average the loss over the positive ones.
+    
     Args:
         labels: labels of the batch, of size (batch_size,)
         features: tensor of shape (batch_size, embed_dim)
         margin: margin for triplet loss
         squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
                  If false, output is the pairwise euclidean distance matrix.
+
     Returns:
         triplet_loss: scalar tensor containing the triplet loss
+
     """
     # Get the pairwise distance matrix
     pairwise_dist = self._pairwise_distances(features, squared=squared)

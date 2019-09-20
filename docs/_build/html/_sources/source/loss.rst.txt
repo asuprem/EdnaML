@@ -1,8 +1,39 @@
 loss package
 ============
 
+Subpackages
+-----------
+
+.. toctree::
+
+   loss.builders
+
 Submodules
 ----------
+
+loss.MarginLoss module
+----------------------
+
+.. automodule:: loss.MarginLoss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+loss.ProxyNCALoss module
+------------------------
+
+.. automodule:: loss.ProxyNCALoss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+loss.ProxyTripletLoss module
+----------------------------
+
+.. automodule:: loss.ProxyTripletLoss
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 loss.SoftmaxLabelSmooth module
 ------------------------------

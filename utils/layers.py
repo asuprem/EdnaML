@@ -24,7 +24,7 @@ class L2Norm(nn.Module):
 from torch.nn.modules import instancenorm
 # https://github.com/pytorch/pytorch/pull/9924/commits/816d048b91a455a5f57da6f1ab304e70c38a39bb
 class FixedInstanceNorm1d(instancenorm._InstanceNorm):
-    r"""Applies Instance Normalization over a 2D or 3D input (a mini-batch of 1D
+    """Applies Instance Normalization over a 2D or 3D input (a mini-batch of 1D
     inputs with optional additional channel dimension) as described in the paper
     `Instance Normalization: The Missing Ingredient for Fast Stylization`_ .
     .. math::

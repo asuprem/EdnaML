@@ -12,6 +12,14 @@ trainer.SimpleTrainer module
    :undoc-members:
    :show-inheritance:
 
+trainer.VAEGANTrainer module
+----------------------------
+
+.. automodule:: trainer.VAEGANTrainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------
