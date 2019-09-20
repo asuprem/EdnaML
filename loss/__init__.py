@@ -4,5 +4,5 @@ class Loss(object):
     def __call__(self,):
         raise NotImplementedError()
 
-
+from .builders import ReIDLossBuilder
 
