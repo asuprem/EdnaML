@@ -1,1 +1,2 @@
-from .ReIDLossBuilders import ReIDLossBuilder
+from .ReIDLossBuilder import ReIDLossBuilder
+from .CarZamLossBuilder import CarZamLossBuilder
