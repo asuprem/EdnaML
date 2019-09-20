@@ -1,6 +1,7 @@
 from ..SoftmaxLogitsLoss import SoftmaxLogitsLoss
 from ..SoftmaxLabelSmooth import SoftmaxLabelSmooth
 from ..TripletLoss import TripletLoss
+from ..MarginLoss import MarginLoss
 
 class ReIDLossBuilder(object):
   LOSS_PARAMS = {}
@@ -10,6 +11,9 @@ class ReIDLossBuilder(object):
   LOSS_PARAMS['TripletLoss'] = {}
   LOSS_PARAMS['TripletLoss']['fn'] = TripletLoss
   LOSS_PARAMS['TripletLoss']['args'] = ['features', 'labels']
+  LOSS_PARAMS['MarginLoss'] = {}
+  LOSS_PARAMS['MarginLoss']['fn'] = MarginLoss
+  LOSS_PARAMS['MarginLoss']['args'] = ['features', 'labels']
   LOSS_PARAMS['SoftmaxLabelSmooth'] = {}
   LOSS_PARAMS['SoftmaxLabelSmooth']['fn'] = SoftmaxLabelSmooth
   LOSS_PARAMS['SoftmaxLabelSmooth']['args'] = ['logits', 'labels']
