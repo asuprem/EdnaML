@@ -40,7 +40,7 @@ TRANSFORMATION:
 
 MODEL:
   MODEL_BASE: 'resnet18'
-  MODEL_ARCH: 'Resnet'
+  MODEL_ARCH: 'CarzamResnet'
   EMBEDDING_DIMENSIONS: 512
   MODEL_NORMALIZATION: ''
   MODEL_KWARGS: '{"proxies":true, "proxy_classes":98}'
