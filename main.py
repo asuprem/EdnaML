@@ -4,13 +4,6 @@ import click
 import utils
 import torch, torchsummary
 
-from crawlers import ReidDataCrawler
-from generators import SequencedGenerator
-from models import model_builder
-from loss import ReIDLossBuilder
-from optimizer import OptimizerBuilder
-from trainer import SimpleTrainer
-
 @click.command()
 @click.argument('config')
 @click.option('--mode', default="train", help="Execution mode: [train/test]")
@@ -74,6 +67,8 @@ def main(config, mode, weights):
     logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------
+    from crawlers import ReidDataCrawler
+    from generators import SequencedGenerator
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
     crawler = ReidDataCrawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
     train_generator = SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
@@ -91,13 +86,14 @@ def main(config, mode, weights):
     logger.info("Generated validation data/query generator")
 
     # --------------------- INSTANTIATE MODEL ------------------------
-    reid_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
-                                base=config.get("MODEL.MODEL_BASE"), \
-                                weights=MODEL_WEIGHTS, \
-                                soft_dimensions = TRAIN_CLASSES, \
-                                embedding_dimensions = config.get("MODEL.EMB_DIM"), \
-                                normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
-                                **json.loads(config.get("MODEL.MODEL_KWARGS")))
+    from models import veri_model_builder
+    reid_model = veri_model_builder(    arch = config.get("MODEL.MODEL_ARCH"), \
+                                        base=config.get("MODEL.MODEL_BASE"), \
+                                        weights=MODEL_WEIGHTS, \
+                                        soft_dimensions = TRAIN_CLASSES, \
+                                        embedding_dimensions = config.get("MODEL.EMB_DIM"), \
+                                        normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
+                                        **json.loads(config.get("MODEL.MODEL_KWARGS")))
     logger.info("Finished instantiating model")
 
     if mode == "test":
@@ -112,9 +108,11 @@ def main(config, mode, weights):
         reid_model.cuda()
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
+    from loss import ReIDLossBuilder
     loss_function = ReIDLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
+    from optimizer import OptimizerBuilder
     OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
     logger.info("Build optimizer")
@@ -140,6 +138,9 @@ def main(config, mode, weights):
     else:
         previous_stop = max(previous_stop) + 1
         logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
+
+    # --------------------- PERFORM TRAINING ------------------------
+    from trainer import SimpleTrainer
     loss_stepper = SimpleTrainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
