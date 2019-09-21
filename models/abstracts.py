@@ -16,29 +16,11 @@ class ReidModel(nn.Module):
         self.feat_norm = None
         self.build_normalization(self.normalization)
         
-
         if self.soft_dimensions is not None:
             self.softmax = nn.Linear(self.embedding_dimensions, self.soft_dimensions, bias=False)
             self.softmax.apply(self.weights_init_softmax)
         else:
             self.softmax = None
-
-    def forward(self,x):
-        features = self.base_forward(x)
-        
-        if self.feat_norm is not None:
-            inference = self.feat_norm(features)
-        else:
-            inference = features
-
-        if self.training:
-            if self.softmax is not None:
-                soft_logits = self.softmax(inference)
-            else:
-                soft_logits = None
-            return soft_logits, features
-        else:
-            return inference
 
     def weights_init_kaiming(self,m):
         classname = m.__class__.__name__
@@ -66,13 +48,6 @@ class ReidModel(nn.Module):
                 if m.bias:
                         nn.init.constant_(m.bias, 0.0)
     
-    def build_base(self,):
-        raise NotImplementedError()
-    def build_normalization(self,):
-        raise NotImplementedError()
-    def base_forward(self,x):
-        raise NotImplementedError()
-
     def partial_load(self,weights_path):
         params = torch.load(weights_path)
         for _key in params:
@@ -80,10 +55,17 @@ class ReidModel(nn.Module):
                 continue
             self.state_dict()[_key].copy_(params[_key])
 
-    class LambdaLayer(nn.Module):
-        """ Torch lambda layer to act as an empty layer. It does not do anything """
-        def __init__(self, lambd):
-                super(LambdaLayer, self).__init__()
-                self._lambda = lambd
-        def forward(self, x):
-                return self._lambda(x)
+
+    def build_base(self,**kwargs):
+        """Build the architecture base.        
+        """
+        raise NotImplementedError()
+    def build_normalization(self,**kwargs):
+        raise NotImplementedError()
+    def base_forward(self,**kwargs):
+        raise NotImplementedError()
+    def forward(self,**kwargs):
+        raise NotImplementedError()
+
+    
+
