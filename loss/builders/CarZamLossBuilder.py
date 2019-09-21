@@ -31,7 +31,7 @@ class CarZamLossBuilder(object):
         """Call operator of the loss builder.
 
         This returns the sum of each individual loss provided in the initialization, multiplied by their respective loss_lambdas. 
-        TODO update this + CrZam base model forward to return logits as well if necessary
+        TODO update this + CarZam base model forward to deal with logits as well if necessary
 
         Args (kwargs only):
             labels: Torch tensor of shape (batch_size, 1). The class labels.

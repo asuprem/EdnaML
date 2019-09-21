@@ -172,7 +172,6 @@ def main(config, mode, weights):
         logger.info(torchsummary.summary(carzam_model, input_size=(3, *config.get("DATASET.SHAPE"))))
 
     # --------------------- INSTANTIATE LOSS ------------------------
-    # TODO...Make proxy NCA loss...
     from loss import CarZamLossBuilder as LossBuilder
     loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
@@ -223,7 +222,7 @@ def main(config, mode, weights):
     else:
       raise NotImplementedError()
 
-
+    # TODO update evaluate function (NMI) and loss checker
 
     """Notes
 

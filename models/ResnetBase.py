@@ -32,7 +32,7 @@ class ResnetBase(ReidModel):
         norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
 
     Methods: 
-        forward: Process a batch (TODO add type and shape information)
+        forward: Process a batch
 
     """
     def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
@@ -55,7 +55,6 @@ class ResnetBase(ReidModel):
             pass
         else:
             self.emb_linear = nn.Linear(self.base.block.expansion*512, self.embedding_dimensions, bias=False)
-            # Initialization TODO
     
     def build_normalization(self, normalization):
         """Build the mormalization layer.

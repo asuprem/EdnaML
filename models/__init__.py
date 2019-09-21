@@ -30,9 +30,6 @@ def veri_model_builder(arch, base, weights=None, normalization=None, embedding_d
     model = archbase(base = base, weights=weights, normalization = normalization, embedding_dimensions = embedding_dimensions, soft_dimensions = soft_dimensions, **kwargs)
     return model
 
-# Legacy to prevent re-id code from bearking. TODO fix this.
-model_builder = veri_model_builder
-
 def vaegan_model_builder(arch, base, latent_dimensions = None, **kwargs):
     """VAE-GAN Model builder.
 
