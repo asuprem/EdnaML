@@ -2,7 +2,7 @@ EXECUTION:
   MODEL_SERVING: None
   EPOCHS: 120
   TEST_FREQUENCY: 5
-  OPTIMIZER_BUILDER: None
+  OPTIMIZER_BUILDER: ReIDOptimizerBuilder
   MODEL_BUILDER: carzam_model_builder 
   TRAINER: None
   CRAWLER: Cars196DataCrawler

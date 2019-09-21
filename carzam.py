@@ -157,7 +157,7 @@ def main(config, mode, weights):
                                     embedding_dimensions = config.get("MODEL.EMBEDDING_DIMENSIONS"), \
                                     normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                     **json.loads(config.get("MODEL.MODEL_KWARGS")))
-    logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.ARCH")))
+    logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
 
     if mode == "test":
         carzam_model.load_state_dict(torch.load(weights))
