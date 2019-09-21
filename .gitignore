@@ -27,6 +27,7 @@ venv
 # Allow 
 !config/veri_base.yml
 !config/vaegan_base.yml
+!config/carzam_cars196.yml
 
 # Other ignores
 notebooks.md
