@@ -145,8 +145,6 @@ def main(config, mode, weights):
     logger.info("Generated validation data/query generator")
 
     # --------------------- INSTANTIATE MODEL ------------------------
-
-    pdb.set_trace()
     model_builder = __import__("models", fromlist=["*"])
     model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER"))
     logger.info("Loaded {} from {} to build CarZam model".format(config.get("EXECUTION.MODEL_BUILDER"), "models"))
