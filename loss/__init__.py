@@ -5,4 +5,5 @@ class Loss(object):
         raise NotImplementedError()
 
 from .builders import ReIDLossBuilder
+from .builders import CarZamLossBuilder
 
