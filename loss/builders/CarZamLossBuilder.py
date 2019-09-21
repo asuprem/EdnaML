@@ -4,7 +4,7 @@ class CarZamLossBuilder(object):
     LOSS_PARAMS={}
     LOSS_PARAMS['ProxyNCA'] = {}
     LOSS_PARAMS['ProxyNCA']['fn'] = ProxyNCA
-    LOSS_PARAMS['ProxyNCA']['args'] = ['features', 'labels']
+    LOSS_PARAMS['ProxyNCA']['args'] = ['features', 'proxies', 'labels']
 
     def __init__(self, loss_functions, loss_lambda, loss_kwargs, **kwargs):
         self.loss = []
@@ -39,5 +39,6 @@ class CarZamLossBuilder(object):
         """
         loss = 0.0
         for idx, fn in enumerate(self.loss):
-            loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]))
+            # TODO fix this to be more dynamic for any length arguments. Should be do-able by using a dict to pass it: **{arg[0]:kwarngs.get(arg[0])}
+            loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][2]))
         return loss     
