@@ -160,7 +160,7 @@ class VAEGANTrainer:
 
         if continue_epoch > 0:
             load_epoch = continue_epoch - 1
-            self.load(load_epoch)   # DONE TODO
+            self.load(load_epoch)
 
         for epoch in range(self.epochs):
             if epoch >= continue_epoch:
@@ -188,7 +188,7 @@ class VAEGANTrainer:
                     #self.evaluate()     # TODO 
                     pass
                 if self.global_epoch % self.save_frequency == 0:
-                    self.save()         # DONE TODO
+                    self.save()
                 self.global_epoch += 1
             else:
                 self.global_epoch = epoch+1
