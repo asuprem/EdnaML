@@ -1,6 +1,13 @@
 import torch
 from torch import nn
-import torch.nn.init as init
+import torch.nn.init
+class LambdaLayer(nn.Module):
+    """ Torch lambda layer to act as an empty layer. It does not do anything """
+    def __init__(self, lambd):
+            super(LambdaLayer, self).__init__()
+            self._lambda = lambd
+    def forward(self, x):
+            return self._lambda(x)
 
 # https://github.com/amdegroot/ssd.pytorch/blob/master/layers/modules/l2norm.py
 class L2Norm(nn.Module):
@@ -13,7 +20,7 @@ class L2Norm(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        init.constant_(self.weight,self.gamma)
+        torch.nn.init.constant_(self.weight,self.gamma)
 
     def forward(self, x):
         norm = x.pow(2).sum(dim=1, keepdim=True).sqrt()+self.eps
@@ -27,6 +34,9 @@ class FixedInstanceNorm1d(instancenorm._InstanceNorm):
     """Applies Instance Normalization over a 2D or 3D input (a mini-batch of 1D
     inputs with optional additional channel dimension) as described in the paper
     `Instance Normalization: The Missing Ingredient for Fast Stylization`_ .
+
+    TODO Fix this formatting to match sphinx documentation
+
     .. math::
         y = \frac{x - \mathrm{E}[x]}{ \sqrt{\mathrm{Var}[x] + \epsilon}} * \gamma + \beta
     The mean and standard-deviation are calculated per-dimension separately
