@@ -173,14 +173,71 @@ def main(config, mode, weights):
 
     # --------------------- INSTANTIATE LOSS ------------------------
     # TODO...Make proxy NCA loss...
-    from loss import LossBuilder
+    from loss import CarZamLossBuilder as LossBuilder
     loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
 
+    # --------------------- INSTANTIATE OPTIMIZER ------------------------
+    optimizer_builder = __import__("optimizer", fromlist=["*"])
+    optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
+    logger.info("Loaded {} from {} to build VAEGAN model".format(config.get("EXECUTION.OPTIMIZER_BUILDER"), "optimizer"))
+
+    OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
+    optimizer = OPT.build(carzam_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
+    logger.info("Build optimizer")
+
+    # --------------------- INSTANTIATE SCHEDULER ------------------------
+    try:
+        scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
+        scheduler = getattr(scheduler, config.get("SCHEDULER.LR_SCHEDULER"))
+    except (ModuleNotFoundError, AttributeError):
+        scheduler_ = config.get("SCHEDULER.LR_SCHEDULER")
+        scheduler = __import__("scheduler."+scheduler_, fromlist=[scheduler_])
+        scheduler = getattr(scheduler, scheduler_)
+    scheduler = scheduler(optimizer, last_epoch = -1, **json.loads(config.get("SCHEDULER.LR_KWARGS")))
+    logger.info("Built scheduler")
+
+    # --------------------- DRIVE BACKUP ------------------------
+    if DRIVE_BACKUP:
+        fl_list = glob.glob(os.path.join(CHECKPOINT_DIRECTORY, "*.pth"))
+    else:
+        fl_list = glob.glob(os.path.join(MODEL_SAVE_FOLDER, "*.pth"))
+    _re = re.compile(r'.*epoch([0-9]+)\.pth')
+    previous_stop = [int(item[1]) for item in [_re.search(item) for item in fl_list] if item is not None]
+    if len(previous_stop) == 0:
+        previous_stop = 0
+    else:
+        previous_stop = max(previous_stop) + 1
+        logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
+
+    # --------------------- PERFORM TRAINING ------------------------
+    trainer = __import__("trainer", fromlist=["*"])
+    trainer = getattr(model_builder, config.get("EXECUTION.TRAINER"))
+    
+    loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
+    loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
+    if mode == 'train':
+      loss_stepper.train(continue_epoch=previous_stop)
+    elif mode == 'test':
+      loss_stepper.evaluate()
+    else:
+      raise NotImplementedError()
 
 
 
+    """Notes
 
+    proxy is part of model
+    during training, we return both embeddings + proxies
+    During loss calculation, we calculate distance between embeddings and proxies...
+    Then loss.backward should update both proxies and model itself...
+    (Or should proxies be independent??? -- no, model keeps its proxies)
+
+
+    During evaluation, we can proceed normally...for now, work on  integrating proxies into the model AND into batch_kwargs TODO
+
+
+    """
 
 
 
