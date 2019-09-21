@@ -62,7 +62,7 @@ class CarzamTrainer:
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
-        batch_kwargs["features"], batch_kwargs["proxy"] = self.model(img)
+        batch_kwargs["features"], batch_kwargs["proxies"] = self.model(img)
         loss = self.loss_fn(**batch_kwargs)
         if self.fp16 and self.apex is not None:
             with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:

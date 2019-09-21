@@ -41,13 +41,13 @@ TRANSFORMATION:
 MODEL:
   MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'CarzamResnet'
-  EMBEDDING_DIMENSIONS: 512
+  EMBEDDING_DIMENSIONS: 128
   MODEL_NORMALIZATION: ''
   MODEL_KWARGS: '{"proxies":true, "proxy_classes":98}'
 
 LOSS:
   LOSSES: ['ProxyNCA']
-  LOSS_KWARGS: [{}]
+  LOSS_KWARGS: [{'embedding_size':128,'classes':98}]
   LOSS_LAMBDAS: [1.0]
 
 OPTIMIZER:

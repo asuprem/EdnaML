@@ -177,7 +177,6 @@ def main(config, mode, weights):
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     optimizer_builder = __import__("optimizer", fromlist=["*"])
     optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
-    optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
     logger.info("Loaded {} from {} to build Optimizer model".format(config.get("EXECUTION.OPTIMIZER_BUILDER"), "optimizer"))
 
     OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
@@ -204,13 +203,14 @@ def main(config, mode, weights):
     previous_stop = [int(item[1]) for item in [_re.search(item) for item in fl_list] if item is not None]
     if len(previous_stop) == 0:
         previous_stop = 0
+        logger.info("No previous stop detected. Will start from epoch 0")
     else:
         previous_stop = max(previous_stop) + 1
         logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
 
     # --------------------- PERFORM TRAINING ------------------------
     trainer = __import__("trainer", fromlist=["*"])
-    trainer = getattr(model_builder, config.get("EXECUTION.TRAINER"))
+    trainer = getattr(trainer, config.get("EXECUTION.TRAINER"))
     
     loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)

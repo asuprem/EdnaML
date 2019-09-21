@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from . import Loss
 from utils.math import pairwise_distance
-
+import pdb
 class ProxyNCA:
     """Softmax with label smoothing
 
@@ -22,7 +22,7 @@ class ProxyNCA:
         self.classes = kwargs.get("classes")
         self.embedding = kwargs.get("embedding_size")
         self.DIV_CONST = 8
-        self.SMOOTHING = kwargs.get("smoothing", 0.0)
+        self.SMOOTHING = kwargs.get("smoothing", 0.1)
         self.NORMALIZATION = kwargs.get("normalization", 3.0)
         self.logsoftmax = nn.LogSoftmax(dim=-1)
 
@@ -37,7 +37,7 @@ class ProxyNCA:
         # smooth labels
         labels = torch.zeros(log_probs.size()).scatter_(1, labels.unsqueeze(1).data.cpu(), 1)
         labels = labels.cuda()
-        labels = (1 - (self.eps + (self.eps / self.soft_dim))) * labels + self.eps / self.soft_dim
+        labels = (1 - (self.SMOOTHING + (self.SMOOTHING / self.embedding))) * labels + self.SMOOTHING / self.embedding
 
         # cross entropy with distances as logits, one hot labels
         # note that compared to proxy nca, positive not excluded in denominator
