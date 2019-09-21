@@ -177,7 +177,8 @@ def main(config, mode, weights):
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     optimizer_builder = __import__("optimizer", fromlist=["*"])
     optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
-    logger.info("Loaded {} from {} to build VAEGAN model".format(config.get("EXECUTION.OPTIMIZER_BUILDER"), "optimizer"))
+    optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
+    logger.info("Loaded {} from {} to build Optimizer model".format(config.get("EXECUTION.OPTIMIZER_BUILDER"), "optimizer"))
 
     OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(carzam_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
