@@ -4,6 +4,7 @@ from collections import defaultdict
 import sklearn.cluster, sklearn.metrics.cluster
 import numpy as np
 import utils.math
+import pdb
 
 class CarzamTrainer:
     try:
@@ -88,6 +89,9 @@ class CarzamTrainer:
             load_epoch = continue_epoch - 1
             self.load(load_epoch)
 
+        self.logger.info("Performing initial evaluation...")
+        self.evaluate(suffix="Pretest")
+
         for epoch in range(self.epochs):
             if epoch >= continue_epoch:
                 for batch in self.train_loader:
@@ -154,7 +158,7 @@ class CarzamTrainer:
         self.scheduler.load_state_dict(torch.load(scheduler_load_path))
         self.logger.info("Finished loading scheduler state_dict from %s"%scheduler_load_path)
     
-    def evaluate(self):
+    def evaluate(self, suffix=""):
         self.logger.info('Validation in progress')
 
         self.model.eval()
@@ -186,10 +190,10 @@ class CarzamTrainer:
         
 
         self.logger.info("Completed all calculations")
-        self.logger.info('NMI: {:0.5%}'.format(nmi))
+        self.logger.info('NMI{}: {:0.5%}'.format(suffix, nmi))
         
         for r in range(10):
-            self.logger.info('CMC Rank-{}: {:.2%}'.format(r+1, cmc[r]))
+            self.logger.info('CMC Rank-{}{}: {:.2%}'.format(r+1, suffix, cmc[r]))
   
     def kmeans_cluster(self,features, classes):
         return sklearn.cluster.MiniBatchKMeans(n_clusters=classes).fit(features).labels_
@@ -203,9 +207,10 @@ class CarzamTrainer:
         return np.array([[labels[i] for i in nearest_idx] for nearest_idx in nearest_indices])
 
     def cmc(self, predicted_labels, true_labels, cmc_ranks):
+        true_labels = true_labels.numpy()
         cmc_curve=[]
         for rank_ in cmc_ranks:
-            cmc_rank = sum([1 for true_, pred_ in zip(true_labels, predicted_labels) if true_ in pred_[:rank_]])
+            cmc_rank = sum([1 for true_, pred_ in zip(true_labels, predicted_labels) if true_ in pred_[:rank_+1]])
             cmc_rank /= (1.*len(true_labels))
             cmc_curve.append(cmc_rank)
         return cmc_curve
