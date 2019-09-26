@@ -2,7 +2,43 @@ import os
 import re
 import glob
 
-class ReidDataCrawler:
+class VeRiDataCrawler:
+  """ Data crawler for the VeRi-776 dataset
+
+    The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective PIDs and CIDs.
+
+    Args:
+      data_folder (str): Name of the VeRi folder. Default: "VeRi"
+      train_folder (str): Folder inside data_folder with training images. Default: "image_train"
+      test_folder (str): Folder inside data_folder with testing/gallery images. Default: "image_test"
+      query_folder (str): Folder inside data_folder with query images. Default: "image_query"
+    
+    Kwargs:
+      logger: Instance of Logging object
+
+    Attributes:
+      metadata (dict): Contains image paths, PIDs, and CIDs of training, testing, and query sets
+        train (dict): contains image paths, PIDs, and CIDs
+          crawl (list): List of tuples. Each tuple is a 3-tuple of (image_path, PID, CID)
+          pids (int): Number of PIDs in training set
+          cids (int): Number of CIDs in training set
+          imgs (int): Number of images in training set
+        test (dict): contains image paths, PIDs, and CIDs
+          crawl (list): List of tuples. Each tuple is a 3-tuple of (image_path, PID, CID)
+          pids (int): Number of PIDs in testing set
+          cids (int): Number of CIDs in testing set
+          imgs (int): Number of images in testing set
+        query (dict): contains image paths, PIDs, and CIDs
+          crawl (list): List of tuples. Each tuple is a 3-tuple of (image_path, PID, CID)
+          pids (int): Number of PIDs in query set
+          cids (int): Number of CIDs in query set
+          imgs (int): Number of images in query set
+
+    Methods:
+      crawl(): Populate self.metadata
+      __verify(folder): Check if folder exists
+
+    """
   def __init__(self,data_folder="VeRi", train_folder="image_train", test_folder="image_test", query_folder="image_query", **kwargs):
     self.metadata = {}
 
