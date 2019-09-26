@@ -37,7 +37,7 @@ class TripletLoss(Loss):
     return self.loss_fn(features, labels, self.margin)
 
 
-  def hard_mining(self, features, labels, margin, squared=False, device='cpu'):
+  def hard_mining(self, features, labels, margin, squared=False, device='gpu'):
     """Build the triplet loss over a batch of features.
 
     For each anchor, we get the hardest positive and hardest negative to form a triplet.
