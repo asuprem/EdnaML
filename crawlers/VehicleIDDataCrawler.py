@@ -22,8 +22,7 @@ class VehicleIDDataCrawler:
 
         self.__verify(self.data_folder)
         self.__verify(self.train_folder)
-        #self.__verify(self.test_folder)
-        #self.__verify(self.query_folder)
+
 
         self.crawl()
 
