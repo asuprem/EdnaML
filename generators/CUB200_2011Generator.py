@@ -120,7 +120,7 @@ class CUB200_2011Generator:
 
     Args:
       workers (int): Number of workers to use during data retrieval/loading
-      datacrawler (ReidDataCrawler): A DataCrawler object that has crawled the data directory
+      datacrawler (VeRiDataCrawler): A DataCrawler object that has crawled the data directory
       mode (str): One of 'train', 'test', 'query'. 
     """
     if datacrawler is None:
