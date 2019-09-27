@@ -1,3 +1,4 @@
+import pdb
 import torch
 from torch import nn
 from . import Loss
@@ -176,7 +177,7 @@ class TripletLoss(Loss):
         labels: tf.int32 `Tensor` with shape [batch_size]
     """
     # Check that i, j and k are distinct
-    indices_equal = torch.eye(labels.size(0)).byte()
+    indices_equal = torch.eye(labels.size(0)).bool()
     indices_not_equal = ~indices_equal
     i_not_equal_j = indices_not_equal.unsqueeze(2)
     i_not_equal_k = indices_not_equal.unsqueeze(1)
@@ -202,13 +203,12 @@ class TripletLoss(Loss):
         mask: tf.bool `Tensor` with shape [batch_size, batch_size]
     """
     # Check that i and j are distinct
-    indices_equal = torch.eye(labels.size(0)).byte().to(device)
+    indices_equal = torch.eye(labels.size(0)).bool().to(device)
     indices_not_equal = ~indices_equal
 
     # Check if labels[i] == labels[j]
     # Uses broadcasting where the 1st argument has shape (1, batch_size) and the 2nd (batch_size, 1)
     labels_equal = labels.unsqueeze(0) == labels.unsqueeze(1)
-
     return labels_equal & indices_not_equal
 
 
