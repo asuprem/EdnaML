@@ -63,30 +63,34 @@ class VRICDataCrawler:
       self.logger.info("Found {data_folder}".format(data_folder = folder))
 
   def crawl(self,):
+    # We will build the details using the text files
     self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
-    self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder, reset_labels=True)
-    self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
-    self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = self.__crawl(self.query_folder)
+    self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(os.path.join(self.data_folder, "vric_train.txt"), self.train_folder, reset_labels=True)
+    self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = self.__crawl(os.path.join(self.data_folder, "vric_gallery.txt"), self.test_folder, reset_labels=True)
+    self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = self.__crawl(os.path.join(self.data_folder, "vric_probe.txt"), self.query_folder, reset_labels=True)
 
     self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
     self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
     self.logger.info("Query\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"]))
 
-  def __crawl(self,folder, reset_labels=False):
-    imgs = glob.glob(os.path.join(folder, "*.jpg"))
-    _re = re.compile(r'([\d]+)_[a-z]([\d]+)')
+  def __crawl(self, file_to_open, folder, reset_labels=False):
     pid_labeler = 0
     pid_tracker, cid_tracker = {}, {}
     crawler = []
     pid_counter, cid_counter, img_counter = 0, 0, 0
-    for img in imgs:
-      pid, cid = map(int, _re.search(img).groups()) # _re.search lol
-      if pid < 0: continue  # ignore junk
-      if cid < 0: continue  # ignore junk
-      if pid not in pid_tracker:
-        pid_tracker[pid] = pid_labeler if reset_labels else pid
-        pid_labeler += 1
-      if cid not in cid_tracker:
-        cid_tracker[cid] = cid-1
-      crawler.append((img, pid_tracker[pid], cid-1))  # cids start at 1 in data
-    return crawler, len(pid_tracker), len(cid_tracker), len(crawler)
+
+    with open(file_to_open, "r") as file_:
+      for line in file_:
+        path, pid, cid = line.strip().split(" ")
+        pid = int(pid)
+        cid = int(cid)
+        path = os.path.join(folder, path)
+        if pid < 0: continue  # ignore junk
+        if cid < 0: continue  # ignore junk
+        if pid not in pid_tracker:
+          pid_tracker[pid] = pid_labeler if reset_labels else pid
+          pid_labeler += 1
+        if cid not in cid_tracker:
+          cid_tracker[cid] = cid-1
+        crawler.append((path, pid_tracker[pid], cid-1))  # cids start at 1 in data
+      return crawler, len(pid_tracker), len(cid_tracker), len(crawler)

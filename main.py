@@ -68,10 +68,14 @@ def main(config, mode, weights):
     logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------
-    from crawlers import VeRiDataCrawler
+
+    data_crawler_ = config.get("EXECUTION.CRAWLER", "VeRiDataCrawler")
+    data_crawler = __import__("crawlers."+data_crawler_, fromlist=[data_crawler_])
+    data_crawler = getattr(data_crawler, data_crawler_)
+
     from generators import SequencedGenerator
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
-    crawler = VeRiDataCrawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
+    crawler = data_crawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
     train_generator = SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
