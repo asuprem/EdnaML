@@ -96,7 +96,7 @@ def main(config, mode, weights):
     model_builder = getattr(model_builder, model_builder_)
     logger.info("Loaded {} from {} to build ReID model".format(model_builder_, "models"))
 
-    reid_model = veri_model_builder(    arch = config.get("MODEL.MODEL_ARCH"), \
+    reid_model = model_builder(    arch = config.get("MODEL.MODEL_ARCH"), \
                                         base=config.get("MODEL.MODEL_BASE"), \
                                         weights=MODEL_WEIGHTS, \
                                         soft_dimensions = TRAIN_CLASSES, \
@@ -121,6 +121,11 @@ def main(config, mode, weights):
     loss_function = ReIDLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
+    optimizer_builder_ = config.get("EXECUTION.OPTIMIZER_BUILDER", "OptimizerBuilder")
+    optimizer_builder = __import__("optimizer", fromlist=["*"])
+    optimizer_builder = getattr(optimizer_builder, optimizer_builder_)
+    logger.info("Loaded {} from {} to build Optimizer model".format(optimizer_builder_, "optimizer"))
+
     from optimizer import OptimizerBuilder
     OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
