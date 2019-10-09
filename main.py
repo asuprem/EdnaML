@@ -90,8 +90,12 @@ def main(config, mode, weights):
     QUERY_CLASSES = test_generator.num_entities
     logger.info("Generated validation data/query generator")
 
-    # --------------------- INSTANTIATE MODEL ------------------------
-    from models import veri_model_builder
+    # --------------------- INSTANTIATE MODEL ------------------------    
+    model_builder_ = data_crawler_ = config.get("EXECUTION.MODEL_BUILDER", "veri_model_builder")
+    model_builder = __import__("models", fromlist=["*"])
+    model_builder = getattr(model_builder, model_builder_)
+    logger.info("Loaded {} from {} to build ReID model".format(model_builder_, "models"))
+
     reid_model = veri_model_builder(    arch = config.get("MODEL.MODEL_ARCH"), \
                                         base=config.get("MODEL.MODEL_BASE"), \
                                         weights=MODEL_WEIGHTS, \
