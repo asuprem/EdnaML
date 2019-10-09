@@ -5,13 +5,13 @@ import glob
 class VRICDataCrawler:
   """ Data crawler for the VRIC (Vehicle Re-identification in Context) dataset
 
-    The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective PIDs and CIDs.
+    The VRIC crawls the VRIC data folder to populate training, query, and gallery sets with images and their respective PIDs and CIDs. It uses the provided list of training, query, and gallery images to populate the crawler metadata.
 
     Args:
-      data_folder (str): Name of the VeRi folder. Default: "VeRi"
-      train_folder (str): Folder inside data_folder with training images. Default: "image_train"
-      test_folder (str): Folder inside data_folder with testing/gallery images. Default: "image_test"
-      query_folder (str): Folder inside data_folder with query images. Default: "image_query"
+      data_folder (str): Name of the VeRi folder. Default: "VRIC"
+      train_folder (str): Folder inside data_folder with training images. Default: "train_images"
+      test_folder (str): Folder inside data_folder with testing/gallery images. Default: "gallery_images"
+      query_folder (str): Folder inside data_folder with query images. Default: "probe_images"
     
     Kwargs:
       logger: Instance of Logging object
