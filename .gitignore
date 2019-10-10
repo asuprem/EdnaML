@@ -29,6 +29,7 @@ venv
 !config/vaegan_base.yml
 !config/carzam_cars196.yml
 !config/vric_final.yml
+!config/vric_final2.yml
 
 # Other ignores
 notebooks.md
