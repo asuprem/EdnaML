@@ -11,7 +11,7 @@ EXECUTION:
 
 
 SAVE:
-  MODEL_VERSION: 2
+  MODEL_VERSION: 3
   MODEL_CORE_NAME: "carzam_cub200"
   MODEL_BACKBONE: "res50"
   MODEL_QUALIFIER: "all"
@@ -39,19 +39,19 @@ TRANSFORMATION:
   WORKERS: 1
 
 MODEL:
-  MODEL_BASE: 'resnet50'
+  MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'CarzamResnet'
-  EMBEDDING_DIMENSIONS: 256
-  MODEL_NORMALIZATION: 'gn'
+  EMBEDDING_DIMENSIONS: 128
+  MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: '{"proxies":true, "proxy_classes":100, "attention":"cbam", "secondary_attention":1, "input_attention":false}'
 
 LOSS:
   LOSSES: ['ProxyNCA']
-  LOSS_KWARGS: [{'embedding_size':256,'classes':100}]
+  LOSS_KWARGS: [{'embedding_size':128,'classes':100}]
   LOSS_LAMBDAS: [1.0]
 
 OPTIMIZER:
-  OPTIMIZER_NAME: "Adam"
+  OPTIMIZER_NAME: "AdamW"
   OPTIMIZER_KWARGS: '{}'
   BASE_LR: 0.001
   LR_BIAS_FACTOR: 1.0
