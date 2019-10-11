@@ -31,6 +31,10 @@ venv
 !config/vric_final.yml
 !config/vric_final2.yml
 
+!config/CarZam/carzam_cars_full.yml
+!config/CarZam/carzam_cub200_full.yml
+
+
 # Other ignores
 notebooks.md
 
