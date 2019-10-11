@@ -132,7 +132,7 @@ class Cars196Generator:
     # If testing, get images whose labels are 98-196
     if mode == "train":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,98))
-    elif mode == "zsl":
+    elif mode == "zsl" or mode == "test":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(98,196))
     elif mode == "gzsl":  # handle generalized zero shot learning testing...
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(0,196))
@@ -144,7 +144,7 @@ class Cars196Generator:
                                         shuffle=True, \
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
       self.num_entities = 98
-    elif mode == "zsl":
+    elif mode == "zsl" or mode == "test":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle = False, 
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
