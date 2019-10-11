@@ -60,6 +60,7 @@ class CarzamTrainer:
         self.model.train()
         self.optimizer.zero_grad()
         batch_kwargs = {}
+        batch_kwargs["epoch"] = self.global_epoch
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
