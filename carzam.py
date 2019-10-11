@@ -137,10 +137,11 @@ def main(config, mode, weights):
 
     logger.info("Generated training data generator")
     TRAIN_CLASSES = train_generator.num_entities
+    test_mode = config.get("EXECUTION.TEST_MODE", "zsl")    # or "gzsl"
     test_generator=  data_generator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                             normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                             h_flip = 0, t_crop = False, rea = False)
-    test_generator.setup(crawler, mode='test', batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance=config.get("TRANSFORMATION.INSTANCES"), workers=config.get("TRANSFORMATION.WORKERS"))
+    test_generator.setup(crawler, mode=test_mode, batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance=config.get("TRANSFORMATION.INSTANCES"), workers=config.get("TRANSFORMATION.WORKERS"))
     TEST_CLASSES = test_generator.num_entities
     logger.info("Generated validation data/query generator")
 
