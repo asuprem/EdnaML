@@ -35,7 +35,9 @@ class ReIDLossBuilder(object):
     for idx, fn in enumerate(loss_functions):
       self.loss.append(self.LOSS_PARAMS[fn]['fn'](**loss_kwargs[idx]))
       self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=fn, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
-
+    
+    lambda_sum = sum(loss_lambda)
+    loss_lambda = [float(item)/float(lambda_sum) for item in loss_lambda]
     self.loss_lambda = loss_lambda
     self.loss_fn = loss_functions
     
