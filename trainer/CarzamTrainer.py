@@ -187,7 +187,7 @@ class CarzamTrainer:
         self.logger.info('Assigning labels using nearest neighbors')
         cluster_labels = self.kmeans_labels(features, pids, 8)
         self.logger.info('Computing CMC curve')
-        pdb.set_trace()
+        #pdb.set_trace()
         cmc = self.cmc(cluster_labels, true_labels=pids, cmc_ranks=range(10))
         
 
