@@ -2,7 +2,7 @@
 import glob
 import os
 import re
-
+import random, math
 
 class CUB200_2011DataCrawler:
   def __init__(self,data_folder="CUB_200_2011",  **kwargs):
@@ -33,7 +33,7 @@ class CUB200_2011DataCrawler:
     self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
     self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.image_folder)
     # This is here to be compatible with generators.SequencedGenerator
-    self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = [], 0, 0, 0
+    #self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = [], 0, 0, 0
     self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = [], 0, 0, 0
     #self.__crawl(self.query_folder)
 
@@ -55,4 +55,23 @@ class CUB200_2011DataCrawler:
     # Each tuple is (path/to/image, PID, CID)   PID --> class (from 0-200), CID --> 0
     # CID is a holdover from other crawlers used for re-id task, where cid, or camera-id is required. To maintain compatibility with SequencedGenerator (which expects CID) until I write a generator for Cars196 
     # PID is similarity from person-reid, where PID stands for person ID. In this case, it is a unique class
-    return crawler, 200, 1, len(crawler)
+    train_crawler = [item for item in crawler if item[1] in range(0,100)]
+    test_crawler = [item for item in crawler if item[1] in range(100,200)]
+    
+    random.shuffle(train_crawler)
+    split=0.7
+    split_idx = math.ceil(split*len(train_crawler))
+
+
+    self.metadata["test"]["crawl"] = train_crawler[split_idx:]
+    self.metadata["test"]["pids"] = 100
+    self.metadata["test"]["cids"] = 1
+    self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
+    train_crawler=train_crawler[:split_idx]
+
+    self.metadata["query"]["crawl"] = test_crawler
+    self.metadata["query"]["pids"] = 100
+    self.metadata["query"]["cids"] = 1
+    self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
+
+    return train_crawler, 100, 1, len(train_crawler)

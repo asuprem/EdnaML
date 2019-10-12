@@ -12,10 +12,16 @@ import os.path as osp
 import numpy as np
 
 class TDataSet(TorchDataset):
-  def __init__(self,dataset, transform, valid_labels):
+  def __init__(self,dataset, transform, valid_labels, gzsl=0):
     self.valid_labels=valid_labels
     self.dataset = [item for item in dataset if item[1] in self.valid_labels]
+    # If gzsl, we perform a split so the gzsl testing data is NOT part of training data...
+    if gzsl > 0:
+      gzsl_split = np.floor(gzsl*len(dataset))
+      self.alternate_dataset = self.dataset[gzsl_split:]
+      self.dataset = self.dataset[:gzsl_split]
     self.transform = transform
+    
     
   def __len__(self):
     return len(self.dataset)
@@ -130,13 +136,13 @@ class CUB200_2011Generator:
     # If training, get images whose labels are 0-99
     # If testing, get images whose labels are 100-199
     if mode == "train":
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,100))
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(0,100))
     elif mode == "train-gzsl":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"], self.transformer, range(0,100))
     elif mode == "zsl" or mode == "test":
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(100,200))
+      self.__dataset = TDataSet(datacrawler.metadata["query"]["crawl"], self.transformer, range(100,200))
     elif mode == "gzsl":  # For the generalized zero shot learning mode
-      self.__dataset = TDataSet(datacrawler.metadata["test"]["crawl"], self.transformer, range(0,200))
+      self.__dataset = TDataSet(datacrawler.metadata["test"]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer, range(0,200))
     
     else:
       raise NotImplementedError()
