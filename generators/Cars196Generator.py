@@ -141,7 +141,7 @@ class Cars196Generator:
     else:
       raise NotImplementedError()
     
-    if mode == "train":
+    if mode == "train" or mode == "train-gzsl":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle=True, \
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
