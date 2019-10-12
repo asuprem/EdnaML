@@ -128,12 +128,12 @@ def main(config, mode, weights):
     data_crawler = getattr(data_crawler, data_crawler_)
     
     crawler = data_crawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
-
+    train_mode = config.get("EXECUTION.TRAIN_MODE", "train")    # or "train-gzsl"
     train_generator = data_generator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
                                 **TRAINDATA_KWARGS)
-    train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance = config.get("TRANSFORMATION.INSTANCES"), workers = config.get("TRANSFORMATION.WORKERS"))
+    train_generator.setup(crawler, mode=train_mode, batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance = config.get("TRANSFORMATION.INSTANCES"), workers = config.get("TRANSFORMATION.WORKERS"))
 
     logger.info("Generated training data generator")
     TRAIN_CLASSES = train_generator.num_entities
