@@ -11,7 +11,7 @@ class CarzamTrainer:
         apex = __import__('apex')
     except:
         apex = None
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger):
+    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger, test_mode="zsl"):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
@@ -20,6 +20,7 @@ class CarzamTrainer:
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.queries = queries
+        self.test_mode = test_mode
 
         self.epochs = epochs
         self.logger = logger
@@ -189,13 +190,30 @@ class CarzamTrainer:
         self.logger.info('Computing CMC curve')
         #pdb.set_trace()
         cmc = self.cmc(cluster_labels, true_labels=pids, cmc_ranks=range(10))
+
+        if self.test_mode == "gzsl":
+            cmc_s = self.cmc(cluster_labels[pids<self.queries//2], true_labels=pids[pids<self.queries//2], cmc_ranks=range(8))
+            cmc_u = self.cmc(cluster_labels[pids>=self.queries//2], true_labels=pids[pids>=self.queries//2], cmc_ranks=range(8))
+            harmonic_cmc = (2*cmc_s[0]*cmc_u[0])/(cmc_s[0]+cmc_u[0])
+        
+        
         
 
         self.logger.info("Completed all calculations")
         self.logger.info('NMI{}: {:0.5%}'.format(suffix, nmi))
+        self.logger.info('Harmonic-mean{}: {:0.5%}'.format(suffix, harmonic_cmc))
+        
         
         for r in range(10):
             self.logger.info('CMC Rank-{}{}: {:.2%}'.format(r+1, suffix, cmc[r]))
+
+        if self.test_mode == "gzsl":
+            for r in range(8):
+                self.logger.info('CMC-Seen Rank-{}{}: {:.2%}'.format(r+1, suffix, cmc_s[r]))
+            for r in range(8):
+                self.logger.info('CMC-Unseen Rank-{}{}: {:.2%}'.format(r+1, suffix, cmc_u[r]))
+
+
   
     def kmeans_cluster(self,features, classes):
         return sklearn.cluster.MiniBatchKMeans(n_clusters=classes).fit(features).labels_
