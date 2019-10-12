@@ -131,10 +131,12 @@ class CUB200_2011Generator:
     # If testing, get images whose labels are 100-199
     if mode == "train":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,100))
+    elif mode == "train-gzsl":
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"], self.transformer, range(0,100))
     elif mode == "zsl" or mode == "test":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(100,200))
     elif mode == "gzsl":  # For the generalized zero shot learning mode
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(0,200))
+      self.__dataset = TDataSet(datacrawler.metadata["test"]["crawl"], self.transformer, range(0,200))
     
     else:
       raise NotImplementedError()
