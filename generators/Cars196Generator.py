@@ -132,6 +132,8 @@ class Cars196Generator:
     # If testing, get images whose labels are 98-196
     if mode == "train":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,98))
+    if mode == "train-gzsl":
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"], self.transformer, range(0,98))
     elif mode == "zsl" or mode == "test":
       self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(98,196))
     elif mode == "gzsl":  # handle generalized zero shot learning testing...
