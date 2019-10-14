@@ -1,25 +1,24 @@
 # Designed to work with SequencedGenerator
 import glob
+import math
 import os
+import random
 import re
-import random, math
+
+import utils.splits.cub200
+
 
 class CUB200_2011DataCrawler:
   def __init__(self,data_folder="CUB_200_2011",  **kwargs):
     self.metadata = {}
-    # train_folder="cars_train", test_folder="cars_test", query_folder="",
 
     self.data_folder = data_folder
     self.image_folder = os.path.join(self.data_folder, "images")
-    #self.test_folder = os.path.join(self.data_folder, test_folder)
-    #self.query_folder = os.path.join(self.data_folder, query_folder)
 
     self.logger = kwargs.get("logger")
 
     self.__verify(self.data_folder)
     self.__verify(self.image_folder)
-    # self.__verify(self.test_folder)
-    # self.__verify(self.query_folder)
 
     self.crawl()
 
@@ -31,11 +30,7 @@ class CUB200_2011DataCrawler:
 
   def crawl(self,):
     self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
-    self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.image_folder)
-    # This is here to be compatible with generators.SequencedGenerator
-    #self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = [], 0, 0, 0
-    #self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = [], 0, 0, 0
-    #self.__crawl(self.query_folder)
+    self.__crawl(self.image_folder)
 
     self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
     self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
@@ -55,23 +50,27 @@ class CUB200_2011DataCrawler:
     # Each tuple is (path/to/image, PID, CID)   PID --> class (from 0-200), CID --> 0
     # CID is a holdover from other crawlers used for re-id task, where cid, or camera-id is required. To maintain compatibility with SequencedGenerator (which expects CID) until I write a generator for Cars196 
     # PID is similarity from person-reid, where PID stands for person ID. In this case, it is a unique class
-    train_crawler = [item for item in crawler if item[1] in range(0,100)]
-    test_crawler = [item for item in crawler if item[1] in range(100,200)]
+    trainvalsplits = [int(item.split(".")[0]) for item in utils.splits.cub200.trainval]
+    testsplits = [int(item.split(".")[0]) for item in utils.splits.cub200.query]
+    train_crawler = [item for item in crawler if item[1] in trainvalsplits]
+    test_crawler = [item for item in crawler if item[1] in testsplits]
     
     random.shuffle(train_crawler)
     split=0.7
     split_idx = math.ceil(split*len(train_crawler))
 
-
     self.metadata["test"]["crawl"] = train_crawler[split_idx:]
-    self.metadata["test"]["pids"] = 100
+    self.metadata["test"]["pids"] = len(trainvalsplits)
     self.metadata["test"]["cids"] = 1
     self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
     train_crawler=train_crawler[:split_idx]
 
     self.metadata["query"]["crawl"] = test_crawler
-    self.metadata["query"]["pids"] = 100
+    self.metadata["query"]["pids"] = len(trainvalsplits)
     self.metadata["query"]["cids"] = 1
     self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
 
-    return train_crawler, 100, 1, len(train_crawler)
+    self.metadata["train"]["crawl"] = train_crawler
+    self.metadata["train"]["pids"] = len(testsplits)
+    self.metadata["train"]["cids"] = 1
+    self.metadata["train"]["imgs"] = len(train_crawler)
