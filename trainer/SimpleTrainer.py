@@ -66,6 +66,7 @@ class SimpleTrainer:
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"] = self.model(img)
+        batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         loss = self.loss_fn(**batch_kwargs)
         if self.fp16 and self.apex is not None:
             with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
