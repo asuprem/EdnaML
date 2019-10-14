@@ -44,6 +44,6 @@ class CarZamLossBuilder(object):
         """
         loss = 0.0
         for idx, fn in enumerate(self.loss):
-            # TODO fix this to be more dynamic for any length arguments. Should be do-able by using a dict to pass it: **{arg[0]:kwarngs.get(arg[0])}
-            loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][2]))
+            #loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][2]))
+            loss += self.loss_lambda[idx] * fn(*[ kwargs.get(arg_name)   for arg_name in self.LOSS_PARAMS[self.loss_fn[idx]]['args']])
         return loss     
