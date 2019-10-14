@@ -1,3 +1,5 @@
+import pdb
+
 class LossBuilder:
     def __init__(self):
         pass
@@ -16,6 +18,7 @@ class LossBuilder:
         for idx, loss_fn in enumerate(self.loss):
             #loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][2]))
             loss += self.loss_lambda[idx] * loss_fn(*[ kwargs.get(arg_name)   for arg_name in self.LOSS_PARAMS[self.loss_fn[idx]]['args']])
+            
         return loss
         
 from .ReIDLossBuilder import ReIDLossBuilder
