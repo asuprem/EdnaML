@@ -10,7 +10,7 @@ import torch, torchsummary, torchvision
 
 @click.command()
 @click.argument('config')
-@click.option('--mode', default="train", help="Execution mode: [train/test]")
+@click.option('--mode', default="train", help="Execution mode: [train|test]")
 @click.option('--weights', default=".", help="Path to weights if mode is test")
 def main(config, mode, weights):
 
