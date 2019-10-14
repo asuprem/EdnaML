@@ -53,5 +53,6 @@ class ReIDLossBuilder(object):
     """
     loss = 0.0
     for idx, fn in enumerate(self.loss):
-      loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]))
+      #loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]))
+      loss += self.loss_lambda[idx] * fn(*[ kwargs.get(arg_name)   for arg_name in self.LOSS_PARAMS[self.loss_fn[idx]]['args']])
     return loss
