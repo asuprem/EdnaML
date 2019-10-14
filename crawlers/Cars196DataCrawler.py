@@ -30,11 +30,7 @@ class Cars196DataCrawler:
 
   def crawl(self,):
     self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
-    self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(os.path.join(self.data_folder, "cars_train_annos.mat"), self.train_folder)
-    self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = self.__crawl(os.path.join(self.data_folder, "cars_test_annos_withlabels.mat"), self.test_folder)
-    # This is here to be compatible with generators.SequencedGenerator
-    self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = [], 0, 0, 0
-    #self.__crawl(self.query_folder)
+    self.__crawl(os.path.join(self.data_folder, "cars_train_annos.mat"), self.train_folder)
 
     self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
     self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
@@ -72,7 +68,3 @@ class Cars196DataCrawler:
     self.metadata["train"]["pids"] = 98
     self.metadata["train"]["cids"] = 1
     self.metadata["train"]["imgs"] = len(train_crawler)
-
-
-
-    return crawler, 196, 1, len(crawler)
