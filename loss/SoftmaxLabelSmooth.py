@@ -21,7 +21,7 @@ class SoftmaxLabelSmooth(Loss):
         self.eps = kwargs.get('eps', 0.1)
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
-    def __call__(self, logits, labels):
+    def forward(self, logits, labels):
         """
         Args:
             logits: prediction matrix (before softmax) with shape (batch_size, soft_dim)
