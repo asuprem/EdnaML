@@ -2,6 +2,8 @@ from ..SoftmaxLogitsLoss import SoftmaxLogitsLoss
 from ..SoftmaxLabelSmooth import SoftmaxLabelSmooth
 from ..TripletLoss import TripletLoss
 from ..MarginLoss import MarginLoss
+from ..ContrastiveLoss import ContrastiveLoss
+from ..CompactContrastiveLoss import CompactContrastiveLoss
 
 class ReIDLossBuilder(object):
   LOSS_PARAMS = {}
@@ -17,6 +19,12 @@ class ReIDLossBuilder(object):
   LOSS_PARAMS['SoftmaxLabelSmooth'] = {}
   LOSS_PARAMS['SoftmaxLabelSmooth']['fn'] = SoftmaxLabelSmooth
   LOSS_PARAMS['SoftmaxLabelSmooth']['args'] = ['logits', 'labels']
+  LOSS_PARAMS['ContrastiveLoss'] = {}
+  LOSS_PARAMS['ContrastiveLoss']['fn'] = ContrastiveLoss
+  LOSS_PARAMS['ContrastiveLoss']['args'] = ['features', 'labels']
+  LOSS_PARAMS['CompactContrastiveLoss'] = {}
+  LOSS_PARAMS['CompactContrastiveLoss']['fn'] = CompactContrastiveLoss
+  LOSS_PARAMS['CompactContrastiveLoss']['args'] = ['features', 'labels', 'epoch']
 
   def __init__(self, loss_functions, loss_lambda, loss_kwargs, **kwargs):
     self.loss = []
