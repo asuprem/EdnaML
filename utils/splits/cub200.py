@@ -1,4 +1,4 @@
-# Proposed splits from 
+# Proposed splits for CUB200 from 
 # Zero-shot Learning - The Good, the Bad and the Ugly. Y. Xian, B. Schiele, Z. Akata. IEEE CVPR 2017.
 
 
