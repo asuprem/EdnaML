@@ -6,7 +6,6 @@ from torch import nn
 import torch.nn.functional as F
 from . import Loss
 
-
 class CompactContrastiveLoss(Loss):
     """Standard contrastive loss
 
