@@ -21,9 +21,10 @@ class ContrastiveLoss(Loss):
     """
 
     def __init__(self, **kwargs):
+        super(ContrastiveLoss,self).__init__()
         self.margin = kwargs.get("margin", 0.3)
 
-    def __call__(self, features, labels):
+    def forward(self, features, labels):
         positive_pairs, negative_pairs = self.get_pairs(features, labels)
         if features.is_cuda:
             positive_pairs = positive_pairs.cuda()
