@@ -2,18 +2,27 @@
 
 """
 
-import os, shutil, glob, re, pdb, json
-import kaptan
+import glob
+import json
+import os
+import pdb
+import re
+import shutil
+
 import click
+import kaptan
+import torch
+import torchsummary
+import torchvision
+
 import utils
-import torch, torchsummary, torchvision
+
 
 @click.command()
 @click.argument('config')
 @click.option('--mode', default="train", help="Execution mode: [train|test]")
 @click.option('--weights', default=".", help="Path to weights if mode is test")
 def main(config, mode, weights):
-
     # Generate configuration
     cfg = kaptan.Kaptan(handler='yaml')
     config = cfg.import_config(config)
