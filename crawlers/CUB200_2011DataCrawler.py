@@ -1,4 +1,3 @@
-# Designed to work with SequencedGenerator
 import glob
 import math
 import os
@@ -69,7 +68,7 @@ class CUB200_2011DataCrawler:
     self.metadata["query"]["cids"] = 1
     self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
 
-    self.metadata["train"]["crawl"] = train_crawler
+    self.metadata["train"]["crawl"] = train_crawler[:split_idx]
     self.metadata["train"]["pids"] = len(testsplits)
     self.metadata["train"]["cids"] = 1
     self.metadata["train"]["imgs"] = len(train_crawler)
