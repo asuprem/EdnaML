@@ -1,21 +1,20 @@
+import os.path as osp
+import random
+from collections import defaultdict
+
+import numpy as np
 import torch
 import torchvision.transforms as T
+from PIL import Image, ImageFile
+from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data.dataloader import DataLoader as TorchDataLoader
 from torch.utils.data.sampler import Sampler
-from torch.utils.data import Dataset as TorchDataset
-from PIL import Image
-from PIL import ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-from collections import defaultdict
-import random
-import os.path as osp
-import numpy as np
 
-import pdb
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 class TDataSet(TorchDataset):
-  def __init__(self,dataset, transform, valid_labels):
-    self.valid_labels=valid_labels
-    self.dataset = [item for item in dataset if item[1] in self.valid_labels]
+  def __init__(self,dataset, transform):
+    self.dataset = [item for item in dataset if item[1]]
     self.transform = transform
     
   def __len__(self):
@@ -128,16 +127,14 @@ class Cars196Generator:
       raise ValueError("Must pass DataCrawler instance. Passed `None`")
     self.workers = workers * self.gpus
 
-    # If training, get images whose labels are 0-97
-    # If testing, get images whose labels are 98-196
     if mode == "train":
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"]+datacrawler.metadata["test"]["crawl"], self.transformer, range(0,98))
-    if mode == "train-gzsl":
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"], self.transformer, range(0,98))
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer)
+    elif mode == "train-gzsl":
+      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"], self.transformer)
     elif mode == "zsl" or mode == "test":
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(98,196))
-    elif mode == "gzsl":  # handle generalized zero shot learning testing...
-      self.__dataset = TDataSet(datacrawler.metadata["train"]["crawl"] + datacrawler.metadata["test"]["crawl"], self.transformer, range(0,196))
+      self.__dataset = TDataSet(datacrawler.metadata["query"]["crawl"], self.transformer)
+    elif mode == "gzsl":  # For the generalized zero shot learning mode
+      self.__dataset = TDataSet(datacrawler.metadata["test"]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
     else:
       raise NotImplementedError()
     
@@ -145,19 +142,21 @@ class Cars196Generator:
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle=True, \
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
-      self.num_entities = 98
+      self.num_entities = datacrawler.metadata["train"]["pids"]
     elif mode == "zsl" or mode == "test":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle = False, 
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
-      self.num_entities = 98
+      self.num_entities = datacrawler.metadata["query"]["pids"]
     elif mode == "gzsl":
       self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, \
                                         shuffle = False, 
                                         num_workers=self.workers, drop_last=True, collate_fn=self.collate_simple)
-      self.num_entities = 196
+      self.num_entities = datacrawler.metadata["train"]["pids"] + datacrawler.metadata["query"]["pids"]
     else:
       raise NotImplementedError()
+
+    
   def collate_simple(self,batch):
     img, pid, _ = zip(*batch)
     pid = torch.tensor(pid, dtype=torch.int64)
