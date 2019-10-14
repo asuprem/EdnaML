@@ -1,6 +1,5 @@
 # Designed to work with SequencedGenerator
 import os
-import re
 import glob
 import random, math
 

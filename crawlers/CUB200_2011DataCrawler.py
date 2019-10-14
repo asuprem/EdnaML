@@ -3,7 +3,6 @@ import glob
 import math
 import os
 import random
-import re
 
 import utils.splits.cub200
 
