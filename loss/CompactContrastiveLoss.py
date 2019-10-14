@@ -21,10 +21,11 @@ class CompactContrastiveLoss(Loss):
     """
 
     def __init__(self, **kwargs):
+        super(CompactContrastiveLoss, self).__init__()
         self.nmargin = kwargs.get("negative-margin", 0.5)
         self.pmargin = kwargs.get("positive-margin", 0.3)
 
-    def __call__(self, features, labels, epoch):
+    def forward(self, features, labels, epoch):
         positive_pairs, negative_pairs = self.get_pairs(features, labels)
         if features.is_cuda:
             positive_pairs = positive_pairs.cuda()
