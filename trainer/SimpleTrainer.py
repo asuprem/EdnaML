@@ -45,7 +45,6 @@ class SimpleTrainer:
         self.loss = []
         self.softaccuracy = []
 
-        pdb.set_trace()
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
