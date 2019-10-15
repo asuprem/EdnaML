@@ -120,16 +120,30 @@ def main(config, mode, weights):
     from loss import ReIDLossBuilder
     loss_function = ReIDLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
+    pdb.set_trace()
+    # --------------------- INSTANTIATE LOSS OPTIMIZER --------------
+    from optimizer.StandardLossOptimizer import StandardLossOptimizer as loss_optimizer
+
+    LOSS_OPT = loss_optimizer(  base_lr=config.get("LOSS_OPTIMIZER.BASE_LR", config.get("OPTIMIZER.BASE_LR")), 
+                                lr_bias = config.get("LOSS_OPTIMIZER.LR_BIAS_FACTOR", config.get("OPTIMIZER.LR_BIAS_FACTOR")), 
+                                weight_decay= config.get("LOSS_OPTIMIZER.WEIGHT_DECAY", config.get("OPTIMIZER.WEIGHT_DECAY")), 
+                                weight_bias= config.get("LOSS_OPTIMIZER.WEIGHT_BIAS_FACTOR", config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR")), 
+                                gpus=NUM_GPUS)
+    loss_optimizer = LOSS_OPT.build(loss_builder=loss_function,
+                                    name=config.get("LOSS_OPTIMIZER.OPTIMIZER_NAME", config.get("OPTIMIZER.OPTIMIZER_NAME")),
+                                    **json.loads(config.get("LOSS_OPTIMIZER.OPTIMIZER_KWARGS", config.get("OPTIMIZER.OPTIMIZER_KWARGS"))))
+    logger.info("Built loss optimizer")
+    
+    pdb.set_trace()
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     optimizer_builder_ = config.get("EXECUTION.OPTIMIZER_BUILDER", "OptimizerBuilder")
     optimizer_builder = __import__("optimizer", fromlist=["*"])
     optimizer_builder = getattr(optimizer_builder, optimizer_builder_)
     logger.info("Loaded {} from {} to build Optimizer model".format(optimizer_builder_, "optimizer"))
 
-    from optimizer import OptimizerBuilder
-    OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
+    OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
-    logger.info("Build optimizer")
+    logger.info("Built optimizer")
     # --------------------- INSTANTIATE SCHEDULER ------------------------
     try:
         scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
@@ -159,7 +173,7 @@ def main(config, mode, weights):
     trainer = getattr(trainer, trainer_)
     logger.info("Loaded {} from {} to build Trainer".format(trainer_, "trainer"))
 
-    loss_stepper = trainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
+    loss_stepper = trainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer = loss_optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
       loss_stepper.train(continue_epoch=previous_stop)
