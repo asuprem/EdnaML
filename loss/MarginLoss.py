@@ -38,7 +38,7 @@ class MarginLoss(Loss):
   def forward(self, features, labels):
     """
     Args:
-        features: features matrix with shape (batch_size, emb_dim)
+        features: features matrix with shape (batch_size, feat_dim)
         labels: ground truth labels with shape (batch_size)
     """
     distances = self.euclidean_dist(features, features)
