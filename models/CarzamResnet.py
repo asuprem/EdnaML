@@ -102,7 +102,11 @@ class CarzamResnet(ReidModel):
             inference = torch.nn.functional.normalize(features, p = 2, dim = 1)
 
         if self.training:
-            return inference
+            if self.softmax is not None:
+                soft_logits = self.softmax(inference)
+            else:
+                soft_logits = None
+            return soft_logits, inference
         else:
             return inference
         
