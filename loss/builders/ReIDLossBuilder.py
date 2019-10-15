@@ -7,6 +7,7 @@ from ..MarginLoss import MarginLoss
 from ..ContrastiveLoss import ContrastiveLoss
 from ..CompactContrastiveLoss import CompactContrastiveLoss
 from ..ProxyNCALoss import ProxyNCA
+from ..CenterLoss import CenterLoss
 
 class ReIDLossBuilder(LossBuilder):
   LOSS_PARAMS = {}
@@ -31,4 +32,7 @@ class ReIDLossBuilder(LossBuilder):
   LOSS_PARAMS['ProxyNCA'] = {}
   LOSS_PARAMS['ProxyNCA']['fn'] = ProxyNCA
   LOSS_PARAMS['ProxyNCA']['args'] = ['features', 'labels']
+  LOSS_PARAMS['CenterLoss'] = {}
+  LOSS_PARAMS['CenterLoss']['fn'] = CenterLoss
+  LOSS_PARAMS['CenterLoss']['args'] = ['features', 'labels']
 
