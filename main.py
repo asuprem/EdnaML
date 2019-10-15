@@ -134,7 +134,6 @@ def main(config, mode, weights):
                                     **json.loads(config.get("LOSS_OPTIMIZER.OPTIMIZER_KWARGS", config.get("OPTIMIZER.OPTIMIZER_KWARGS"))))
     logger.info("Built loss optimizer")
     
-    pdb.set_trace()
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     optimizer_builder_ = config.get("EXECUTION.OPTIMIZER_BUILDER", "OptimizerBuilder")
     optimizer_builder = __import__("optimizer", fromlist=["*"])
