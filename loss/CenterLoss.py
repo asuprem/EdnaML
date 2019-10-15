@@ -30,8 +30,7 @@ class CenterLoss(Loss):
                   torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
         distmat.addmm_(1, -2, features, self.centers.t())
 
-        classes = torch.arange(self.num_classes).long()
-        if self.use_gpu: classes = classes.cuda()
+        classes = torch.arange(self.num_classes).long().cuda()
         labels = labels.unsqueeze(1).expand(batch_size, self.num_classes)
         mask = labels.eq(classes.expand(batch_size, self.num_classes))
 
