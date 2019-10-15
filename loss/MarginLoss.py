@@ -16,6 +16,7 @@ class MarginLoss(Loss):
     """
   def __init__(self, **kwargs):
 
+    super(MarginLoss,self).__init__()
     self.margin = kwargs.get('margin', None)
     mine = kwargs.get('mine', 'hard')
     
@@ -34,7 +35,7 @@ class MarginLoss(Loss):
     else:
       raise NotImplementedError()
 
-  def __call__(self, features, labels):
+  def forward(self, features, labels):
     """
     Args:
         features: features matrix with shape (batch_size, emb_dim)

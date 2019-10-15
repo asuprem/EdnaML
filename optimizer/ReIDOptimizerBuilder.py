@@ -1,7 +1,23 @@
 import torch
 
 class ReIDOptimizerBuilder:
+  """ Optimizer Builder for ReID experiments.
+
+  """
   def __init__(self,base_lr, lr_bias, gpus, weight_decay, weight_bias):
+    """ Initializes the optimizer builder.
+
+    Args:
+      base_lr (float): Base learning rate for optimizer
+      lr_bias (float): Multiplicative factor for bias parameters
+      gpus (int): Number of GPUs for lr scaling
+      weight_decay (float): Weight decay for decoupled weight decay optimizers like AdamW
+      weight_bias (float): Multiplicative factor for bias parameters in weight decay optimizers
+
+    Methods:
+      build:  builds an optimizer given optimizer name and torch model
+
+    """
     self.base_lr = base_lr
     self.gpus = gpus
     self.weight_decay = weight_decay
@@ -9,7 +25,18 @@ class ReIDOptimizerBuilder:
     self.weight_bias = weight_bias
 
 
-  def build(self, model, _name = 'Adam', **kwargs):
+  def build(self, model, name = 'Adam', **kwargs):
+    """ Builds an optimizer.
+
+    Args:
+      model (torch.nn.Module): A model
+      name (str): name of torch.optim object to build
+      kwargs (dict): any parameters that need to be passed into the optimizer
+
+    Returns:
+      torch.optim object
+
+    """
     params = []
     for key, value in model.named_parameters():
       if value.requires_grad:
@@ -21,6 +48,6 @@ class ReIDOptimizerBuilder:
             weight_decay = self.weight_decay
         params += [{"params": [value], "lr":learning_rate, "weight_decay": weight_decay}]
     optimizer = __import__('torch.optim', fromlist=['optim'])
-    optimizer = getattr(optimizer, _name)
+    optimizer = getattr(optimizer, name)
     optimizer = optimizer(params, **kwargs)
     return optimizer  

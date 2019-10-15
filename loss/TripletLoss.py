@@ -17,6 +17,7 @@ class TripletLoss(Loss):
       __call__: Returns loss given features and labels.
   """
   def __init__(self, **kwargs):
+    super(TripletLoss, self).__init__()
 
     self.margin = kwargs.get('margin', 0.3)
     mine = kwargs.get("mine", "hard")
@@ -28,7 +29,7 @@ class TripletLoss(Loss):
     else:
       raise NotImplementedError()
     
-  def __call__(self, features, labels):
+  def forward(self, features, labels):
     """ Returns the triplet loss with either batch hard mining or batch all mining.
     Args:
         features: features matrix with shape (batch_size, emb_dim)

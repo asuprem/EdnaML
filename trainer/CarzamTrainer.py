@@ -4,18 +4,27 @@ from collections import defaultdict
 import sklearn.cluster, sklearn.metrics.cluster
 import numpy as np
 import utils.math
-import pdb
+import loss.builders
 
 class CarzamTrainer:
     try:
-        apex = __import__('apex')
+        # apex = __import__('apex')
+        apex = None
     except:
         apex = None
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger, test_mode="zsl"):
+    def __init__(   self, 
+                    model: torch.nn.Module, 
+                    loss_fn: loss.builders.LossBuilder, 
+                    optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
+                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
+                    train_loader, test_loader, 
+                    queries, epochs, logger, test_mode="zsl"):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.loss_optimizer = loss_optimizer
+        self.loss_scheduler = loss_scheduler
         
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -60,12 +69,14 @@ class CarzamTrainer:
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss functions have no differentiable parameters
+            self.loss_optimizer.zero_grad()
         batch_kwargs = {}
         batch_kwargs["epoch"] = self.global_epoch
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
-        batch_kwargs["features"], batch_kwargs["proxies"] = self.model(img)
+        batch_kwargs["logits"], batch_kwargs["features"] = self.model(img)
         loss = self.loss_fn(**batch_kwargs)
         if self.fp16 and self.apex is not None:
             with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
@@ -73,6 +84,8 @@ class CarzamTrainer:
         else:
             loss.backward()
         self.optimizer.step()
+        if self.loss_optimizer is not None: # In case loss functions have no differentiable parameters
+            self.loss_optimizer.step()
         
         self.loss.append(loss.cpu().item())
 
@@ -107,6 +120,8 @@ class CarzamTrainer:
                         self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f}'.format(self.global_epoch, self.global_batch, loss_avg))
                 self.global_batch = 0
                 self.scheduler.step()
+                if self.loss_scheduler is not None:
+                    self.loss_scheduler.step()
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
                 if self.global_epoch % self.test_frequency == 0:
                     self.evaluate()
@@ -121,14 +136,29 @@ class CarzamTrainer:
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
         OPTIM_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer.pth'
         SCHEDULER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler.pth'
+        LOSS_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss.pth"
+        LOSS_OPTIMIZER_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss_optimizer.pth"
+        LOSS_SCHEDULER_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss_scheduler.pth"
 
         torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
         torch.save(self.optimizer.state_dict(), os.path.join(self.save_directory, OPTIM_SAVE))
         torch.save(self.scheduler.state_dict(), os.path.join(self.save_directory, SCHEDULER_SAVE))
+        torch.save(self.loss_fn.state_dict(), os.path.join(self.save_directory, LOSS_SAVE))
+
+        if self.loss_optimizer is not None: # For loss funtions with empty parameters
+            torch.save(self.loss_optimizer.state_dict(), os.path.join(self.save_directory, LOSS_OPTIMIZER_SAVE))
+        if self.loss_scheduler is not None: # For loss funtions with empty parameters
+            torch.save(self.loss_scheduler.state_dict(), os.path.join(self.save_directory, LOSS_SCHEDULER_SAVE))
+
         if self.save_backup:
             shutil.copy2(os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory)
             shutil.copy2(os.path.join(self.save_directory, OPTIM_SAVE), self.backup_directory)
             shutil.copy2(os.path.join(self.save_directory, SCHEDULER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, LOSS_SAVE), self.backup_directory)
+            if self.loss_optimizer is not None: # For loss funtions with empty parameters
+                shutil.copy2(os.path.join(self.save_directory, LOSS_OPTIMIZER_SAVE), self.backup_directory)
+            if self.loss_scheduler is not None: # For loss funtions with empty parameters
+                shutil.copy2(os.path.join(self.save_directory, LOSS_SCHEDULER_SAVE), self.backup_directory)
             self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
             
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
@@ -141,17 +171,26 @@ class CarzamTrainer:
         model_load = self.model_save_name + '_epoch%i'%load_epoch + '.pth'
         optim_load = self.model_save_name + '_epoch%i'%load_epoch + '_optimizer.pth'
         scheduler_load = self.model_save_name + '_epoch%i'%load_epoch + '_scheduler.pth'
+        loss_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss.pth"
+        loss_optimizer_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss_optimizer.pth"
+        loss_scheduler_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss_scheduler.pth"
 
         if self.save_backup:
             self.logger.info("Loading model, optimizer, and scheduler from drive backup.")
             model_load_path = os.path.join(self.backup_directory, model_load)
             optim_load_path = os.path.join(self.backup_directory, optim_load)
             scheduler_load_path = os.path.join(self.backup_directory, scheduler_load)
+            loss_load_path = os.path.join(self.backup_directory, loss_load)
+            loss_optimizer_load_path = os.path.join(self.backup_directory, loss_optimizer_load)
+            loss_scheduler_load_path = os.path.join(self.backup_directory, loss_scheduler_load)
         else:
             self.logger.info("Loading model, optimizer, and scheduler from local backup.")
             model_load_path = os.path.join(self.save_directory, model_load)
             optim_load_path = os.path.join(self.save_directory, optim_load)
             scheduler_load_path = os.path.join(self.save_directory, scheduler_load)
+            loss_load_path = os.path.join(self.save_directory, loss_load)
+            loss_optimizer_load_path = os.path.join(self.save_directory, loss_optimizer_load)
+            loss_scheduler_load_path = os.path.join(self.save_directory, loss_scheduler_load)
 
         self.model.load_state_dict(torch.load(model_load_path))
         self.logger.info("Finished loading model state_dict from %s"%model_load_path)
@@ -159,6 +198,14 @@ class CarzamTrainer:
         self.logger.info("Finished loading optimizer state_dict from %s"%optim_load_path)
         self.scheduler.load_state_dict(torch.load(scheduler_load_path))
         self.logger.info("Finished loading scheduler state_dict from %s"%scheduler_load_path)
+        self.loss_fn.load_state_dict(torch.load(loss_load_path))
+        self.logger.info("Finished loading loss state_dict from %s"%loss_load_path)
+
+        if self.loss_optimizer is not None: # For loss funtions with empty parameters
+            self.loss_optimizer.load_state_dict(torch.load(loss_optimizer_load_path))
+        if self.loss_scheduler is not None: # For loss funtions with empty parameters
+            self.loss_scheduler.load_state_dict(torch.load(loss_scheduler_load_path))
+        self.logger.info("Finished loading loss state_dict from %s"%loss_load_path)
     
     def evaluate(self, suffix=""):
         self.logger.info('Validation in progress')

@@ -8,22 +8,20 @@ import torch
 class CarzamResnet(ReidModel):
     """Basic CarZam Resnet model.
 
-    A CarZam model is similar to a Re-ID model, except it may incorporate proxies in addition to a softmax layer. It yields a feature map of an input.
+    A CarZam model is similar to a Re-ID model, except for the differences, tautologically speaking.
 
     Args:
         base (str): The architecture base for resnet, i.e. resnet50, resnet18
         weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
         normalization (str, None): Can be None, where it is torch's normalization. Else create a normalization layer. Supports: ["bn", "l2", "in", "gn", "ln"]
         embedding_dimensions (int): Dimensions for the feature embedding. Leave empty if feature dimensions should be same as architecture core output (e.g. resnet50 base model has 2048-dim feature outputs). If providing a value, it should be less than the architecture core's base feature dimensions.
+        soft_dimensions (int, None): Whether to include softmax classification layer. If None, softmax layer is not created in model.
 
     Kwargs (MODEL_KWARGS):
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
         attention (str, None): The attention module to use. Only supports ['cbam', None]
         input_attention (bool, false): Whether to include the IA module
         secondary_attention (int, None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic block number provided here.
-
-        proxies (bool, False): Whether to incorporate proxies into the CarZam Model
-        proxy_classes (int): Required if using proxies. Sets the number of proxies to use. For now, using static proxy assignment.
 
     Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
         zero_init_residual (bool, false): Whether the final layer uses zero initialization
@@ -38,16 +36,8 @@ class CarzamResnet(ReidModel):
         forward: Process a batch
 
     """
-    def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, **kwargs):
-        super(CarzamResnet, self).__init__(base, weights, normalization, embedding_dimensions, soft_dimensions=None, **kwargs)
-
-        # Set up the proxy
-        proxies = kwargs.get("proxies", False)
-        if proxies:
-            proxy_classes = kwargs.get("proxy_classes")
-            self.proxy = nn.Parameter(torch.randn(proxy_classes, embedding_dimensions))
-        else:
-            self.proxy = None
+    def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, soft_dimensions = None, **kwargs):
+        super(CarzamResnet, self).__init__(base, weights, normalization, embedding_dimensions, soft_dimensions=soft_dimensions, **kwargs)
 
     def build_base(self,base, weights, **kwargs):
         """Build the model base.
@@ -112,16 +102,11 @@ class CarzamResnet(ReidModel):
             inference = torch.nn.functional.normalize(features, p = 2, dim = 1)
 
         if self.training:
-            return inference, self.proxy
-        else:
-            return inference
-        """
-        if self.training:
             if self.softmax is not None:
                 soft_logits = self.softmax(inference)
             else:
                 soft_logits = None
-            return soft_logits, features
+            return soft_logits, inference
         else:
             return inference
-        """
+        

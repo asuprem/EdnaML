@@ -1,7 +1,9 @@
-class Loss(object):
-    def __init__(self,):
-        pass
-    def __call__(self,):
+from torch import nn
+class Loss(nn.Module):
+    def __init__(self):
+        super(Loss, self).__init__()
+        
+    def forward(self):
         raise NotImplementedError()
 
 from .builders import ReIDLossBuilder
