@@ -64,7 +64,8 @@ class SimpleTrainer:
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()
-        self.loss_optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.zero_grad()
         batch_kwargs = {}
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
@@ -78,7 +79,8 @@ class SimpleTrainer:
         else:
             loss.backward()
         self.optimizer.step()
-        self.loss_optimizer.step()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.step()
         
         softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
         self.loss.append(loss.cpu().item())
