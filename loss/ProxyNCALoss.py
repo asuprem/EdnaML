@@ -3,8 +3,8 @@ from torch import nn
 from . import Loss
 from utils.math import pairwise_distance
 import pdb
-class ProxyNCA:
-    """Softmax with label smoothing
+class ProxyNCA(Loss):
+    """ProxyNCA Loss
 
     Performs softmax with label smoothing.
 
@@ -19,14 +19,17 @@ class ProxyNCA:
 
     """
     def __init__(self,**kwargs):
+        super(ProxyNCA, self).__init__()
+
         self.classes = kwargs.get("classes")
         self.embedding = kwargs.get("embedding_size")
         self.DIV_CONST = 8
         self.SMOOTHING = kwargs.get("smoothing", 0.1)
         self.NORMALIZATION = kwargs.get("normalization", 3.0)
         self.logsoftmax = nn.LogSoftmax(dim=-1)
+        self.proxies = nn.Parameter(torch.randn(self.classes, self.embedding) / 8)
 
-    def __call__(self,features, proxies, labels):
+    def forward(self,features, proxies, labels):
         normalized_proxy = self.NORMALIZATION * torch.nn.functional.normalize(proxies, p=2,dim=-1)
         normalized_logits = self.NORMALIZATION * torch.nn.functional.normalize(features, p = 2, dim = -1)
         dist = pairwise_distance(torch.cat([normalized_logits, normalized_proxy]), squared=True)
