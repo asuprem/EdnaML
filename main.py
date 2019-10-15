@@ -153,7 +153,23 @@ def main(config, mode, weights):
         scheduler = getattr(scheduler, scheduler_)
     scheduler = scheduler(optimizer, last_epoch = -1, **json.loads(config.get("SCHEDULER.LR_KWARGS")))
     logger.info("Built scheduler")
+
+    # ------------------- INSTANTIATE LOSS SCHEEDULER ---------------------
+    loss_scheduler = None
+    if loss_optimizer is not None:  # In case loss has no differentiable paramters
+        try:
+            loss_scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
+            loss_scheduler = getattr(loss_scheduler, config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER")))
+        except (ModuleNotFoundError, AttributeError):
+            loss_scheduler_ = config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER"))
+            loss_scheduler = __import__("scheduler."+loss_scheduler_, fromlist=[loss_scheduler_])
+            loss_scheduler = getattr(loss_scheduler, loss_scheduler_)
+        loss_scheduler = loss_scheduler(loss_optimizer, last_epoch = -1, **json.loads(config.get("LOSS_SCHEDULER.LR_KWARGS", config.get("SCHEDULER.LR_KWARGS"))))
+        logger.info("Built loss scheduler")
+    else:
+        loss_scheduler = None
     
+    # ---------------------------- SETUP BACKUP PATH -------------------------
     if DRIVE_BACKUP:
         fl_list = glob.glob(os.path.join(CHECKPOINT_DIRECTORY, "*.pth"))
     else:
@@ -172,7 +188,7 @@ def main(config, mode, weights):
     trainer = getattr(trainer, trainer_)
     logger.info("Loaded {} from {} to build Trainer".format(trainer_, "trainer"))
 
-    loss_stepper = trainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer = loss_optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
+    loss_stepper = trainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer = loss_optimizer, scheduler = scheduler, loss_scheduler = loss_scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
       loss_stepper.train(continue_epoch=previous_stop)
