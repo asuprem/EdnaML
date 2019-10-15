@@ -8,14 +8,16 @@ import pdb
 
 class CarzamTrainer:
     try:
-        apex = __import__('apex')
+        # apex = __import__('apex')
+        apex = None
     except:
         apex = None
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger, test_mode="zsl"):
+    def __init__(self, model, loss_fn, optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, scheduler, train_loader, test_loader, queries, epochs, logger, test_mode="zsl"):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.loss_optimizer = loss_optimizer
         
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -60,6 +62,8 @@ class CarzamTrainer:
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss functions have no differentiable parameters
+            self.loss_optimizer.zero_grad()
         batch_kwargs = {}
         batch_kwargs["epoch"] = self.global_epoch
         img, batch_kwargs["labels"] = batch
@@ -73,6 +77,8 @@ class CarzamTrainer:
         else:
             loss.backward()
         self.optimizer.step()
+        if self.loss_optimizer is not None: # In case loss functions have no differentiable parameters
+            self.loss_optimizer.step()
         
         self.loss.append(loss.cpu().item())
 
