@@ -30,5 +30,5 @@ class ReIDLossBuilder(LossBuilder):
   LOSS_PARAMS['CompactContrastiveLoss']['args'] = ['features', 'labels', 'epoch']
   LOSS_PARAMS['ProxyNCA'] = {}
   LOSS_PARAMS['ProxyNCA']['fn'] = ProxyNCA
-  LOSS_PARAMS['ProxyNCA']['args'] = ['features', 'proxies', 'labels']
+  LOSS_PARAMS['ProxyNCA']['args'] = ['features', 'labels']
 
