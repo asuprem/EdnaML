@@ -9,13 +9,16 @@ from scipy.spatial.distance import cdist
 
 class SimpleTrainer:
     try:
-        apex = __import__('apex')
+        #apex = __import__('apex')
+        # TODO TODO TODO HIGH PRIORITY APEX disabled because of loss optimizer. Do not know if apex will work without scaled_loss on loss_optimizer's model, which is actually a "list" of models...
+        apex = None
     except:
         apex = None
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger):
+    def __init__(self, model, loss_fn, optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, scheduler, train_loader, test_loader, queries, epochs, logger):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
+        self.loss_optimizer = loss_optimizer
         self.scheduler = scheduler
         
         self.train_loader = train_loader
@@ -61,6 +64,7 @@ class SimpleTrainer:
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()
+        self.loss_optimizer.zero_grad()
         batch_kwargs = {}
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
@@ -74,6 +78,7 @@ class SimpleTrainer:
         else:
             loss.backward()
         self.optimizer.step()
+        self.loss_optimizer.step()
         
         softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
         self.loss.append(loss.cpu().item())
