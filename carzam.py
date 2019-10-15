@@ -145,6 +145,20 @@ def main(config, mode, weights):
     loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
 
+    # --------------------- INSTANTIATE LOSS OPTIMIZER --------------
+    from optimizer.StandardLossOptimizer import StandardLossOptimizer as loss_optimizer
+
+    LOSS_OPT = loss_optimizer(  base_lr=config.get("LOSS_OPTIMIZER.BASE_LR", config.get("OPTIMIZER.BASE_LR")), 
+                                lr_bias = config.get("LOSS_OPTIMIZER.LR_BIAS_FACTOR", config.get("OPTIMIZER.LR_BIAS_FACTOR")), 
+                                weight_decay= config.get("LOSS_OPTIMIZER.WEIGHT_DECAY", config.get("OPTIMIZER.WEIGHT_DECAY")), 
+                                weight_bias= config.get("LOSS_OPTIMIZER.WEIGHT_BIAS_FACTOR", config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR")), 
+                                gpus=NUM_GPUS)
+    loss_optimizer = LOSS_OPT.build(loss_builder=loss_function,
+                                    name=config.get("LOSS_OPTIMIZER.OPTIMIZER_NAME", config.get("OPTIMIZER.OPTIMIZER_NAME")),
+                                    **json.loads(config.get("LOSS_OPTIMIZER.OPTIMIZER_KWARGS", config.get("OPTIMIZER.OPTIMIZER_KWARGS"))))
+    logger.info("Built loss optimizer")
+    
+
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
     optimizer_builder = __import__("optimizer", fromlist=["*"])
     optimizer_builder = getattr(optimizer_builder, config.get("EXECUTION.OPTIMIZER_BUILDER"))
@@ -183,7 +197,7 @@ def main(config, mode, weights):
     trainer = __import__("trainer", fromlist=["*"])
     trainer = getattr(trainer, config.get("EXECUTION.TRAINER"))
     
-    loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger, test_mode=config.get("EXECUTION.TEST_MODE", "zsl"))  # or "gzsl"
+    loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer=loss_optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger, test_mode=config.get("EXECUTION.TEST_MODE", "zsl"))  # or "gzsl"
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
       loss_stepper.train(continue_epoch=previous_stop)
