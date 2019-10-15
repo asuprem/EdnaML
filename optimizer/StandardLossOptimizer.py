@@ -51,6 +51,8 @@ class StandardLossOptimizer:
                 learning_rate = self.base_lr * self.gpus
                 weight_decay = self.weight_decay
                 params += [{"params": [value], "lr":learning_rate, "weight_decay": weight_decay}]
+        if len(params) == 0:
+            return None
         optimizer = __import__('torch.optim', fromlist=['optim'])
         optimizer = getattr(optimizer, name)
         optimizer = optimizer(params, **kwargs)
