@@ -195,6 +195,7 @@ class SimpleTrainer:
             model_load_path = os.path.join(self.save_directory, model_load)
             optim_load_path = os.path.join(self.save_directory, optim_load)
             scheduler_load_path = os.path.join(self.save_directory, scheduler_load)
+            loss_load_path = os.path.join(self.save_directory, loss_load)
             loss_optimizer_load_path = os.path.join(self.save_directory, loss_optimizer_load)
             loss_scheduler_load_path = os.path.join(self.save_directory, loss_scheduler_load)
 
