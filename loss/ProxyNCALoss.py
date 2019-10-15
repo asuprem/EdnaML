@@ -29,8 +29,8 @@ class ProxyNCA(Loss):
         self.logsoftmax = nn.LogSoftmax(dim=-1)
         self.proxies = nn.Parameter(torch.randn(self.classes, self.embedding) / 8)
 
-    def forward(self,features, proxies, labels):
-        normalized_proxy = self.NORMALIZATION * torch.nn.functional.normalize(proxies, p=2,dim=-1)
+    def forward(self,features, labels):
+        normalized_proxy = self.NORMALIZATION * torch.nn.functional.normalize(self.proxies, p=2,dim=-1)
         normalized_logits = self.NORMALIZATION * torch.nn.functional.normalize(features, p = 2, dim = -1)
         dist = pairwise_distance(torch.cat([normalized_logits, normalized_proxy]), squared=True)
         # the pairwise_distance is for all logits and proxies to each other. We just need logits to proxies, so we take the bottom left quadrant.
