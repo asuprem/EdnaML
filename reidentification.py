@@ -1,20 +1,14 @@
+# For VeRi
 import os, shutil, logging, glob, re, pdb, json
 import kaptan
 import click
 import utils
 import torch, torchsummary
 
-from crawlers import ReidDataCrawler
-from generators import SequencedGenerator
-from models import model_builder
-from loss import LossBuilder
-from optimizer import OptimizerBuilder
-from trainer import SimpleTrainer
-
 @click.command()
 @click.argument('config')
 @click.option('--mode', default="train", help="Execution mode: [train/test]")
-@click.option('--weights', default=".", help="Path to weights if mode is test")
+@click.option('--weights', default="", help="Path to weights if mode is test")
 def main(config, mode, weights):
     cfg = kaptan.Kaptan(handler='yaml')
     config = cfg.import_config(config)
@@ -74,8 +68,14 @@ def main(config, mode, weights):
     logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------
+
+    data_crawler_ = config.get("EXECUTION.CRAWLER", "VeRiDataCrawler")
+    data_crawler = __import__("crawlers."+data_crawler_, fromlist=[data_crawler_])
+    data_crawler = getattr(data_crawler, data_crawler_)
+
+    from generators import SequencedGenerator
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
-    crawler = ReidDataCrawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
+    crawler = data_crawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), query_folder=config.get("DATASET.QUERY_FOLDER"), **{"logger":logger})
     train_generator = SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
@@ -90,14 +90,19 @@ def main(config, mode, weights):
     QUERY_CLASSES = test_generator.num_entities
     logger.info("Generated validation data/query generator")
 
-    # --------------------- INSTANTIATE MODEL ------------------------
-    reid_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
-                                base=config.get("MODEL.MODEL_BASE"), \
-                                weights=MODEL_WEIGHTS, \
-                                soft_dimensions = TRAIN_CLASSES, \
-                                embedding_dimensions = config.get("MODEL.EMB_DIM"), \
-                                normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
-                                **json.loads(config.get("MODEL.MODEL_KWARGS")))
+    # --------------------- INSTANTIATE MODEL ------------------------    
+    model_builder_ = data_crawler_ = config.get("EXECUTION.MODEL_BUILDER", "veri_model_builder")
+    model_builder = __import__("models", fromlist=["*"])
+    model_builder = getattr(model_builder, model_builder_)
+    logger.info("Loaded {} from {} to build ReID model".format(model_builder_, "models"))
+
+    reid_model = model_builder(    arch = config.get("MODEL.MODEL_ARCH"), \
+                                        base=config.get("MODEL.MODEL_BASE"), \
+                                        weights=MODEL_WEIGHTS, \
+                                        soft_dimensions = TRAIN_CLASSES, \
+                                        embedding_dimensions = config.get("MODEL.EMB_DIM"), \
+                                        normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
+                                        **json.loads(config.get("MODEL.MODEL_KWARGS")))
     logger.info("Finished instantiating model")
 
     if mode == "test":
@@ -105,15 +110,38 @@ def main(config, mode, weights):
         reid_model.cuda()
         reid_model.eval()
     else:
+        if weights != "":   # Load weights if train and starting from a another model base...
+            logger.info("Commencing partial model load from {}".format(weights))
+            reid_model.partial_load(weights)
+            logger.info("Completed partial model load from {}".format(weights))
         reid_model.cuda()
         logger.info(torchsummary.summary(reid_model, input_size=(3, *config.get("DATASET.SHAPE"))))
     # --------------------- INSTANTIATE LOSS ------------------------
-    loss_function = LossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    from loss import ReIDLossBuilder
+    loss_function = ReIDLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
     logger.info("Built loss function")
+
+    # --------------------- INSTANTIATE LOSS OPTIMIZER --------------
+    from optimizer.StandardLossOptimizer import StandardLossOptimizer as loss_optimizer
+
+    LOSS_OPT = loss_optimizer(  base_lr=config.get("LOSS_OPTIMIZER.BASE_LR", config.get("OPTIMIZER.BASE_LR")), 
+                                lr_bias = config.get("LOSS_OPTIMIZER.LR_BIAS_FACTOR", config.get("OPTIMIZER.LR_BIAS_FACTOR")), 
+                                weight_decay= config.get("LOSS_OPTIMIZER.WEIGHT_DECAY", config.get("OPTIMIZER.WEIGHT_DECAY")), 
+                                weight_bias= config.get("LOSS_OPTIMIZER.WEIGHT_BIAS_FACTOR", config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR")), 
+                                gpus=NUM_GPUS)
+    loss_optimizer = LOSS_OPT.build(loss_builder=loss_function,
+                                    name=config.get("LOSS_OPTIMIZER.OPTIMIZER_NAME", config.get("OPTIMIZER.OPTIMIZER_NAME")),
+                                    **json.loads(config.get("LOSS_OPTIMIZER.OPTIMIZER_KWARGS", config.get("OPTIMIZER.OPTIMIZER_KWARGS"))))
+    logger.info("Built loss optimizer")
     # --------------------- INSTANTIATE OPTIMIZER ------------------------
-    OPT = OptimizerBuilder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
+    optimizer_builder_ = config.get("EXECUTION.OPTIMIZER_BUILDER", "OptimizerBuilder")
+    optimizer_builder = __import__("optimizer", fromlist=["*"])
+    optimizer_builder = getattr(optimizer_builder, optimizer_builder_)
+    logger.info("Loaded {} from {} to build Optimizer model".format(optimizer_builder_, "optimizer"))
+
+    OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(reid_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
-    logger.info("Build optimizer")
+    logger.info("Built optimizer")
     # --------------------- INSTANTIATE SCHEDULER ------------------------
     try:
         scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
@@ -124,7 +152,23 @@ def main(config, mode, weights):
         scheduler = getattr(scheduler, scheduler_)
     scheduler = scheduler(optimizer, last_epoch = -1, **json.loads(config.get("SCHEDULER.LR_KWARGS")))
     logger.info("Built scheduler")
+
+    # ------------------- INSTANTIATE LOSS SCHEEDULER ---------------------
+    loss_scheduler = None
+    if loss_optimizer is not None:  # In case loss has no differentiable paramters
+        try:
+            loss_scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
+            loss_scheduler = getattr(loss_scheduler, config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER")))
+        except (ModuleNotFoundError, AttributeError):
+            loss_scheduler_ = config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER"))
+            loss_scheduler = __import__("scheduler."+loss_scheduler_, fromlist=[loss_scheduler_])
+            loss_scheduler = getattr(loss_scheduler, loss_scheduler_)
+        loss_scheduler = loss_scheduler(loss_optimizer, last_epoch = -1, **json.loads(config.get("LOSS_SCHEDULER.LR_KWARGS", config.get("SCHEDULER.LR_KWARGS"))))
+        logger.info("Built loss scheduler")
+    else:
+        loss_scheduler = None
     
+    # ---------------------------- SETUP BACKUP PATH -------------------------
     if DRIVE_BACKUP:
         fl_list = glob.glob(os.path.join(CHECKPOINT_DIRECTORY, "*.pth"))
     else:
@@ -136,7 +180,14 @@ def main(config, mode, weights):
     else:
         previous_stop = max(previous_stop) + 1
         logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
-    loss_stepper = SimpleTrainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, scheduler = scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
+
+    # --------------------- PERFORM TRAINING ------------------------
+    trainer_ = config.get("EXECUTION.TRAINER","SimpleTrainer")
+    trainer = __import__("trainer", fromlist=["*"])
+    trainer = getattr(trainer, trainer_)
+    logger.info("Loaded {} from {} to build Trainer".format(trainer_, "trainer"))
+
+    loss_stepper = trainer(model=reid_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer = loss_optimizer, scheduler = scheduler, loss_scheduler = loss_scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = QUERY_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger)
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
       loss_stepper.train(continue_epoch=previous_stop)

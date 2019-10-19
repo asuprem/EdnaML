@@ -12,6 +12,22 @@ utils.layers module
    :undoc-members:
    :show-inheritance:
 
+utils.math module
+-----------------
+
+.. automodule:: utils.math
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+utils.torch\_utils module
+-------------------------
+
+.. automodule:: utils.torch_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 utils.web module
 ----------------
 

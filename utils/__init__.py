@@ -1,10 +1,33 @@
 from . import web as web
+import os
 import logging
+
+def dynamic_import(cfg, module_name, import_name, default=None):
+    """ Perform a dynamic import 
+
+    Args:
+        cfg (kaptan Kaptan object): A kaptan configuration object
+        module_name (str): The directory where the module-to-import resides. For example to import a crawler, module_name should be 'crawlers'
+        import_name (str): The key in the kaptan configuration that provides the import name
+        default (str): If import_name does not exist, `default` will be used instead
+
+    Returns:
+        Imported module attribute
+
+    Raises:
+        ModuleNotFoundError (implicit): If provided module is not found
+        AttributeError (implicit): If provided import_name or default does not exist
+    """
+
+    import_name = cfg.get(import_name, default)
+    imported_module = __import__("%s."%module_name+import_name, fromlist=[import_name])
+    return  getattr(imported_module, import_name)
 
 def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(LOGGER_SAVE_NAME)
+    logger_save_path = os.path.join(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
+    fh = logging.FileHandler(logger_save_path)
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
     fh.setFormatter(formatter)
@@ -21,7 +44,7 @@ def generate_save_names(cfg):
     MODEL_SAVE_FOLDER = "%s-v%i-%s-%s"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"), cfg.get("SAVE.MODEL_BACKBONE"), cfg.get("SAVE.MODEL_QUALIFIER"))
     LOGGER_SAVE_NAME = "%s-v%i-%s-%s-logger.log"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"), cfg.get("SAVE.MODEL_BACKBONE"), cfg.get("SAVE.MODEL_QUALIFIER"))
     if cfg.get("SAVE.DRIVE_BACKUP"):
-        CHECKPOINT_DIRECTORY = "./drive/My Drive/Vehicles/Models/" + MODEL_SAVE_FOLDER
+        CHECKPOINT_DIRECTORY = cfg.get("SAVE.CHECKPOINT_DIRECTORY","./drive/My Drive/Vehicles/Models/") + MODEL_SAVE_FOLDER
     else:
         CHECKPOINT_DIRECTORY = ''
     return MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY

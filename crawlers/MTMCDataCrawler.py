@@ -2,8 +2,8 @@ import os
 import re
 import glob
 
-class ReidDataCrawler:
-  def __init__(self,data_folder="VeRi", train_folder="image_train", test_folder="image_test", query_folder="image_query", **kwargs):
+class MTMCDataCrawler:
+  def __init__(self,data_folder="DukeMTMC", train_folder="bounding_box_train", test_folder="bounding_box_test", query_folder="query", **kwargs):
     self.metadata = {}
 
     self.data_folder = data_folder

@@ -85,7 +85,9 @@ class TSampler(Sampler):
     return self.__len
 class SequencedGenerator:
   def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
-    """ Data generator for training and testing.
+    """ Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
+
+    Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
 
     Args:
       gpus (int): Number of GPUs
@@ -113,12 +115,12 @@ class SequencedGenerator:
       transformer_primitive.append(T.RandomErasing(p=0.5, scale=(0.02, 0.4), value = kwargs.get('rea_value', 0)))
     self.transformer = T.Compose(transformer_primitive)
 
-  def setup(self,datacrawler, mode='train', batch_size=32, instance = 6, workers = 8):
+  def setup(self,datacrawler, mode='train', batch_size=32, instance = 8, workers = 8):
     """ Setup the data generator.
 
     Args:
       workers (int): Number of workers to use during data retrieval/loading
-      datacrawler (ReidDataCrawler): A DataCrawler object that has crawled the data directory
+      datacrawler (VeRiDataCrawler): A DataCrawler object that has crawled the data directory
       mode (str): One of 'train', 'test', 'query'. 
     """
     if datacrawler is None:
@@ -128,6 +130,7 @@ class SequencedGenerator:
     if mode == "train":
       self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"], self.transformer)
     elif mode == "test":
+      # For testing, we combine images in the query and testing set to generate batches
       self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
     else:
       raise NotImplementedError()
@@ -144,6 +147,7 @@ class SequencedGenerator:
       self.num_entities = len(datacrawler.metadata["query"]["crawl"])
     else:
       raise NotImplementedError()
+    
   def collate_simple(self,batch):
     img, pid, _, _ = zip(*batch)
     pid = torch.tensor(pid, dtype=torch.int64)

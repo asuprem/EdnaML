@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>trainer package &#8212; PyTorch Multi-Experiment Framework 0.1 documentation</title>
+    <title>trainer package &#8212; EBKAFramework 0.2 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -16,7 +16,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="utils package" href="utils.html" />
-    <link rel="prev" title="serve module" href="serve.html" />
+    <link rel="prev" title="scheduler package" href="scheduler.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -116,6 +116,45 @@ Key: for each query identity, its gallery images from the same camera view are d
 </dd></dl>
 
 </div>
+<div class="section" id="module-trainer.VAEGANTrainer">
+<span id="trainer-vaegantrainer-module"></span><h2>trainer.VAEGANTrainer module<a class="headerlink" href="#module-trainer.VAEGANTrainer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer">
+<em class="property">class </em><code class="sig-prename descclassname">trainer.VAEGANTrainer.</code><code class="sig-name descname">VAEGANTrainer</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">loss_fn</em>, <em class="sig-param">optimizer</em>, <em class="sig-param">scheduler</em>, <em class="sig-param">train_loader</em>, <em class="sig-param">test_loader</em>, <em class="sig-param">epochs</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">latent_size</em>, <em class="sig-param">logger</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.evaluate">
+<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">load_epoch</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.setup">
+<code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">step_verbose=5</em>, <em class="sig-param">save_frequency=5</em>, <em class="sig-param">test_frequency=5</em>, <em class="sig-param">save_directory='./checkpoint/'</em>, <em class="sig-param">save_backup=False</em>, <em class="sig-param">backup_directory=None</em>, <em class="sig-param">gpus=1</em>, <em class="sig-param">fp16=False</em>, <em class="sig-param">model_save_name=None</em>, <em class="sig-param">logger_file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param">batch</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trainer.VAEGANTrainer.VAEGANTrainer.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">continue_epoch=0</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.VAEGANTrainer.VAEGANTrainer.train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-trainer">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-trainer" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -128,7 +167,7 @@ Key: for each query identity, its gallery images from the same camera view are d
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">PyTorch Multi-Experiment Framework</a></h1>
+<h1 class="logo"><a href="../index.html">EBKAFramework</a></h1>
 
 
 
@@ -141,13 +180,16 @@ Key: for each query identity, its gallery images from the same camera view are d
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">generators package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loss.builders.html">loss.builders package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="loss.html">loss package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Contextual Invariants</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="backbones.html">backbones package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="carzam.html">carzam module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="crawlers.html">crawlers package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html">generators package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="loss.html">loss package</a></li>
@@ -155,18 +197,23 @@ Key: for each query identity, its gallery images from the same camera view are d
 <li class="toctree-l2"><a class="reference internal" href="models.html">models package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="serve.html">serve module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">trainer package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">trainer package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-trainer.SimpleTrainer">trainer.SimpleTrainer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-trainer.VAEGANTrainer">trainer.VAEGANTrainer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-trainer">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vae_gan.html">vae_gan module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimizer.html">optimizer package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scheduler.html">scheduler package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="serve.html">serve module</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">trainer package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-trainer.SimpleTrainer">trainer.SimpleTrainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-trainer.VAEGANTrainer">trainer.VAEGANTrainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-trainer">Module contents</a></li>
 </ul>
 </li>
@@ -179,7 +226,7 @@ Key: for each query identity, its gallery images from the same camera view are d
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="modules.html">Contextual Invariants</a><ul>
-      <li>Previous: <a href="serve.html" title="previous chapter">serve module</a></li>
+      <li>Previous: <a href="scheduler.html" title="previous chapter">scheduler package</a></li>
       <li>Next: <a href="utils.html" title="next chapter">utils package</a></li>
   </ul></li>
   </ul></li>
@@ -208,7 +255,7 @@ Key: for each query identity, its gallery images from the same camera view are d
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Abhijit Suprem.
+      &copy;2019, Abhijit Supre.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>

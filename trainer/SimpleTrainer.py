@@ -1,22 +1,36 @@
 import tqdm
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from sklearn.metrics import average_precision_score
 import shutil
 import os
 import torch
 import numpy as np
 from scipy.spatial.distance import cdist
+import loss.builders
+
+import pdb
 
 class SimpleTrainer:
     try:
-        apex = __import__('apex')
+        #apex = __import__('apex')
+        # TODO TODO TODO HIGH PRIORITY APEX disabled because of loss optimizer. Do not know if apex will work without scaled_loss on loss_optimizer's model, which is actually a "list" of models...
+        apex = None
     except:
         apex = None
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, queries, epochs, logger):
+    def __init__(   self, 
+                    model: torch.nn.Module, 
+                    loss_fn: loss.builders.LossBuilder, 
+                    optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
+                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
+                    train_loader, test_loader, 
+                    queries: int, epochs: int, logger):
+
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
+        self.loss_optimizer = loss_optimizer
         self.scheduler = scheduler
+        self.loss_scheduler = loss_scheduler
         
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -30,6 +44,7 @@ class SimpleTrainer:
 
         self.loss = []
         self.softaccuracy = []
+
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
@@ -61,11 +76,14 @@ class SimpleTrainer:
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.zero_grad()
         batch_kwargs = {}
         img, batch_kwargs["labels"] = batch
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"] = self.model(img)
+        batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         loss = self.loss_fn(**batch_kwargs)
         if self.fp16 and self.apex is not None:
             with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
@@ -73,6 +91,8 @@ class SimpleTrainer:
         else:
             loss.backward()
         self.optimizer.step()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.step()
         
         softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
         self.loss.append(loss.cpu().item())
@@ -102,9 +122,13 @@ class SimpleTrainer:
                     self.step(batch)
                     self.global_batch += 1
                     if (self.global_batch + 1) % self.step_verbose == 0:
-                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, self.loss[-1], self.softaccuracy[-1]))
+                        loss_avg = sum(self.loss[-100:]) / float(len(self.loss[-100:]))
+                        soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
+                        self.logger.info('Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
                 self.global_batch = 0
                 self.scheduler.step()
+                if self.loss_scheduler is not None:
+                    self.loss_scheduler.step()
                 self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
                 if self.global_epoch % self.test_frequency == 0:
                     self.evaluate()
@@ -119,14 +143,29 @@ class SimpleTrainer:
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
         OPTIM_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_optimizer.pth'
         SCHEDULER_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_scheduler.pth'
+        LOSS_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss.pth"
+        LOSS_OPTIMIZER_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss_optimizer.pth"
+        LOSS_SCHEDULER_SAVE = self.model_save_name + "_epoch%i"%self.global_epoch + "_loss_scheduler.pth"
 
         torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
         torch.save(self.optimizer.state_dict(), os.path.join(self.save_directory, OPTIM_SAVE))
         torch.save(self.scheduler.state_dict(), os.path.join(self.save_directory, SCHEDULER_SAVE))
+        torch.save(self.loss_fn.state_dict(), os.path.join(self.save_directory, LOSS_SAVE))
+
+        if self.loss_optimizer is not None: # For loss funtions with empty parameters
+            torch.save(self.loss_optimizer.state_dict(), os.path.join(self.save_directory, LOSS_OPTIMIZER_SAVE))
+        if self.loss_scheduler is not None: # For loss funtions with empty parameters
+            torch.save(self.loss_scheduler.state_dict(), os.path.join(self.save_directory, LOSS_SCHEDULER_SAVE))
+
         if self.save_backup:
             shutil.copy2(os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory)
             shutil.copy2(os.path.join(self.save_directory, OPTIM_SAVE), self.backup_directory)
             shutil.copy2(os.path.join(self.save_directory, SCHEDULER_SAVE), self.backup_directory)
+            shutil.copy2(os.path.join(self.save_directory, LOSS_SAVE), self.backup_directory)
+            if self.loss_optimizer is not None: # For loss funtions with empty parameters
+                shutil.copy2(os.path.join(self.save_directory, LOSS_OPTIMIZER_SAVE), self.backup_directory)
+            if self.loss_scheduler is not None: # For loss funtions with empty parameters
+                shutil.copy2(os.path.join(self.save_directory, LOSS_SCHEDULER_SAVE), self.backup_directory)
             self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
             
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
@@ -139,17 +178,26 @@ class SimpleTrainer:
         model_load = self.model_save_name + '_epoch%i'%load_epoch + '.pth'
         optim_load = self.model_save_name + '_epoch%i'%load_epoch + '_optimizer.pth'
         scheduler_load = self.model_save_name + '_epoch%i'%load_epoch + '_scheduler.pth'
+        loss_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss.pth"
+        loss_optimizer_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss_optimizer.pth"
+        loss_scheduler_load = self.model_save_name + "_epoch%i"%load_epoch + "_loss_scheduler.pth"
 
         if self.save_backup:
             self.logger.info("Loading model, optimizer, and scheduler from drive backup.")
             model_load_path = os.path.join(self.backup_directory, model_load)
             optim_load_path = os.path.join(self.backup_directory, optim_load)
             scheduler_load_path = os.path.join(self.backup_directory, scheduler_load)
+            loss_load_path = os.path.join(self.backup_directory, loss_load)
+            loss_optimizer_load_path = os.path.join(self.backup_directory, loss_optimizer_load)
+            loss_scheduler_load_path = os.path.join(self.backup_directory, loss_scheduler_load)
         else:
             self.logger.info("Loading model, optimizer, and scheduler from local backup.")
             model_load_path = os.path.join(self.save_directory, model_load)
             optim_load_path = os.path.join(self.save_directory, optim_load)
             scheduler_load_path = os.path.join(self.save_directory, scheduler_load)
+            loss_load_path = os.path.join(self.save_directory, loss_load)
+            loss_optimizer_load_path = os.path.join(self.save_directory, loss_optimizer_load)
+            loss_scheduler_load_path = os.path.join(self.save_directory, loss_scheduler_load)
 
         self.model.load_state_dict(torch.load(model_load_path))
         self.logger.info("Finished loading model state_dict from %s"%model_load_path)
@@ -157,6 +205,15 @@ class SimpleTrainer:
         self.logger.info("Finished loading optimizer state_dict from %s"%optim_load_path)
         self.scheduler.load_state_dict(torch.load(scheduler_load_path))
         self.logger.info("Finished loading scheduler state_dict from %s"%scheduler_load_path)
+        self.loss_fn.load_state_dict(torch.load(loss_load_path))
+        self.logger.info("Finished loading loss state_dict from %s"%loss_load_path)
+
+        if self.loss_optimizer is not None: # For loss funtions with empty parameters
+            self.loss_optimizer.load_state_dict(torch.load(loss_optimizer_load_path))
+        if self.loss_scheduler is not None: # For loss funtions with empty parameters
+            self.loss_scheduler.load_state_dict(torch.load(loss_scheduler_load_path))
+        self.logger.info("Finished loading loss state_dict from %s"%loss_load_path)
+
     # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
     def eval_veri(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
         """Evaluation with veri metric
@@ -183,8 +240,8 @@ class SimpleTrainer:
 
             # remove gallery samples that have the same pid and camid with query
             order = indices[q_idx]
-            #remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
-            remove = (g_pids[order] == -1)
+            remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
+            #remove = (g_pids[order] == -1)
             keep = np.invert(remove)
 
             # compute cmc curve
@@ -242,7 +299,7 @@ class SimpleTrainer:
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, _ = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, v_mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VeRi CMC')
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
@@ -250,6 +307,7 @@ class SimpleTrainer:
         self.logger.info('Completed mAP Calculation')
         
         self.logger.info('mAP: {:.2%}'.format(mAP))
+        self.logger.info('VeRi_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:

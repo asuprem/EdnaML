@@ -27,21 +27,3 @@ class VAEGANOptimizerBuilder:
             "Discriminator":        discriminator_opt, \
             "Autoencoder":          autoencoder_opt, \
             "LatentDiscriminator":  latent_opt}
-
-
-    """
-    params = []
-    for key, value in model.named_parameters():
-      if value.requires_grad:
-        if "bias" in key:
-            learning_rate = self.base_lr * self.lr_bias
-            weight_decay = self.weight_decay * self.weight_bias
-        else:
-            learning_rate = self.base_lr * self.gpus
-            weight_decay = self.weight_decay
-        params += [{"params": [value], "lr":learning_rate, "weight_decay": weight_decay}]
-    optimizer = __import__('torch.optim', fromlist=['optim'])
-    optimizer = getattr(optimizer, _name)
-    optimizer = optimizer(params, **kwargs)
-    return optimizer  
-    """
