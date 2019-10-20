@@ -5,8 +5,9 @@ import sklearn.cluster, sklearn.metrics.cluster
 import numpy as np
 import utils.math
 import loss.builders
+from .BaseTrainer import BaseTrainer
 
-class CarzamTrainer:
+class CarzamTrainer(BaseTrainer):
     try:
         # apex = __import__('apex')
         apex = None
@@ -19,52 +20,14 @@ class CarzamTrainer:
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
                     queries, epochs, logger, test_mode="zsl"):
-        self.model = model
-        self.loss_fn = loss_fn
-        self.optimizer = optimizer
-        self.scheduler = scheduler
-        self.loss_optimizer = loss_optimizer
-        self.loss_scheduler = loss_scheduler
         
-        self.train_loader = train_loader
-        self.test_loader = test_loader
+        super(CarzamTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
+
         self.queries = queries
         self.test_mode = test_mode
-
-        self.epochs = epochs
-        self.logger = logger
-
-        self.global_batch = 0
-        self.global_epoch = 0
-
         self.loss = []
 
-    def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
-                save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
-                fp16 = False, model_save_name = None, logger_file = None):
-        self.step_verbose = step_verbose
-        self.save_frequency = save_frequency
-        self.test_frequency = test_frequency
-        self.save_directory = save_directory
-        self.backup_directory = None
-        self.model_save_name = model_save_name
-        self.logger_file = logger_file
-        self.save_backup = save_backup
-        if self.save_backup:
-            self.backup_directory = backup_directory
-            os.makedirs(self.backup_directory, exist_ok=True)
-        os.makedirs(self.save_directory, exist_ok=True)
-
-        self.gpus = gpus
-
-        if self.gpus != 1:
-            raise NotImplementedError()
-        
-        self.model.cuda()
-        
-        self.fp16 = fp16
-        if self.fp16 and self.apex is not None:
-            self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
+    # setup inherited from BaseTrainer
     
     def step(self,batch):
         self.model.train()
