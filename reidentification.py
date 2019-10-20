@@ -1,4 +1,4 @@
-# For VeRi
+# For VeRi/VRIC/VehicleID
 import os, shutil, logging, glob, re, pdb, json
 import kaptan
 import click
