@@ -107,7 +107,6 @@ class SimpleTrainer(BaseTrainer):
     # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
     def eval_veri(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
         """Evaluation with veri metric
-        Key: for each query identity, its gallery images from the same camera view are discarded.
         """
         num_q, num_g = distmat.shape
 
@@ -122,7 +121,7 @@ class SimpleTrainer(BaseTrainer):
         all_cmc = []
         all_AP = []
         num_valid_q = 0.  # number of valid query
-
+    
         for q_idx in range(num_q):
             # get query pid and camid
             q_pid = q_pids[q_idx]

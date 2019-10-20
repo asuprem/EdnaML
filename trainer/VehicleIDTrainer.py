@@ -29,8 +29,7 @@ class VehicleIDTrainer(SimpleTrainer):
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
         v_cmc, v_mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
-        self.logger.info('Completed VeRi CMC')
-        mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+        self.logger.info('Completed VehicleID CMC')
 
         self.logger.info('Completed mAP Calculation')
         self.logger.info('VeRi_mAP: {:.2%}'.format(v_mAP))
