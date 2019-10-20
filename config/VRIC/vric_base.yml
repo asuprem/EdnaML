@@ -5,11 +5,11 @@ EXECUTION:
   CRAWLER: VRICDataCrawler
 
 SAVE:
-  MODEL_VERSION: 2
-  MODEL_CORE_NAME: "vric_final"
-  MODEL_BACKBONE: "res50"
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "vric_base"
+  MODEL_BACKBONE: "res18"
   MODEL_QUALIFIER: "all"
-  DRIVE_BACKUP: True
+  DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
 
 DATASET:
@@ -17,35 +17,35 @@ DATASET:
   TRAIN_FOLDER: "train_images"
   TEST_FOLDER: "gallery_images"
   QUERY_FOLDER: "probe_images"
-  SHAPE: [104,104]
+  SHAPE: [208,208]
 
 TRANSFORMATION:
   NORMALIZATION_MEAN: 0.5
   NORMALIZATION_STD: 0.5
   NORMALIZATION_SCALE: 255
-  H_FLIP: 0.0
-  T_CROP: False
-  RANDOM_ERASE: False
+  H_FLIP: 0.5
+  T_CROP: True
+  RANDOM_ERASE: True
   RANDOM_ERASE_VALUE: 0.5
   CHANNELS: 3
-  BATCH_SIZE: 72
-  INSTANCES: 12
-  WORKERS: 8
+  BATCH_SIZE: 36
+  INSTANCES: 6
+  WORKERS: 1
 
 MODEL:
-  MODEL_BASE: 'resnet50'
+  MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'Resnet'
-  EMB_DIM: 2048
+  EMB_DIM: 512
   MODEL_NORMALIZATION: 'gn'
-  MODEL_KWARGS: '{"attention":"cbam", "secondary_attention":4, "input_attention":"true"}'
+  MODEL_KWARGS: '{"attention":"cbam", "secondary_attention":4, "input_attention":"false"}'
 
 LOSS:
-  LOSSES: ['SoftmaxLabelSmooth', 'TripletLoss']
-  LOSS_KWARGS: [{'soft_dim':2811, 'eps':0.2}, {'margin':0.3, 'mine':'hard'}]
-  LOSS_LAMBDAS: [0.5, 1.0]
+  LOSSES: ['SoftmaxLogitsLoss', 'TripletLoss']
+  LOSS_KWARGS: [{}, {'margin':0.3, 'mine':'hard'}]
+  LOSS_LAMBDAS: [1.0, 1.0]
 
 OPTIMIZER:
-  OPTIMIZER_NAME: "AdamW"
+  OPTIMIZER_NAME: "Adam"
   OPTIMIZER_KWARGS: '{}'
   BASE_LR: 0.00001
   LR_BIAS_FACTOR: 1.0
