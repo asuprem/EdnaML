@@ -82,7 +82,7 @@ def main(config, mode, weights):
                                 **TRAINDATA_KWARGS)
     train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), instance = config.get("TRANSFORMATION.INSTANCES"), workers = config.get("TRANSFORMATION.WORKERS"))
     logger.info("Generated training data generator")
-    TRAIN_CLASSES = train_generator.num_entities
+    TRAIN_CLASSES = config.get("MODEL.SOFTMAX_DIM", train_generator.num_entities)
     test_generator=  SequencedGenerator(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                             normalization_mean=NORMALIZATION_MEAN, normalization_std = NORMALIZATION_STD, normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                             h_flip = 0, t_crop = False, rea = False)
