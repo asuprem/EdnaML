@@ -75,6 +75,9 @@ class SimpleTrainer(BaseTrainer):
             load_epoch = continue_epoch - 1
             self.load(load_epoch)
 
+        self.logger.info("Performing initial evaluation...")
+        self.evaluate()
+
         for epoch in range(self.epochs):
             if epoch >= continue_epoch:
                 for batch in self.train_loader:
