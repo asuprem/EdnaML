@@ -1,7 +1,7 @@
 import torch
 import os
 import shutil
-
+import loss.builders
 
 class BaseTrainer:
     def __init__(self):
