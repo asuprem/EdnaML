@@ -1,7 +1,6 @@
 """ Targeted Attention for Zero- and Generalized Zero-shot learning
 
 """
-
 import glob
 import json
 import os
@@ -16,7 +15,6 @@ import torchsummary
 import torchvision
 
 import utils
-
 
 @click.command()
 @click.argument('config')
