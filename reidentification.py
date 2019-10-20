@@ -60,15 +60,12 @@ def main(config, mode, weights):
     else:
         backup_logger = None
 
-
-
     NUM_GPUS = torch.cuda.device_count()
     if NUM_GPUS > 1:
         raise RuntimeError("Not built for multi-GPU. Please start with single-GPU.")
     logger.info("Found %i GPUs"%NUM_GPUS)
 
     # --------------------- BUILD GENERATORS ------------------------
-
     data_crawler_ = config.get("EXECUTION.CRAWLER", "VeRiDataCrawler")
     data_crawler = __import__("crawlers."+data_crawler_, fromlist=[data_crawler_])
     data_crawler = getattr(data_crawler, data_crawler_)
