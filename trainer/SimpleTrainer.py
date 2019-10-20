@@ -130,8 +130,8 @@ class SimpleTrainer(BaseTrainer):
 
             # remove gallery samples that have the same pid and camid with query
             order = indices[q_idx]
-            remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
-            #remove = (g_pids[order] == -1)
+            #remove = (g_pids[order] == q_pid) & (g_camids[order] == q_camid)
+            remove = (g_pids[order] == -1)
             keep = np.invert(remove)
 
             # compute cmc curve
