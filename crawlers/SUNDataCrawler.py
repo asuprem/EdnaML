@@ -105,7 +105,6 @@ class SUNDataCrawler:
                 directory_proposal = ""
             # If path does not exist, we try by appending the next directory split to the directory proposal...
         if not os.path.exists(path_proposal):
-            pdb.set_trace()
             return False
         return path_proposal
             
