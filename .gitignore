@@ -31,8 +31,7 @@ venv
 !config/VRIC/vric_base.yml
 !config/VRIC/vric_final.yml
 
-!config/CarZam/carzam_cars_full.yml
-!config/CarZam/carzam_cub200_full.yml
+!config/CarZam/cub_gzsl_base.yml
 
 
 # Other ignores
