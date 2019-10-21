@@ -45,7 +45,7 @@ class SUNDataCrawler:
             directory_splits = class_name.split("_")
             path_proposal = self.get_true_path(alphabetical, directory_splits, image_folder)
             if path_proposal == False:
-                print(alphahbetical, directory_splits, image_folder)
+                print(alphabetical, directory_splits, image_folder)
                 raise ValueError()
             image_list = glob.glob(path_proposal + "/*.jpg")
             traincrawler += [(item, idx, 0) for item in image_list]
