@@ -68,17 +68,16 @@ class SUNDataCrawler:
         self.metadata["test"]["pids"] = len(utils.splits.sun.trainval)
         self.metadata["test"]["cids"] = 1
         self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
-        train_crawler=train_crawler[:split_idx]
 
         self.metadata["query"]["crawl"] = querycrawler
-        self.metadata["query"]["pids"] = len(utils.splits.sun.trainval)
+        self.metadata["query"]["pids"] = len(utils.splits.sun.query)
         self.metadata["query"]["cids"] = 1
         self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
 
         self.metadata["train"]["crawl"] = traincrawler[:split_idx]
-        self.metadata["train"]["pids"] = len(utils.splits.sun.query)
+        self.metadata["train"]["pids"] = len(utils.splits.sun.trainval)
         self.metadata["train"]["cids"] = 1
-        self.metadata["train"]["imgs"] = len(train_crawler)
+        self.metadata["train"]["imgs"] = len(traincrawler[:split_idx])
 
 
 
@@ -108,14 +107,3 @@ class SUNDataCrawler:
         return path_proposal
             
 
-
-
-
-
-
-
-
-
-
-
-        pass

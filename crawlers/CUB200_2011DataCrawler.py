@@ -64,11 +64,11 @@ class CUB200_2011DataCrawler:
     train_crawler=train_crawler[:split_idx]
 
     self.metadata["query"]["crawl"] = test_crawler
-    self.metadata["query"]["pids"] = len(trainvalsplits)
+    self.metadata["query"]["pids"] = len(testsplits)
     self.metadata["query"]["cids"] = 1
     self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
 
     self.metadata["train"]["crawl"] = train_crawler[:split_idx]
-    self.metadata["train"]["pids"] = len(testsplits)
+    self.metadata["train"]["pids"] = len(trainvalsplits)
     self.metadata["train"]["cids"] = 1
-    self.metadata["train"]["imgs"] = len(train_crawler)
+    self.metadata["train"]["imgs"] = len(train_crawler[:split_idx])
