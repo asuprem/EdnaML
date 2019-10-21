@@ -27,6 +27,7 @@ def main(config, mode, weights):
 
     # Generate logger
     MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(config)
+    os.makedirs(MODEL_SAVE_FOLDER, exist_ok=True)
     logger = utils.generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
 
     logger.info("*"*40);logger.info("");logger.info("")
@@ -70,7 +71,7 @@ def main(config, mode, weights):
 
     # --------------------- BUILD GENERATORS ------------------------    
     data_crawler = utils.dynamic_import(cfg=config, module_name="crawlers", import_name="EXECUTION.CRAWLER")
-    data_generator = utils.dynamic_import(cfg=config, module_name="generators", import_name="EXECUTION.GENERATORS")
+    data_generator = utils.dynamic_import(cfg=config, module_name="generators", import_name="EXECUTION.GENERATOR")
     
     crawler = data_crawler( data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), 
                             train_folder=config.get("DATASET.TRAIN_FOLDER"), 
@@ -219,26 +220,6 @@ def main(config, mode, weights):
       loss_stepper.evaluate()
     else:
       raise NotImplementedError()
-
-    
-    """Notes
-
-    proxy is part of model
-    during training, we return both embeddings + proxies
-    During loss calculation, we calculate distance between embeddings and proxies...
-    Then loss.backward should update both proxies and model itself...
-    (Or should proxies be independent??? -- no, model keeps its proxies)
-
-
-    During evaluation, we can proceed normally...for now, work on  integrating proxies into the model AND into batch_kwargs TODO
-
-
-    """
-
-
-
-
-
 
 
 if __name__ == "__main__":
