@@ -48,10 +48,10 @@ class CUB200_2011DataCrawler:
     # Each tuple is (path/to/image, PID, CID)   PID --> class (from 0-200), CID --> 0
     # CID is a holdover from other crawlers used for re-id task, where cid, or camera-id is required. To maintain compatibility with SequencedGenerator (which expects CID) until I write a generator for Cars196 
     # PID is similarity from person-reid, where PID stands for person ID. In this case, it is a unique class
-    trainvalsplits = [int(item.split(".")[0]) for item in utils.splits.cub200.trainval]
-    testsplits = [int(item.split(".")[0]) for item in utils.splits.cub200.query]
-    train_crawler = [item for item in crawler if item[1] in trainvalsplits]
-    test_crawler = [item for item in crawler if item[1] in testsplits]
+    trainvalsplits = {int(item.split(".")[0]):idx for idx, item in enumerate(utils.splits.cub200.trainval)}
+    testsplits = {int(item.split(".")[0]):idx + len(trainvalsplits) for idx, item in enumerate(utils.splits.cub200.query)}
+    train_crawler = [(item[0], trainvalsplits[item[1]], item[2]) for item in crawler if item[1] in trainvalsplits]
+    test_crawler = [(item[0], testsplits[item[1]], item[2]) for item in crawler if item[1] in testsplits]
     
     random.shuffle(train_crawler)
     split=0.7

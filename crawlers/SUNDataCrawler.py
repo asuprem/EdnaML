@@ -58,7 +58,7 @@ class SUNDataCrawler:
             if path_proposal == False:
                 raise ValueError()
             image_list = glob.glob(path_proposal + "/*.jpg")
-            querycrawler += [(item, idx, 0) for item in image_list]
+            querycrawler += [(item, idx+len(utils.splits.sun.trainval), 0) for item in image_list]
         
         random.shuffle(traincrawler)
         split=0.7
