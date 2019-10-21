@@ -63,7 +63,7 @@ class SUNDataCrawler:
             querycrawler += [(item, idx+len(utils.splits.sun.trainval), 0) for item in image_list]
         
         random.shuffle(traincrawler)
-        split=0.7
+        split=0.9
         split_idx = math.ceil(split*len(traincrawler))
 
         self.metadata["test"]["crawl"] = traincrawler[split_idx:]
