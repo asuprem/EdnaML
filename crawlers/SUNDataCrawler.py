@@ -85,6 +85,7 @@ class SUNDataCrawler:
 
 
     def get_true_path(self,alphabetical, directory_splits, image_folder):
+        import pdb
         pdb.set_trace()
         full_name = "_".join(directory_splits)
         path_proposal = os.path.join(image_folder, alphabetical)
