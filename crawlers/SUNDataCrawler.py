@@ -46,6 +46,8 @@ class SUNDataCrawler:
             path_proposal = self.get_true_path(alphabetical, directory_splits, image_folder)
             if path_proposal == False:
                 print(alphabetical, directory_splits, image_folder)
+                import pdb
+                pdb.set_trace()
                 raise ValueError()
             image_list = glob.glob(path_proposal + "/*.jpg")
             traincrawler += [(item, idx, 0) for item in image_list]
