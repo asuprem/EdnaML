@@ -100,7 +100,7 @@ class SUNDataCrawler:
                 directory_proposal = "_".join([directory_proposal] + [directory])
             proposal = os.path.join(path_proposal, directory_proposal)
             if os.path.exists(proposal):
-                path_proposal = os.path.join(path_proposal, directory)
+                path_proposal = proposal
                 # reset directory proposal
                 directory_proposal = ""
             # If path does not exist, we try by appending the next directory split to the directory proposal...
