@@ -127,7 +127,7 @@ class CarzamTrainer(BaseTrainer):
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
             if os.path.exists(LOGGER_SAVE):
                 os.remove(LOGGER_SAVE)
-            shutil.copy2(self.logger_file, LOGGER_SAVE)
+            shutil.copy2(os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE)
     
     def load(self, load_epoch):
         self.logger.info("Resuming training from epoch %i. Loading saved state from %i"%(load_epoch+1,load_epoch))
