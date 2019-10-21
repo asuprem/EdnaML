@@ -33,6 +33,7 @@ venv
 
 !config/CarZam/cub_gzsl_base.yml
 !config/CarZam/cub*.yml
+!config/CarZam/sun*.yml
 
 # Other ignores
 notebooks.md
