@@ -49,7 +49,7 @@ MODEL:
 
 LOSS:
   LOSSES: ['ProxyNCA']
-  LOSS_KWARGS: [{'embedding_size':128,'classes':150}]
+  LOSS_KWARGS: [{'embedding_size':128,'classes':645}]
   LOSS_LAMBDAS: [1.0]
 
 OPTIMIZER:
