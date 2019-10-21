@@ -32,7 +32,7 @@ venv
 !config/VRIC/vric_final.yml
 
 !config/CarZam/cub_gzsl_base.yml
-
+!config/CarZam/cub*.yml
 
 # Other ignores
 notebooks.md
