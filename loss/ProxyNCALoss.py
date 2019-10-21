@@ -27,7 +27,7 @@ class ProxyNCA(Loss):
         self.SMOOTHING = kwargs.get("smoothing", 0.1)
         self.NORMALIZATION = kwargs.get("normalization", 3.0)
         self.logsoftmax = nn.LogSoftmax(dim=-1)
-        self.proxies = nn.Parameter(torch.randn(self.classes, self.embedding) / 8)
+        self.proxies = nn.Parameter(torch.randn(self.classes, self.embedding) / 8).cuda()
 
     def forward(self,features, labels):
         normalized_proxy = self.NORMALIZATION * torch.nn.functional.normalize(self.proxies, p=2,dim=-1)
