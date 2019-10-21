@@ -1,6 +1,6 @@
 import glob
 import math
-import os
+import os, pdb
 import random
 
 import utils.splits.sun
@@ -46,7 +46,6 @@ class SUNDataCrawler:
             path_proposal = self.get_true_path(alphabetical, directory_splits, image_folder)
             if path_proposal == False:
                 print(alphabetical, directory_splits, image_folder)
-                import pdb
                 pdb.set_trace()
                 raise ValueError()
             image_list = glob.glob(path_proposal + "/*.jpg")
@@ -85,8 +84,6 @@ class SUNDataCrawler:
 
 
     def get_true_path(self,alphabetical, directory_splits, image_folder):
-        import pdb
-        pdb.set_trace()
         full_name = "_".join(directory_splits)
         path_proposal = os.path.join(image_folder, alphabetical)
         path_proposal = os.path.join(path_proposal, full_name)
@@ -108,6 +105,7 @@ class SUNDataCrawler:
                 directory_proposal = ""
             # If path does not exist, we try by appending the next directory split to the directory proposal...
         if not os.path.exists(path_proposal):
+            pdb.set_trace()
             return False
         return path_proposal
             
