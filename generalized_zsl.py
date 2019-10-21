@@ -53,7 +53,7 @@ def main(config, mode, weights):
         raise NotImplementedError("Model %s is not available. Please choose one of the following: %s"%(config.get("MODEL.MODEL_BASE"), str(model_weights.keys())))
 
 
-    """ Load previousely saved logger, if it exists """
+    # ------------------ LOAD SAVED LOGGER IF EXISTS ----------------------------
     DRIVE_BACKUP = config.get("SAVE.DRIVE_BACKUP")
     if DRIVE_BACKUP:    # Find backed-up log file,  if it exists, and copy to local
         backup_logger = os.path.join(CHECKPOINT_DIRECTORY, LOGGER_SAVE_NAME)
@@ -164,7 +164,7 @@ def main(config, mode, weights):
 
     OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
     optimizer = OPT.build(carzam_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
-    logger.info("Build optimizer")
+    logger.info("Built optimizer")
 
     # --------------------- INSTANTIATE SCHEDULER ------------------------
     try:    # We first check if scheduler is part of torch's provided schedulers.
@@ -209,6 +209,7 @@ def main(config, mode, weights):
     # --------------------- PERFORM TRAINING ------------------------
     trainer = __import__("trainer", fromlist=["*"])
     trainer = getattr(trainer, config.get("EXECUTION.TRAINER"))
+    logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER"), "trainer"))
     
     loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer=loss_optimizer, scheduler = scheduler, loss_scheduler = loss_scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger, test_mode=config.get("EXECUTION.TEST_MODE", "zsl"))  # or "gzsl"
     loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
