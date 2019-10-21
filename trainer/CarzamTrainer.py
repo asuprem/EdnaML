@@ -210,7 +210,8 @@ class CarzamTrainer(BaseTrainer):
 
         self.logger.info("Completed all calculations")
         self.logger.info('NMI{}: {:0.5%}'.format(suffix, nmi))
-        self.logger.info('Harmonic-mean{}: {:0.5%}'.format(suffix, harmonic_cmc))
+        if self.test_mode == "gzsl":
+            self.logger.info('Harmonic-mean{}: {:0.5%}'.format(suffix, harmonic_cmc))
         
         
         for r in range(10):
