@@ -213,7 +213,7 @@ def main(config, mode, weights):
     logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER"), "trainer"))
     
     loss_stepper = trainer(model=carzam_model, loss_fn = loss_function, optimizer = optimizer, loss_optimizer=loss_optimizer, scheduler = scheduler, loss_scheduler = loss_scheduler, train_loader = train_generator.dataloader, test_loader = test_generator.dataloader, queries = TEST_CLASSES, epochs = config.get("EXECUTION.EPOCHS"), logger = logger, test_mode=config.get("EXECUTION.TEST_MODE", "zsl"))  # or "gzsl"
-    loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = LOGGER_SAVE_NAME)
+    loss_stepper.setup(step_verbose = config.get("LOGGING.STEP_VERBOSE"), save_frequency=config.get("SAVE.SAVE_FREQUENCY"), test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), save_directory = MODEL_SAVE_FOLDER, save_backup = DRIVE_BACKUP, backup_directory = CHECKPOINT_DIRECTORY, gpus=NUM_GPUS,fp16 = config.get("OPTIMIZER.FP16"), model_save_name = MODEL_SAVE_NAME, logger_file = os.path.join(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME))
     if mode == 'train':
       loss_stepper.train(continue_epoch=previous_stop)
     elif mode == 'test':
