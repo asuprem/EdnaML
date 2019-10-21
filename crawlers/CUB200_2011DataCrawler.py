@@ -52,7 +52,8 @@ class CUB200_2011DataCrawler:
     testsplits = {int(item.split(".")[0]):idx + len(trainvalsplits) for idx, item in enumerate(utils.splits.cub200.query)}
     train_crawler = [(item[0], trainvalsplits[item[1]], item[2]) for item in crawler if item[1] in trainvalsplits]
     test_crawler = [(item[0], testsplits[item[1]], item[2]) for item in crawler if item[1] in testsplits]
-    
+    import pdb
+    pdb.set_trace()
     random.shuffle(train_crawler)
     split=0.7
     split_idx = math.ceil(split*len(train_crawler))
