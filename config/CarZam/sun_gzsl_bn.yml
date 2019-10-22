@@ -13,7 +13,7 @@ EXECUTION:
 
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 2
   MODEL_CORE_NAME: "sun"
   MODEL_BACKBONE: "res18"
   MODEL_QUALIFIER: "gzsl-bn"
@@ -41,15 +41,15 @@ TRANSFORMATION:
   WORKERS: 8
 
 MODEL:
-  MODEL_BASE: 'resnet18'
+  MODEL_BASE: 'resnet34'
   MODEL_ARCH: 'CarzamResnet'
-  EMBEDDING_DIMENSIONS: 128
+  EMBEDDING_DIMENSIONS: 512
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: '{}'
 
 LOSS:
   LOSSES: ['ProxyNCA']
-  LOSS_KWARGS: [{'embedding_size':128,'classes':645}]
+  LOSS_KWARGS: [{'embedding_size':512,'classes':645}]
   LOSS_LAMBDAS: [1.0]
 
 OPTIMIZER:
