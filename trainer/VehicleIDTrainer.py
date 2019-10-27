@@ -36,5 +36,5 @@ class VehicleIDTrainer(SimpleTrainer):
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
   
-    def __evaluate(self):
-        pass
+    #def __evaluate(self):
+    #    pass
