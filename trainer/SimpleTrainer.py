@@ -56,9 +56,15 @@ class SimpleTrainer(BaseTrainer):
         if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
             self.loss_optimizer.step()
         
-        softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
         self.loss.append(loss.cpu().item())
-        self.softaccuracy.append(softmax_accuracy.cpu().item())
+        
+        if "logits" in batch_kwargs:
+            softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
+            self.softaccuracy.append(softmax_accuracy.cpu().item())
+        else:
+            self.softaccuracy.append(0)
+        
+        
 
     def train(self,continue_epoch = 0):    
         self.logger.info("Starting training")
