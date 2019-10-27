@@ -140,3 +140,6 @@ class BaseTrainer:
 
     def evaluate(self):
         raise NotImplementedError()
+
+    def __evaluate(self):
+        self.evaluate()

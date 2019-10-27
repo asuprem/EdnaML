@@ -104,7 +104,7 @@ def main(config, mode, weights):
     reid_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
-                                soft_dimensions = TRAIN_CLASSES, \
+                                soft_dimensions = config.get("MODEL.SOFTMAX",TRAIN_CLASSES), \
                                 embedding_dimensions = config.get("MODEL.EMB_DIM"), \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **json.loads(config.get("MODEL.MODEL_KWARGS")))
