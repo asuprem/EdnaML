@@ -58,7 +58,7 @@ class SimpleTrainer(BaseTrainer):
         
         self.loss.append(loss.cpu().item())
         
-        if "logits" in batch_kwargs:
+        if batch_kwargs["logits"] is not None:
             softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
             self.softaccuracy.append(softmax_accuracy.cpu().item())
         else:
