@@ -14,18 +14,8 @@ def main(config, mode, weights):
     config = cfg.import_config(config)
     
     MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(config)
-    logger = logging.getLogger(MODEL_SAVE_FOLDER)
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(LOGGER_SAVE_NAME)
-    fh.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    
-    cs = logging.StreamHandler()
-    cs.setLevel(logging.DEBUG)
-    cs.setFormatter(logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S"))
-    logger.addHandler(cs)
+    os.makedirs(MODEL_SAVE_FOLDER, exist_ok=True)
+    logger = utils.generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
 
     logger.info("*"*40);logger.info("");logger.info("")
     logger.info("Using the following configuration:")
