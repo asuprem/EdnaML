@@ -131,9 +131,15 @@ class BaseTrainer:
 
         if self.loss_optimizer is not None: # For loss funtions with empty parameters
             self.loss_optimizer.load_state_dict(torch.load(loss_optimizer_load_path))
+            self.logger.info("Finished loading loss optimizer state_dict from %s"%loss_optimizer_load_path)
+        else:
+            self.logger.info("No need to load loss optimizer. Empty parameter list")
         if self.loss_scheduler is not None: # For loss funtions with empty parameters
             self.loss_scheduler.load_state_dict(torch.load(loss_scheduler_load_path))
-        self.logger.info("Finished loading loss state_dict from %s"%loss_load_path)
+            self.logger.info("Finished loading loss scheduler state_dict from %s"%loss_scheduler_load_path)
+        else:
+            self.logger.info("No need to load loss scheduler. Empty parameter list")
+        
 
     def train(self):
         raise NotImplementedError()
