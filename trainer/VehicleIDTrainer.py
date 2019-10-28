@@ -32,9 +32,9 @@ class VehicleIDTrainer(SimpleTrainer):
         self.logger.info('Completed VehicleID CMC')
 
         self.logger.info('Completed mAP Calculation')
-        self.logger.info('VeRi_mAP: {:.2%}'.format(v_mAP))
+        self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
-            self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
+            self.logger.info('VID CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
   
     #def __evaluate(self):
     #    pass
