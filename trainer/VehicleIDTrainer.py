@@ -28,7 +28,7 @@ class VehicleIDTrainer(SimpleTrainer):
         distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
-        v_cmc, v_mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VehicleID CMC')
 
         self.logger.info('Completed mAP Calculation')

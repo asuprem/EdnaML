@@ -111,7 +111,7 @@ class SimpleTrainer(BaseTrainer):
 
 
     # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
-    def eval_veri(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
+    def eval_vid(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
         """Evaluation with veri metric
         """
         num_q, num_g = distmat.shape
@@ -194,7 +194,7 @@ class SimpleTrainer(BaseTrainer):
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, v_mAP = self.eval_veri(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
         self.logger.info('Completed VeRi CMC')
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
