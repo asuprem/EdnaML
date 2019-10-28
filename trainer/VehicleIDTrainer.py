@@ -25,7 +25,7 @@ class VehicleIDTrainer(SimpleTrainer):
         query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
         
-        distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+        distmat = self.query_to_gallery_distances(query_features, gallery_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
         v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
