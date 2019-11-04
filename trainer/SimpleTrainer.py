@@ -34,7 +34,6 @@ class SimpleTrainer(BaseTrainer):
         self.softaccuracy = []
 
     # setup inherited from BaseTrainer
-    
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()

@@ -1,6 +1,7 @@
 # General ignores
 .vscode
 *.pyc
+dot
 
 # Folder ignores
 Data
