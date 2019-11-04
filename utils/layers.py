@@ -1,6 +1,9 @@
 import torch
 from torch import nn
 import torch.nn.init
+
+from .layers import GroupNorm2d, GroupNorm3d
+
 class LambdaLayer(nn.Module):
     """ Torch lambda layer to act as an empty layer. It does not do anything """
     def __init__(self, lambd):
