@@ -127,7 +127,7 @@ class BasicBlock(nn.Module):
         out = self.relu(out)
 
         if self.p_ca is not None:   # Concat part attention
-            out = torch.cat([p_out,out],dim=1)
+            out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
         return out
 
 class Bottleneck(nn.Module):
@@ -326,11 +326,9 @@ class ResNet(nn.Module):
         for i in param_dict:
             if 'fc' in i and self.top_only:
                 continue
-            try:
-                self.state_dict()[i].copy_(param_dict[i])
-            except: # ignore failures for now --- TODO TODO TODO URGENT...
-                pass
-
+            self.state_dict()[i].copy_(param_dict[i])
+            
+            
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):
     model = ResNet(block, layers, **kwargs)
     return model
