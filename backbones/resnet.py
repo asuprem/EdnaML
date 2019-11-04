@@ -56,7 +56,8 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None, attention=None, input_attention=False):
+                 base_width=64, dilation=1, norm_layer=None, 
+                 attention=None, input_attention=False, part_attention=False):
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -85,6 +86,13 @@ class BasicBlock(nn.Module):
         else:
             raise NotImplementedError()
 
+        if part_attention:
+            self.p_ca = ChannelAttention(planes*self.expansion)
+            self.p_sa = SpatialAttention()
+        else:
+            self.p_ca = None
+            self.p_sa = None
+
         self.downsample = downsample
         self.stride = stride
 
@@ -93,7 +101,7 @@ class BasicBlock(nn.Module):
 
         if self.input_attention is not None:
             x = self.input_attention(x) * x
-
+        
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -108,17 +116,25 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        
+        #p_out = out
+        if self.p_ca is not None:   # Get part attention
+            p_out = self.p_ca(out) * out
+            p_out = self.p_sa(p_out) * p_out
+            p_out += identity
+            p_out = self.relu(p_out)
 
         out += identity
         out = self.relu(out)
 
+        if self.p_ca is not None:   # Concat part attention
+            out = torch.cat([p_out,out],dim=1)
         return out
 
 class Bottleneck(nn.Module):
     expansion = 4
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, groups = 1, base_width = 64, dilation = 1, norm_layer=None, attention = None, input_attention=False):
+    def __init__(   self, inplanes, planes, stride=1, downsample=None, groups = 1, base_width = 64, dilation = 1, norm_layer=None, 
+                    attention = None, input_attention=False, part_attention=False):
         super(Bottleneck, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -145,6 +161,13 @@ class Bottleneck(nn.Module):
             self.sa = SpatialAttention()
         else:
             raise NotImplementedError()
+
+        if part_attention:
+            self.p_ca = ChannelAttention(planes*self.expansion)
+            self.p_sa = SpatialAttention()
+        else:
+            self.p_ca = None
+            self.p_sa = None
         
         self.downsample = downsample
         self.stride = stride
@@ -173,14 +196,25 @@ class Bottleneck(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
+        #p_out = out
+        if self.p_ca is not None:   # Get part attention
+            p_out = self.p_ca(out) * out
+            p_out = self.p_sa(p_out) * p_out
+            p_out += identity
+            p_out = self.relu(p_out)
+        
         out += identity
         out = self.relu(out)
 
+        if self.p_ca is not None:   # Concat part attention
+            out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
         return out
 
 class ResNet(nn.Module):
     def __init__(self, block=Bottleneck, layers=[3, 4, 6, 3], last_stride=2, zero_init_residual=False, \
-                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, attention=None, input_attention = None, secondary_attention=None, **kwargs):
+                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, 
+                    attention=None, input_attention = None, secondary_attention=None, ia_attention = None, part_attention = None,
+                    **kwargs):
         super().__init__()
         self.attention=attention
         self.input_attention=input_attention
@@ -189,6 +223,8 @@ class ResNet(nn.Module):
         self.inplanes = 64
         if norm_layer is None:
             self._norm_layer = nn.BatchNorm2d
+        #elif norm_layer == "ln":
+        #    self._norm_layer = nn.LayerNorm
         self.dilation = 1
         if replace_stride_with_dilation is None:
             replace_stride_with_dilation = [False, False, False]
@@ -198,14 +234,33 @@ class ResNet(nn.Module):
         self.base_width = width_per_group
 
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
+        #if norm_layer == "gn":
+        #    self.bn1 = nn.GroupNorm2d
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu1 = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
+        self.ia_attention = ia_attention
+        self.part_attention = part_attention
+        
+        # Make sure ia and input_attention do not conflict
+        if self.ia_attention is not None and self.input_attention is not None:
+            raise ValueError("Cannot have both ia_attention and input_attention.")
+        if self.part_attention is not None and (self.attention is not None and self.secondary_attention is not None):
+            raise ValueError("Cannot have part-attention with CBAM everywhere")
+        if self.part_attention is not None and (self.attention is not None and self.secondary_attention==1):
+            raise ValueError("Cannot have part-attention with CBAM-Early")
+
+        # Create true IA
+        if self.ia_attention:
+            self.ia_attention = InputAttention(self.inplanes)   # 64, set above
+        else:
+            self.ia_attention = None
+
         att = self.attention
         if secondary_attention is not None and secondary_attention != 1: # leave alone if sec attention not set
             att = None
-        self.layer1 = self._make_layer(self.block, 64, layers[0], attention = att, input_attention=self.input_attention)
+        self.layer1 = self._make_layer(self.block, 64, layers[0], attention = att, input_attention=self.input_attention, part_attention = self.part_attention)
         att = self.attention
         if secondary_attention is not None and secondary_attention != 2: # leave alone if sec attention not set
             att = None
@@ -226,7 +281,7 @@ class ResNet(nn.Module):
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.fc = nn.Linear(512 * block.expansion, num_classes)
     
-    def _make_layer(self, block, planes, blocks, stride=1, dilate = False, attention = None, input_attention=False):
+    def _make_layer(self, block, planes, blocks, stride=1, dilate = False, attention = None, input_attention=False, ia_attention = False, part_attention = False):
         downsample = None
         previous_dilation = self.dilation
         if dilate:
@@ -240,14 +295,17 @@ class ResNet(nn.Module):
             )
     
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=attention, input_attention=input_attention))
+        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=attention, input_attention=input_attention, part_attention=part_attention))
         self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
+        for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=attention))
         return nn.Sequential(*layers)
     
     def forward(self, x):
         x = self.conv1(x)
+        
+        if self.ia_attention is not None:
+            x = self.ia_attention(x) * x
         x = self.bn1(x)
         x = self.relu1(x)
         x = self.maxpool(x)
@@ -268,7 +326,10 @@ class ResNet(nn.Module):
         for i in param_dict:
             if 'fc' in i and self.top_only:
                 continue
-            self.state_dict()[i].copy_(param_dict[i])
+            try:
+                self.state_dict()[i].copy_(param_dict[i])
+            except: # ignore failures for now --- TODO TODO TODO URGENT...
+                pass
 
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):
     model = ResNet(block, layers, **kwargs)
