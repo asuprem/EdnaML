@@ -20,9 +20,11 @@ class ResnetBase(ReidModel):
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
         attention (str, None): The attention module to use. Only supports ['cbam', None]
         input_attention (bool, false): Whether to include the IA module
+        ia_attention (bool, false): Whether to include input IA module
+        part_attention (bool, false): Whether to include Part-CBAM Mobule
         secondary_attention (int, None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic block number provided here.
 
-    Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
+    Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS; set in backbones.resnet):
         zero_init_residual (bool, false): Whether the final layer uses zero initialization
         top_only (bool, true): Whether to keep only the architecture base without imagenet fully-connected layers (1000 classes)
         num_classes (int, 1000): Number of features in final imagenet FC layer
@@ -36,7 +38,7 @@ class ResnetBase(ReidModel):
 
     """
     def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
-        super(ResnetBase, self).__init__(base, weights, normalization, embedding_dimensions, soft_dimensions, **kwargs)
+        super(ResnetBase, self).__init__(base, weights, normalization, embedding_dimensions, soft_dimensions, **kwargs) #.abstracts.ReidModel
     
     def build_base(self,base, weights, **kwargs):
         _resnet = __import__("backbones.resnet", fromlist=["resnet"])
@@ -69,6 +71,7 @@ class ResnetBase(ReidModel):
                 * 'l2' -- l2 normalization
 
         """
+        
         if self.normalization == 'bn':
             self.feat_norm = nn.BatchNorm1d(self.embedding_dimensions)
             self.feat_norm.bias.requires_grad_(False)
