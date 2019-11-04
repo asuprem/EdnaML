@@ -116,14 +116,14 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        #p_out = out
+        p_out = out
         if self.p_ca is not None:   # Get part attention
-            p_out = self.p_ca(out) * out
+            p_out = self.p_ca(p_out) * p_out
             p_out = self.p_sa(p_out) * p_out
-            p_out += identity
+            p_out = p_out + identity
             p_out = self.relu(p_out)
 
-        out += identity
+        out = out + identity
         out = self.relu(out)
 
         if self.p_ca is not None:   # Concat part attention
@@ -196,14 +196,14 @@ class Bottleneck(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        #p_out = out
+        p_out = out
         if self.p_ca is not None:   # Get part attention
-            p_out = self.p_ca(out) * out
+            p_out = self.p_ca(p_out) * p_out
             p_out = self.p_sa(p_out) * p_out
-            p_out += identity
+            p_out = p_out + identity
             p_out = self.relu(p_out)
         
-        out += identity
+        out = out + identity
         out = self.relu(out)
 
         if self.p_ca is not None:   # Concat part attention
