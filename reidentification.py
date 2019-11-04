@@ -90,6 +90,11 @@ def main(config, mode, weights):
     model_builder = __import__("models", fromlist=["*"])
     model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER", "veri_model_builder"))
     logger.info("Loaded {} from {} to build ReID model".format(config.get("EXECUTION.MODEL_BUILDER", "veri_model_builder"), "models"))
+    
+    if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
+        model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
+    else:
+        model_kwargs_dict = json.loads(config.get("MODEL.MODEL_KWARGS"))
 
     reid_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
@@ -97,7 +102,7 @@ def main(config, mode, weights):
                                 soft_dimensions = config.get("MODEL.SOFTMAX",TRAIN_CLASSES), \
                                 embedding_dimensions = config.get("MODEL.EMB_DIM"), \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
-                                **json.loads(config.get("MODEL.MODEL_KWARGS")))
+                                **model_kwargs_dict)
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
 
     if mode == "test":
