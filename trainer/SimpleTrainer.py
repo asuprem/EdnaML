@@ -185,7 +185,8 @@ class SimpleTrainer(BaseTrainer):
         query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
         
-        distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+        #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+        distmat = self.query_to_gallery_distances(query_features, gallery_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
         #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
@@ -193,21 +194,21 @@ class SimpleTrainer(BaseTrainer):
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
-        self.logger.info('Completed VID CMC')
+        #v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
+        #self.logger.info('Completed VID CMC')
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
 
         self.logger.info('Completed mAP Calculation')
         
         self.logger.info('mAP: {:.2%}'.format(mAP))
-        self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
+        #self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
-        for r in [1,2, 3, 4, 5,10,15,20]:
-            self.logger.info('VID CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
+        #for r in [1,2, 3, 4, 5,10,15,20]:
+        #    self.logger.info('VID CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
   
     def query_to_gallery_distances(self, qf, gf):
         # distancesis sqrt(sum((a-b)^2))
