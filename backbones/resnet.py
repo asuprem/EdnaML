@@ -246,7 +246,7 @@ class ResNet(nn.Module):
         # Make sure ia and input_attention do not conflict
         if self.ia_attention is not None and self.input_attention is not None:
             raise ValueError("Cannot have both ia_attention and input_attention.")
-        if self.part_attention is not None and (self.attention is not None and self.secondary_attention is not None):
+        if self.part_attention is not None and (self.attention is not None and self.secondary_attention is None):
             raise ValueError("Cannot have part-attention with CBAM everywhere")
         if self.part_attention is not None and (self.attention is not None and self.secondary_attention==1):
             raise ValueError("Cannot have part-attention with CBAM-Early")
