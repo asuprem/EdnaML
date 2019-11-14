@@ -69,9 +69,10 @@ class ReidModel(nn.Module):
                     nn.init.constant_(m.weight, 1.0)
                     nn.init.constant_(m.bias, 0.0)
         elif classname.find('LayerNorm') != -1:
-                if m.affine:
-                    nn.init.constant_(m.weight, 1.0)
-                    nn.init.constant_(m.bias, 0.0)
+                #if m.affine:
+                #    nn.init.constant_(m.weight, 1.0)
+                #    nn.init.constant_(m.bias, 0.0)
+                pass
         elif classname.find('InstanceNorm') != -1:
                 if m.affine:
                     nn.init.constant_(m.weight, 1.0)
