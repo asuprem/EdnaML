@@ -10,7 +10,7 @@ class VehicleIDDataCrawler:
         self.image_folder = os.path.join(self.data_folder, train_folder)
 
         self.train_list = "train_list.txt"
-        self.query_list = kwargs.get("test_list","test_list_2400") + ".txt"
+        self.query_list = kwargs.get("test_list","test_list_800") + ".txt"
 
         list_folder = os.path.join(self.data_folder, "train_test_split")
         # The train list is in VehicleID/train_test_split/train_list.txt
@@ -79,17 +79,17 @@ class VehicleIDDataCrawler:
                 cids.append(cid)
                 crawler.append((img_path, pids[pid], cid))
         
-        pid_in_query = {}
+        pid_in_gallery = {}
         self.metadata["test"]["crawl"], self.metadata["query"]["crawl"] = [], []
 
         for crawled_img in crawler:
             img_path, pid, cid = crawled_img
-            # check if pid already captured. If so add to gallery. Else add to query
-            if pid in pid_in_query:
-                self.metadata["test"]["crawl"].append((img_path, pid, cid))
-            else:
-                pid_in_query[pid] = 1
+            # check if pid already captured. If so add to query. Else add to gallery (based on paper) (variable pid_in_gallery should be pid_in)gallery
+            if pid in pid_in_gallery:
                 self.metadata["query"]["crawl"].append((img_path, pid, cid))
+            else:
+                pid_in_gallery[pid] = 1
+                self.metadata["test"]["crawl"].append((img_path, pid, cid))
         
         self.metadata["test"]["pids"], self.metadata["test"]["cids"] = len(pids), 1
         self.metadata["query"]["pids"], self.metadata["query"]["cids"] = len(pids), 1
