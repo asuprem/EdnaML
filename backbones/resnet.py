@@ -37,6 +37,19 @@ class SpatialAttention(nn.Module):
         x = self.conv1(x)
         return self.sigmoid(x)
 
+class DenseAttention(nn.Module):    # Like spatial, but for all channels
+    def __init__(self, planes):
+        super(DenseAttention, self).__init__()
+        self.dense_conv1=nn.Conv2d(planes,planes,kernel_size=3,padding=1,bias=False)
+        self.dense_relu1=nn.LeakyReLU()
+        self.dense_conv2=nn.Conv2d(planes,planes,kernel_size=3,padding=1,bias=False)
+        self.dense_sigmoid = nn.Sigmoid()
+    def forward(self,x):
+        x = self.ia_conv1(x)
+        x = self.ia_relu1(x)
+        x = self.ia_conv2(x)
+        x = self.ia_sigmoid(x)
+        return x
 
 class InputAttention(nn.Module):
     def __init__(self, planes):
@@ -157,14 +170,14 @@ class Bottleneck(nn.Module):
             self.ca = None
             self.sa = None
         elif attention == 'cbam':
+            self.sa = SpatialAttention(kernel_size=3)
             self.ca = ChannelAttention(planes*self.expansion)
-            self.sa = SpatialAttention()
         else:
             raise NotImplementedError()
 
         if part_attention:
+            self.p_sa = DenseAttention(planes=planes*self.expansion)
             self.p_ca = ChannelAttention(planes*self.expansion)
-            self.p_sa = SpatialAttention()
         else:
             self.p_ca = None
             self.p_sa = None
@@ -197,17 +210,19 @@ class Bottleneck(nn.Module):
             identity = self.downsample(x)
 
         p_out = out
+        part_mask = None
         if self.p_ca is not None:   # Get part attention
-            p_out = self.p_ca(p_out) * p_out
             p_out = self.p_sa(p_out) * p_out
-            p_out = p_out + identity
+#            p_out = self.p_ca(p_out) * p_out
             p_out = self.relu(p_out)
+            part_mask = self.p_ca(p_out)
         
         out = out + identity
         out = self.relu(out)
 
         if self.p_ca is not None:   # Concat part attention
-            out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
+            #out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
+            out = (part_mask * p_out) + ((1-part_mask)*out)
         return out
 
 class ResNet(nn.Module):
