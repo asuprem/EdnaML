@@ -45,10 +45,10 @@ class DenseAttention(nn.Module):    # Like spatial, but for all channels
         self.dense_conv2=nn.Conv2d(planes,planes,kernel_size=3,padding=1,bias=False)
         self.dense_sigmoid = nn.Sigmoid()
     def forward(self,x):
-        x = self.ia_conv1(x)
-        x = self.ia_relu1(x)
-        x = self.ia_conv2(x)
-        x = self.ia_sigmoid(x)
+        x = self.dense_conv1(x)
+        x = self.dense_relu1(x)
+        x = self.dense_conv2(x)
+        x = self.dense_sigmoid(x)
         return x
 
 class InputAttention(nn.Module):
