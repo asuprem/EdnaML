@@ -100,8 +100,8 @@ class BasicBlock(nn.Module):
             raise NotImplementedError()
 
         if part_attention:
+            self.p_sa = DenseAttention(planes=planes*self.expansion)
             self.p_ca = ChannelAttention(planes*self.expansion)
-            self.p_sa = SpatialAttention()
         else:
             self.p_ca = None
             self.p_sa = None
@@ -130,17 +130,19 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
 
         p_out = out
+        part_mask = None
         if self.p_ca is not None:   # Get part attention
-            p_out = self.p_ca(p_out) * p_out
             p_out = self.p_sa(p_out) * p_out
-            p_out = p_out + identity
+#            p_out = self.p_ca(p_out) * p_out
             p_out = self.relu(p_out)
+            part_mask = self.p_ca(p_out)
 
         out = out + identity
         out = self.relu(out)
 
         if self.p_ca is not None:   # Concat part attention
-            out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
+            #out = torch.cat([p_out[:,p_out.shape[1]//2:,:,:],out[:,:p_out.shape[1]//2,:,:]],dim=1)
+            out = (part_mask * p_out) + ((1-part_mask)*out)
         return out
 
 class Bottleneck(nn.Module):
