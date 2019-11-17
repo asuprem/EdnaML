@@ -102,7 +102,7 @@ class VeRiDataCrawler:
     pid_tracker, cid_tracker = {}, {}
     crawler = []
     pid_counter, cid_counter, img_counter = 0, 0, 0
-    track_dict, track_info = {}
+    track_dict, track_info = {}, {}
     track_idx = 0
     with open(self.tracks_file, "r") as tracks_file_reader:
       for line in tracks_file_reader:
