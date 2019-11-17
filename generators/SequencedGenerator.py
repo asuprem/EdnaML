@@ -131,7 +131,7 @@ class SequencedGenerator:
       self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"], self.transformer)
     elif mode == "test":
       # For testing, we combine images in the query and testing set to generate batches
-      self.__dataset = TDataSet(datacrawler.metadata[mode]["crawl"] + datacrawler.metadata["query"]["crawl"], self.transformer)
+      self.__dataset = TDataSet(datacrawler.metadata["query"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
     else:
       raise NotImplementedError()
     
