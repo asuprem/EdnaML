@@ -12,17 +12,17 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('...'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'EBKAFramework'
-copyright = '2019, Abhijit Supre'
-author = 'Abhijit Supre'
+project = 'GLAMOR'
+copyright = '2019, Abhijit Suprem'
+author = 'Abhijit Suprem'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2'
+release = 'v0.3'
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,7 +31,6 @@ release = '0.2'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon']
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
