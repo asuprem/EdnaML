@@ -1,3 +1,10 @@
+EXECUTION:
+  MODEL_SERVING: None
+  EPOCHS: 25
+  TEST_FREQUENCY: 5
+  CRAWLER: VeRiDataCrawler
+  TRAINER: SimpleTrainer
+
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "ablation_reid"
@@ -30,13 +37,9 @@ MODEL:
   MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'Resnet'
   EMB_DIM: 512
+  SOFTMAX: 575
   MODEL_NORMALIZATION: ''
-  MODEL_KWARGS: '{}'
-
-EXECUTION:
-  MODEL_SERVING: None
-  EPOCHS: 120
-  TEST_FREQUENCY: 5
+  MODEL_KWARGS:
 
 LOSS:
   LOSSES: ['SoftmaxLogitsLoss', 'TripletLoss']

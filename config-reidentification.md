@@ -1,4 +1,4 @@
-# Configuration
+# Configuration for reidentification.py
 
 Each configuration file is a YAML file. A YAML file is formatted as `key: value` pairs. A key may have sub keys as follows:
 
@@ -9,7 +9,22 @@ Each configuration file is a YAML file. A YAML file is formatted as `key: value`
         job: Developer
         skill: Elite
 
-This readme describes all configuration options. Each section represents a top-level key. Each subsection describes a sub-key. A subsection covers value descriptors for the key. You can take a look at some of the configurations in `/config/`.
+This readme describes all configuration options. Each section represents a top-level key. Each subsection describes a sub-key. A subsection covers value descriptors for the key. You can take a look at some of the configurations in `/config/VeRi/veri_base.yml`.
+
+- EXECUTION
+    - MODEL_SERVING: `str`. Not used at the moment.
+    - EPOCHS: `int`. Number of epochs to train.
+    - TEST_FREQUENCY: `int`. Epochs to wait between evaluating model.
+    - CRAWLER: `str`. A crawler object from `crawlers`, e.g. VeRiDataCrawler
+    - TRAINER: `str`. A trainer object from `trainers`, e.g. SimpleTrainer
+
+- SAVE
+    - SAVE_FREQUENCY: `int`. Epoch to wait between model, optimizer, and scheduler backup.
+    - MODEL_VERSION: `int`. Experiment version. useful if running the same experiment again.
+    - MODEL_CORE_NAME: `str`. Name of experiment (or model). Used to name folders during saving.
+    - MODEL_BACKBONE: `str`. Nickname for model backbone. Useful to keep track of multiple models/experiments. 
+    - MODEL_QUALIFIER: `str`. Additional qualifier string. Useful if running same model on different datasets, etc.
+    - DRIVE_BACKUP: `bool`. Whether to backup saves to another directory. Used for Google Drive backup in Colab.
 
 - DATASET
     - ROOT_DATA_FOLDER: `str`. The folder containing training, testing, and query images.
@@ -35,24 +50,16 @@ This readme describes all configuration options. Each section represents a top-l
     - MODEL_ARCH: `str`. Model architecture to use. See section on Architecture for supported architectures.
     - MODEL_BASE: `str`. Model base for the given architecture. See section on Architecture for supported bases for each architecture
     - EMB_DIM: `int`. Dimensionality of feature embedding. Should be less than or equal to architecture output before fully connected layers, e.g. Resnet-50 outputs 1x2048 features.
+    - SOFTMAX: `int`. Dimensionality of softmax layer, if used. Should be number of identities  in training set. If not used, leave value blank (as per YAML format).
     - MODEL_NORMALIZATION: `str`. Normalization to use for features. One of:
         1. '' (empty string) - No normalization
         2. 'l2' - L2 normalization
         3. 'bn' - Batch normalization
-    - MODEL_KWARGS: `dict as json str`. Dict of model keyword arguments. See section on Architectures for kwargs for each architecture.
-
-- SAVE
-    - SAVE_FREQUENCY: `int`. Epoch to wait between model, optimizer, and scheduler backup.
-    - MODEL_VERSION: `int`. Experiment version. useful if running the same experiment again.
-    - MODEL_CORE_NAME: `str`. Name of experiment (or model). Used to name folders during saving.
-    - MODEL_BACKBONE: `str`. Nickname for model backbone. Useful to keep track of multiple models/experiments. 
-    - MODEL_QUALIFIER: `str`. Additional qualifier string. Useful if running same model on different datasets, etc.
-    - DRIVE_BACKUP: `bool`. Whether to backup saves to another directory. Used for Google Drive backup in Colab.
-
-- EXECUTION
-    - MODEL_SERVING: `str`. Not used at the moment.
-    - EPOCHS: `int`. Number of epochs to train.
-    - TEST_FREQUENCY: `int`. Epochs to wait between evaluating model.
+    - MODEL_KWARGS: Dict of model keyword arguments. See section on Architectures for kwargs for each architecture.
+        1. `part_attention`: bool. Whether to use local attention
+        2. `ia_attention`: bool. Whether to use global attention
+        3. `attention`: `str`. Which attention type to use other than global or local. Only `cbam` is supported
+        4. `secondary_attention`: `int`. Optional. Use only if also using `attention`. If used, then `attention` is only applied to `secondary_attention` layer in ResNet. So if this is not set, `attention` is applied to all ResNet layers. If `secondary_attention`=2, `attention` is applied only to the second ResNet layer. ResNet layer refers to Bottleneck blocks.
 
 - LOSS
     - LOSSES: `list of str`. Losses to use in experiment. See section on Losses for list of supported losses.
