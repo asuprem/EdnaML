@@ -185,10 +185,10 @@ class SimpleTrainer(BaseTrainer):
         
         # For market 1501
         features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
-        
-        if False: #self.crawler is not None:
-            #track_features = [torch.zeros(features[0].shape)]*len(self.crawler.metadata["track"]["crawl"])
-            track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata["track"]["crawl"]))]
+        """
+        if self.crawler is not None:
+            track_features = [[] for _ in range(len(self.crawler.metadata["track"]["crawl"]))]
+            #track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata["track"]["crawl"]))]
             track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_count = [0]*len(self.crawler.metadata["track"]["crawl"])
@@ -199,44 +199,54 @@ class SimpleTrainer(BaseTrainer):
                 track_count[track_idx]+=1
                 track_pid = self.crawler.metadata["track"]["info"][track_idx]["pid"]
                 track_cid = self.crawler.metadata["track"]["info"][track_idx]["cid"]
-                track_features[track_idx]+=features[idx]
+                track_features[track_idx].append(features[idx])
                 track_pids[track_idx] = track_pid
                 track_cids[track_idx] = track_cid
             
-            for idx,feats in enumerate(track_features): # Get average of features
-                track_features[idx] = feats / track_count[idx]  # maybe max...?
+            #for idx,feats in enumerate(track_features): # Get average of features
+            #    track_features[idx] = feats / track_count[idx]  # maybe max...?
 
-            track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+            #track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
         else:
             track_features, track_pids, track_cids = None, None, None
-        
-        
+        """
+        feature_to_track_map = {}
+        if "track" in self.crawler.metadata:
+            track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
+            track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
+            for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata["track"]["dict"][img]
+                feature_to_track_map[idx] = track_idx
+                track_pids[track_idx] = self.crawler.metadata["track"]["info"][track_idx]["pid"]
+                track_cids[track_idx] = self.crawler.metadata["track"]["info"][track_idx]["cid"]
+            track_pids, track_cids = torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
 
         query_features, gallery_features = features[:self.queries], features[self.queries:]
         query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
+
+        
         
         #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
         distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+        if "track" in self.crawler.metadata:
+            track_distmat = self.build_track_distmat(distmat, feature_to_track_map)
         qqdistmat = self.query_to_gallery_distances(query_features, query_features)
         ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
 
         rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
 
-        if track_features is not None:
-            #pdb.set_trace()
-            track_distmat = self.query_to_gallery_distances(query_features, track_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
         #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
         m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
         self.logger.info('Completed market-1501 CMC')
-        c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
-        self.logger.info('Completed CUHK CMC')
+        #c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
+        #self.logger.info('Completed CUHK CMC')
         r_cmc = self.cmc(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
         self.logger.info('Completed Re-Rank')
         
-        if track_features is not None:
+        if "track" in self.crawler.metadata:
             v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
             v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
             self.logger.info('Completed VeRi-776 CMC')
@@ -249,7 +259,7 @@ class SimpleTrainer(BaseTrainer):
 
         self.logger.info('Completed mAP Calculation')
         
-        if track_features is not None:
+        if "track" in self.crawler.metadata:
             for r in [1,2, 3, 4, 5,10,15,20]:
                 self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
             self.logger.info('VeRi-mAP: {:.2%}'.format(v_mAP))
@@ -260,8 +270,8 @@ class SimpleTrainer(BaseTrainer):
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('ReRank CMC Rank-{}: {:.2%}'.format(r, r_cmc[r-1]))
-        for r in [1,2, 3, 4, 5,10,15,20]:
-            self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
+        #for r in [1,2, 3, 4, 5,10,15,20]:
+        #    self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
         
   
     def query_to_gallery_distances(self, qf, gf):
@@ -494,3 +504,16 @@ class SimpleTrainer(BaseTrainer):
         del jaccard_dist
         final_dist = final_dist[:query_num,query_num:]
         return final_dist
+
+    def build_track_distmat(self,distmat, feature_to_track_map):
+        # distmat has shape [num_queries, num_gallery]
+        num_tracks = len(set(feature_to_track_map.values()))
+        track_distmat = np.full((distmat.shape[0], num_tracks), np.inf)
+        for q in range(distmat.shape[0]):
+            for g in range(distmat.shape[1]):
+                #q, g are indices
+                dist_val = distmat[q][g]
+                track_idx = feature_to_track_map[g]
+                if dist_val < track_distmat[q][track_idx]:
+                    track_distmat[q][track_idx] = dist_val
+        return track_distmat
