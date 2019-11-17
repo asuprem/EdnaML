@@ -19,7 +19,7 @@ class CarzamTrainer(BaseTrainer):
                     optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    queries, epochs, logger, test_mode="zsl"):
+                    queries, epochs, logger, test_mode="zsl", **kwargs):
         
         super(CarzamTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
 

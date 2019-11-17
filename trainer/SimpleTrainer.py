@@ -25,13 +25,15 @@ class SimpleTrainer(BaseTrainer):
                     optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    queries: int, epochs: int, logger):
+                    queries: int, epochs: int, logger, **kwargs):   #kwargs includes crawler
         
         super(SimpleTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
         
         self.queries = queries
         self.loss = []
         self.softaccuracy = []
+
+        self.crawler = kwargs.get("crawler", None)
 
     # setup inherited from BaseTrainer
     def step(self,batch):
@@ -170,7 +172,7 @@ class SimpleTrainer(BaseTrainer):
 
     def evaluate(self):
         self.model.eval()
-        features, pids, cids = [], [], []
+        features, pids, cids, imgs = [], [], [], []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 data, pid, camid, img = batch
@@ -179,6 +181,30 @@ class SimpleTrainer(BaseTrainer):
                 features.append(feature)
                 pids.append(pid)
                 cids.append(camid)
+                imgs.append(img)
+        
+        if self.crawler is not None:
+            track_features = [torch.zeros(features[0].shape)]*len(self.crawler.metadata["track"]["crawl"])
+            track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
+            track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
+            track_count = [0]*len(self.crawler.metadata["track"]["crawl"])
+            for feature, img in zip(features[self.queries:], imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata["track"]["dict"][img]
+                track_count[track_idx]+=1
+                track_pid = self.crawler.metadata["track"]["info"][track_idx]["pid"]
+                track_cid = self.crawler.metadata["track"]["info"][track_idx]["cid"]
+                track_features[track_idx] += feature
+                track_pids[track_idx] = self.crawler.track_info[track_idx]["pid"]
+                track_cids[track_idx] = self.crawler.track_info[track_idx]["cid"]
+            for idx,feats in enumerate(track_features): # Get average of features
+                track_features[idx] = feats / track_count[idx]  # maybe max...?
+            
+            track_features, track_pids, track_cids = torch.cat(track_features, dim=0), torch.cat(track_pids, dim=0), torch.cat(track_cids, dim=0)
+        else:
+            track_features, track_pids, track_cids = None, None, None
+        
+        
+        # For market 1501
         features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
 
         query_features, gallery_features = features[:self.queries], features[self.queries:]
@@ -187,6 +213,8 @@ class SimpleTrainer(BaseTrainer):
         
         #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
         distmat = self.query_to_gallery_distances(query_features, gallery_features)
+        if track_features is not None:
+            track_distmat = self.query_to_gallery_distances(query_features, track_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
         #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
@@ -194,21 +222,27 @@ class SimpleTrainer(BaseTrainer):
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
-        #v_cmc, v_mAP = self.eval_vid(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 100)
-        #self.logger.info('Completed VID CMC')
+        if track_features is not None:
+            v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+            v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
+            self.logger.info('Completed VeRi-776 CMC')
+        
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
 
         self.logger.info('Completed mAP Calculation')
         
+        if track_features is not None:
+            for r in [1,2, 3, 4, 5,10,15,20]:
+                self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
+            self.logger.info('VeRi-mAP: {:.2%}'.format(v_mAP))
         self.logger.info('mAP: {:.2%}'.format(mAP))
         #self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
-        #for r in [1,2, 3, 4, 5,10,15,20]:
-        #    self.logger.info('VID CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
+        
   
     def query_to_gallery_distances(self, qf, gf):
         # distancesis sqrt(sum((a-b)^2))

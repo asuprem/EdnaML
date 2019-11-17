@@ -4,8 +4,6 @@ import shutil
 import loss.builders
 
 class BaseTrainer:
-    def __init__(self):
-        raise NotImplementedError()
 
     def __init__(   self, 
                     model: torch.nn.Module, 
@@ -13,7 +11,7 @@ class BaseTrainer:
                     optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    epochs, logger):
+                    epochs, logger, **kwargs):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
@@ -31,6 +29,7 @@ class BaseTrainer:
         self.global_epoch = 0
 
         self.loss = []
+
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\

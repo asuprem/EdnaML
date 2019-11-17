@@ -14,7 +14,7 @@ from torch.nn import functional as F
 
 
 class VAEGANTrainer:
-    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, epochs, batch_size, latent_size, logger):
+    def __init__(self, model, loss_fn, optimizer, scheduler, train_loader, test_loader, epochs, batch_size, latent_size, logger, **kwargs):
         # NEED TO HANDLE ANOMALIES
         self.model = model
         
