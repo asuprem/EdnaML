@@ -226,15 +226,20 @@ class SimpleTrainer(BaseTrainer):
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
 
         
-        
+        self.logger.info('Obtained features')
         #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
         distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+        self.logger.info('Got query-to-gallery distances')
         if "track" in self.crawler.metadata:
             track_distmat = self.build_track_distmat(distmat, feature_to_track_map)
+            self.logger.info('Got query-to-track distances')
         qqdistmat = self.query_to_gallery_distances(query_features, query_features)
+        self.logger.info('Got query-to-query distances')
         ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
+        self.logger.info('Got gallery-to-gallery distances')
 
         rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
+        self.logger.info('Got rerank distances')
 
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
@@ -260,15 +265,16 @@ class SimpleTrainer(BaseTrainer):
         self.logger.info('Completed mAP Calculation')
         
         if "track" in self.crawler.metadata:
-            for r in [1,2, 3, 4, 5,10,15,20]:
-                self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
             self.logger.info('VeRi-mAP: {:.2%}'.format(v_mAP))
+            for r in [1,2, 3, 4, 5]:
+                self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
+
         self.logger.info('mAP: {:.2%}'.format(mAP))
-        self.logger.info('Re-rank mAP: {:.2%}'.format(r_mAP))
         #self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
-        for r in [1,2, 3, 4, 5,10,15,20]:
+        for r in [1,2, 3, 4, 5]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
-        for r in [1,2, 3, 4, 5,10,15,20]:
+        self.logger.info('Re-rank mAP: {:.2%}'.format(r_mAP))
+        for r in [1,2, 3, 4, 5]:
             self.logger.info('ReRank CMC Rank-{}: {:.2%}'.format(r, r_cmc[r-1]))
         #for r in [1,2, 3, 4, 5,10,15,20]:
         #    self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
