@@ -2,6 +2,7 @@
 .vscode
 *.pyc
 dot
+docs.md
 
 # Folder ignores
 Data
