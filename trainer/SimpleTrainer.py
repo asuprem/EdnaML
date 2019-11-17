@@ -186,9 +186,9 @@ class SimpleTrainer(BaseTrainer):
         # For market 1501
         features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
         
-        if self.crawler is not None:
+        if False: #self.crawler is not None:
             #track_features = [torch.zeros(features[0].shape)]*len(self.crawler.metadata["track"]["crawl"])
-            track_features = [[] for _ in range(len(self.crawler.metadata["track"]["crawl"]))]
+            track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata["track"]["crawl"]))]
             track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_count = [0]*len(self.crawler.metadata["track"]["crawl"])
@@ -199,18 +199,16 @@ class SimpleTrainer(BaseTrainer):
                 track_count[track_idx]+=1
                 track_pid = self.crawler.metadata["track"]["info"][track_idx]["pid"]
                 track_cid = self.crawler.metadata["track"]["info"][track_idx]["cid"]
-                track_features[track_idx].append(features[idx])
+                track_features[track_idx]+=features[idx]
                 track_pids[track_idx] = track_pid
                 track_cids[track_idx] = track_cid
-            #pdb.set_trace()
+            
             for idx,feats in enumerate(track_features): # Get average of features
                 track_features[idx] = feats / track_count[idx]  # maybe max...?
-            
-            pdb.set_trace()
-            track_features, track_pids, track_cids = torch.cat(track_features, dim=0), torch.cat(track_pids, dim=0), torch.cat(track_cids, dim=0)
+
+            track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
         else:
             track_features, track_pids, track_cids = None, None, None
-        
         
         
 
@@ -219,8 +217,14 @@ class SimpleTrainer(BaseTrainer):
         query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
         
         #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
-        distmat = self.query_to_gallery_distances(query_features, gallery_features)
+        distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+        qqdistmat = self.query_to_gallery_distances(query_features, query_features)
+        ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
+
+        rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
+
         if track_features is not None:
+            #pdb.set_trace()
             track_distmat = self.query_to_gallery_distances(query_features, track_features)
         #distmat=  distmat.numpy()
         self.logger.info('Validation in progress')
@@ -229,13 +233,19 @@ class SimpleTrainer(BaseTrainer):
         self.logger.info('Completed market-1501 CMC')
         c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
         self.logger.info('Completed CUHK CMC')
+        r_cmc = self.cmc(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        self.logger.info('Completed Re-Rank')
+        
         if track_features is not None:
             v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
             v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
             self.logger.info('Completed VeRi-776 CMC')
+
+
+        # Reranking
         
         mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
-
+        r_mAP = self.mean_ap(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
 
         self.logger.info('Completed mAP Calculation')
         
@@ -244,9 +254,12 @@ class SimpleTrainer(BaseTrainer):
                 self.logger.info('VeRi CMC Rank-{}: {:.2%}'.format(r, v_cmc[r-1]))
             self.logger.info('VeRi-mAP: {:.2%}'.format(v_mAP))
         self.logger.info('mAP: {:.2%}'.format(mAP))
+        self.logger.info('Re-rank mAP: {:.2%}'.format(r_mAP))
         #self.logger.info('VID_mAP: {:.2%}'.format(v_mAP))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('Market-1501 CMC Rank-{}: {:.2%}'.format(r, m_cmc[r-1]))
+        for r in [1,2, 3, 4, 5,10,15,20]:
+            self.logger.info('ReRank CMC Rank-{}: {:.2%}'.format(r, r_cmc[r-1]))
         for r in [1,2, 3, 4, 5,10,15,20]:
             self.logger.info('CUHK CMC Rank-{}: {:.2%}'.format(r, c_cmc[r-1]))
         
@@ -412,3 +425,72 @@ class SimpleTrainer(BaseTrainer):
         mAP = np.mean(all_AP)
 
         return all_cmc, mAP, all_AP
+
+
+    def k_reciprocal_neigh(self,initial_rank, i, k1):
+        forward_k_neigh_index = initial_rank[i,:k1+1]
+        backward_k_neigh_index = initial_rank[forward_k_neigh_index,:k1+1]
+        fi = np.where(backward_k_neigh_index==i)[0]
+        return forward_k_neigh_index[fi]
+
+    def rerank(self,q_g_dist, q_q_dist, g_g_dist, k1=20, k2=6, lambda_value=0.3):
+        # The following naming, e.g. gallery_num, is different from outer scope.
+        # Don't care about it.
+        original_dist = np.concatenate(
+        [np.concatenate([q_q_dist, q_g_dist], axis=1),
+        np.concatenate([q_g_dist.T, g_g_dist], axis=1)],
+        axis=0)
+        original_dist = 2. - 2 * original_dist   # change the cosine similarity metric to euclidean similarity metric
+        original_dist = np.power(original_dist, 2).astype(np.float32)
+        original_dist = np.transpose(1. * original_dist/np.max(original_dist,axis = 0))
+        V = np.zeros_like(original_dist).astype(np.float32)
+        #initial_rank = np.argsort(original_dist).astype(np.int32)
+        # top K1+1
+        initial_rank = np.argpartition( original_dist, range(1,k1+1) )
+
+        query_num = q_g_dist.shape[0]
+        all_num = original_dist.shape[0]
+
+        for i in range(all_num):
+            # k-reciprocal neighbors
+            k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, i, k1)
+            k_reciprocal_expansion_index = k_reciprocal_index
+            for j in range(len(k_reciprocal_index)):
+                candidate = k_reciprocal_index[j]
+                candidate_k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, candidate, int(np.around(k1/2)))
+                if len(np.intersect1d(candidate_k_reciprocal_index,k_reciprocal_index))> 2./3*len(candidate_k_reciprocal_index):
+                    k_reciprocal_expansion_index = np.append(k_reciprocal_expansion_index,candidate_k_reciprocal_index)
+
+            k_reciprocal_expansion_index = np.unique(k_reciprocal_expansion_index)
+            weight = np.exp(-original_dist[i,k_reciprocal_expansion_index])
+            V[i,k_reciprocal_expansion_index] = 1.*weight/np.sum(weight)
+
+        original_dist = original_dist[:query_num,]
+        if k2 != 1:
+            V_qe = np.zeros_like(V,dtype=np.float32)
+            for i in range(all_num):
+                V_qe[i,:] = np.mean(V[initial_rank[i,:k2],:],axis=0)
+            V = V_qe
+            del V_qe
+        del initial_rank
+        invIndex = []
+        for i in range(all_num):
+            invIndex.append(np.where(V[:,i] != 0)[0])
+
+        jaccard_dist = np.zeros_like(original_dist,dtype = np.float32)
+
+        for i in range(query_num):
+            temp_min = np.zeros(shape=[1,all_num],dtype=np.float32)
+            indNonZero = np.where(V[i,:] != 0)[0]
+            indImages = []
+            indImages = [invIndex[ind] for ind in indNonZero]
+            for j in range(len(indNonZero)):
+                temp_min[0,indImages[j]] = temp_min[0,indImages[j]]+ np.minimum(V[i,indNonZero[j]],V[indImages[j],indNonZero[j]])
+            jaccard_dist[i] = 1-temp_min/(2.-temp_min)
+
+        final_dist = jaccard_dist*(1-lambda_value) + original_dist*lambda_value
+        del original_dist
+        del V
+        del jaccard_dist
+        final_dist = final_dist[:query_num,query_num:]
+        return final_dist
