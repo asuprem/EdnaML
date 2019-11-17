@@ -64,7 +64,7 @@ class VeRiDataCrawler:
       self.logger.info("Found {data_folder}".format(data_folder = folder))
 
   def crawl(self,):
-    self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
+    self.metadata["train"], self.metadata["test"], self.metadata["query"], self.metadata["track"] = {}, {}, {}, {}
     self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder, reset_labels=True)
     self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
     self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = self.__crawl(self.query_folder)
