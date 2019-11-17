@@ -183,13 +183,16 @@ class SimpleTrainer(BaseTrainer):
                 cids.append(camid)
                 imgs.append(img)
         
+        # For market 1501
+        features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
+        
         if self.crawler is not None:
             track_features = [torch.zeros(features[0].shape)]*len(self.crawler.metadata["track"]["crawl"])
             track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_count = [0]*len(self.crawler.metadata["track"]["crawl"])
             for feature, img in zip(features[self.queries:], imgs[self.queries:]):  # use only gallery features, no query features
-                track_idx = self.crawler.metadata["track"]["dict"][img]
+                track_idx = self.crawler.gimetadata["track"]["dict"][img]
                 track_count[track_idx]+=1
                 track_pid = self.crawler.metadata["track"]["info"][track_idx]["pid"]
                 track_cid = self.crawler.metadata["track"]["info"][track_idx]["cid"]
@@ -199,13 +202,13 @@ class SimpleTrainer(BaseTrainer):
             for idx,feats in enumerate(track_features): # Get average of features
                 track_features[idx] = feats / track_count[idx]  # maybe max...?
             
+            pdb.set_trace()
             track_features, track_pids, track_cids = torch.cat(track_features, dim=0), torch.cat(track_pids, dim=0), torch.cat(track_cids, dim=0)
         else:
             track_features, track_pids, track_cids = None, None, None
         
         
-        # For market 1501
-        features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
+        
 
         query_features, gallery_features = features[:self.queries], features[self.queries:]
         query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
