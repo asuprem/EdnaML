@@ -195,7 +195,6 @@ class SimpleTrainer(BaseTrainer):
             #pdb.set_trace()
             #count = 0
             for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
-                count+=1
                 track_idx = self.crawler.metadata["track"]["dict"][img]
                 track_count[track_idx]+=1
                 track_pid = self.crawler.metadata["track"]["info"][track_idx]["pid"]
