@@ -9,3 +9,23 @@ class Loss(nn.Module):
 from .builders import ReIDLossBuilder
 from .builders import CarZamLossBuilder
 
+"""
+Loss groups
+
+Metric
+    Triplet - hard, all
+    Margin - 
+    ProxyNCA
+    ProxyTriplet (Not implemented)
+    CompactContrastiveLos
+    ContrastiveLoss
+
+Compaction Loss
+    ClusterLoss
+    CenterLoss .0005
+
+
+Classification Loss
+    SoftmaxLogitsLoss - 
+    SoftmaxLabelSmooth - 
+"""

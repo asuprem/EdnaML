@@ -55,6 +55,8 @@ This readme describes all configuration options. Each section represents a top-l
         1. '' (empty string) - No normalization
         2. 'l2' - L2 normalization
         3. 'bn' - Batch normalization
+        4. 'gn' - Group normalization
+        5. 'ln' - Layer normalization
     - MODEL_KWARGS: Dict of model keyword arguments. See section on Architectures for kwargs for each architecture.
         1. `part_attention`: bool. Whether to use local attention
         2. `ia_attention`: bool. Whether to use global attention
