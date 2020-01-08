@@ -69,7 +69,7 @@ This readme describes all configuration options. Each section represents a top-l
     - LOSS_LAMBDAS: `list of float`. Weights for each loss.
 
 - OPTIMIZER
-    - OPTIMIZER_NAME: `str`. Name of optimizer. All pytorch optimizers should work, but tested only with Adam. 
+    - OPTIMIZER_NAME: `str`. Name of optimizer. All pytorch optimizers should work, but tested only with `Adam`, or `AdamW`. 
     - OPTIMIZER_KWARGS: `dict as json str`. Optimizer parameters that should be passed during initialization.
     - BASE_LR: `float`. Starting learning rate.
     - LR_BIAS_FACTOR: `float`. Multiplicative factor for learning rate for bias parameters within model.
