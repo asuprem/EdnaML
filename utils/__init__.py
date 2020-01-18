@@ -72,5 +72,6 @@ model_weights = {
     "resnet34_cbam":["https://download.pytorch.org/models/resnet34-333f7ec4.pth", "resnet34-333f7ec4_cbam.pth"],
     "resnet50_cbam":["https://download.pytorch.org/models/resnet50-19c8e357.pth", "resnet50-19c8e357_cbam.pth"],
     "resnet101_cbam":["https://download.pytorch.org/models/resnet101-5d3b4d8f.pth", "resnet101-5d3b4d8f_cbam.pth"],
-    "resnet152_cbam":["https://download.pytorch.org/models/resnet152-b121ed2d.pth", "resnet152-b121ed2d_cbam.pth"]
+    "resnet152_cbam":["https://download.pytorch.org/models/resnet152-b121ed2d.pth", "resnet152-b121ed2d_cbam.pth"],
+    "shufflenetv2_small":["https://github.com/asuprem/shufflenet-models/raw/master/ShuffleNetV2%2B.Small.pth.tar", "shufflenetv2-small.pth"],
     }

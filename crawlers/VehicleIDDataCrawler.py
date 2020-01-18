@@ -10,7 +10,7 @@ class VehicleIDDataCrawler:
         self.image_folder = os.path.join(self.data_folder, train_folder)
 
         self.train_list = "train_list.txt"
-        self.query_list = kwargs.get("test_list","test_list_800") + ".txt"
+        self.query_list = kwargs.get("test_list","test_list_2400") + ".txt"
 
         list_folder = os.path.join(self.data_folder, "train_test_split")
         # The train list is in VehicleID/train_test_split/train_list.txt
