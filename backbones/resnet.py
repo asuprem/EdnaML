@@ -97,7 +97,8 @@ class BasicBlock(nn.Module):
             self.ca = ChannelAttention(planes)
             self.sa = SpatialAttention(kernel_size=3)
         elif attention == 'dbam':
-            pass
+            self.ca = None
+            self.sa = None
         else:
             raise NotImplementedError()
 
@@ -177,7 +178,8 @@ class Bottleneck(nn.Module):
             self.sa = SpatialAttention(kernel_size=3)
             self.ca = ChannelAttention(planes*self.expansion)
         elif attention == 'dbam':
-            pass
+            self.ca = None
+            self.sa = None
         else:
             raise NotImplementedError()
 
