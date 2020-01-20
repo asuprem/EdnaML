@@ -18,11 +18,11 @@ class ResnetBase(ReidModel):
     
     Kwargs (MODEL_KWARGS):
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
-        attention (str, None): The attention module to use. Only supports ['cbam', None]
+        attention (str, None): The attention module to use. Only supports ['cbam', 'dbam',None]
         input_attention (bool, false): Whether to include the IA module
         ia_attention (bool, false): Whether to include input IA module
-        part_attention (bool, false): Whether to include Part-CBAM Mobule
-        secondary_attention (int, None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic block number provided here.
+        part_attention (bool, false): Whether to include Part-DBAM Mobule
+        secondary_attention (int, None): Whether to modify DBAM to apply it to specific Resnet basic blocks. None means DBAM is applied to all. Otherwise, CBAM is applied only to the basic block number provided here.
 
     Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS; set in backbones.resnet):
         zero_init_residual (bool, false): Whether the final layer uses zero initialization
