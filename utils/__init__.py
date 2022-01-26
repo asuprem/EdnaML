@@ -2,6 +2,9 @@ from . import web as web
 import os
 import logging
 
+from typing import Dict, List, Tuple
+
+
 def dynamic_import(cfg, module_name, import_name, default=None):
     """ Perform a dynamic import 
 
@@ -23,7 +26,7 @@ def dynamic_import(cfg, module_name, import_name, default=None):
     imported_module = __import__("%s."%module_name+import_name, fromlist=[import_name])
     return  getattr(imported_module, import_name)
 
-def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
+def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME) -> logging.Logger:
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
     logger.setLevel(logging.DEBUG)
     logger_save_path = os.path.join(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
@@ -39,17 +42,16 @@ def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger.addHandler(cs)
     return logger
 
-def generate_save_names(cfg):
+def generate_save_names(cfg: Dict) -> Tuple[str, str, str, str]:
     MODEL_SAVE_NAME = "%s-v%i"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"))
     MODEL_SAVE_FOLDER = "%s-v%i-%s-%s"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"), cfg.get("SAVE.MODEL_BACKBONE"), cfg.get("SAVE.MODEL_QUALIFIER"))
     LOGGER_SAVE_NAME = "%s-v%i-%s-%s-logger.log"%(cfg.get("SAVE.MODEL_CORE_NAME"), cfg.get("SAVE.MODEL_VERSION"), cfg.get("SAVE.MODEL_BACKBONE"), cfg.get("SAVE.MODEL_QUALIFIER"))
+    CHECKPOINT_DIRECTORY = ''
     if cfg.get("SAVE.DRIVE_BACKUP"):
-        CHECKPOINT_DIRECTORY = cfg.get("SAVE.CHECKPOINT_DIRECTORY","./drive/My Drive/Vehicles/Models/") + MODEL_SAVE_FOLDER
-    else:
-        CHECKPOINT_DIRECTORY = ''
+        CHECKPOINT_DIRECTORY = cfg.get("SAVE.CHECKPOINT_DIRECTORY","./drive/My Drive/Vehicles/Models/") + MODEL_SAVE_FOLDER    
     return MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY
 
-def fix_generator_arguments(cfg):
+def fix_generator_arguments(cfg: Dict) -> Tuple[List[float], List[float], List[float]]:
     if type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is float:
         NORMALIZATION_MEAN = [cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")]*cfg.get("TRANSFORMATION.CHANNELS")
     if type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is float:
