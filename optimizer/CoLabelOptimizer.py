@@ -2,8 +2,8 @@ import torch
 from . import BaseOptimizer
 
 
-class ReIDOptimizerBuilder(BaseOptimizer):
-    """ Optimizer Builder for ReID experiments.
+class CoLabelOptimizer(BaseOptimizer):
+    """ Optimizer Builder for CoLabel experiments.
 
     """
     def __init__(self,base_lr, lr_bias, gpus, weight_decay, weight_bias):
@@ -20,4 +20,4 @@ class ReIDOptimizerBuilder(BaseOptimizer):
             build:  builds an optimizer given optimizer name and torch model
 
         """
-        super(ReIDOptimizerBuilder, self).__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)
+        super(CoLabelOptimizer, self).__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)

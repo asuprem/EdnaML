@@ -1,7 +1,7 @@
 import torch
 from loss.builders import LossBuilder
-
-class StandardLossOptimizer:
+from . import BaseOptimizer
+class StandardLossOptimizer(BaseOptimizer):
     """ Optimizer for Loss Functions
 
     This sets up optimizer for the loss functions in a LossBuilder. Not applicable everywhere. Not used everywhere because most losses will have zero differentiable parametersif 
@@ -23,11 +23,7 @@ class StandardLossOptimizer:
         build:  builds an optimizer given optimizer name and torch model
 
         """
-        self.base_lr = base_lr
-        self.gpus = gpus
-        self.weight_decay = weight_decay
-        self.lr_bias = lr_bias
-        self.weight_bias = weight_bias
+        super(StandardLossOptimizer, self).__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)
 
     def build(self, loss_builder: LossBuilder, name = 'Adam', **kwargs):
         """ Builds an optimizer.
