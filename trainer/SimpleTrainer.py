@@ -36,6 +36,8 @@ class SimpleTrainer(BaseTrainer):
         self.crawler = kwargs.get("crawler", None)
 
     # setup inherited from BaseTrainer
+
+    
     def step(self,batch):
         self.model.train()
         self.optimizer.zero_grad()

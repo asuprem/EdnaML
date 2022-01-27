@@ -25,7 +25,7 @@ class BaseTrainer:
         self.epochs = epochs
         self.logger = logger
 
-        self.global_batch = 0
+        self.global_batch = 0   # Current batch number in the epoch
         self.global_epoch = 0
 
         self.loss = []
@@ -140,11 +140,40 @@ class BaseTrainer:
             self.logger.info("No need to load loss scheduler. Empty parameter list")
         
 
-    def train(self):
+    def train(self, continue_epoch=0):
+        self.logger.info("Starting training")
+        self.logger.info("Logging to:\t%s"%self.logger_file)
+        self.logger.info("Models will be saved to local directory:\t%s"%self.save_directory)
+        if self.save_backup:
+            self.logger.info("Models will be backed up to drive directory:\t%s"%self.backup_directory)
+        self.logger.info("Models will be saved with base name:\t%s_epoch[].pth"%self.model_save_name)
+        self.logger.info("Optimizers will be saved with base name:\t%s_epoch[]_optimizer.pth"%self.model_save_name)
+        self.logger.info("Schedulers will be saved with base name:\t%s_epoch[]_scheduler.pth"%self.model_save_name)
+
+        if continue_epoch > 0:
+            load_epoch = continue_epoch - 1
+            self.load(load_epoch)
+
+        self.logger.info("Performing initial evaluation...")
+        self.initial_evaluate()
+
+        self.logger.info("Starting training from %i"%continue_epoch)
+        for epoch in range(self.epochs):
+            if epoch >= continue_epoch:
+                self.epoch_step(epoch)
+            else:
+                self.global_epoch = epoch+1 
+
+    def initial_evaluate(self):
+        """Evaluation of model before we start training
+        """
+        self.evaluate()
+
+    def epoch_step(self, epoch):
+        """Trains model for an epoch.
+        """
         raise NotImplementedError()
 
     def evaluate(self):
         raise NotImplementedError()
 
-    def initial_evaluate(self):
-        self.evaluate()
