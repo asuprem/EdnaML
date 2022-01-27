@@ -1,8 +1,9 @@
+from typing import List, Dict, Tuple
 from . import web as web
 import os
 import logging
 
-def dynamic_import(cfg, module_name, import_name, default=None):
+def dynamic_import(cfg, module_name: str, import_name: str, default: str=None):
     """ Perform a dynamic import 
 
     Args:
@@ -49,14 +50,22 @@ def generate_save_names(cfg):
         CHECKPOINT_DIRECTORY = ''
     return MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY
 
-def fix_generator_arguments(cfg):
-    if type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is float:
-        NORMALIZATION_MEAN = [cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")]*cfg.get("TRANSFORMATION.CHANNELS")
-    if type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is float:
-        NORMALIZATION_STD = [cfg.get("TRANSFORMATION.NORMALIZATION_STD")]*cfg.get("TRANSFORMATION.CHANNELS")
-    if type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is int or type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is float:
-        RANDOM_ERASE_VALUE = [cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")]*cfg.get("TRANSFORMATION.CHANNELS")
-    return NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE
+
+def fix_generator_arguments(cfg: Dict, params_to_fix: List[str]=[])->Tuple[List[float]]:
+    if len(params_to_fix)>0:
+        return_params=[None]*len(params_to_fix)
+        for idx, param in enumerate(params_to_fix):
+            if type(cfg.get(param)) is int or type(cfg.get(param)) is float:
+                return_params[idx] = [cfg.get(param)]*cfg.get("TRANSFORMATION.CHANNELS")        
+        return tuple(return_params)
+    else:
+        if type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")) is float:
+            NORMALIZATION_MEAN = [cfg.get("TRANSFORMATION.NORMALIZATION_MEAN")]*cfg.get("TRANSFORMATION.CHANNELS")
+        if type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is int or type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is float:
+            NORMALIZATION_STD = [cfg.get("TRANSFORMATION.NORMALIZATION_STD")]*cfg.get("TRANSFORMATION.CHANNELS")
+        if type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is int or type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is float:
+            RANDOM_ERASE_VALUE = [cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")]*cfg.get("TRANSFORMATION.CHANNELS")
+        return NORMALIZATION_MEAN, NORMALIZATION_STD, RANDOM_ERASE_VALUE
 
 model_weights = {
     "resnet18":["https://download.pytorch.org/models/resnet18-5c106cde.pth", "resnet18-5c106cde.pth"],
