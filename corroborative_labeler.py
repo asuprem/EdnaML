@@ -219,7 +219,7 @@ def main(config, mode, weights):
     if mode == 'train':
         loss_stepper.train(continue_epoch=previous_stop)
     elif mode == 'test':
-        loss_stepper.evaluate()
+        return loss_stepper.evaluate()
     else:
         raise NotImplementedError()
 
