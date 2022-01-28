@@ -1,5 +1,6 @@
 import tqdm
 from collections import defaultdict, OrderedDict
+from sklearn.metrics import f1_score
 import shutil
 import os
 import torch
@@ -18,11 +19,12 @@ class CoLabelTrainer(BaseTrainer):
                     optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    queries: int, epochs: int, logger, **kwargs):   #kwargs includes crawler
+                    epochs: int, logger, **kwargs):   #kwargs includes crawler
         
         super(CoLabelTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
         
         self.crawler = kwargs.get("crawler", None)
+        self.softaccuracy = []
 
     # The train function for the CoLabel model is inherited
 
@@ -33,7 +35,7 @@ class CoLabelTrainer(BaseTrainer):
         for batch in self.train_loader:
             # Set up scheduled LR
             if self.global_batch==0:
-                lrs = self.scheduler.get_last_lr(); #lrs = sum(lrs)/float(len(lrs))
+                lrs = self.scheduler.get_last_lr(); lrs = sum(lrs)/float(len(lrs))
                 self.logger.info("Starting epoch {0} with {1} steps and learning rate {2:2.5E}".format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
             
             # Step through the batch (including loss.backward())
@@ -102,14 +104,26 @@ class CoLabelTrainer(BaseTrainer):
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 data, label = batch
                 data = data.cuda()
-                feature, logit = self.model(data).detach().cpu()
+                logit, feature  = self.model(data)
+                feature = feature.detach().cpu()
+                logit = logit.detach().cpu()
                 features.append(feature)
                 logits.append(logit)
                 labels.append(label)
+
+        features, logits, labels = torch.cat(features, dim=0), torch.cat(logits, dim=0), torch.cat(labels, dim=0)
         # Now we compute the loss...
         self.logger.info('Obtained features, validation in progress')
         # for evaluation...
-        pdb.set_trace()
+        #pdb.set_trace()
 
+        logit_labels = torch.argmax(logits, dim=1)
+        accuracy = (logit_labels==labels).sum().float()/float(labels.size(0))
+        micro_fscore = np.mean(f1_score(labels,logit_labels, average='micro'))
+        weighted_fscore = np.mean(f1_score(labels,logit_labels, average='weighted'))
+        self.logger.info('Accuracy: {:.3%}'.format(accuracy))
+        self.logger.info('Micro F-score: {:.3f}'.format(micro_fscore))
+        self.logger.info('Weighted F-score: {:.3f}'.format(weighted_fscore))
+        
 
         

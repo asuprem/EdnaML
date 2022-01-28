@@ -55,8 +55,8 @@ class BaseTrainer:
         self.model.cuda()
         
         self.fp16 = fp16
-        if self.fp16 and self.apex is not None:
-            self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
+        #if self.fp16 and self.apex is not None:
+        #    self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
 
     def save(self):
         self.logger.info("Saving model, optimizer, and scheduler.")

@@ -7,3 +7,4 @@ class Loss(nn.Module):
 
 from .builders import ReIDLossBuilder
 from .builders import CarZamLossBuilder
+from .builders import CoLabelLossBuilder

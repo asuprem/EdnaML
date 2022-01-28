@@ -1,8 +1,3 @@
-from .ReIDOptimizerBuilder import ReIDOptimizerBuilder
-from .VAEGANOptimizerBuilder import VAEGANOptimizerBuilder
-
-
-
 class BaseOptimizer:
     """ Base Optimizer Builder
 
@@ -55,5 +50,9 @@ class BaseOptimizer:
         optimizer = optimizer(params, **kwargs)
         return optimizer  
 
+
+from .ReIDOptimizerBuilder import ReIDOptimizerBuilder
+from .VAEGANOptimizerBuilder import VAEGANOptimizerBuilder
+from .CoLabelOptimizer import CoLabelOptimizer
 # for re-id compatibility 
 OptimizerBuilder = ReIDOptimizerBuilder

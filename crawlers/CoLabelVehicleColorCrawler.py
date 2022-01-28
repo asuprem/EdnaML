@@ -23,7 +23,6 @@ class CoLabelVehicleColorCrawler:
         self.__verify(self.data_folder)
         self.__verify(self.train_folder)
         self.__verify(self.test_folder)
-        self.__verify(self.query_folder)
 
         self.crawl()
 
@@ -37,7 +36,7 @@ class CoLabelVehicleColorCrawler:
 
         self.classes = self.__getclasses(self.train_folder)
 
-        self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}, {}
+        self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
         self.metadata["train"]["crawl"], self.metadata["train"]["classes"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder)
         self.metadata["test"]["crawl"], self.metadata["test"]["classes"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
         self.metadata["val"]["crawl"], self.metadata["val"]["classes"], self.metadata["val"]["imgs"] = self.__crawl(self.val_folder)
@@ -48,7 +47,8 @@ class CoLabelVehicleColorCrawler:
 
     def __getclasses(self, folder) -> Dict:
         class_dir_list = glob.glob(folder + "/*")
-        return {item.split("\\")[1]:idx for idx, item in enumerate(class_dir_list)}
+        # NOTE might not work for windows :/
+        return {item.split('/')[-1]:idx for idx,item in enumerate(class_dir_list)}
 
     def __crawl(self, folder):
         crawler = []

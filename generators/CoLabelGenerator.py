@@ -1,6 +1,9 @@
-import os
+import os.path as osp
 import torch
 from torchvision.io import read_image
+from PIL import Image
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 
@@ -15,9 +18,13 @@ class CoLabelDataset(TorchDataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        return self.transform(read_image(self.dataset[idx][0])), self.dataset[idx][0]
+        return self.transform(self.load(self.dataset[idx][0])), self.dataset[idx][1]
 
-    
+    def load(self,img):
+        if not osp.exists(img):
+            raise IOError("{img} does not exist in path".format(img=img))
+        img_load = Image.open(img).convert('RGB')
+        return img_load
 
 class CoLabelGenerator:
     def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
