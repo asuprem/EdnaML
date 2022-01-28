@@ -26,6 +26,8 @@ def dynamic_import(cfg, module_name: str, import_name: str, default: str=None):
 
 def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
+    if logger.hasHandlers():
+        return logger
     logger.setLevel(logging.DEBUG)
     logger_save_path = os.path.join(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
     fh = logging.FileHandler(logger_save_path)
