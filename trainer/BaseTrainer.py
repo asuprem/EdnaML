@@ -29,7 +29,11 @@ class BaseTrainer:
         self.global_epoch = 0
 
         self.loss = []
+        self.metadata = {}
 
+    def buildMetadata(self, **kwargs):
+        for keys in kwargs:
+            self.metadata[keys] = kwargs.get(keys)
 
     def setup(self, step_verbose = 5, save_frequency = 5, test_frequency = 5, \
                 save_directory = './checkpoint/', save_backup = False, backup_directory = None, gpus=1,\
@@ -46,6 +50,7 @@ class BaseTrainer:
             self.backup_directory = backup_directory
             os.makedirs(self.backup_directory, exist_ok=True)
         os.makedirs(self.save_directory, exist_ok=True)
+        self.saveMetadata()
 
         self.gpus = gpus
 
@@ -57,6 +62,9 @@ class BaseTrainer:
         self.fp16 = fp16
         #if self.fp16 and self.apex is not None:
         #    self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
+
+    def saveMetadata(self):
+        print("NOT saving metadata. saveMetadata() function not set up.")
 
     def save(self):
         self.logger.info("Saving model, optimizer, and scheduler.")
