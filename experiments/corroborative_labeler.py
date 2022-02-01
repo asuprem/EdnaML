@@ -90,7 +90,7 @@ def main(config, mode, weights):
     # --------------------- INSTANTIATE MODEL ------------------------    
     model_builder = __import__("models", fromlist=["*"])
     model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER", "colabel_model_builder"))
-    logger.info("Loaded {} from {} to build ReID model".format(config.get("EXECUTION.MODEL_BUILDER", "colabel_model_builder"), "models"))
+    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("EXECUTION.MODEL_BUILDER", "colabel_model_builder"), "models"))
     
     if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
         model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
@@ -205,6 +205,8 @@ def main(config, mode, weights):
                             test_loader = test_generator.dataloader, 
                             epochs = config.get("EXECUTION.EPOCHS"), 
                             logger = logger, crawler=crawler)
+
+    loss_stepper.buildMetadata()
 
     loss_stepper.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 
                         save_frequency=config.get("SAVE.SAVE_FREQUENCY"), 
