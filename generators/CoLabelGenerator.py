@@ -76,6 +76,8 @@ class CoLabelGenerator:
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
             self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
+        elif mode == "full":
+            self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer)
         else:
             raise NotImplementedError()
 
@@ -84,6 +86,10 @@ class CoLabelGenerator:
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
             self.num_entities = datacrawler.metadata[mode]["classes"]
         elif mode == "test":
+            self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
+                                                num_workers=self.workers, collate_fn=self.collate_simple)
+            self.num_entities = datacrawler.metadata[mode]["classes"]
+        elif mode == "full":
             self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
             self.num_entities = datacrawler.metadata[mode]["classes"]
