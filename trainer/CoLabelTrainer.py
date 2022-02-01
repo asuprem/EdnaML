@@ -1,4 +1,4 @@
-import tqdm
+import tqdm, json
 from collections import defaultdict, OrderedDict
 from sklearn.metrics import f1_score
 import shutil
@@ -25,6 +25,7 @@ class CoLabelTrainer(BaseTrainer):
         
         self.crawler = kwargs.get("crawler", None)
         self.softaccuracy = []
+        self.metadata = {}
 
     # The train function for the CoLabel model is inherited
 
@@ -126,4 +127,17 @@ class CoLabelTrainer(BaseTrainer):
         self.logger.info('Weighted F-score: {:.3f}'.format(weighted_fscore))
         return logit_labels, labels, self.crawler.classes
 
-        
+    def saveMetadata(self,):
+        self.logger.info("Saving model metadata")
+        jMetadata = json.dumps(self.metadata)
+        metafile = "metadata.json"
+        localmetafile = os.path.join(self.save_directory, metafile)
+        if self.save_backup:
+            backupmetafile = os.path.join(self.backup_directory, metafile)
+        if not os.path.exists(localmetafile):
+            with open(localmetafile, "w") as localmetaobj:
+                localmetaobj.write(jMetadata)
+        self.logger.info("Backing up metadata")
+        if self.save_backup:
+            shutil.copy2(localmetafile, backupmetafile)
+        self.logger.info("Finished metadata backup")
