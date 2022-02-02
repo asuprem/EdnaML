@@ -102,7 +102,7 @@ def main(config, mode, weights):
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
                                 soft_dimensions = config.get("MODEL.SOFTMAX",TRAIN_CLASSES), \
-                                embedding_dimensions = config.get("MODEL.EMB_DIM"), \
+                                embedding_dimensions = config.get("MODEL.EMB_DIM", None), \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **model_kwargs_dict)
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))

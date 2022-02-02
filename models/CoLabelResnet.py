@@ -58,6 +58,8 @@ class CoLabelResnet(CoLabelResnetAbstract):
         self.gap = nn.AdaptiveAvgPool2d(1)
 
         self.emb_linear = torch.nn.Identity()
+        if self.embedding_dimensions is None:
+            self.embedding_dimensions = 512*self.base.block.expansion
         if self.embedding_dimensions > 512 * self.base.block.expansion:
             raise ValueError("You are trying to scale up embedding dimensions from %i to %i. Try using same or less dimensions."%(512*self.base.block.expansion, self.embedding_dimensions))
         elif self.embedding_dimensions == 512*self.base.block.expansion:
