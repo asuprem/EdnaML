@@ -40,10 +40,22 @@ class CoLabelVehicleColorCrawler:
         # We will merge (brown, tan, beige) --> brown
         # Merge grey, silver --> grey
         # Merge gold --> yellow
+        
+        adj = 4
+        netvals = len(self.classes["color"])-adj    #Should be 11
+        adjustments = ["gold", "tan", "beige", "silver"]
+        originals = [item for item in self.classes if item not in adjustments]
+        for idx,original in enumerate(originals):
+            # here, idx is the adjusted index...
+            self.classes["color"][original] = idx
+
         self.classes["color"]["gold"] = self.classes["color"]["yellow"]
         self.classes["color"]["tan"] = self.classes["color"]["brown"]
         self.classes["color"]["beige"] = self.classes["color"]["brown"]
         self.classes["color"]["silver"] = self.classes["color"]["grey"]
+
+
+
 
         self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
         self.metadata["train"]["classes"], self.metadata["test"]["classes"], self.metadata["val"]["classes"] = {}, {}, {}

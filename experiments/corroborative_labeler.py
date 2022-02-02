@@ -206,7 +206,7 @@ def main(config, mode, weights):
                             epochs = config.get("EXECUTION.EPOCHS"), 
                             logger = logger, crawler=crawler)
 
-    loss_stepper.buildMetadata(crawler=crawler, config=config)
+    loss_stepper.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
     loss_stepper.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 
                         save_frequency=config.get("SAVE.SAVE_FREQUENCY"), 
                         test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), 

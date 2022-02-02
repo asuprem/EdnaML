@@ -16,7 +16,7 @@ EXECUTION:
 
 SAVE:
   MODEL_VERSION: 2
-  MODEL_CORE_NAME: "colabel_vehiclecolor"
+  MODEL_CORE_NAME: "colbl_vcolor_exp2"
   MODEL_BACKBONE: "res34"
   MODEL_QUALIFIER: "all"
   DRIVE_BACKUP: True
