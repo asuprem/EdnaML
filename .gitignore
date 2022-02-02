@@ -23,19 +23,19 @@ venv
 **/*.log*
 
 # Ignore unnecessary configurations
-**/*.yml
+#**/*.yml
 
 
 # Allow 
-!config/VeRi/veri_base.yml
-!config/VeRi/veri_verify6.yml
+#!config/VeRi/veri_base.yml
+#!config/VeRi/veri_verify6.yml
 
-!config/VRIC/vric_base.yml
-!config/VRIC/vric_final.yml
+#!config/VRIC/vric_base.yml
+#!config/VRIC/vric_final.yml
 
-!config/CarZam/cub_gzsl_base.yml
-!config/CarZam/cub*.yml
-!config/CarZam/sun*.yml
+#!config/CarZam/cub_gzsl_base.yml
+#!config/CarZam/cub*.yml
+#!config/CarZam/sun*.yml
 
 # Other ignores
 notebooks.md

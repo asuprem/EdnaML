@@ -1,0 +1,76 @@
+EXECUTION:
+  MODEL_SERVING: None
+  EPOCHS: 120
+  TEST_FREQUENCY: 5
+  CRAWLER: MJLCFCompCarsCrawler
+  CRAWLER_ARGS:
+    DATASET_FIELDS: 6
+    DATASET_FIELD_VALUES:
+      - id
+      - path
+      - color
+      - type
+      - make
+      - model
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "mjlcf_devel"
+  MODEL_BACKBONE: "res18"
+  MODEL_QUALIFIER: "all"
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/My Drive/Projects/MJLCF/Models/"
+
+DATASET:
+  ROOT_DATA_FOLDER: "Data/MJLCFCompCars"
+  TRAIN_FOLDER: "train_images"
+  TEST_FOLDER: "test_images"
+  SHAPE: [208,208]
+
+TRANSFORMATION:
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0.5
+  T_CROP: False
+  RANDOM_ERASE: False
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 24
+  MEM_BATCH: 4
+  WORKERS: 1
+
+MODEL:
+  MODEL_BASE: 'resnet18'
+  MODEL_ARCH: 'Resnet'
+  EMB_DIM: 512
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS: '{"attention":"cbam", "split_location": 1, "num_branches":3, \
+    "branch_details":[\
+      {"branch_name":"color","branch_attention":True, "branch_classes":12, "branch_ID":True},
+      {"branch_name":"type","branch_attention":True, "branch_classes":12, "branch_ID":True},
+      {"branch_name":"brand","branch_attention":True, "branch_classes":50, "branch_ID":True}],\
+    "common_input":True,\
+    "common_input_details":{"input_attention:True"}}'
+
+LOSS:
+  LOSSES: ['SoftmaxLogitsLoss']
+  LOSS_KWARGS: [{}]
+  LOSS_LAMBDAS: [1.0]
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "Adam"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.00001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'StepLR'
+  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch
