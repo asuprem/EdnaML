@@ -58,7 +58,7 @@ class CoLabelGenerator:
         self.transformer = T.Compose(transformer_primitive)
 
     
-    def setup(self, datacrawler, mode='train', batch_size=32, instance = 8, workers = 8):
+    def setup(self, datacrawler, mode='train', batch_size=32, instance = 8, workers = 8, crawlerclass="color"):
         """ Setup the data generator.
 
         Args:
@@ -84,15 +84,15 @@ class CoLabelGenerator:
         if mode == "train":
             self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
-            self.num_entities = datacrawler.metadata[mode]["classes"]
+            self.num_entities = datacrawler.metadata[mode]["classes"][crawlerclass]
         elif mode == "test":
             self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
-            self.num_entities = datacrawler.metadata[mode]["classes"]
+            self.num_entities = datacrawler.metadata[mode]["classes"][crawlerclass]
         elif mode == "full":
             self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
-            self.num_entities = datacrawler.metadata[mode]["classes"]
+            self.num_entities = datacrawler.metadata[mode]["classes"][crawlerclass]
         else:
             raise NotImplementedError()
 
