@@ -44,7 +44,7 @@ class CoLabelVehicleColorCrawler:
         adj = 4
         netvals = len(self.classes["color"])-adj    #Should be 11
         adjustments = ["gold", "tan", "beige", "silver"]
-        originals = [item for item in self.classes if item not in adjustments]
+        originals = [item for item in self.classes["color"] if item not in adjustments]
         for idx,original in enumerate(originals):
             # here, idx is the adjusted index...
             self.classes["color"][original] = idx
