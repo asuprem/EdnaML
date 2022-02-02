@@ -12,7 +12,7 @@ class CoLabelVehicleColorCrawler:
 
     def __init__(self,data_folder="VehicleColor", train_folder="train", test_folder="test", validation_folder="val", **kwargs):
         self.metadata = {}
-        
+        self.classes = {}
         self.data_folder = data_folder
         self.train_folder = os.path.join(self.data_folder, train_folder)
         self.test_folder = os.path.join(self.data_folder, test_folder)
@@ -34,12 +34,13 @@ class CoLabelVehicleColorCrawler:
 
     def crawl(self,):
 
-        self.classes = self.__getclasses(self.train_folder)
+        self.classes["color"] = self.__getclasses(self.train_folder)
 
         self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
-        self.metadata["train"]["crawl"], self.metadata["train"]["classes"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder)
-        self.metadata["test"]["crawl"], self.metadata["test"]["classes"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
-        self.metadata["val"]["crawl"], self.metadata["val"]["classes"], self.metadata["val"]["imgs"] = self.__crawl(self.val_folder)
+        self.metadata["train"]["classes"], self.metadata["test"]["classes"], self.metadata["val"]["classes"] = {}, {}, {}
+        self.metadata["train"]["crawl"], self.metadata["train"]["classes"]["color"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder)
+        self.metadata["test"]["crawl"], self.metadata["test"]["classes"]["color"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
+        self.metadata["val"]["crawl"], self.metadata["val"]["classes"]["color"], self.metadata["val"]["imgs"] = self.__crawl(self.val_folder)
 
         #self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
         #self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
@@ -52,11 +53,11 @@ class CoLabelVehicleColorCrawler:
 
     def __crawl(self, folder):
         crawler = []
-        for class_name in self.classes:
+        for class_name in self.classes["color"]:
             class_path = os.path.join(folder, class_name)
             imgs = glob.glob(os.path.join(class_path, "*.jpg"))
-            imgs = [(item, self.classes[class_name]) for item in imgs]
+            imgs = [(item, self.classes["color"][class_name]) for item in imgs]
             crawler+=imgs
-        return crawler, len(self.classes), len(crawler)
+        return crawler, len(self.classes["color"]), len(crawler)
 
 
