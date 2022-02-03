@@ -72,12 +72,12 @@ class CoLabelCompCarsCrawler:
 
         self.metadata["train"]["classes"] = {}
         self.metadata["train"]["classes"]["type"] = len(self.classes["type"])
-        self.metadata["train"]["classes"]["model"] = len(self.classes["make"])
-        self.metadata["train"]["classes"]["make"] = len(self.classes["model"])
+        self.metadata["train"]["classes"]["model"] = len(self.classes["model"])
+        self.metadata["train"]["classes"]["make"] = len(self.classes["make"])
         self.metadata["test"]["classes"] = {}
         self.metadata["test"]["classes"]["type"] = len(self.classes["type"])
-        self.metadata["test"]["classes"]["model"] = len(self.classes["make"])
-        self.metadata["test"]["classes"]["make"] = len(self.classes["model"])
+        self.metadata["test"]["classes"]["model"] = len(self.classes["model"])
+        self.metadata["test"]["classes"]["make"] = len(self.classes["make"])
 
 
 

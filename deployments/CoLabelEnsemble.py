@@ -77,7 +77,14 @@ class CoLabelEnsemble:
         labels = []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
-                data, label = batch
+                # NOTE data is a tuple, potentially. Or something... YES  a tuple!!!!
+                #data, label = batch
+                data = batch[:-1]
+                label = batch[-1]
+                
+                import pdb
+                pdb.set_trace()
+                # This is the multi-jpegs stuff...so inside the model loop, for each model, we evaluate for each jpeg compression level (will be slow, ish, maybe...?)
                 data = data.cuda()
                 # For each model NOTE NOTE NOTE
                 for idx,colabel_member in enumerate(self.ensemble_models):

@@ -56,7 +56,6 @@ class CoLabelVehicleColorCrawler:
 
 
 
-
         self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
         self.metadata["train"]["classes"], self.metadata["test"]["classes"], self.metadata["val"]["classes"] = {}, {}, {}
         self.metadata["train"]["crawl"], self.metadata["train"]["classes"]["color"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder, adj=4)

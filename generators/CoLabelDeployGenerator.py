@@ -1,3 +1,4 @@
+from io import BytesIO
 import os.path as osp
 import torch
 from torchvision.io import read_image
@@ -11,12 +12,7 @@ import torchvision.transforms as T
 
 
 """
-def randomJPEGcompression(image):
-    qf = random.randrange(10, 100)
-    outputIoStream = BytesIO()
-    image.save(outputIoStream, "JPEG", quality=qf, optimice=True)
-    outputIoStream.seek(0)
-    return Image.open(outputIoStream)
+
 
 # Transforms
     simple_transform = transforms.Compose(
@@ -30,24 +26,32 @@ def randomJPEGcompression(image):
 
 
 
-class CoLabelDataset(TorchDataset):
-    def __init__(self, dataset, transform=None):
+class CoLabelDeployDataset(TorchDataset):
+    def __init__(self, dataset, transform=None, jpeg = []):
         self.dataset = dataset
         self.transform = transform
+        self.jpeg = jpeg
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        return self.transform(self.load(self.dataset[idx][0])), self.dataset[idx][1]    # NOTE make this return a tuple for deploy (tuple of compressed), label
+        return *[self.transform(item) for item in self.load(self.dataset[idx][0])], self.dataset[idx][1]    # NOTE make this return a tuple for deploy (tuple of compressed), label
 
     def load(self,img):
         if not osp.exists(img):
             raise IOError("{img} does not exist in path".format(img=img))
-        img_load = Image.open(img).convert('RGB')
-        return img_load
+        img_load = Image.open(img)
+        jpeg = [self.JPEGcompression(img_load, qf).convert('RGB') for qf in self.jpeg]
+        return [img_load.convert('RGB')]+jpeg
 
-class CoLabelGenerator:
+    def JPEGcompression(self, image: Image.Image, qf=90) -> Image.Image:
+        outputIoStream = BytesIO()
+        image.save(outputIoStream, "JPEG", quality=qf)
+        outputIoStream.seek(0)
+        return Image.open(outputIoStream)
+
+class CoLabelDeployGenerator:
     def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
         """ Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
@@ -68,14 +72,8 @@ class CoLabelGenerator:
         self.gpus = gpus
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
-        if h_flip > 0:
-            transformer_primitive.append(T.RandomHorizontalFlip(p=h_flip))
-        if t_crop:
-            transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())
         transformer_primitive.append(T.Normalize(mean=normalization_mean, std=normalization_std))
-        if rea:
-            transformer_primitive.append(T.RandomErasing(p=0.5, scale=(0.02, 0.4), value = kwargs.get('rea_value', 0)))
         self.transformer = T.Compose(transformer_primitive)
 
         transformer_primitive_predict = []
@@ -83,6 +81,9 @@ class CoLabelGenerator:
         transformer_primitive_predict.append(T.ToTensor())
         transformer_primitive_predict.append(T.Normalize(mean=normalization_mean, std=normalization_std))
         self.transformer_predict = T.Compose(transformer_primitive_predict)
+
+        self.jpegs = kwargs.get("JPEG")
+
 
     
     def setup(self, datacrawler, mode='train', batch_size=32, instance = 8, workers = 8, crawlerclass="color"):
@@ -99,19 +100,17 @@ class CoLabelGenerator:
         self.workers = workers * self.gpus
 
         if mode == "train":
-            self.__dataset = CoLabelDataset(datacrawler.metadata[mode]["crawl"], self.transformer)
+            raise NotImplementedError()
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
         elif mode == "full":
-            self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_primitive_predict)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_primitive_predict)
         else:
             raise NotImplementedError()
 
         if mode == "train":
-            self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
-                                                num_workers=self.workers, collate_fn=self.collate_simple)
-            self.num_entities = datacrawler.metadata[mode]["classes"][crawlerclass]
+            raise NotImplementedError()
         elif mode == "test":
             self.dataloader = TorchDataLoader(self.__dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
@@ -124,6 +123,6 @@ class CoLabelGenerator:
             raise NotImplementedError()
 
     def collate_simple(self,batch):
-        img, class_id, = zip(*batch)    # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
-        class_id = torch.tensor(class_id, dtype=torch.int64)
-        return torch.stack(img, dim=0), class_id    # NOTE so this has to be modified...for tuple members...
+        img_idx_stack = zip(*batch)    # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
+        class_id = torch.tensor(img_idx_stack[-1], dtype=torch.int64)
+        return *[torch.stack(item, dim=0) for item in img_idx_stack[:-1]], class_id    # NOTE so this has to be modified...for tuple members...

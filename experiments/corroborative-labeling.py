@@ -43,17 +43,19 @@ def main(config, ensemble, weights):
     data_crawler = __import__("crawlers."+data_crawler_, fromlist=[data_crawler_])
     data_crawler = getattr(data_crawler, data_crawler_) # contains list of imgs inside in crawler.metadata["train"]["crawl"] -->[(img-path, img-class-id), (img-path, img-class-id), ...]
 
-    from generators import CoLabelGenerator
+    from generators import CoLabelDeployGenerator
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
     crawler = data_crawler(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), **{"logger":logger})
-    test_generator=  CoLabelGenerator(    gpus=NUM_GPUS, 
+    GENERATOR_KWARGS = config.get("TRANSFORMATION.GENERATOR_KWARGS", {})
+    test_generator=  CoLabelDeployGenerator(    gpus=NUM_GPUS, 
                                             i_shape=config.get("DATASET.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 
                                             normalization_std = NORMALIZATION_STD, 
                                             normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"),
                                             h_flip = 0, 
                                             t_crop = False, 
-                                            rea = False)
+                                            rea = False, 
+                                            **GENERATOR_KWARGS)
 
     test_generator.setup(   crawler, 
                             mode='test', 
