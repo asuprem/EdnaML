@@ -1,7 +1,7 @@
 EXECUTION:
-  OPTIMIZER_BUILDER: CoLabelOptimizer
   MODEL_SERVING: None
-  EPOCHS: 71
+  STACKS: 
+    JPEG: 1
   TEST_FREQUENCY: 5
   CRAWLER: CoLabelVehicleColorCrawler
   CRAWLER_ARGS:

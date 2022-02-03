@@ -102,7 +102,7 @@ class CoLabelGenerator:
             self.__dataset = CoLabelDataset(datacrawler.metadata[mode]["crawl"], self.transformer)
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
+            self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer_primitive_predict)
         elif mode == "full":
             self.__dataset = CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_primitive_predict)
         else:

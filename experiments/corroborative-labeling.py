@@ -21,6 +21,7 @@ def main(config, ensemble, weights):
     # potentially don't need these???? because we are performing a deployment, not a model training...
     # But we will need the Logger....
     MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(config)
+    os.makedirs(MODEL_SAVE_FOLDER, exist_ok=True)
     logger = utils.generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
 
     logger.info("*"*40);logger.info("");logger.info("")
@@ -29,8 +30,8 @@ def main(config, ensemble, weights):
     logger.info("");logger.info("");logger.info("*"*40)
 
     # TODO fix this for the random erase value...
-    NORMALIZATION_MEAN, NORMALIZATION_STD, _ = utils.fix_generator_arguments(config)
-    TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
+    NORMALIZATION_MEAN, NORMALIZATION_STD = utils.fix_generator_arguments(config, ["TRANSFORMATION.NORMALIZATION_MEAN", "TRANSFORMATION.NORMALIZATION_STD"])
+    TRAINDATA_KWARGS = {}
 
 
     NUM_GPUS = torch.cuda.device_count()
@@ -65,13 +66,14 @@ def main(config, ensemble, weights):
     logger.info("Generated validation data generator")
 
     from deployments import CoLabelEnsemble
-    ensemble = CoLabelEnsemble(logger=logger)
-    ensemble.addModels(config, ensemble)
+    colabel_ensemble = CoLabelEnsemble(config.get("EXECUTION.STACKS"), logger=logger)
+    colabel_ensemble.addModels(ensemble, weights)
+    colabel_ensemble.finalizeEnsemble()
 
 
     # We need a data loader, then predict the data with this...
 
-    #ensemble.predict(test_generator.dataloader)
+    #colabel_ensemble.predict(test_generator.dataloader)
 
     return ensemble, crawler.classes
 

@@ -36,7 +36,7 @@ class CoLabelDeployDataset(TorchDataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        return *[self.transform(item) for item in self.load(self.dataset[idx][0])], self.dataset[idx][1]    # NOTE make this return a tuple for deploy (tuple of compressed), label
+        return [self.transform(item) for item in self.load(self.dataset[idx][0])], self.dataset[idx][1]    # NOTE make this return a tuple for deploy (tuple of compressed), label
 
     def load(self,img):
         if not osp.exists(img):
@@ -103,9 +103,9 @@ class CoLabelDeployGenerator:
             raise NotImplementedError()
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer_predict, self.jpegs)
         elif mode == "full":
-            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_primitive_predict)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_predict, self.jpegs)
         else:
             raise NotImplementedError()
 
@@ -123,6 +123,11 @@ class CoLabelDeployGenerator:
             raise NotImplementedError()
 
     def collate_simple(self,batch):
-        img_idx_stack = zip(*batch)    # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
-        class_id = torch.tensor(img_idx_stack[-1], dtype=torch.int64)
-        return *[torch.stack(item, dim=0) for item in img_idx_stack[:-1]], class_id    # NOTE so this has to be modified...for tuple members...
+        img, label = zip(*batch)    # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
+        num_stacks = len(img[0])
+        num_tstacks = [None]*num_stacks
+        for idx in range(num_stacks):
+            num_tstacks[idx] = torch.stack([item[idx] for item in img], dim=0)
+
+        class_id = torch.tensor(label, dtype=torch.int64)
+        return tuple(num_tstacks), class_id    # NOTE so this has to be modified...for tuple members...

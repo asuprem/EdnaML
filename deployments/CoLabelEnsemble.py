@@ -13,7 +13,10 @@ class CoLabelEnsembleMember:
         self.config = self.addConfig(config_path, cfg_handler)
 
         MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY = utils.generate_save_names(self.config)
-        self.metadata = json.loads(os.path.join(CHECKPOINT_DIRECTORY, "metadata.json"))
+        self.metadata = {}
+        if os.path.exists(os.path.join(CHECKPOINT_DIRECTORY, "metadata.json")):
+          with open(os.path.join(CHECKPOINT_DIRECTORY, "metadata.json"), 'r') as metafile:
+            self.metadata = json.load(metafile)
         
         self.model: torch.nn.Module = None
         self.build_model(weight)
@@ -36,12 +39,12 @@ class CoLabelEnsembleMember:
 
 
         # NOTE: POTENTIAL BUG HERE -- if softmax/softmax_dim is not specified in config...this needs to be fixed...
-        TRAIN_CLASSES = self.config.get("MODEL.SOFTMAX_DIM", self.config.get("MODEL.SOFTMAX"))
+        TRAIN_CLASSES = self.config.get("MODEL.SOFTMAX_DIM")
         self.model = model_builder( arch = self.config.get("MODEL.MODEL_ARCH"), \
                                 base=self.config.get("MODEL.MODEL_BASE"), \
                                 weights=None, \
                                 soft_dimensions = TRAIN_CLASSES, \
-                                embedding_dimensions = self.config.get("MODEL.EMB_DIM"), \
+                                embedding_dimensions = self.config.get("MODEL.EMB_DIM", None), \
                                 normalization = self.config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **model_kwargs_dict)
         self.logger.info("Finished instantiating model with {} architecture".format(self.config.get("MODEL.MODEL_ARCH")))
@@ -55,10 +58,11 @@ class CoLabelEnsembleMember:
 
 class CoLabelEnsemble:
 
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, stacks, logger: logging.Logger):
         self.cfg = kaptan.Kaptan(handler='yaml')
         self.ensemble_models:List[CoLabelEnsembleMember] = [] 
         self.logger = logger
+        self.stacks = stacks+1
 
 
     def addModel(self, config, weight):
@@ -72,25 +76,38 @@ class CoLabelEnsemble:
         self.ensembleMembers = len(self.ensemble_models)
 
     def predict(self, dataloader):
-        logits= [[]]*self.ensembleMembers
-        logit_labels= [None]*self.ensembleMembers
+        """TODO add a line in config about the number of per-model stacks, e.g. jpeg ensemble. This should correspond to the length of the JPEG thingamajig...
+        Then, here, we have the size of ensemble and size of stacks per ensemble member to begin with
+        create the overall datastructure --> [ [stack1data, stack2data], [stack1data, stack2data], [stack1data, stack2data]]
+        labels [labels]
+
+        Then in argmax, perform the argmax for each stack of data
+        Then return the overall structure outside. 
+
+        Outside the main function is where we take the argmax values, and check if they match, per stack. wherever they don't, put a (-1) in the final one.
+        Then do the voting majority...
+
+        """
+        logits= [[[]]*self.stacks]*self.ensembleMembers
+        logit_labels= logits= [[None]*self.stacks]*self.ensembleMembers
         labels = []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 # NOTE data is a tuple, potentially. Or something... YES  a tuple!!!!
                 #data, label = batch
-                data = batch[:-1]
-                label = batch[-1]
+                data, label = batch
                 
-                import pdb
-                pdb.set_trace()
                 # This is the multi-jpegs stuff...so inside the model loop, for each model, we evaluate for each jpeg compression level (will be slow, ish, maybe...?)
-                data = data.cuda()
-                # For each model NOTE NOTE NOTE
-                for idx,colabel_member in enumerate(self.ensemble_models):
-                    logit, _  = colabel_member.model(data)
-                    logit = logit.detach().cpu()
-                    logits[idx].append(logit)
+                numstacks = len(data[0])
+                assert(numstacks == self.stacks)
+                for stack in range(self.stacks):
+                    stackdata= data[0][stack].cuda()
+                    # For each model NOTE NOTE NOTE
+                    for ensemble_idx,colabel_member in enumerate(self.ensemble_models):
+                        logit, _  = colabel_member.model(stackdata) # This is the result of the raw, ensemble, etc
+                        logit = logit.detach().cpu()
+                        logits[ensemble_idx][stack].append(logit)
+                
                 labels.append(label)
                 #feature = feature.detach().cpu()
                 #logit = logit.detach().cpu()
@@ -98,9 +115,10 @@ class CoLabelEnsemble:
                 #logits.append(logit)
                 #labels.append(label)
 
-        for idx in range(self.ensembleMembers):
-            logits[idx] = torch.cat(logits[idx], dim=0)
-            logit_labels[idx] = torch.argmax(logits[idx], dim=1)
+        for ensemble_idx in range(self.ensembleMembers):
+            for stack_idx in range(self.stacks):
+                logits[ensemble_idx][stack_idx] = torch.cat(logits[ensemble_idx][stack_idx], dim=0)
+                logit_labels[ensemble_idx][stack_idx] = torch.argmax(logits[ensemble_idx][stack_idx], dim=1)
         labels=torch.cat(labels, dim=0)
         # Now we compute the loss...
         self.logger.info('Obtained features, validation in progress')
