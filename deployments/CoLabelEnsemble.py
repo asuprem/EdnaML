@@ -88,8 +88,8 @@ class CoLabelEnsemble:
         Then do the voting majority...
 
         """
-        logits= [[[]]*self.stacks]*self.ensembleMembers
-        logit_labels= [[None]*self.stacks]*self.ensembleMembers
+        logits= [[[] for i in range(self.stacks)] for j in range(self.ensembleMembers)]
+        logit_labels= [[None for i in range(self.stacks)] for j in range(self.ensembleMembers)]
         labels = []
         with torch.no_grad():
             for batch in tqdm.tqdm(dataloader, total=len(dataloader), leave=False):
