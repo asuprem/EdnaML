@@ -19,7 +19,7 @@ SAVE:
   MODEL_CORE_NAME: "vcolor-exp1"
   MODEL_BACKBONE: "varied"
   MODEL_QUALIFIER: "deploy"
-  DRIVE_BACKUP: True
+  DRIVE_BACKUP: False
   SAVE_FREQUENCY: 10 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
 

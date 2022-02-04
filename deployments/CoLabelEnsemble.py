@@ -66,7 +66,7 @@ class CoLabelEnsemble:
 
 
     def addModel(self, config, weight):
-        self.ensemble_models.append(CoLabelEnsembleMember(config,weight,logger=self.logger))
+        self.ensemble_models.append(CoLabelEnsembleMember(config,weight,self.cfg,logger=self.logger))
 
     def addModels(self, configs, weights):
         for model_idx, (model_config,model_weight) in enumerate(zip(configs, weights)):
@@ -89,19 +89,19 @@ class CoLabelEnsemble:
 
         """
         logits= [[[]]*self.stacks]*self.ensembleMembers
-        logit_labels= logits= [[None]*self.stacks]*self.ensembleMembers
+        logit_labels= [[None]*self.stacks]*self.ensembleMembers
         labels = []
         with torch.no_grad():
-            for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
+            for batch in tqdm.tqdm(dataloader, total=len(dataloader), leave=False):
                 # NOTE data is a tuple, potentially. Or something... YES  a tuple!!!!
                 #data, label = batch
                 data, label = batch
                 
                 # This is the multi-jpegs stuff...so inside the model loop, for each model, we evaluate for each jpeg compression level (will be slow, ish, maybe...?)
-                numstacks = len(data[0])
+                numstacks = len(data)
                 assert(numstacks == self.stacks)
                 for stack in range(self.stacks):
-                    stackdata= data[0][stack].cuda()
+                    stackdata= data[stack].cuda()
                     # For each model NOTE NOTE NOTE
                     for ensemble_idx,colabel_member in enumerate(self.ensemble_models):
                         logit, _  = colabel_member.model(stackdata) # This is the result of the raw, ensemble, etc

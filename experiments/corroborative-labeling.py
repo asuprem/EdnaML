@@ -66,15 +66,15 @@ def main(config, ensemble, weights):
     logger.info("Generated validation data generator")
 
     from deployments import CoLabelEnsemble
-    colabel_ensemble = CoLabelEnsemble(config.get("EXECUTION.STACKS"), logger=logger)
+    colabel_ensemble = CoLabelEnsemble(config.get("EXECUTION.STACKS.JPEG"), logger=logger)
     colabel_ensemble.addModels(ensemble, weights)
     colabel_ensemble.finalizeEnsemble()
 
 
     # We need a data loader, then predict the data with this...
 
-    #colabel_ensemble.predict(test_generator.dataloader)
+    colabel_ensemble.predict(test_generator.dataloader)
 
-    return ensemble, crawler.classes
+    return colabel_ensemble, crawler.classes
 
 
