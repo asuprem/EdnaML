@@ -6,7 +6,7 @@ import torch, torchsummary
 
 
 """
-Cor Co-Labeling, we need all configs of the component ensembles. Easiest to just load the configs directly, no?
+For Co-Labeling, we need all configs of the component ensembles. Easiest to just load the configs directly, no?
 """
 
 @click.command()
