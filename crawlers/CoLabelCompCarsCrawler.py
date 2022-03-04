@@ -83,7 +83,7 @@ class CoLabelCompCarsCrawler:
 
     def __crawl(self, folder, file, model_type_dict):
 
-        data_tuple = [] #(makeid, modelid,releasedyear, type, str(imagename))   <-- EVERYTHING ELSE IS INT
+        data_tuple = [] #(makeid, modelid,releasedyear, type, str(path-to-imagename))   <-- EVERYTHING ELSE IS INT
         basepath = os.path.join(self.data_folder, "image")
         with open(os.path.join(folder, file), "r") as data_list:
             for line in data_list:
