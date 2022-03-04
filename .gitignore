@@ -39,4 +39,8 @@ venv
 
 # Other ignores
 notebooks.md
+metafiles
+
+# Don't need the todo file
+TODO
 
