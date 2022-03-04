@@ -11,6 +11,8 @@ from .ClassedCrawler import ClassedCrawler
 
 # CoLabelCrawlers
 from .CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler
+from .CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
+KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
 
 import os
 class Crawler:
