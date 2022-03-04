@@ -1,16 +1,21 @@
+from ctypes import Union
+import warnings
 from torch import nn
 import torch
 import pdb
 
 class ChannelAttention(nn.Module):
+    """Channel Attention module that forms part of CBAM attention.
+    See the ECCV paper at https://openaccess.thecvf.com/content_ECCV_2018/papers/Sanghyun_Woo_Convolutional_Block_Attention_ECCV_2018_paper.pdf
+    """
     def __init__(self, in_planes, ratio=16):
         super(ChannelAttention, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
 
-        self.fc1   = nn.Conv2d(in_planes, in_planes // 16, 1, bias=False)
+        self.fc1   = nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False)
         self.relu1 = nn.ReLU()
-        self.fc2   = nn.Conv2d(in_planes // 16, in_planes, 1, bias=False)
+        self.fc2   = nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False)
 
         self.sigmoid = nn.Sigmoid()
 
@@ -21,6 +26,9 @@ class ChannelAttention(nn.Module):
         return self.sigmoid(out)
 
 class SpatialAttention(nn.Module):
+    """Spatial Attention module that forms part of CBAM attention.
+    See the ECCV paper at https://openaccess.thecvf.com/content_ECCV_2018/papers/Sanghyun_Woo_Convolutional_Block_Attention_ECCV_2018_paper.pdf
+    """
     def __init__(self, kernel_size=7):
         super(SpatialAttention, self).__init__()
 
@@ -38,6 +46,9 @@ class SpatialAttention(nn.Module):
         return self.sigmoid(x)
 
 class DenseAttention(nn.Module):    # Like spatial, but for all channels
+    """Dense attention module for global attention from GLAMOR; see arXiv paper
+    at https://arxiv.org/pdf/2002.02256.pdf
+    """
     def __init__(self, planes):
         super(DenseAttention, self).__init__()
         self.dense_conv1=nn.Conv2d(planes,planes,kernel_size=3,padding=1,bias=False)
@@ -52,6 +63,9 @@ class DenseAttention(nn.Module):    # Like spatial, but for all channels
         return x
 
 class InputAttention(nn.Module):
+    """Input attention module for global/local attention from GLAMOR; see arXiv paper
+    at https://arxiv.org/pdf/2002.02256.pdf
+    """
     def __init__(self, planes):
         super(InputAttention, self).__init__()
         self.ia_conv1=nn.Conv2d(planes,planes,kernel_size=3,padding=1,bias=False)
@@ -66,49 +80,71 @@ class InputAttention(nn.Module):
         return x
 
 class BasicBlock(nn.Module):
+    """ResNet component block for R18, R34. Useful when there are not too many layers
+    to deal with complicated matrix multiplications.
+
+    Raises:
+        ValueError: When groups!=1 or base_width!=64
+        NotImplementedError: When dilation>1 or attention not cbam or dbam
+    """
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None, 
-                 attention=None, input_attention=False, part_attention=False):
+    def __init__(self, inplanes: int, planes: int, stride: int=1, downsample:Union[int,None]=None, groups: int=1,
+                 base_width: int =64, dilation: int=1, norm_layer:Union[nn.GroupNorm,nn.modules.batchnorm._NormBase,None]=nn.BatchNorm2d, 
+                 attention:str=None, input_attention:bool=False, part_attention:bool=False):
+        """Sets up the ResNet BasicBlock
+
+        Args:
+            inplanes (int): Depth of input
+            planes (int): Depth of output
+            stride (int, optional): Convolutional stride parameter. Defaults to 1.
+            downsample (Union[int,None], optional): Whether to downsample images for skip connection. Defaults to None.
+            groups (int, optional): <>. Defaults to 1.
+            base_width (int, optional): <>. Defaults to 64.
+            dilation (int, optional): Convolutional dilation parameters. Defaults to 1.
+            norm_layer (Union[nn.GroupNorm,nn.modules.batchnorm._NormBase,None], optional): Normalization layer throughout Block. Defaults to nn.BatchNorm2d.
+            attention (str, optional): Attention type: CBAM or DBAM. Defaults to None.
+            input_attention (bool, optional): Whether to include the input attention module. Defaults to False.
+            part_attention (bool, optional): Whether to include the part (local) attention module. Defaults to False.
+        """
         super(BasicBlock, self).__init__()
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+        # Verify some base parameters
         if groups != 1 or base_width != 64:
             raise ValueError('BasicBlock only supports groups=1 and base_width=64')
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+        if attention is not None and attention not in ["cbam","dbam"]:
+            raise ValueError("attention parameter is unsupported value %s. Use one of 'cbam','dbam'."%attention)
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        # This builds the core layers in the BasicBlock
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride, padding=1, bias=False, groups=1, dilation=1)
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False, groups=1, dilation=1)
         self.bn2 = norm_layer(planes)       
         
+        # Sets up input attention
+        self.input_attention = None
         if input_attention:
             self.input_attention = InputAttention(planes)
-        else:
-            self.input_attention = None
-
-        if attention is None:
-            self.ca = None
-            self.sa = None
-        elif attention == 'cbam':
+        
+        # Sets up CBAM or DBAM attention
+        self.ca = None
+        self.sa = None
+        if attention == 'cbam':
             self.ca = ChannelAttention(planes)
             self.sa = SpatialAttention(kernel_size=3)
-        elif attention == 'dbam':
+        if attention == 'dbam':
             self.ca = ChannelAttention(planes)
             self.sa = DenseAttention(planes)
-        else:
-            raise NotImplementedError()
-
+        
+        # Sets up local attention
+        self.p_ca = None
+        self.p_sa = None
         if part_attention:
             self.p_sa = DenseAttention(planes=planes*self.expansion)
             self.p_ca = ChannelAttention(planes*self.expansion)
-        else:
-            self.p_ca = None
-            self.p_sa = None
-
+            
         self.downsample = downsample
         self.stride = stride
 
