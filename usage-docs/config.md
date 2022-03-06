@@ -14,10 +14,11 @@ The `EXECUTION` section contains parameters for EdnaML pipeline execution. They 
 - `MODEL_SERVING`: unused.
 - `EPOCHS`: The number of epochs to train the model. **Integer**
 - `TEST_FREQUENCY`: The evaluation frequency in epochs, e.g. every how many epochs to evaluate the model being trained. **Integer**
-- `DATAREADER`: The datareader class to use. See [`datareaders.md`]("./reference/datareaders.md").
-
+- `DATAREADER`: The datareader key. 
+    - `DATAREADER`: The datareader class to use. See [`datareaders.md`]("./reference/datareaders.md").
     - `CRAWLER_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's crawler. Documentation is provided in [`datareaders.md`]("./reference/datareaders.md").
     - `DATASET_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's TorchDataset. Documentation is provided in [`datareaders.md`]("./reference/datareaders.md").
+    - `GENERATOR_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's Generator. Documentation is provided in [`datareaders.md`]("./reference/datareaders.md").
     - `DATALOADER_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's TorchDataloader. Documentation is provided in [`datareaders.md`]("./reference/datareaders.md").
 
 
