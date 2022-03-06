@@ -9,8 +9,8 @@ EXECUTION:
     DATASET_ARGS: 
       pathidx: 4
       annotationidx: 3
-    GENERATOR_ARGS: 
       classificationclass: type
+    GENERATOR_ARGS: {}      
     DATALOADER_ARGS: {}
 
 SAVE:
@@ -23,11 +23,11 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
 
 DATASET:
-  ROOT_DATA_FOLDER: "Data/VehicleColors"
-  TRAIN_FOLDER: "train"
-  TEST_FOLDER: "test"
-  VAL_FOLDER: "val"
-  SHAPE: [228,228]
+  ROOT_DATA_FOLDER: "Data/CompCars"
+  TRAIN_FOLDER: "image"
+  TEST_FOLDER: ""
+  VAL_FOLDER: ""
+  SHAPE: [100,100]
 
 TRANSFORMATION:
   NORMALIZATION_MEAN: 0.5
@@ -46,7 +46,7 @@ MODEL:
   MODEL_ARCH: 'CoLabelResnet'
   EMB_DIM: 512
   MODEL_NORMALIZATION: 'bn'
-  MODEL_KWARGS: ''
+  MODEL_KWARGS: '{}'
 
 COLABEL:
   COMPRESSION: 5

@@ -9,8 +9,8 @@ EXECUTION:
     DATASET_ARGS: 
       pathidx: 0
       annotationidx: 1
-    GENERATOR_ARGS: 
       classificationclass: color
+    GENERATOR_ARGS: 
     DATALOADER_ARGS: {}
 
 SAVE:
@@ -23,7 +23,7 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
 
 DATASET:
-  ROOT_DATA_FOLDER: "Data/VehicleColors"
+  ROOT_DATA_FOLDER: "Data/CompCars"
   TRAIN_FOLDER: "train"
   TEST_FOLDER: "test"
   VAL_FOLDER: "val"
