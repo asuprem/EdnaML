@@ -57,16 +57,19 @@ class CoLabelCompCarsCrawler:
         
         # Set up type humanr readable
         self.classes["type"] = {}
+        self.classes["make"] = {}
+        self.classes["model"] = {}
         tmat = loadmat(typemat)
         for idx in range(tmat["types"].shape[1]):    # --> 12
             self.classes["type"][idx] = tmat["types"][0,idx][0]
-        del tmat
         mmmat = loadmat(makemodelmat)
-        for idx in range(mmmat["make_names"].shape[0]):    # --> 163
-            self.classes["make"][idx] = tmat["make_names"][idx,0][0]
         for idx in range(mmmat["model_names"].shape[0]):    # --> 12
-            self.classes["model"][idx] = tmat["model_names"][idx,0][0]
+            if mmmat["model_names"][idx-1,0].shape[0] > 0:
+              self.classes["model"][idx] = mmmat["model_names"][idx,0][0]
+            else:
+              self.classes["model"][idx] = "NoName"
         del mmmat
+        del tmat
         
         # Get the Model-IDs to Car Type dictionary from the attributes file
         model_id_type_dict = {}
@@ -83,8 +86,8 @@ class CoLabelCompCarsCrawler:
 
         self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
         self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(class_folder, "train.txt", model_id_type_dict)
-        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, "test'txt", model_id_type_dict)
-        #self.metadata["val"]["crawl"], self.metadata["val"]["classes"], self.metadata["val"]["imgs"] = self.__crawl(self.val_folder)
+        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, "test.txt", model_id_type_dict)
+        self.metadata["val"]["crawl"], self.metadata["val"]["imgs"] = [], 0
 
         self.metadata["train"]["classes"] = {}
         self.metadata["train"]["classes"]["type"] = len(self.classes["type"])
@@ -94,6 +97,10 @@ class CoLabelCompCarsCrawler:
         self.metadata["test"]["classes"]["type"] = len(self.classes["type"])
         self.metadata["test"]["classes"]["model"] = len(self.classes["model"])
         self.metadata["test"]["classes"]["make"] = len(self.classes["make"])
+        self.metadata["val"]["classes"] = {}
+        self.metadata["val"]["classes"]["type"] = len(self.classes["type"])
+        self.metadata["val"]["classes"]["model"] = len(self.classes["model"])
+        self.metadata["val"]["classes"]["make"] = len(self.classes["make"])
 
 
 
@@ -105,8 +112,14 @@ class CoLabelCompCarsCrawler:
             for line in data_list:
                 parsed_line = line.strip().split("/")[:3]
                 parsed_line.append(model_type_dict[parsed_line[1]])
-                parsed_line = [int(item)-1 for item in parsed_line]     # WE RESET LABELS TO 0!!!!!!!!!!!! NOTE NOTE NOTE NOTE 
+                parsed_line = [self.convert(item)-1 for item in parsed_line]     # WE RESET LABELS TO 0!!!!!!!!!!!! NOTE NOTE NOTE NOTE 
                 parsed_line.append(os.path.join(basepath, line.strip()))
                 data_tuple.append(tuple(parsed_line))
         return data_tuple, len(data_tuple)
         # Now we calculate the number for each class
+
+    def convert(self,val):
+      try:
+        return int(val)
+      except ValueError:
+        return 0
