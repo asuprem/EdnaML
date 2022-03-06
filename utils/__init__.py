@@ -28,8 +28,10 @@ def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
     if logger.hasHandlers():
         return logger
+
     logger.setLevel(logging.DEBUG)
     logger_save_path = os.path.join(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME)
+    
     fh = logging.FileHandler(logger_save_path)
     fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s-%(msecs)d %(message)s',datefmt="%H:%M:%S")
