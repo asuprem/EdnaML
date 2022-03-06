@@ -21,11 +21,11 @@ import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 
-class ImageGenerator():
+class ImageGenerator:
     """Base class for image dataset generators
     """
     def __init__(self,  gpus : int, 
-                        i_shape: Union[List[int,int],Tuple[int,int]], 
+                        i_shape: Union[List[int],Tuple[int,int]], 
                         normalization_mean: float, 
                         normalization_std: float, 
                         normalization_scale: float,
@@ -47,7 +47,7 @@ class ImageGenerator():
                                     )
 
 
-    def build_transforms(i_shape: Union[List[int,int],Tuple[int,int]], normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
+    def build_transforms(self, i_shape: Union[List[int],Tuple[int,int]], normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
         """Builds the transforms for the images in dataset. This can be replaced for custom set of transforms
 
         Args:
@@ -71,7 +71,8 @@ class ImageGenerator():
             transformer_primitive.append(T.RandomErasing(p=0.5, scale=(0.02, 0.4), value = kwargs.get('rea_value', 0)))
         return transformer_primitive
 
-    def setup(self,datacrawler, mode, batch_size, instance, workers, **kwargs):
+    # NOTE removed instance parameter from here.,, is it needed???
+    def setup(self,datacrawler, mode, batch_size, workers, **kwargs):
         """This should generate a TorchDataset and associated DataLoader to yield batches.
         The actual steps are as follows:
 
@@ -82,7 +83,7 @@ class ImageGenerator():
         self.workers = workers*self.gpus
 
         self.dataset = self.buildDataset(datacrawler, mode, self.transformer, **kwargs)
-        self.dataloader = self.buildDataloader(self.dataset, mode, batch_size=batch_size, **kwargs)
+        self.dataloader = self.buildDataLoader(self.dataset, mode, batch_size=batch_size, **kwargs)
         self.num_entities = self.getNumEntities(datacrawler, mode, **kwargs)
 
     def buildDataset(self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:

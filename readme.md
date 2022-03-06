@@ -1,6 +1,6 @@
 # Contextual Invariants for Vehicle Re-identification
 
-This repo contains the code for '<name redacted temporarily>'. Our approach is able to significantly improve mAP compared to comtemporary works without relying on complex architectures. We believe using our approach as a baseline will help ind eveloping more accurate vehicle re-identification models.
+This repo contains the code for '<name redacted temporarily>'. Our approach is able to significantly improve mAP compared to comtemporary works without relying on complex architectures. We believe using our approach as a baseline will help in developing more accurate vehicle re-identification models.
 
 # Requirements
 

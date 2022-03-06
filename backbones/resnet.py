@@ -89,8 +89,8 @@ class BasicBlock(nn.Module):
     """
     expansion = 1
 
-    def __init__(self, inplanes: int, planes: int, stride: int=1, downsample:Union[int,None]=None, groups: int=1,
-                 base_width: int =64, dilation: int=1, norm_layer:Union[nn.GroupNorm,nn.modules.batchnorm._NormBase,None]=nn.BatchNorm2d, 
+    def __init__(self, inplanes: int, planes: int, stride: int=1, downsample=None, groups: int=1,
+                 base_width: int =64, dilation: int=1, norm_layer=nn.BatchNorm2d, 
                  attention:str=None, input_attention:bool=False, part_attention:bool=False):
         """Sets up the ResNet BasicBlock
 

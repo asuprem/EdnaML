@@ -147,22 +147,26 @@ def main(config, mode, weights):
     # or otherwise. Templating method would be that if we want to add a model from model_builder, then the model_builder function would have the template we need
     # to use in the config file for that model_builder to work properly. So a multi-branch model builder will tell us that the template should correspond to multiple
     # outputs...
-    loss_function = CoLabelLossBuilder(loss_functions=config.get("LOSS.LOSSES"), loss_lambda=config.get("LOSS.LOSS_LAMBDAS"), loss_kwargs=config.get("LOSS.LOSS_KWARGS"), **{"logger":logger})
+    loss_function_array = [
+        CoLabelLossBuilder(loss_functions=loss_item["LOSSES"], loss_lambda=loss_item["LAMBDAS"], loss_kwargs=loss_item["KWARGS"], **{"logger":logger})
+        for loss_item in config.get("LOSS")
+    ]
     logger.info("Built loss function")
 
     # --------------------- INSTANTIATE LOSS OPTIMIZER --------------
     # NOTE different optimizer for each loss...
     from optimizer.StandardLossOptimizer import StandardLossOptimizer as loss_optimizer
 
-    LOSS_OPT = loss_optimizer(  base_lr=config.get("LOSS_OPTIMIZER.BASE_LR", config.get("OPTIMIZER.BASE_LR")), 
+    LOSS_OPT = [loss_optimizer(  base_lr=config.get("LOSS_OPTIMIZER.BASE_LR", config.get("OPTIMIZER.BASE_LR")), 
                                 lr_bias = config.get("LOSS_OPTIMIZER.LR_BIAS_FACTOR", config.get("OPTIMIZER.LR_BIAS_FACTOR")), 
                                 weight_decay= config.get("LOSS_OPTIMIZER.WEIGHT_DECAY", config.get("OPTIMIZER.WEIGHT_DECAY")), 
                                 weight_bias= config.get("LOSS_OPTIMIZER.WEIGHT_BIAS_FACTOR", config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR")), 
-                                gpus=NUM_GPUS)
+                                gpus=NUM_GPUS) for _ in config.get("LOSS")]
     # Note: build returns None if there are no differentiable parameters
-    loss_optimizer = LOSS_OPT.build(loss_builder=loss_function,
+    loss_optimizer_array = [item.build(loss_builder=loss_function_array[idx],
                                     name=config.get("LOSS_OPTIMIZER.OPTIMIZER_NAME", config.get("OPTIMIZER.OPTIMIZER_NAME")),
                                     **json.loads(config.get("LOSS_OPTIMIZER.OPTIMIZER_KWARGS", config.get("OPTIMIZER.OPTIMIZER_KWARGS"))))
+                                    for idx,item in enumerate(LOSS_OPT)]
     logger.info("Built loss optimizer")
 
 
@@ -188,19 +192,20 @@ def main(config, mode, weights):
 
 
     # ------------------- INSTANTIATE LOSS SCHEEDULER ---------------------
-    loss_scheduler = None
-    if loss_optimizer is not None:  # In case loss has no differentiable paramters
-        try:
-            loss_scheduler = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
-            loss_scheduler = getattr(loss_scheduler, config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER")))
-        except (ModuleNotFoundError, AttributeError):
-            loss_scheduler_ = config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER"))
-            loss_scheduler = __import__("scheduler."+loss_scheduler_, fromlist=[loss_scheduler_])
-            loss_scheduler = getattr(loss_scheduler, loss_scheduler_)
-        loss_scheduler = loss_scheduler(loss_optimizer, last_epoch = -1, **json.loads(config.get("LOSS_SCHEDULER.LR_KWARGS", config.get("SCHEDULER.LR_KWARGS"))))
-        logger.info("Built loss scheduler")
-    else:
-        loss_scheduler = None
+    loss_scheduler = [None]*len(loss_optimizer_array)
+    for idx, _ in enumerate(loss_optimizer_array):
+        if loss_optimizer_array[idx] is not None:  # In case loss has no differentiable paramters
+            try:
+                loss_scheduler[idx] = __import__('torch.optim.lr_scheduler', fromlist=['lr_scheduler'])
+                loss_scheduler[idx] = getattr(loss_scheduler[idx], config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER")))
+            except (ModuleNotFoundError, AttributeError):
+                loss_scheduler_ = config.get("LOSS_SCHEDULER.LR_SCHEDULER", config.get("SCHEDULER.LR_SCHEDULER"))
+                loss_scheduler[idx] = __import__("scheduler."+loss_scheduler_, fromlist=[loss_scheduler_])
+                loss_scheduler[idx] = getattr(loss_scheduler[idx], loss_scheduler_)
+            loss_scheduler[idx] = loss_scheduler[idx](loss_optimizer_array[idx], last_epoch = -1, **json.loads(config.get("LOSS_SCHEDULER.LR_KWARGS", config.get("SCHEDULER.LR_KWARGS"))))
+            logger.info("Built loss scheduler")
+        else:
+            loss_scheduler[idx] = None
     
 
     # ---------------------------- SETUP BACKUP PATH -------------------------
@@ -218,14 +223,14 @@ def main(config, mode, weights):
         logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
 
     # --------------------- PERFORM TRAINING ------------------------
-    trainer = __import__("trainer", fromlist=["*"])
-    trainer = getattr(trainer, config.get("EXECUTION.TRAINER","CoLabelTrainer"))
+    ExecutionTrainer = __import__("trainer", fromlist=["*"])
+    ExecutionTrainer = getattr(ExecutionTrainer, config.get("EXECUTION.TRAINER","CoLabelTrainer"))
     logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER","CoLabelTrainer"), "trainer"))
 
-    loss_stepper = trainer( model=colabel_model, 
-                            loss_fn = loss_function, 
+    trainer = ExecutionTrainer( model=colabel_model, 
+                            loss_fn = loss_function_array, 
                             optimizer = optimizer, 
-                            loss_optimizer = loss_optimizer, 
+                            loss_optimizer = loss_optimizer_array, 
                             scheduler = scheduler, 
                             loss_scheduler = loss_scheduler, 
                             train_loader = train_generator.dataloader, 
@@ -233,8 +238,8 @@ def main(config, mode, weights):
                             epochs = config.get("EXECUTION.EPOCHS"), 
                             logger = logger, crawler=crawler)
 
-    loss_stepper.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
-    loss_stepper.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 
+    trainer.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
+    trainer.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 
                         save_frequency=config.get("SAVE.SAVE_FREQUENCY"), 
                         test_frequency = config.get("EXECUTION.TEST_FREQUENCY"), 
                         save_directory = MODEL_SAVE_FOLDER, 
@@ -245,8 +250,8 @@ def main(config, mode, weights):
                         model_save_name = MODEL_SAVE_NAME, 
                         logger_file = LOGGER_SAVE_NAME)
     if mode == 'train':
-        loss_stepper.train(continue_epoch=previous_stop)
+        trainer.train(continue_epoch=previous_stop)
     elif mode == 'test':
-        return loss_stepper.evaluate()
+        return trainer.evaluate()
     else:
         raise NotImplementedError()

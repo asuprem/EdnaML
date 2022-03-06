@@ -67,20 +67,21 @@ class CoLabelGenerator(ImageGenerator):
 
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         if mode == "train":
-            self.dataloader = TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
+            return TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
         elif mode == "test":
-            self.dataloader = TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
+            return TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
         elif mode == "full":
-            self.dataloader = TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
+            return TorchDataLoader(dataset, batch_size=batch_size*self.gpus, shuffle=True,\
                                                 num_workers=self.workers, collate_fn=self.collate_simple)
         else:
             raise NotImplementedError()
         
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
-            return datacrawler.metadata[mode]["classes"][kwargs.get("crawlerclass")]
+            return datacrawler.metadata[mode]["classes"][kwargs.get("crawlerclass", "color")]
+            #TODO fix this
         else:
             raise NotImplementedError()
         

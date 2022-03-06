@@ -29,7 +29,7 @@ class CoLabelDataset(TorchDataset):
         img_load = Image.open(img).convert('RGB')
         return img_load
 
-class CoLabelGenerator:
+class CoLabelIntegratedDatasetGenerator:
     def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
         """ Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
