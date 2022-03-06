@@ -4,13 +4,13 @@ EXECUTION:
   EPOCHS: 10
   TEST_FREQUENCY: 5
   DATAREADER: 
-    DATAREADER: VehicleColor
+    DATAREADER: CompCars
     CRAWLER_ARGS: {}
     DATASET_ARGS: 
-      pathidx: 0
-      annotationidx: 1
+      pathidx: 4
+      annotationidx: 3
     GENERATOR_ARGS: 
-      classificationclass: color
+      classificationclass: type
     DATALOADER_ARGS: {}
 
 SAVE:

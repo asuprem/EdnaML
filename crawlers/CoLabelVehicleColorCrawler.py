@@ -10,7 +10,7 @@ class CoLabelVehicleColorCrawler:
     
     """
 
-    def __init__(self,data_folder="VehicleColor", train_folder="train", test_folder="test", validation_folder="val", **kwargs):
+    def __init__(self,data_folder="VehicleColor", train_folder="train", test_folder="test", validation_folder="val", logger=None, **kwargs):
         self.metadata = {}
         self.classes = {}
         self.data_folder = data_folder
@@ -18,7 +18,9 @@ class CoLabelVehicleColorCrawler:
         self.test_folder = os.path.join(self.data_folder, test_folder)
         self.val_folder = os.path.join(self.data_folder, validation_folder)
         
-        self.logger = kwargs.get("logger")
+        if logger is None:
+            raise ValueError("Must pass a logger instance that is not None")
+        self.logger = logger
 
         self.__verify(self.data_folder)
         self.__verify(self.train_folder)

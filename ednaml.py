@@ -26,8 +26,6 @@ def main(config, mode, weights):
 
     # TODO fix this for the random erase value...
     NORMALIZATION_MEAN, NORMALIZATION_STD, _ = utils.fix_generator_arguments(config)
-    TRAINDATA_KWARGS = {"rea_value": config.get("TRANSFORMATION.RANDOM_ERASE_VALUE")}
-
 
     """ MODEL PARAMS """
     # This will setup the model weights and load the appropriate one given our configuration
@@ -73,15 +71,15 @@ def main(config, mode, weights):
 
 
     # data_crawler is now data_reader.CRAWLER
-
-    from generators import CoLabelIntegratedDatasetGenerator
     logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
-    crawler = data_reader.CRAWLER(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), **{"logger":logger})
+    crawler = data_reader.CRAWLER(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), logger=logger, **config.get("EXECUTION.DATAREADER.CRAWLER_ARGS"))
+    
+    
     train_generator = data_reader.GENERATOR(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
-                                **TRAINDATA_KWARGS)
-    train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), workers = config.get("TRANSFORMATION.WORKERS"))
+                                rea_value=config.get("TRANSFORMATION.RANDOM_ERASE_VALUE"), **config.get("EXECUTION.DATAREADER.GENERATOR_ARGS"))
+    train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), workers = config.get("TRANSFORMATION.WORKERS"), **config.get("EXECUTION.DATAREADER.DATASET_ARGS"))
     logger.info("Generated training data generator")
     # TODO we need t fix the dataset part, where it is defined inside the generator file... we need to move it elsewhere into datasets/<>
     # TODO, second, we need to fix the TRAIN_CLASSES thing, and how to obtain it
@@ -94,11 +92,11 @@ def main(config, mode, weights):
                                             normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"),
                                             h_flip = 0, 
                                             t_crop = False, 
-                                            rea = False)
+                                            rea = False, **config.get("EXECUTION.DATAREADER.GENERATOR_ARGS"))
     test_generator.setup(   crawler, 
                             mode='test', 
                             batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), 
-                            workers=config.get("TRANSFORMATION.WORKERS"))
+                            workers=config.get("TRANSFORMATION.WORKERS"), **config.get("EXECUTION.DATAREADER.DATDASET_ARGS"))
     NUM_CLASSES = train_generator.num_entities
     logger.info("Generated validation data/query generator")
 

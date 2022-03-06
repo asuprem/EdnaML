@@ -13,9 +13,11 @@ from . import ImageGenerator
 
 
 class CoLabelDataset(TorchDataset):
-    def __init__(self, dataset, transform=None):
+    def __init__(self, dataset, transform=None, **kwargs):
         self.dataset = dataset
         self.transform = transform
+        self.pathidx = kwargs.get("pathidx", 0)
+        self.annotationidx = kwargs.get("annotationidx", 1)
 
     def __len__(self):
         return len(self.dataset)
@@ -23,7 +25,7 @@ class CoLabelDataset(TorchDataset):
     def __getitem__(self, idx):
         # NOTE we will need to do our idx transforms here as well...
         # NOTE or leave it to be done in the crawler, and leave the generator as pristine and untouched???
-        return self.transform(self.load(self.dataset[idx][0])), self.dataset[idx][1]    # NOTE make this return a tuple for deploy (tuple of compressed), label
+        return self.transform(self.load(self.dataset[idx][self.pathidx])), self.dataset[idx][self.annotationidx]    # NOTE make this return a tuple for deploy (tuple of compressed), label
 
     def load(self,img):
         if not osp.exists(img):
@@ -56,12 +58,12 @@ class CoLabelGenerator(ImageGenerator):
 
     def buildDataset(self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
         if mode == "train":
-            return CoLabelDataset(datacrawler.metadata[mode]["crawl"], transform)
+            return CoLabelDataset(datacrawler.metadata[mode]["crawl"], transform, **kwargs)
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], transform)
+            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], transform, **kwargs)
         elif mode == "full":
-            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], transform)
+            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], transform, **kwargs)
         else:
             raise NotImplementedError()
 
@@ -80,7 +82,7 @@ class CoLabelGenerator(ImageGenerator):
         
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
-            return datacrawler.metadata[mode]["classes"][kwargs.get("crawlerclass", "color")]
+            return datacrawler.metadata[mode]["classes"][kwargs.get("classificationclass", "color")]
             #TODO fix this
         else:
             raise NotImplementedError()

@@ -14,6 +14,8 @@ from .CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler
 from .CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
 KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
 
+from .CoLabelCompCarsCrawler import CoLabelCompCarsCrawler
+
 import os
 class Crawler:
     def __init__():
