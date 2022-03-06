@@ -65,7 +65,7 @@ def main(config, mode, weights):
 
     # --------------------- BUILD GENERATORS ------------------------
     data_reader_class = config.get("EXECUTION.DATAREADER.DATAREADER", "VehicleColor")
-    data_reader = __import__("crawlers."+data_reader_class, fromlist=[data_reader_class])
+    data_reader = __import__("datareaders."+data_reader_class, fromlist=[data_reader_class])
     data_reader = getattr(data_reader, data_reader_class) # contains list of imgs inside in crawler.metadata["train"]["crawl"] -->[(img-path, img-class-id), (img-path, img-class-id), ...]
     del data_reader_class
 
