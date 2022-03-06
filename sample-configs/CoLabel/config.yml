@@ -55,9 +55,10 @@ COLABEL:
   CONFIDENCE: "decay"
 
 LOSS:
-  LOSSES: ['SoftmaxLogitsLoss']
-  LOSS_KWARGS: [{}]
-  LOSS_LAMBDAS: [1.0]
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    NAME: out1
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
