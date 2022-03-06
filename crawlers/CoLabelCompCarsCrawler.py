@@ -64,10 +64,16 @@ class CoLabelCompCarsCrawler:
             self.classes["type"][idx] = tmat["types"][0,idx][0]
         mmmat = loadmat(makemodelmat)
         for idx in range(mmmat["model_names"].shape[0]):    # --> 12
-            if mmmat["model_names"][idx-1,0].shape[0] > 0:
+            if mmmat["model_names"][idx,0].shape[0] > 0:
               self.classes["model"][idx] = mmmat["model_names"][idx,0][0]
             else:
               self.classes["model"][idx] = "NoName"
+        
+        for idx in range(mmmat["make_names"].shape[0]):    # --> 12
+            if mmmat["make_names"][idx,0].shape[0] > 0:
+              self.classes["make"][idx] = mmmat["make_names"][idx,0][0]
+            else:
+              self.classes["make"][idx] = "NoName"
         del mmmat
         del tmat
         
