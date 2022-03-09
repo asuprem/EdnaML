@@ -20,9 +20,9 @@ class CoLabelTrainer(BaseTrainer):
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    epochs: int, logger, **kwargs):   #kwargs includes crawler
+                    epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
         
-        super(CoLabelTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
+        super(CoLabelTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger)
         
         self.crawler = kwargs.get("crawler", None)
         self.softaccuracy = []

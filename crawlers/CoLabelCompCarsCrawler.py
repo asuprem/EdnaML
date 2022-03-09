@@ -25,7 +25,7 @@ class CoLabelCompCarsCrawler:
     """Data crawler for CompCars Data dataset (NOT for sv-data)
     """
 
-    def __init__(self,data_folder="CompCars", train_folder="image", test_folder="", validation_folder="", **kwargs):
+    def __init__(self,data_folder="CompCars", train_folder="image", **kwargs):
         self.metadata = {}
         self.classes = {}
         self.data_folder = data_folder

@@ -13,6 +13,7 @@ The `EXECUTION` section contains parameters for EdnaML pipeline execution. They 
 - `OPTIMIZER_BUILDER`: The optimizer to choose. See [`optimizers.md`]("./reference/optimizers.md")
 - `MODEL_SERVING`: unused.
 - `EPOCHS`: The number of epochs to train the model. **Integer**
+- `SKIPEVAL`: Whether to skip the initial evaluation stage. This is useful during debugging if the initial evaluation stage takes too long and is not useful. **Boolean**
 - `TEST_FREQUENCY`: The evaluation frequency in epochs, e.g. every how many epochs to evaluate the model being trained. **Integer**
 - `DATAREADER`: The datareader key. 
     - `DATAREADER`: The datareader class to use. See [`datareaders.md`]("./reference/datareaders.md").

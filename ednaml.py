@@ -71,11 +71,11 @@ def main(config, mode, weights):
 
 
     # data_crawler is now data_reader.CRAWLER
-    logger.info("Crawling data folder %s"%config.get("DATASET.ROOT_DATA_FOLDER"))
-    crawler = data_reader.CRAWLER(data_folder = config.get("DATASET.ROOT_DATA_FOLDER"), train_folder=config.get("DATASET.TRAIN_FOLDER"), test_folder = config.get("DATASET.TEST_FOLDER"), logger=logger, **config.get("EXECUTION.DATAREADER.CRAWLER_ARGS"))
+    logger.info("Reading data with DataReader %s"%data_reader_class)
+    crawler = data_reader.CRAWLER(logger=logger, **config.get("EXECUTION.DATAREADER.CRAWLER_ARGS"))
     
     
-    train_generator = data_reader.GENERATOR(gpus=NUM_GPUS, i_shape=config.get("DATASET.SHAPE"), \
+    train_generator = data_reader.GENERATOR(gpus=NUM_GPUS, i_shape=config.get("TRANSFORMATION.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
                                 rea_value=config.get("TRANSFORMATION.RANDOM_ERASE_VALUE"), **config.get("EXECUTION.DATAREADER.GENERATOR_ARGS"))
@@ -85,6 +85,8 @@ def main(config, mode, weights):
     # TODO, second, we need to fix the TRAIN_CLASSES thing, and how to obtain it
     # TODO Third, we need to fix the embedding dim, softmax_dim, and any other dim debacle...
     TRAIN_CLASSES = config.get("MODEL.SOFTMAX_DIM", train_generator.num_entities)
+    if TRAIN_CLASSES is None:
+        TRAIN_CLASSES = train_generator.num_entities
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
                                             i_shape=config.get("DATASET.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 
@@ -103,8 +105,8 @@ def main(config, mode, weights):
 
     # --------------------- INSTANTIATE MODEL ------------------------    
     model_builder = __import__("models", fromlist=["*"])
-    model_builder = getattr(model_builder, config.get("EXECUTION.MODEL_BUILDER", "colabel_model_builder"))
-    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("EXECUTION.MODEL_BUILDER", "colabel_model_builder"), "models"))
+    model_builder = getattr(model_builder, config.get("MODEL.BUILDER", "colabel_model_builder"))
+    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("MODEL.BUILDER", "colabel_model_builder"), "models"))
     
     if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
         model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
@@ -115,8 +117,8 @@ def main(config, mode, weights):
     colabel_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
-                                soft_dimensions = config.get("MODEL.SOFTMAX",TRAIN_CLASSES), \
-                                embedding_dimensions = config.get("MODEL.EMB_DIM", None), \
+                                soft_dimensions = config.get("MODEL.SOFTMAX_DIMENSIONS",TRAIN_CLASSES), \
+                                embedding_dimensions = config.get("MODEL.EMBEDDING_DIMENSIONS", None), \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **model_kwargs_dict)
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
@@ -234,6 +236,7 @@ def main(config, mode, weights):
                             train_loader = train_generator.dataloader, 
                             test_loader = test_generator.dataloader, 
                             epochs = config.get("EXECUTION.EPOCHS"), 
+                            skipeval = config.get("EXECUTION.SKIPEVAL"),
                             logger = logger, crawler=crawler)
 
     trainer.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))

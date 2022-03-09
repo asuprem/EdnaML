@@ -2,10 +2,13 @@ EXECUTION:
   OPTIMIZER_BUILDER: CoLabelOptimizer
   MODEL_SERVING: None
   EPOCHS: 10
+  SKIPEVAL: True
   TEST_FREQUENCY: 5
   DATAREADER: 
     DATAREADER: CompCars
-    CRAWLER_ARGS: {}
+    CRAWLER_ARGS:
+      data_folder: "Data/CompCars"
+      train_folder: "image"
     DATASET_ARGS: 
       pathidx: 4
       annotationidx: 3
@@ -21,15 +24,10 @@ SAVE:
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
-
-DATASET:
-  ROOT_DATA_FOLDER: "Data/CompCars"
-  TRAIN_FOLDER: "image"
-  TEST_FOLDER: ""
-  VAL_FOLDER: ""
-  SHAPE: [100,100]
+  
 
 TRANSFORMATION:
+  SHAPE: [100,100]
   NORMALIZATION_MEAN: 0.5
   NORMALIZATION_STD: 0.5
   NORMALIZATION_SCALE: 255
@@ -42,9 +40,10 @@ TRANSFORMATION:
   WORKERS: 2
 
 MODEL:
+  BUILDER: colabel_model_builder
   MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'CoLabelResnet'
-  EMB_DIM: 512
+  EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: '{}'
 

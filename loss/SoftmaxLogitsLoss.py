@@ -16,4 +16,4 @@ class SoftmaxLogitsLoss(Loss):
         logits: prediction matrix (before softmax) with shape (batch_size, soft_dim)
         labels: ground truth labels with shape (batch_size)
     """
-    return torch.nn.functional.cross_entropy(logits, labels)
+    return torch.nn.functional.cross_entropy(logits[labels>=0], labels[labels>=0])

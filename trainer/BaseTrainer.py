@@ -11,14 +11,14 @@ class BaseTrainer:
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    epochs, logger, **kwargs):
+                    epochs, skipeval, logger, **kwargs):
         self.model = model
         self.loss_fn = loss_fn
         self.optimizer = optimizer
         self.loss_optimizer = loss_optimizer
         self.scheduler = scheduler
         self.loss_scheduler = loss_scheduler
-        
+        self.skipeval = skipeval
         self.train_loader = train_loader
         self.test_loader = test_loader
         
@@ -196,8 +196,12 @@ class BaseTrainer:
             load_epoch = continue_epoch - 1
             self.load(load_epoch)
 
-        self.logger.info("Performing initial evaluation...")
-        self.initial_evaluate()
+        
+        if not self.skipeval:
+            self.logger.info("Performing initial evaluation...")
+            self.initial_evaluate()
+        else:
+            self.logger.info("Skipping initial evaluation.")
 
         self.logger.info("Starting training from %i"%continue_epoch)
         for epoch in range(self.epochs):
