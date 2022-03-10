@@ -1,6 +1,7 @@
 import os, shutil, logging, glob, re, pdb, json
 import kaptan
 import click
+from datareaders import DataReader
 import utils
 import torch, torchsummary
 
@@ -66,9 +67,7 @@ def main(config, mode, weights):
     # --------------------- BUILD GENERATORS ------------------------
     data_reader_class = config.get("EXECUTION.DATAREADER.DATAREADER", "VehicleColor")
     data_reader = __import__("datareaders."+data_reader_class, fromlist=[data_reader_class])
-    data_reader = getattr(data_reader, data_reader_class) # contains list of imgs inside in crawler.metadata["train"]["crawl"] -->[(img-path, img-class-id), (img-path, img-class-id), ...]
-    del data_reader_class
-
+    data_reader: DataReader = getattr(data_reader, data_reader_class) # contains list of imgs inside in crawler.metadata["train"]["crawl"] -->[(img-path, img-class-id), (img-path, img-class-id), ...]
 
     # data_crawler is now data_reader.CRAWLER
     logger.info("Reading data with DataReader %s"%data_reader_class)
@@ -88,7 +87,7 @@ def main(config, mode, weights):
     if TRAIN_CLASSES is None:
         TRAIN_CLASSES = train_generator.num_entities
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
-                                            i_shape=config.get("DATASET.SHAPE"),
+                                            i_shape=config.get("TRANSFORMATION.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 
                                             normalization_std = NORMALIZATION_STD, 
                                             normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"),
@@ -98,7 +97,7 @@ def main(config, mode, weights):
     test_generator.setup(   crawler, 
                             mode='test', 
                             batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), 
-                            workers=config.get("TRANSFORMATION.WORKERS"), **config.get("EXECUTION.DATAREADER.DATDASET_ARGS"))
+                            workers=config.get("TRANSFORMATION.WORKERS"), **config.get("EXECUTION.DATAREADER.DATASET_ARGS"))
     NUM_CLASSES = train_generator.num_entities
     logger.info("Generated validation data/query generator")
 
@@ -133,11 +132,11 @@ def main(config, mode, weights):
             colabel_model.partial_load(weights)
             logger.info("Completed partial model load from {}".format(weights))
         colabel_model.cuda()
-        logger.info(torchsummary.summary(colabel_model, input_size=(3, *config.get("DATASET.SHAPE"))))
+        logger.info(torchsummary.summary(colabel_model, input_size=(config.get("TRANSFORMATION.CHANNELS"), *config.get("TRANSFORMATION.SHAPE"))))
 
 
     # --------------------- INSTANTIATE LOSS ------------------------
-    from loss import CoLabelLossBuilder
+    from loss import ClassificationLossBuilder
     # NOTE, we need to edit this to reflect the fact that LOSS is now an array.
     # We need to create a loss function for each lonn in array
     # Then pass in this loss array to the trainer function
@@ -148,7 +147,7 @@ def main(config, mode, weights):
     # to use in the config file for that model_builder to work properly. So a multi-branch model builder will tell us that the template should correspond to multiple
     # outputs...
     loss_function_array = [
-        CoLabelLossBuilder(loss_functions=loss_item["LOSSES"], loss_lambda=loss_item["LAMBDAS"], loss_kwargs=loss_item["KWARGS"], **{"logger":logger})
+        ClassificationLossBuilder(loss_functions=loss_item["LOSSES"], loss_lambda=loss_item["LAMBDAS"], loss_kwargs=loss_item["KWARGS"], **{"logger":logger})
         for loss_item in config.get("LOSS")
     ]
     logger.info("Built loss function")

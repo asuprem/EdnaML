@@ -41,8 +41,8 @@ TRANSFORMATION:
 
 MODEL:
   BUILDER: colabel_model_builder
-  MODEL_BASE: 'resnet18'
   MODEL_ARCH: 'CoLabelResnet'
+  MODEL_BASE: 'resnet18'
   EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: '{}'
