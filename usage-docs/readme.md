@@ -2,10 +2,21 @@
 
 This is the readme for the EdnaML experimentation framework. You should read through this to set up coniguration and reference in the subfiles any configuration options not directly covered.
 
+## Directories and Files
+
+[`config.md`](config.md) provides overall configuration options for EdnaML
+
+[`config-reference`](config-reference) provides detailed configuration options
+
+[`sample-configs`](sample-configs) provides sample configuration files
+
+[`config-full.yml`](config-full.yml) provides a sample full configuration file
+
+[`docs`](docs) contains documentation for the codebase
 
 # How it works
 
-EdnaML takes in a configuration file. The configuration file sections are described in [`config.md`]("./config.md").
+EdnaML takes in a configuration file. The configuration file sections are described in [`config.md`](config.md).
 
 Execution requires an experiment file, and a configuration file.
 

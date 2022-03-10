@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('...'))
+sys.path.insert(0, os.path.abspath('....'))
 
 
 # -- Project information -----------------------------------------------------
@@ -22,7 +22,7 @@ copyright = '2019, Abhijit Suprem'
 author = 'Abhijit Suprem'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.3'
+release = 'v0.4'
 
 
 # -- General configuration ---------------------------------------------------
