@@ -6,7 +6,7 @@ It stores tuples containing the CompCars annotations for each sample.
 
 Tuple is of the form:
 
-(makeid, modelid, releasedyear, type, path/to/image)
+(make, model, releasedyear, type, path/to/image)
 
 - makeid: starts at 0 in tuple. Starts at 1 in dataset. See classes["make"] for human readable names
 - modelid: starts at 0 in tuple. Starts at 1 in dataset. See classes["model"] for human readable names
