@@ -13,8 +13,8 @@ EXECUTION:
       testfile: "test.txt"
     DATASET_ARGS: 
       pathidx: 4
-      annotationidx: 3
-      classificationclass: type
+      annotationidx: 0
+      classificationclass: make
     GENERATOR_ARGS: {}      
     DATALOADER_ARGS: {}
 
@@ -22,7 +22,7 @@ SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "colabel_devel"
   MODEL_BACKBONE: "res18"
-  MODEL_QUALIFIER: "type"
+  MODEL_QUALIFIER: "make"
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
