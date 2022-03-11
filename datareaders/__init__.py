@@ -14,3 +14,4 @@ class DataReader:
         pass
 
 from .VehicleColor import VehicleColor
+from .CompCars import CompCars

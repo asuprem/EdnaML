@@ -24,6 +24,11 @@ from scipy.io import loadmat
 class CoLabelCompCarsCrawler:
     """Data crawler for CompCars Data dataset (NOT for sv-data)
     """
+    makeidx=0
+    modelidx=1
+    yearidx=2
+    typeidx=3
+    pathidx=4
 
     def __init__(self,data_folder="CompCars", train_folder="image", **kwargs):
         self.metadata = {}
@@ -78,7 +83,8 @@ class CoLabelCompCarsCrawler:
         del tmat
         
         # Get the Model-IDs to Car Type dictionary from the attributes file
-        model_id_type_dict = {}
+        # attributes file --> (model_id maximum_speed displacement door_number seat_number type)
+        model_id_type_dict = {} 
         with open(os.path.join(os.path.join(self.data_folder, "misc"), "attributes.txt"), "r") as attr_file:
             attr_file.readline()
             for line in attr_file:
@@ -90,24 +96,48 @@ class CoLabelCompCarsCrawler:
         class_folder = os.path.join(split_folder, "classification")
         
 
-        self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
+        self.metadata["train"], self.metadata["test"], self.metadata["val"], self.metadata["full"]= {}, {}, {}, {}
         self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(class_folder, "train.txt", model_id_type_dict)
         self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, "test.txt", model_id_type_dict)
         self.metadata["val"]["crawl"], self.metadata["val"]["imgs"] = [], 0
+        # full is usually handled in generator
+        self.metadata["full"]["crawl"], self.metadata["full"]["imgs"] = [], 0
 
-        self.metadata["train"]["classes"] = {}
-        self.metadata["train"]["classes"]["type"] = len(self.classes["type"])
-        self.metadata["train"]["classes"]["model"] = len(self.classes["model"])
-        self.metadata["train"]["classes"]["make"] = len(self.classes["make"])
-        self.metadata["test"]["classes"] = {}
-        self.metadata["test"]["classes"]["type"] = len(self.classes["type"])
-        self.metadata["test"]["classes"]["model"] = len(self.classes["model"])
-        self.metadata["test"]["classes"]["make"] = len(self.classes["make"])
-        self.metadata["val"]["classes"] = {}
-        self.metadata["val"]["classes"]["type"] = len(self.classes["type"])
-        self.metadata["val"]["classes"]["model"] = len(self.classes["model"])
-        self.metadata["val"]["classes"]["make"] = len(self.classes["make"])
 
+        # Here we need to perform some data cleaning
+        # Namely, the make, model, and year ids are the raw make model 
+        # We need to convert them a bit, in that we need only the make model and year that exist, and have them be consistent across train and test
+        self.existingmakes = {original:remapped for remapped,original in enumerate(set([item[self.makeidx] for item in self.metadata["train"]["crawl"]]))}
+        self.existingmodels = {original:remapped for remapped,original in enumerate(set([item[self.modelidx] for item in self.metadata["train"]["crawl"]]))}
+        self.existingyears = {original:remapped for remapped,original in enumerate(set([item[self.yearidx] for item in self.metadata["train"]["crawl"]]))}
+
+        self.metadata["train"]["crawl"] = [
+          [self.existingmakes[sampletuple[self.makeidx]],
+            self.existingmodels[sampletuple[self.modelidx]],
+            self.existingyears[sampletuple[self.yearidx]],
+            sampletuple[self.typeidx],
+            sampletuple[self.pathidx]] 
+          for sampletuple in self.metadata["train"]["crawl"]]
+        self.metadata["test"]["crawl"] = [
+          [self.existingmakes[sampletuple[self.makeidx]],
+            self.existingmodels[sampletuple[self.modelidx]],
+            self.existingyears[sampletuple[self.yearidx]],
+            sampletuple[self.typeidx],
+            sampletuple[self.pathidx]] 
+          for sampletuple in self.metadata["test"]["crawl"]]
+
+
+        # Now is when we have the year information
+        self.classes["year"] = self.existingyears
+
+        # set up the necessary class information...
+        for meta in ["train", "test", "val", "full"]:
+          self.metadata[meta]["classes"] = {}
+          self.metadata[meta]["classes"]["type"] = len(self.classes["type"])
+          self.metadata[meta]["classes"]["model"] = len(self.existingmodels)
+          self.metadata[meta]["classes"]["make"] = len(self.existingmakes)
+          self.metadata[meta]["classes"]["year"] = len(self.classes["year"])
+        
 
 
     def __crawl(self, folder, file, model_type_dict):
@@ -119,13 +149,13 @@ class CoLabelCompCarsCrawler:
                 parsed_line = line.strip().split("/")[:3]
                 parsed_line.append(model_type_dict[parsed_line[1]])
                 parsed_line = [self.convert(item)-1 for item in parsed_line]     # WE RESET LABELS TO 0!!!!!!!!!!!! NOTE NOTE NOTE NOTE 
+                parsed_line[2]=parsed_line[2]+1
                 parsed_line.append(os.path.join(basepath, line.strip()))
                 data_tuple.append(tuple(parsed_line))
         return data_tuple, len(data_tuple)
         # Now we calculate the number for each class
 
     def convert(self,val):
-      try:
-        return int(val)
-      except ValueError:
-        return 0
+      if val=="unknown":  #For year...
+        return -1
+      return int(val)
