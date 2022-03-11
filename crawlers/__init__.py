@@ -1,6 +1,7 @@
 # Vehicle Re-ID Crawlers
 from .VeRiDataCrawler import VeRiDataCrawler
 from .VRICDataCrawler import VRICDataCrawler
+from .VehicleIDDataCrawler import VehicleIDDataCrawler
 
 # Carzam crawlers
 from .Cars196DataCrawler import Cars196DataCrawler
@@ -11,6 +12,10 @@ from .ClassedCrawler import ClassedCrawler
 
 # CoLabelCrawlers
 from .CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler
+from .CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
+KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
+
+from .CoLabelCompCarsCrawler import CoLabelCompCarsCrawler
 
 import os
 class Crawler:

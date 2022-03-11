@@ -76,12 +76,6 @@ class CoLabelDeployGenerator:
         transformer_primitive.append(T.Normalize(mean=normalization_mean, std=normalization_std))
         self.transformer = T.Compose(transformer_primitive)
 
-        transformer_primitive_predict = []
-        transformer_primitive_predict.append(T.Resize(size=i_shape))
-        transformer_primitive_predict.append(T.ToTensor())
-        transformer_primitive_predict.append(T.Normalize(mean=normalization_mean, std=normalization_std))
-        self.transformer_predict = T.Compose(transformer_primitive_predict)
-
         self.jpegs = kwargs.get("JPEG")
 
 
@@ -103,9 +97,9 @@ class CoLabelDeployGenerator:
             raise NotImplementedError()
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer_predict, self.jpegs)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], self.transformer, self.jpegs)
         elif mode == "full":
-            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer_predict, self.jpegs)
+            self.__dataset = CoLabelDeployDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], self.transformer, self.jpegs)
         else:
             raise NotImplementedError()
 

@@ -48,5 +48,6 @@ class LossBuilder(nn.Module):
 from .ReIDLossBuilder import ReIDLossBuilder
 from .CarZamLossBuilder import CarZamLossBuilder
 from .CoLabelLossBuilder import CoLabelLossBuilder
+ClassificationLossBuilder = CoLabelLossBuilder
 
 

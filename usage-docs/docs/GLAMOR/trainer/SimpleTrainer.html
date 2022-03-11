@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>GLAMOR.trainer.SimpleTrainer API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>GLAMOR.trainer.SimpleTrainer</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import tqdm
+from collections import defaultdict, OrderedDict
+from sklearn.metrics import average_precision_score
+import shutil
+import os
+import torch
+import numpy as np
+from scipy.spatial.distance import cdist
+import loss.builders
+
+from .BaseTrainer import BaseTrainer
+
+import pdb
+
+class SimpleTrainer(BaseTrainer):
+    try:
+        #apex = __import__(&#39;apex&#39;)
+        # TODO TODO TODO HIGH PRIORITY APEX disabled because of loss optimizer. Do not know if apex will work without scaled_loss on loss_optimizer&#39;s model, which is actually a &#34;list&#34; of models...
+        apex = None
+    except:
+        apex = None
+    def __init__(   self, 
+                    model: torch.nn.Module, 
+                    loss_fn: loss.builders.LossBuilder, 
+                    optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
+                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
+                    train_loader, test_loader, 
+                    queries: int, epochs: int, logger, **kwargs):   #kwargs includes crawler
+        
+        super(SimpleTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
+        
+        self.queries = queries
+        self.loss = []
+        self.softaccuracy = []
+
+        self.crawler = kwargs.get(&#34;crawler&#34;, None)
+
+    # setup inherited from BaseTrainer
+
+    
+    def step(self,batch):
+        self.model.train()
+        self.optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.zero_grad()
+        batch_kwargs = {}
+        img, batch_kwargs[&#34;labels&#34;] = batch
+        img, batch_kwargs[&#34;labels&#34;] = img.cuda(), batch_kwargs[&#34;labels&#34;].cuda()
+        # logits, features, labels
+        batch_kwargs[&#34;logits&#34;], batch_kwargs[&#34;features&#34;] = self.model(img)
+        batch_kwargs[&#34;epoch&#34;] = self.global_epoch   # For CompactContrastiveLoss
+        loss = self.loss_fn(**batch_kwargs)
+        if self.fp16 and self.apex is not None:
+            with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
+        self.optimizer.step()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.step()
+        
+        self.loss.append(loss.cpu().item())
+        
+        if batch_kwargs[&#34;logits&#34;] is not None:
+            softmax_accuracy = (batch_kwargs[&#34;logits&#34;].max(1)[1] == batch_kwargs[&#34;labels&#34;]).float().mean()
+            self.softaccuracy.append(softmax_accuracy.cpu().item())
+        else:
+            self.softaccuracy.append(0)
+        
+        
+
+    def train(self,continue_epoch = 0):    
+        self.logger.info(&#34;Starting training&#34;)
+        self.logger.info(&#34;Logging to:\t%s&#34;%self.logger_file)
+        self.logger.info(&#34;Models will be saved to local directory:\t%s&#34;%self.save_directory)
+        if self.save_backup:
+            self.logger.info(&#34;Models will be backed up to drive directory:\t%s&#34;%self.backup_directory)
+        self.logger.info(&#34;Models will be saved with base name:\t%s_epoch[].pth&#34;%self.model_save_name)
+        self.logger.info(&#34;Optimizers will be saved with base name:\t%s_epoch[]_optimizer.pth&#34;%self.model_save_name)
+        self.logger.info(&#34;Schedulers will be saved with base name:\t%s_epoch[]_scheduler.pth&#34;%self.model_save_name)
+        
+
+        if continue_epoch &gt; 0:
+            load_epoch = continue_epoch - 1
+            self.load(load_epoch)
+
+        self.logger.info(&#34;Performing initial evaluation...&#34;)
+        #self.initial_evaluate()
+
+        for epoch in range(self.epochs):
+            if epoch &gt;= continue_epoch:
+                for batch in self.train_loader:
+                    if not self.global_batch:
+                        lrs = self.scheduler.get_lr(); lrs = sum(lrs)/float(len(lrs))
+                        self.logger.info(&#34;Starting epoch {0} with {1} steps and learning rate {2:2.5E}&#34;.format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
+                    self.step(batch)
+                    self.global_batch += 1
+                    if (self.global_batch + 1) % self.step_verbose == 0:
+                        loss_avg = sum(self.loss[-100:]) / float(len(self.loss[-100:]))
+                        soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
+                        self.logger.info(&#39;Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}&#39;.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
+                self.global_batch = 0
+                self.scheduler.step()
+                if self.loss_scheduler is not None:
+                    self.loss_scheduler.step()
+                self.logger.info(&#39;{0} Completed epoch {1} {2}&#39;.format(&#39;*&#39;*10, self.global_epoch, &#39;*&#39;*10))
+                if self.global_epoch % self.test_frequency == 0:
+                    self.evaluate()
+                if self.global_epoch % self.save_frequency == 0:
+                    self.save()
+                self.global_epoch += 1
+            else:
+                self.global_epoch = epoch+1
+
+
+    # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
+    def eval_vid(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
+        &#34;&#34;&#34;Evaluation with veri metric
+        &#34;&#34;&#34;
+        num_q, num_g = distmat.shape
+
+        if num_g &lt; max_rank:
+            max_rank = num_g
+            print(&#39;Note: number of gallery samples is quite small, got {}&#39;.format(num_g))
+
+        indices = np.argsort(distmat, axis=1)
+        matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+        # compute cmc curve for each query
+        all_cmc = []
+        all_AP = []
+        num_valid_q = 0.  # number of valid query
+    
+        for q_idx in range(num_q):
+            # get query pid and camid
+            q_pid = q_pids[q_idx]
+            q_camid = q_camids[q_idx]
+
+            # remove gallery samples that have the same pid and camid with query
+            order = indices[q_idx]
+            #remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+            remove = (g_pids[order] == -1)
+            keep = np.invert(remove)
+
+            # compute cmc curve
+            raw_cmc = matches[q_idx][keep]  # binary vector, positions with value 1 are correct matches
+            if not np.any(raw_cmc):
+                # this condition is true when query identity does not appear in gallery
+                continue
+
+            cmc = raw_cmc.cumsum()
+            cmc[cmc &gt; 1] = 1
+
+            all_cmc.append(cmc[:max_rank])
+            num_valid_q += 1.
+
+            # compute average precision
+            # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+            num_rel = raw_cmc.sum()
+            tmp_cmc = raw_cmc.cumsum()
+            tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+            tmp_cmc = np.asarray(tmp_cmc) * raw_cmc
+            AP = tmp_cmc.sum() / num_rel
+            all_AP.append(AP)
+
+        assert num_valid_q &gt; 0, &#39;Error: all query identities do not appear in gallery&#39;
+
+        all_cmc = np.asarray(all_cmc).astype(np.float32)
+        all_cmc = all_cmc.sum(0) / num_valid_q
+        mAP = np.mean(all_AP)
+
+        return all_cmc, mAP
+
+
+    def evaluate(self):
+        self.model.eval()
+        features, pids, cids, imgs = [], [], [], []
+        with torch.no_grad():
+            for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
+                data, pid, camid, img = batch
+                data = data.cuda()
+                feature = self.model(data).detach().cpu()
+                features.append(feature)
+                pids.append(pid)
+                cids.append(camid)
+                imgs+=list(img)
+        
+        # For market 1501
+        features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
+        &#34;&#34;&#34;
+        if self.crawler is not None:
+            track_features = [[] for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+            #track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+            track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_count = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            #pdb.set_trace()
+            #count = 0
+            for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+                track_count[track_idx]+=1
+                track_pid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+                track_cid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+                track_features[track_idx].append(features[idx])
+                track_pids[track_idx] = track_pid
+                track_cids[track_idx] = track_cid
+            
+            #for idx,feats in enumerate(track_features): # Get average of features
+            #    track_features[idx] = feats / track_count[idx]  # maybe max...?
+
+            #track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+        else:
+            track_features, track_pids, track_cids = None, None, None
+        &#34;&#34;&#34;
+        feature_to_track_map = {}
+        if &#34;track&#34; in self.crawler.metadata:
+            track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+                feature_to_track_map[idx] = track_idx
+                track_pids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+                track_cids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+            track_pids, track_cids = torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+
+        query_features, gallery_features = features[:self.queries], features[self.queries:]
+        query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
+        query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
+
+        
+        self.logger.info(&#39;Obtained features&#39;)
+        #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+        distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+        self.logger.info(&#39;Got query-to-gallery distances&#39;)
+        if &#34;track&#34; in self.crawler.metadata:
+            track_distmat = self.build_track_distmat(distmat, feature_to_track_map)
+            self.logger.info(&#39;Got query-to-track distances&#39;)
+        qqdistmat = self.query_to_gallery_distances(query_features, query_features)
+        self.logger.info(&#39;Got query-to-query distances&#39;)
+        ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
+        self.logger.info(&#39;Got gallery-to-gallery distances&#39;)
+
+        rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
+        self.logger.info(&#39;Got rerank distances&#39;)
+
+        #distmat=  distmat.numpy()
+        self.logger.info(&#39;Validation in progress&#39;)
+        #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
+        m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        self.logger.info(&#39;Completed market-1501 CMC&#39;)
+        #c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
+        #self.logger.info(&#39;Completed CUHK CMC&#39;)
+        r_cmc = self.cmc(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        self.logger.info(&#39;Completed Re-Rank&#39;)
+        
+        if &#34;track&#34; in self.crawler.metadata:
+            v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+            v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
+            self.logger.info(&#39;Completed VeRi-776 CMC&#39;)
+
+
+        # Reranking
+        
+        mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+        r_mAP = self.mean_ap(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+
+        self.logger.info(&#39;Completed mAP Calculation&#39;)
+        
+        if &#34;track&#34; in self.crawler.metadata:
+            self.logger.info(&#39;VeRi-mAP: {:.2%}&#39;.format(v_mAP))
+            for r in [1,2, 3, 4, 5]:
+                self.logger.info(&#39;VeRi CMC Rank-{}: {:.2%}&#39;.format(r, v_cmc[r-1]))
+
+        self.logger.info(&#39;mAP: {:.2%}&#39;.format(mAP))
+        #self.logger.info(&#39;VID_mAP: {:.2%}&#39;.format(v_mAP))
+        for r in [1,2, 3, 4, 5]:
+            self.logger.info(&#39;Market-1501 CMC Rank-{}: {:.2%}&#39;.format(r, m_cmc[r-1]))
+        self.logger.info(&#39;Re-rank mAP: {:.2%}&#39;.format(r_mAP))
+        for r in [1,2, 3, 4, 5]:
+            self.logger.info(&#39;ReRank CMC Rank-{}: {:.2%}&#39;.format(r, r_cmc[r-1]))
+        #for r in [1,2, 3, 4, 5,10,15,20]:
+        #    self.logger.info(&#39;CUHK CMC Rank-{}: {:.2%}&#39;.format(r, c_cmc[r-1]))
+        
+  
+    def query_to_gallery_distances(self, qf, gf):
+        # distancesis sqrt(sum((a-b)^2))
+        # so a^2 + b^2 - 2ab
+        a2b2 = torch.pow(qf, 2).sum(1, keepdim=True).expand(qf.size(0), gf.size(0))
+        a2b2 = a2b2 + torch.pow(gf, 2).sum(1, keepdim=True).expand(gf.size(0), qf.size(0)).t()
+        eu= torch.addmm(1,a2b2, -2, qf, gf.t())
+        eu = eu.clamp(min=1e-12).sqrt()
+        return eu
+
+    def cosine_query_to_gallery_distances(self, qf, gf):
+        # distancesis sqrt(sum((a-b)^2))
+        # so a^2 + b^2 - 2ab
+        return cdist(qf, gf, metric=&#39;cosine&#39;)
+
+
+
+    # https://github.com/Cysu/open-reid/blob/master/reid/evaluation_metrics/ranking.py
+    def mean_ap(self,distmat, query_ids=None, gallery_ids=None,
+            query_cams=None, gallery_cams=None):
+        distmat = distmat
+        m, n = distmat.shape
+        if query_ids is None:
+            query_ids = np.arange(m)
+        if gallery_ids is None:
+            gallery_ids = np.arange(n)
+        if query_cams is None:
+            query_cams = np.zeros(m).astype(np.int32)
+        if gallery_cams is None:
+            gallery_cams = np.ones(n).astype(np.int32)
+        query_ids = np.asarray(query_ids)
+        gallery_ids = np.asarray(gallery_ids)
+        query_cams = np.asarray(query_cams)
+        gallery_cams = np.asarray(gallery_cams)
+        # Sort and find correct matches
+        indices = np.argsort(distmat, axis=1)
+        matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+        # Compute AP for each query
+        aps = []
+        for i in range(m):
+            # Filter out the same id and same camera
+            valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                    (gallery_cams[indices[i]] != query_cams[i]))
+            y_true = matches[i, valid]
+            y_score = -distmat[i][indices[i]][valid]
+            if not np.any(y_true): continue
+            aps.append(average_precision_score(y_true, y_score))
+        if len(aps) == 0:
+            raise RuntimeError(&#34;No valid query&#34;)
+        return np.mean(aps)
+
+    # https://github.com/Cysu/open-reid/blob/master/reid/evaluation_metrics/ranking.py
+    def cmc(self,distmat, query_ids=None, gallery_ids=None,
+        query_cams=None, gallery_cams=None, topk=100,
+        separate_camera_set=False,
+        single_gallery_shot=False,
+        first_match_break=False):
+        m, n = distmat.shape
+        # Sort and find correct matches
+        indices = np.argsort(distmat, axis=1)
+        matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+        # Compute CMC for each query
+        ret = np.zeros(topk)
+        num_valid_queries = 0
+        for i in range(m):
+            # Filter out the same id and same camera
+            valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                    (gallery_cams[indices[i]] != query_cams[i]))
+            if separate_camera_set:
+                # Filter out samples from same camera
+                valid &amp;= (gallery_cams[indices[i]] != query_cams[i])
+            if not np.any(matches[i, valid]): continue
+            if single_gallery_shot:
+                repeat = 10
+                gids = gallery_ids[indices[i][valid]]
+                inds = np.where(valid)[0]
+                ids_dict = defaultdict(list)
+                for j, x in zip(inds, gids):
+                    ids_dict[x].append(j)
+            else:
+                repeat = 1
+            for _ in range(repeat):
+                if single_gallery_shot:
+                    # Randomly choose one instance for each id
+                    sampled = (valid &amp; self._unique_sample(ids_dict, len(valid)))
+                    index = np.nonzero(matches[i, sampled])[0]
+                else:
+                    index = np.nonzero(matches[i, valid])[0]
+                delta = 1. / (len(index) * repeat)
+                for j, k in enumerate(index):
+                    if k - j &gt;= topk: break
+                    if first_match_break:
+                        ret[k - j] += 1
+                        break
+                    ret[k - j] += delta
+            num_valid_queries += 1
+        if num_valid_queries == 0:
+            raise RuntimeError(&#34;No valid query&#34;)
+        return ret.cumsum() / num_valid_queries
+
+    def _unique_sample(self,ids_dict, num):
+        mask = np.zeros(num, dtype=np.bool)
+        for _, indices in ids_dict.items():
+            i = np.random.choice(indices)
+            mask[i] = True
+        return mask
+
+
+    def eval_func(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
+        &#34;&#34;&#34;Evaluation with market1501 metric
+            Key: for each query identity, its gallery images from the same camera view are discarded.
+            &#34;&#34;&#34;
+        num_q, num_g = distmat.shape
+        if num_g &lt; max_rank:
+            max_rank = num_g
+            print(&#34;Note: number of gallery samples is quite small, got {}&#34;.format(num_g))
+        indices = np.argsort(distmat, axis=1)
+        matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+        # compute cmc curve for each query
+        all_cmc = []
+        all_AP = []
+        num_valid_q = 0.  # number of valid query
+        for q_idx in range(num_q):
+            # get query pid and camid
+            q_pid = q_pids[q_idx]
+            q_camid = q_camids[q_idx]
+
+            # remove gallery samples that have the same pid and camid with query
+            order = indices[q_idx]
+            remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+            keep = np.invert(remove)
+
+            # compute cmc curve
+            # binary vector, positions with value 1 are correct matches
+            orig_cmc = matches[q_idx][keep]
+            if not np.any(orig_cmc):
+                # this condition is true when query identity does not appear in gallery
+                continue
+
+            cmc = orig_cmc.cumsum()
+            cmc[cmc &gt; 1] = 1
+
+            all_cmc.append(cmc[:max_rank])
+            num_valid_q += 1.
+
+            # compute average precision
+            # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+            num_rel = orig_cmc.sum()
+            tmp_cmc = orig_cmc.cumsum()
+            tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+            tmp_cmc = np.asarray(tmp_cmc) * orig_cmc
+            AP = tmp_cmc.sum() / num_rel
+            all_AP.append(AP)
+
+        assert num_valid_q &gt; 0, &#34;Error: all query identities do not appear in gallery&#34;
+
+        all_cmc = np.asarray(all_cmc).astype(np.float32)
+        all_cmc = all_cmc.sum(0) / num_valid_q
+        mAP = np.mean(all_AP)
+
+        return all_cmc, mAP, all_AP
+
+
+    def k_reciprocal_neigh(self,initial_rank, i, k1):
+        forward_k_neigh_index = initial_rank[i,:k1+1]
+        backward_k_neigh_index = initial_rank[forward_k_neigh_index,:k1+1]
+        fi = np.where(backward_k_neigh_index==i)[0]
+        return forward_k_neigh_index[fi]
+
+    def rerank(self,q_g_dist, q_q_dist, g_g_dist, k1=20, k2=6, lambda_value=0.3):
+        # The following naming, e.g. gallery_num, is different from outer scope.
+        # Don&#39;t care about it.
+        original_dist = np.concatenate(
+        [np.concatenate([q_q_dist, q_g_dist], axis=1),
+        np.concatenate([q_g_dist.T, g_g_dist], axis=1)],
+        axis=0)
+        original_dist = 2. - 2 * original_dist   # change the cosine similarity metric to euclidean similarity metric
+        original_dist = np.power(original_dist, 2).astype(np.float32)
+        original_dist = np.transpose(1. * original_dist/np.max(original_dist,axis = 0))
+        V = np.zeros_like(original_dist).astype(np.float32)
+        #initial_rank = np.argsort(original_dist).astype(np.int32)
+        # top K1+1
+        initial_rank = np.argpartition( original_dist, range(1,k1+1) )
+
+        query_num = q_g_dist.shape[0]
+        all_num = original_dist.shape[0]
+
+        for i in range(all_num):
+            # k-reciprocal neighbors
+            k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, i, k1)
+            k_reciprocal_expansion_index = k_reciprocal_index
+            for j in range(len(k_reciprocal_index)):
+                candidate = k_reciprocal_index[j]
+                candidate_k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, candidate, int(np.around(k1/2)))
+                if len(np.intersect1d(candidate_k_reciprocal_index,k_reciprocal_index))&gt; 2./3*len(candidate_k_reciprocal_index):
+                    k_reciprocal_expansion_index = np.append(k_reciprocal_expansion_index,candidate_k_reciprocal_index)
+
+            k_reciprocal_expansion_index = np.unique(k_reciprocal_expansion_index)
+            weight = np.exp(-original_dist[i,k_reciprocal_expansion_index])
+            V[i,k_reciprocal_expansion_index] = 1.*weight/np.sum(weight)
+
+        original_dist = original_dist[:query_num,]
+        if k2 != 1:
+            V_qe = np.zeros_like(V,dtype=np.float32)
+            for i in range(all_num):
+                V_qe[i,:] = np.mean(V[initial_rank[i,:k2],:],axis=0)
+            V = V_qe
+            del V_qe
+        del initial_rank
+        invIndex = []
+        for i in range(all_num):
+            invIndex.append(np.where(V[:,i] != 0)[0])
+
+        jaccard_dist = np.zeros_like(original_dist,dtype = np.float32)
+
+        for i in range(query_num):
+            temp_min = np.zeros(shape=[1,all_num],dtype=np.float32)
+            indNonZero = np.where(V[i,:] != 0)[0]
+            indImages = []
+            indImages = [invIndex[ind] for ind in indNonZero]
+            for j in range(len(indNonZero)):
+                temp_min[0,indImages[j]] = temp_min[0,indImages[j]]+ np.minimum(V[i,indNonZero[j]],V[indImages[j],indNonZero[j]])
+            jaccard_dist[i] = 1-temp_min/(2.-temp_min)
+
+        final_dist = jaccard_dist*(1-lambda_value) + original_dist*lambda_value
+        del original_dist
+        del V
+        del jaccard_dist
+        final_dist = final_dist[:query_num,query_num:]
+        return final_dist
+
+    def build_track_distmat(self,distmat, feature_to_track_map):
+        # distmat has shape [num_queries, num_gallery]
+        num_tracks = len(set(feature_to_track_map.values()))
+        track_distmat = np.full((distmat.shape[0], num_tracks), np.inf)
+        for q in range(distmat.shape[0]):
+            for g in range(distmat.shape[1]):
+                #q, g are indices
+                dist_val = distmat[q][g]
+                track_idx = feature_to_track_map[g]
+                if dist_val &lt; track_distmat[q][track_idx]:
+                    track_distmat[q][track_idx] = dist_val
+        return track_distmat</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer"><code class="flex name class">
+<span>class <span class="ident">SimpleTrainer</span></span>
+<span>(</span><span>model: torch.nn.modules.module.Module, loss_fn: loss.builders.LossBuilder, optimizer: torch.optim.optimizer.Optimizer, loss_optimizer: torch.optim.optimizer.Optimizer, scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, train_loader, test_loader, queries: int, epochs: int, logger, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SimpleTrainer(BaseTrainer):
+    try:
+        #apex = __import__(&#39;apex&#39;)
+        # TODO TODO TODO HIGH PRIORITY APEX disabled because of loss optimizer. Do not know if apex will work without scaled_loss on loss_optimizer&#39;s model, which is actually a &#34;list&#34; of models...
+        apex = None
+    except:
+        apex = None
+    def __init__(   self, 
+                    model: torch.nn.Module, 
+                    loss_fn: loss.builders.LossBuilder, 
+                    optimizer: torch.optim.Optimizer, loss_optimizer: torch.optim.Optimizer, 
+                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
+                    train_loader, test_loader, 
+                    queries: int, epochs: int, logger, **kwargs):   #kwargs includes crawler
+        
+        super(SimpleTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, logger)
+        
+        self.queries = queries
+        self.loss = []
+        self.softaccuracy = []
+
+        self.crawler = kwargs.get(&#34;crawler&#34;, None)
+
+    # setup inherited from BaseTrainer
+
+    
+    def step(self,batch):
+        self.model.train()
+        self.optimizer.zero_grad()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.zero_grad()
+        batch_kwargs = {}
+        img, batch_kwargs[&#34;labels&#34;] = batch
+        img, batch_kwargs[&#34;labels&#34;] = img.cuda(), batch_kwargs[&#34;labels&#34;].cuda()
+        # logits, features, labels
+        batch_kwargs[&#34;logits&#34;], batch_kwargs[&#34;features&#34;] = self.model(img)
+        batch_kwargs[&#34;epoch&#34;] = self.global_epoch   # For CompactContrastiveLoss
+        loss = self.loss_fn(**batch_kwargs)
+        if self.fp16 and self.apex is not None:
+            with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward()
+        self.optimizer.step()
+        if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+            self.loss_optimizer.step()
+        
+        self.loss.append(loss.cpu().item())
+        
+        if batch_kwargs[&#34;logits&#34;] is not None:
+            softmax_accuracy = (batch_kwargs[&#34;logits&#34;].max(1)[1] == batch_kwargs[&#34;labels&#34;]).float().mean()
+            self.softaccuracy.append(softmax_accuracy.cpu().item())
+        else:
+            self.softaccuracy.append(0)
+        
+        
+
+    def train(self,continue_epoch = 0):    
+        self.logger.info(&#34;Starting training&#34;)
+        self.logger.info(&#34;Logging to:\t%s&#34;%self.logger_file)
+        self.logger.info(&#34;Models will be saved to local directory:\t%s&#34;%self.save_directory)
+        if self.save_backup:
+            self.logger.info(&#34;Models will be backed up to drive directory:\t%s&#34;%self.backup_directory)
+        self.logger.info(&#34;Models will be saved with base name:\t%s_epoch[].pth&#34;%self.model_save_name)
+        self.logger.info(&#34;Optimizers will be saved with base name:\t%s_epoch[]_optimizer.pth&#34;%self.model_save_name)
+        self.logger.info(&#34;Schedulers will be saved with base name:\t%s_epoch[]_scheduler.pth&#34;%self.model_save_name)
+        
+
+        if continue_epoch &gt; 0:
+            load_epoch = continue_epoch - 1
+            self.load(load_epoch)
+
+        self.logger.info(&#34;Performing initial evaluation...&#34;)
+        #self.initial_evaluate()
+
+        for epoch in range(self.epochs):
+            if epoch &gt;= continue_epoch:
+                for batch in self.train_loader:
+                    if not self.global_batch:
+                        lrs = self.scheduler.get_lr(); lrs = sum(lrs)/float(len(lrs))
+                        self.logger.info(&#34;Starting epoch {0} with {1} steps and learning rate {2:2.5E}&#34;.format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
+                    self.step(batch)
+                    self.global_batch += 1
+                    if (self.global_batch + 1) % self.step_verbose == 0:
+                        loss_avg = sum(self.loss[-100:]) / float(len(self.loss[-100:]))
+                        soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
+                        self.logger.info(&#39;Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}&#39;.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
+                self.global_batch = 0
+                self.scheduler.step()
+                if self.loss_scheduler is not None:
+                    self.loss_scheduler.step()
+                self.logger.info(&#39;{0} Completed epoch {1} {2}&#39;.format(&#39;*&#39;*10, self.global_epoch, &#39;*&#39;*10))
+                if self.global_epoch % self.test_frequency == 0:
+                    self.evaluate()
+                if self.global_epoch % self.save_frequency == 0:
+                    self.save()
+                self.global_epoch += 1
+            else:
+                self.global_epoch = epoch+1
+
+
+    # https://github.com/Jakel21/vehicle-ReID-baseline/blob/master/vehiclereid/eval_metrics.py
+    def eval_vid(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
+        &#34;&#34;&#34;Evaluation with veri metric
+        &#34;&#34;&#34;
+        num_q, num_g = distmat.shape
+
+        if num_g &lt; max_rank:
+            max_rank = num_g
+            print(&#39;Note: number of gallery samples is quite small, got {}&#39;.format(num_g))
+
+        indices = np.argsort(distmat, axis=1)
+        matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+        # compute cmc curve for each query
+        all_cmc = []
+        all_AP = []
+        num_valid_q = 0.  # number of valid query
+    
+        for q_idx in range(num_q):
+            # get query pid and camid
+            q_pid = q_pids[q_idx]
+            q_camid = q_camids[q_idx]
+
+            # remove gallery samples that have the same pid and camid with query
+            order = indices[q_idx]
+            #remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+            remove = (g_pids[order] == -1)
+            keep = np.invert(remove)
+
+            # compute cmc curve
+            raw_cmc = matches[q_idx][keep]  # binary vector, positions with value 1 are correct matches
+            if not np.any(raw_cmc):
+                # this condition is true when query identity does not appear in gallery
+                continue
+
+            cmc = raw_cmc.cumsum()
+            cmc[cmc &gt; 1] = 1
+
+            all_cmc.append(cmc[:max_rank])
+            num_valid_q += 1.
+
+            # compute average precision
+            # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+            num_rel = raw_cmc.sum()
+            tmp_cmc = raw_cmc.cumsum()
+            tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+            tmp_cmc = np.asarray(tmp_cmc) * raw_cmc
+            AP = tmp_cmc.sum() / num_rel
+            all_AP.append(AP)
+
+        assert num_valid_q &gt; 0, &#39;Error: all query identities do not appear in gallery&#39;
+
+        all_cmc = np.asarray(all_cmc).astype(np.float32)
+        all_cmc = all_cmc.sum(0) / num_valid_q
+        mAP = np.mean(all_AP)
+
+        return all_cmc, mAP
+
+
+    def evaluate(self):
+        self.model.eval()
+        features, pids, cids, imgs = [], [], [], []
+        with torch.no_grad():
+            for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
+                data, pid, camid, img = batch
+                data = data.cuda()
+                feature = self.model(data).detach().cpu()
+                features.append(feature)
+                pids.append(pid)
+                cids.append(camid)
+                imgs+=list(img)
+        
+        # For market 1501
+        features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
+        &#34;&#34;&#34;
+        if self.crawler is not None:
+            track_features = [[] for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+            #track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+            track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_count = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            #pdb.set_trace()
+            #count = 0
+            for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+                track_count[track_idx]+=1
+                track_pid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+                track_cid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+                track_features[track_idx].append(features[idx])
+                track_pids[track_idx] = track_pid
+                track_cids[track_idx] = track_cid
+            
+            #for idx,feats in enumerate(track_features): # Get average of features
+            #    track_features[idx] = feats / track_count[idx]  # maybe max...?
+
+            #track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+        else:
+            track_features, track_pids, track_cids = None, None, None
+        &#34;&#34;&#34;
+        feature_to_track_map = {}
+        if &#34;track&#34; in self.crawler.metadata:
+            track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+            for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+                track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+                feature_to_track_map[idx] = track_idx
+                track_pids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+                track_cids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+            track_pids, track_cids = torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+
+        query_features, gallery_features = features[:self.queries], features[self.queries:]
+        query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
+        query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
+
+        
+        self.logger.info(&#39;Obtained features&#39;)
+        #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+        distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+        self.logger.info(&#39;Got query-to-gallery distances&#39;)
+        if &#34;track&#34; in self.crawler.metadata:
+            track_distmat = self.build_track_distmat(distmat, feature_to_track_map)
+            self.logger.info(&#39;Got query-to-track distances&#39;)
+        qqdistmat = self.query_to_gallery_distances(query_features, query_features)
+        self.logger.info(&#39;Got query-to-query distances&#39;)
+        ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
+        self.logger.info(&#39;Got gallery-to-gallery distances&#39;)
+
+        rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
+        self.logger.info(&#39;Got rerank distances&#39;)
+
+        #distmat=  distmat.numpy()
+        self.logger.info(&#39;Validation in progress&#39;)
+        #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
+        m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        self.logger.info(&#39;Completed market-1501 CMC&#39;)
+        #c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
+        #self.logger.info(&#39;Completed CUHK CMC&#39;)
+        r_cmc = self.cmc(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        self.logger.info(&#39;Completed Re-Rank&#39;)
+        
+        if &#34;track&#34; in self.crawler.metadata:
+            v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+            v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
+            self.logger.info(&#39;Completed VeRi-776 CMC&#39;)
+
+
+        # Reranking
+        
+        mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+        r_mAP = self.mean_ap(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+
+        self.logger.info(&#39;Completed mAP Calculation&#39;)
+        
+        if &#34;track&#34; in self.crawler.metadata:
+            self.logger.info(&#39;VeRi-mAP: {:.2%}&#39;.format(v_mAP))
+            for r in [1,2, 3, 4, 5]:
+                self.logger.info(&#39;VeRi CMC Rank-{}: {:.2%}&#39;.format(r, v_cmc[r-1]))
+
+        self.logger.info(&#39;mAP: {:.2%}&#39;.format(mAP))
+        #self.logger.info(&#39;VID_mAP: {:.2%}&#39;.format(v_mAP))
+        for r in [1,2, 3, 4, 5]:
+            self.logger.info(&#39;Market-1501 CMC Rank-{}: {:.2%}&#39;.format(r, m_cmc[r-1]))
+        self.logger.info(&#39;Re-rank mAP: {:.2%}&#39;.format(r_mAP))
+        for r in [1,2, 3, 4, 5]:
+            self.logger.info(&#39;ReRank CMC Rank-{}: {:.2%}&#39;.format(r, r_cmc[r-1]))
+        #for r in [1,2, 3, 4, 5,10,15,20]:
+        #    self.logger.info(&#39;CUHK CMC Rank-{}: {:.2%}&#39;.format(r, c_cmc[r-1]))
+        
+  
+    def query_to_gallery_distances(self, qf, gf):
+        # distancesis sqrt(sum((a-b)^2))
+        # so a^2 + b^2 - 2ab
+        a2b2 = torch.pow(qf, 2).sum(1, keepdim=True).expand(qf.size(0), gf.size(0))
+        a2b2 = a2b2 + torch.pow(gf, 2).sum(1, keepdim=True).expand(gf.size(0), qf.size(0)).t()
+        eu= torch.addmm(1,a2b2, -2, qf, gf.t())
+        eu = eu.clamp(min=1e-12).sqrt()
+        return eu
+
+    def cosine_query_to_gallery_distances(self, qf, gf):
+        # distancesis sqrt(sum((a-b)^2))
+        # so a^2 + b^2 - 2ab
+        return cdist(qf, gf, metric=&#39;cosine&#39;)
+
+
+
+    # https://github.com/Cysu/open-reid/blob/master/reid/evaluation_metrics/ranking.py
+    def mean_ap(self,distmat, query_ids=None, gallery_ids=None,
+            query_cams=None, gallery_cams=None):
+        distmat = distmat
+        m, n = distmat.shape
+        if query_ids is None:
+            query_ids = np.arange(m)
+        if gallery_ids is None:
+            gallery_ids = np.arange(n)
+        if query_cams is None:
+            query_cams = np.zeros(m).astype(np.int32)
+        if gallery_cams is None:
+            gallery_cams = np.ones(n).astype(np.int32)
+        query_ids = np.asarray(query_ids)
+        gallery_ids = np.asarray(gallery_ids)
+        query_cams = np.asarray(query_cams)
+        gallery_cams = np.asarray(gallery_cams)
+        # Sort and find correct matches
+        indices = np.argsort(distmat, axis=1)
+        matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+        # Compute AP for each query
+        aps = []
+        for i in range(m):
+            # Filter out the same id and same camera
+            valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                    (gallery_cams[indices[i]] != query_cams[i]))
+            y_true = matches[i, valid]
+            y_score = -distmat[i][indices[i]][valid]
+            if not np.any(y_true): continue
+            aps.append(average_precision_score(y_true, y_score))
+        if len(aps) == 0:
+            raise RuntimeError(&#34;No valid query&#34;)
+        return np.mean(aps)
+
+    # https://github.com/Cysu/open-reid/blob/master/reid/evaluation_metrics/ranking.py
+    def cmc(self,distmat, query_ids=None, gallery_ids=None,
+        query_cams=None, gallery_cams=None, topk=100,
+        separate_camera_set=False,
+        single_gallery_shot=False,
+        first_match_break=False):
+        m, n = distmat.shape
+        # Sort and find correct matches
+        indices = np.argsort(distmat, axis=1)
+        matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+        # Compute CMC for each query
+        ret = np.zeros(topk)
+        num_valid_queries = 0
+        for i in range(m):
+            # Filter out the same id and same camera
+            valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                    (gallery_cams[indices[i]] != query_cams[i]))
+            if separate_camera_set:
+                # Filter out samples from same camera
+                valid &amp;= (gallery_cams[indices[i]] != query_cams[i])
+            if not np.any(matches[i, valid]): continue
+            if single_gallery_shot:
+                repeat = 10
+                gids = gallery_ids[indices[i][valid]]
+                inds = np.where(valid)[0]
+                ids_dict = defaultdict(list)
+                for j, x in zip(inds, gids):
+                    ids_dict[x].append(j)
+            else:
+                repeat = 1
+            for _ in range(repeat):
+                if single_gallery_shot:
+                    # Randomly choose one instance for each id
+                    sampled = (valid &amp; self._unique_sample(ids_dict, len(valid)))
+                    index = np.nonzero(matches[i, sampled])[0]
+                else:
+                    index = np.nonzero(matches[i, valid])[0]
+                delta = 1. / (len(index) * repeat)
+                for j, k in enumerate(index):
+                    if k - j &gt;= topk: break
+                    if first_match_break:
+                        ret[k - j] += 1
+                        break
+                    ret[k - j] += delta
+            num_valid_queries += 1
+        if num_valid_queries == 0:
+            raise RuntimeError(&#34;No valid query&#34;)
+        return ret.cumsum() / num_valid_queries
+
+    def _unique_sample(self,ids_dict, num):
+        mask = np.zeros(num, dtype=np.bool)
+        for _, indices in ids_dict.items():
+            i = np.random.choice(indices)
+            mask[i] = True
+        return mask
+
+
+    def eval_func(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
+        &#34;&#34;&#34;Evaluation with market1501 metric
+            Key: for each query identity, its gallery images from the same camera view are discarded.
+            &#34;&#34;&#34;
+        num_q, num_g = distmat.shape
+        if num_g &lt; max_rank:
+            max_rank = num_g
+            print(&#34;Note: number of gallery samples is quite small, got {}&#34;.format(num_g))
+        indices = np.argsort(distmat, axis=1)
+        matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+        # compute cmc curve for each query
+        all_cmc = []
+        all_AP = []
+        num_valid_q = 0.  # number of valid query
+        for q_idx in range(num_q):
+            # get query pid and camid
+            q_pid = q_pids[q_idx]
+            q_camid = q_camids[q_idx]
+
+            # remove gallery samples that have the same pid and camid with query
+            order = indices[q_idx]
+            remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+            keep = np.invert(remove)
+
+            # compute cmc curve
+            # binary vector, positions with value 1 are correct matches
+            orig_cmc = matches[q_idx][keep]
+            if not np.any(orig_cmc):
+                # this condition is true when query identity does not appear in gallery
+                continue
+
+            cmc = orig_cmc.cumsum()
+            cmc[cmc &gt; 1] = 1
+
+            all_cmc.append(cmc[:max_rank])
+            num_valid_q += 1.
+
+            # compute average precision
+            # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+            num_rel = orig_cmc.sum()
+            tmp_cmc = orig_cmc.cumsum()
+            tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+            tmp_cmc = np.asarray(tmp_cmc) * orig_cmc
+            AP = tmp_cmc.sum() / num_rel
+            all_AP.append(AP)
+
+        assert num_valid_q &gt; 0, &#34;Error: all query identities do not appear in gallery&#34;
+
+        all_cmc = np.asarray(all_cmc).astype(np.float32)
+        all_cmc = all_cmc.sum(0) / num_valid_q
+        mAP = np.mean(all_AP)
+
+        return all_cmc, mAP, all_AP
+
+
+    def k_reciprocal_neigh(self,initial_rank, i, k1):
+        forward_k_neigh_index = initial_rank[i,:k1+1]
+        backward_k_neigh_index = initial_rank[forward_k_neigh_index,:k1+1]
+        fi = np.where(backward_k_neigh_index==i)[0]
+        return forward_k_neigh_index[fi]
+
+    def rerank(self,q_g_dist, q_q_dist, g_g_dist, k1=20, k2=6, lambda_value=0.3):
+        # The following naming, e.g. gallery_num, is different from outer scope.
+        # Don&#39;t care about it.
+        original_dist = np.concatenate(
+        [np.concatenate([q_q_dist, q_g_dist], axis=1),
+        np.concatenate([q_g_dist.T, g_g_dist], axis=1)],
+        axis=0)
+        original_dist = 2. - 2 * original_dist   # change the cosine similarity metric to euclidean similarity metric
+        original_dist = np.power(original_dist, 2).astype(np.float32)
+        original_dist = np.transpose(1. * original_dist/np.max(original_dist,axis = 0))
+        V = np.zeros_like(original_dist).astype(np.float32)
+        #initial_rank = np.argsort(original_dist).astype(np.int32)
+        # top K1+1
+        initial_rank = np.argpartition( original_dist, range(1,k1+1) )
+
+        query_num = q_g_dist.shape[0]
+        all_num = original_dist.shape[0]
+
+        for i in range(all_num):
+            # k-reciprocal neighbors
+            k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, i, k1)
+            k_reciprocal_expansion_index = k_reciprocal_index
+            for j in range(len(k_reciprocal_index)):
+                candidate = k_reciprocal_index[j]
+                candidate_k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, candidate, int(np.around(k1/2)))
+                if len(np.intersect1d(candidate_k_reciprocal_index,k_reciprocal_index))&gt; 2./3*len(candidate_k_reciprocal_index):
+                    k_reciprocal_expansion_index = np.append(k_reciprocal_expansion_index,candidate_k_reciprocal_index)
+
+            k_reciprocal_expansion_index = np.unique(k_reciprocal_expansion_index)
+            weight = np.exp(-original_dist[i,k_reciprocal_expansion_index])
+            V[i,k_reciprocal_expansion_index] = 1.*weight/np.sum(weight)
+
+        original_dist = original_dist[:query_num,]
+        if k2 != 1:
+            V_qe = np.zeros_like(V,dtype=np.float32)
+            for i in range(all_num):
+                V_qe[i,:] = np.mean(V[initial_rank[i,:k2],:],axis=0)
+            V = V_qe
+            del V_qe
+        del initial_rank
+        invIndex = []
+        for i in range(all_num):
+            invIndex.append(np.where(V[:,i] != 0)[0])
+
+        jaccard_dist = np.zeros_like(original_dist,dtype = np.float32)
+
+        for i in range(query_num):
+            temp_min = np.zeros(shape=[1,all_num],dtype=np.float32)
+            indNonZero = np.where(V[i,:] != 0)[0]
+            indImages = []
+            indImages = [invIndex[ind] for ind in indNonZero]
+            for j in range(len(indNonZero)):
+                temp_min[0,indImages[j]] = temp_min[0,indImages[j]]+ np.minimum(V[i,indNonZero[j]],V[indImages[j],indNonZero[j]])
+            jaccard_dist[i] = 1-temp_min/(2.-temp_min)
+
+        final_dist = jaccard_dist*(1-lambda_value) + original_dist*lambda_value
+        del original_dist
+        del V
+        del jaccard_dist
+        final_dist = final_dist[:query_num,query_num:]
+        return final_dist
+
+    def build_track_distmat(self,distmat, feature_to_track_map):
+        # distmat has shape [num_queries, num_gallery]
+        num_tracks = len(set(feature_to_track_map.values()))
+        track_distmat = np.full((distmat.shape[0], num_tracks), np.inf)
+        for q in range(distmat.shape[0]):
+            for g in range(distmat.shape[1]):
+                #q, g are indices
+                dist_val = distmat[q][g]
+                track_idx = feature_to_track_map[g]
+                if dist_val &lt; track_distmat[q][track_idx]:
+                    track_distmat[q][track_idx] = dist_val
+        return track_distmat</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="GLAMOR.trainer.BaseTrainer.BaseTrainer" href="BaseTrainer.html#GLAMOR.trainer.BaseTrainer.BaseTrainer">BaseTrainer</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="GLAMOR.trainer.VehicleIDTrainer.VehicleIDTrainer" href="VehicleIDTrainer.html#GLAMOR.trainer.VehicleIDTrainer.VehicleIDTrainer">VehicleIDTrainer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.apex"><code class="name">var <span class="ident">apex</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.build_track_distmat"><code class="name flex">
+<span>def <span class="ident">build_track_distmat</span></span>(<span>self, distmat, feature_to_track_map)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_track_distmat(self,distmat, feature_to_track_map):
+    # distmat has shape [num_queries, num_gallery]
+    num_tracks = len(set(feature_to_track_map.values()))
+    track_distmat = np.full((distmat.shape[0], num_tracks), np.inf)
+    for q in range(distmat.shape[0]):
+        for g in range(distmat.shape[1]):
+            #q, g are indices
+            dist_val = distmat[q][g]
+            track_idx = feature_to_track_map[g]
+            if dist_val &lt; track_distmat[q][track_idx]:
+                track_distmat[q][track_idx] = dist_val
+    return track_distmat</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cmc"><code class="name flex">
+<span>def <span class="ident">cmc</span></span>(<span>self, distmat, query_ids=None, gallery_ids=None, query_cams=None, gallery_cams=None, topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cmc(self,distmat, query_ids=None, gallery_ids=None,
+    query_cams=None, gallery_cams=None, topk=100,
+    separate_camera_set=False,
+    single_gallery_shot=False,
+    first_match_break=False):
+    m, n = distmat.shape
+    # Sort and find correct matches
+    indices = np.argsort(distmat, axis=1)
+    matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+    # Compute CMC for each query
+    ret = np.zeros(topk)
+    num_valid_queries = 0
+    for i in range(m):
+        # Filter out the same id and same camera
+        valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                (gallery_cams[indices[i]] != query_cams[i]))
+        if separate_camera_set:
+            # Filter out samples from same camera
+            valid &amp;= (gallery_cams[indices[i]] != query_cams[i])
+        if not np.any(matches[i, valid]): continue
+        if single_gallery_shot:
+            repeat = 10
+            gids = gallery_ids[indices[i][valid]]
+            inds = np.where(valid)[0]
+            ids_dict = defaultdict(list)
+            for j, x in zip(inds, gids):
+                ids_dict[x].append(j)
+        else:
+            repeat = 1
+        for _ in range(repeat):
+            if single_gallery_shot:
+                # Randomly choose one instance for each id
+                sampled = (valid &amp; self._unique_sample(ids_dict, len(valid)))
+                index = np.nonzero(matches[i, sampled])[0]
+            else:
+                index = np.nonzero(matches[i, valid])[0]
+            delta = 1. / (len(index) * repeat)
+            for j, k in enumerate(index):
+                if k - j &gt;= topk: break
+                if first_match_break:
+                    ret[k - j] += 1
+                    break
+                ret[k - j] += delta
+        num_valid_queries += 1
+    if num_valid_queries == 0:
+        raise RuntimeError(&#34;No valid query&#34;)
+    return ret.cumsum() / num_valid_queries</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cosine_query_to_gallery_distances"><code class="name flex">
+<span>def <span class="ident">cosine_query_to_gallery_distances</span></span>(<span>self, qf, gf)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cosine_query_to_gallery_distances(self, qf, gf):
+    # distancesis sqrt(sum((a-b)^2))
+    # so a^2 + b^2 - 2ab
+    return cdist(qf, gf, metric=&#39;cosine&#39;)</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_func"><code class="name flex">
+<span>def <span class="ident">eval_func</span></span>(<span>self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Evaluation with market1501 metric
+Key: for each query identity, its gallery images from the same camera view are discarded.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def eval_func(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50):
+    &#34;&#34;&#34;Evaluation with market1501 metric
+        Key: for each query identity, its gallery images from the same camera view are discarded.
+        &#34;&#34;&#34;
+    num_q, num_g = distmat.shape
+    if num_g &lt; max_rank:
+        max_rank = num_g
+        print(&#34;Note: number of gallery samples is quite small, got {}&#34;.format(num_g))
+    indices = np.argsort(distmat, axis=1)
+    matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+    # compute cmc curve for each query
+    all_cmc = []
+    all_AP = []
+    num_valid_q = 0.  # number of valid query
+    for q_idx in range(num_q):
+        # get query pid and camid
+        q_pid = q_pids[q_idx]
+        q_camid = q_camids[q_idx]
+
+        # remove gallery samples that have the same pid and camid with query
+        order = indices[q_idx]
+        remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+        keep = np.invert(remove)
+
+        # compute cmc curve
+        # binary vector, positions with value 1 are correct matches
+        orig_cmc = matches[q_idx][keep]
+        if not np.any(orig_cmc):
+            # this condition is true when query identity does not appear in gallery
+            continue
+
+        cmc = orig_cmc.cumsum()
+        cmc[cmc &gt; 1] = 1
+
+        all_cmc.append(cmc[:max_rank])
+        num_valid_q += 1.
+
+        # compute average precision
+        # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+        num_rel = orig_cmc.sum()
+        tmp_cmc = orig_cmc.cumsum()
+        tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+        tmp_cmc = np.asarray(tmp_cmc) * orig_cmc
+        AP = tmp_cmc.sum() / num_rel
+        all_AP.append(AP)
+
+    assert num_valid_q &gt; 0, &#34;Error: all query identities do not appear in gallery&#34;
+
+    all_cmc = np.asarray(all_cmc).astype(np.float32)
+    all_cmc = all_cmc.sum(0) / num_valid_q
+    mAP = np.mean(all_AP)
+
+    return all_cmc, mAP, all_AP</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_vid"><code class="name flex">
+<span>def <span class="ident">eval_vid</span></span>(<span>self, distmat, q_pids, g_pids, q_camids, g_camids, max_rank)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Evaluation with veri metric</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def eval_vid(self,distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
+    &#34;&#34;&#34;Evaluation with veri metric
+    &#34;&#34;&#34;
+    num_q, num_g = distmat.shape
+
+    if num_g &lt; max_rank:
+        max_rank = num_g
+        print(&#39;Note: number of gallery samples is quite small, got {}&#39;.format(num_g))
+
+    indices = np.argsort(distmat, axis=1)
+    matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
+
+    # compute cmc curve for each query
+    all_cmc = []
+    all_AP = []
+    num_valid_q = 0.  # number of valid query
+
+    for q_idx in range(num_q):
+        # get query pid and camid
+        q_pid = q_pids[q_idx]
+        q_camid = q_camids[q_idx]
+
+        # remove gallery samples that have the same pid and camid with query
+        order = indices[q_idx]
+        #remove = (g_pids[order] == q_pid) &amp; (g_camids[order] == q_camid)
+        remove = (g_pids[order] == -1)
+        keep = np.invert(remove)
+
+        # compute cmc curve
+        raw_cmc = matches[q_idx][keep]  # binary vector, positions with value 1 are correct matches
+        if not np.any(raw_cmc):
+            # this condition is true when query identity does not appear in gallery
+            continue
+
+        cmc = raw_cmc.cumsum()
+        cmc[cmc &gt; 1] = 1
+
+        all_cmc.append(cmc[:max_rank])
+        num_valid_q += 1.
+
+        # compute average precision
+        # reference: https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
+        num_rel = raw_cmc.sum()
+        tmp_cmc = raw_cmc.cumsum()
+        tmp_cmc = [x / (i + 1.) for i, x in enumerate(tmp_cmc)]
+        tmp_cmc = np.asarray(tmp_cmc) * raw_cmc
+        AP = tmp_cmc.sum() / num_rel
+        all_AP.append(AP)
+
+    assert num_valid_q &gt; 0, &#39;Error: all query identities do not appear in gallery&#39;
+
+    all_cmc = np.asarray(all_cmc).astype(np.float32)
+    all_cmc = all_cmc.sum(0) / num_valid_q
+    mAP = np.mean(all_AP)
+
+    return all_cmc, mAP</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.evaluate"><code class="name flex">
+<span>def <span class="ident">evaluate</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluate(self):
+    self.model.eval()
+    features, pids, cids, imgs = [], [], [], []
+    with torch.no_grad():
+        for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
+            data, pid, camid, img = batch
+            data = data.cuda()
+            feature = self.model(data).detach().cpu()
+            features.append(feature)
+            pids.append(pid)
+            cids.append(camid)
+            imgs+=list(img)
+    
+    # For market 1501
+    features, pids, cids = torch.cat(features, dim=0), torch.cat(pids, dim=0), torch.cat(cids, dim=0)
+    &#34;&#34;&#34;
+    if self.crawler is not None:
+        track_features = [[] for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+        #track_features = [torch.zeros(features[0].shape) for _ in range(len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;]))]
+        track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+        track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+        track_count = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+        #pdb.set_trace()
+        #count = 0
+        for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+            track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+            track_count[track_idx]+=1
+            track_pid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+            track_cid = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+            track_features[track_idx].append(features[idx])
+            track_pids[track_idx] = track_pid
+            track_cids[track_idx] = track_cid
+        
+        #for idx,feats in enumerate(track_features): # Get average of features
+        #    track_features[idx] = feats / track_count[idx]  # maybe max...?
+
+        #track_features, track_pids, track_cids = torch.stack(track_features), torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+    else:
+        track_features, track_pids, track_cids = None, None, None
+    &#34;&#34;&#34;
+    feature_to_track_map = {}
+    if &#34;track&#34; in self.crawler.metadata:
+        track_pids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+        track_cids = [0]*len(self.crawler.metadata[&#34;track&#34;][&#34;crawl&#34;])
+        for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
+            track_idx = self.crawler.metadata[&#34;track&#34;][&#34;dict&#34;][img]
+            feature_to_track_map[idx] = track_idx
+            track_pids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;pid&#34;]
+            track_cids[track_idx] = self.crawler.metadata[&#34;track&#34;][&#34;info&#34;][track_idx][&#34;cid&#34;]
+        track_pids, track_cids = torch.Tensor(track_pids).int(), torch.Tensor(track_cids).int()
+
+    query_features, gallery_features = features[:self.queries], features[self.queries:]
+    query_pid, gallery_pid = pids[:self.queries], pids[self.queries:]
+    query_cid, gallery_cid = cids[:self.queries], cids[self.queries:]
+
+    
+    self.logger.info(&#39;Obtained features&#39;)
+    #distmat = self.cosine_query_to_gallery_distances(query_features, gallery_features)
+    distmat = self.query_to_gallery_distances(query_features, gallery_features) # query-to-gallery
+    self.logger.info(&#39;Got query-to-gallery distances&#39;)
+    if &#34;track&#34; in self.crawler.metadata:
+        track_distmat = self.build_track_distmat(distmat, feature_to_track_map)
+        self.logger.info(&#39;Got query-to-track distances&#39;)
+    qqdistmat = self.query_to_gallery_distances(query_features, query_features)
+    self.logger.info(&#39;Got query-to-query distances&#39;)
+    ggdistmat = self.query_to_gallery_distances(gallery_features, gallery_features)
+    self.logger.info(&#39;Got gallery-to-gallery distances&#39;)
+
+    rerank_distmat = self.rerank(distmat, qqdistmat, ggdistmat)
+    self.logger.info(&#39;Got rerank distances&#39;)
+
+    #distmat=  distmat.numpy()
+    self.logger.info(&#39;Validation in progress&#39;)
+    #m_cmc, mAP, _ = self.eval_func(distmat, query_pid.numpy(), gallery_pid.numpy(), query_cid.numpy(), gallery_cid.numpy(), 50)
+    m_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+    self.logger.info(&#39;Completed market-1501 CMC&#39;)
+    #c_cmc = self.cmc(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=True, single_gallery_shot=True, first_match_break=False)
+    #self.logger.info(&#39;Completed CUHK CMC&#39;)
+    r_cmc = self.cmc(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+    self.logger.info(&#39;Completed Re-Rank&#39;)
+    
+    if &#34;track&#34; in self.crawler.metadata:
+        v_cmc = self.cmc(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy(), topk=100, separate_camera_set=False, single_gallery_shot=False, first_match_break=True)
+        v_mAP = self.mean_ap(track_distmat, query_ids=query_pid.numpy(), gallery_ids=track_pids.numpy(), query_cams=query_cid.numpy(), gallery_cams=track_cids.numpy())
+        self.logger.info(&#39;Completed VeRi-776 CMC&#39;)
+
+
+    # Reranking
+    
+    mAP = self.mean_ap(distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+    r_mAP = self.mean_ap(rerank_distmat, query_ids=query_pid.numpy(), gallery_ids=gallery_pid.numpy(), query_cams=query_cid.numpy(), gallery_cams=gallery_cid.numpy())
+
+    self.logger.info(&#39;Completed mAP Calculation&#39;)
+    
+    if &#34;track&#34; in self.crawler.metadata:
+        self.logger.info(&#39;VeRi-mAP: {:.2%}&#39;.format(v_mAP))
+        for r in [1,2, 3, 4, 5]:
+            self.logger.info(&#39;VeRi CMC Rank-{}: {:.2%}&#39;.format(r, v_cmc[r-1]))
+
+    self.logger.info(&#39;mAP: {:.2%}&#39;.format(mAP))
+    #self.logger.info(&#39;VID_mAP: {:.2%}&#39;.format(v_mAP))
+    for r in [1,2, 3, 4, 5]:
+        self.logger.info(&#39;Market-1501 CMC Rank-{}: {:.2%}&#39;.format(r, m_cmc[r-1]))
+    self.logger.info(&#39;Re-rank mAP: {:.2%}&#39;.format(r_mAP))
+    for r in [1,2, 3, 4, 5]:
+        self.logger.info(&#39;ReRank CMC Rank-{}: {:.2%}&#39;.format(r, r_cmc[r-1]))
+    #for r in [1,2, 3, 4, 5,10,15,20]:
+    #    self.logger.info(&#39;CUHK CMC Rank-{}: {:.2%}&#39;.format(r, c_cmc[r-1]))</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.k_reciprocal_neigh"><code class="name flex">
+<span>def <span class="ident">k_reciprocal_neigh</span></span>(<span>self, initial_rank, i, k1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k_reciprocal_neigh(self,initial_rank, i, k1):
+    forward_k_neigh_index = initial_rank[i,:k1+1]
+    backward_k_neigh_index = initial_rank[forward_k_neigh_index,:k1+1]
+    fi = np.where(backward_k_neigh_index==i)[0]
+    return forward_k_neigh_index[fi]</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.mean_ap"><code class="name flex">
+<span>def <span class="ident">mean_ap</span></span>(<span>self, distmat, query_ids=None, gallery_ids=None, query_cams=None, gallery_cams=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mean_ap(self,distmat, query_ids=None, gallery_ids=None,
+        query_cams=None, gallery_cams=None):
+    distmat = distmat
+    m, n = distmat.shape
+    if query_ids is None:
+        query_ids = np.arange(m)
+    if gallery_ids is None:
+        gallery_ids = np.arange(n)
+    if query_cams is None:
+        query_cams = np.zeros(m).astype(np.int32)
+    if gallery_cams is None:
+        gallery_cams = np.ones(n).astype(np.int32)
+    query_ids = np.asarray(query_ids)
+    gallery_ids = np.asarray(gallery_ids)
+    query_cams = np.asarray(query_cams)
+    gallery_cams = np.asarray(gallery_cams)
+    # Sort and find correct matches
+    indices = np.argsort(distmat, axis=1)
+    matches = (gallery_ids[indices] == query_ids[:, np.newaxis])
+    # Compute AP for each query
+    aps = []
+    for i in range(m):
+        # Filter out the same id and same camera
+        valid = ((gallery_ids[indices[i]] != query_ids[i]) |
+                (gallery_cams[indices[i]] != query_cams[i]))
+        y_true = matches[i, valid]
+        y_score = -distmat[i][indices[i]][valid]
+        if not np.any(y_true): continue
+        aps.append(average_precision_score(y_true, y_score))
+    if len(aps) == 0:
+        raise RuntimeError(&#34;No valid query&#34;)
+    return np.mean(aps)</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.query_to_gallery_distances"><code class="name flex">
+<span>def <span class="ident">query_to_gallery_distances</span></span>(<span>self, qf, gf)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def query_to_gallery_distances(self, qf, gf):
+    # distancesis sqrt(sum((a-b)^2))
+    # so a^2 + b^2 - 2ab
+    a2b2 = torch.pow(qf, 2).sum(1, keepdim=True).expand(qf.size(0), gf.size(0))
+    a2b2 = a2b2 + torch.pow(gf, 2).sum(1, keepdim=True).expand(gf.size(0), qf.size(0)).t()
+    eu= torch.addmm(1,a2b2, -2, qf, gf.t())
+    eu = eu.clamp(min=1e-12).sqrt()
+    return eu</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.rerank"><code class="name flex">
+<span>def <span class="ident">rerank</span></span>(<span>self, q_g_dist, q_q_dist, g_g_dist, k1=20, k2=6, lambda_value=0.3)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rerank(self,q_g_dist, q_q_dist, g_g_dist, k1=20, k2=6, lambda_value=0.3):
+    # The following naming, e.g. gallery_num, is different from outer scope.
+    # Don&#39;t care about it.
+    original_dist = np.concatenate(
+    [np.concatenate([q_q_dist, q_g_dist], axis=1),
+    np.concatenate([q_g_dist.T, g_g_dist], axis=1)],
+    axis=0)
+    original_dist = 2. - 2 * original_dist   # change the cosine similarity metric to euclidean similarity metric
+    original_dist = np.power(original_dist, 2).astype(np.float32)
+    original_dist = np.transpose(1. * original_dist/np.max(original_dist,axis = 0))
+    V = np.zeros_like(original_dist).astype(np.float32)
+    #initial_rank = np.argsort(original_dist).astype(np.int32)
+    # top K1+1
+    initial_rank = np.argpartition( original_dist, range(1,k1+1) )
+
+    query_num = q_g_dist.shape[0]
+    all_num = original_dist.shape[0]
+
+    for i in range(all_num):
+        # k-reciprocal neighbors
+        k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, i, k1)
+        k_reciprocal_expansion_index = k_reciprocal_index
+        for j in range(len(k_reciprocal_index)):
+            candidate = k_reciprocal_index[j]
+            candidate_k_reciprocal_index = self.k_reciprocal_neigh( initial_rank, candidate, int(np.around(k1/2)))
+            if len(np.intersect1d(candidate_k_reciprocal_index,k_reciprocal_index))&gt; 2./3*len(candidate_k_reciprocal_index):
+                k_reciprocal_expansion_index = np.append(k_reciprocal_expansion_index,candidate_k_reciprocal_index)
+
+        k_reciprocal_expansion_index = np.unique(k_reciprocal_expansion_index)
+        weight = np.exp(-original_dist[i,k_reciprocal_expansion_index])
+        V[i,k_reciprocal_expansion_index] = 1.*weight/np.sum(weight)
+
+    original_dist = original_dist[:query_num,]
+    if k2 != 1:
+        V_qe = np.zeros_like(V,dtype=np.float32)
+        for i in range(all_num):
+            V_qe[i,:] = np.mean(V[initial_rank[i,:k2],:],axis=0)
+        V = V_qe
+        del V_qe
+    del initial_rank
+    invIndex = []
+    for i in range(all_num):
+        invIndex.append(np.where(V[:,i] != 0)[0])
+
+    jaccard_dist = np.zeros_like(original_dist,dtype = np.float32)
+
+    for i in range(query_num):
+        temp_min = np.zeros(shape=[1,all_num],dtype=np.float32)
+        indNonZero = np.where(V[i,:] != 0)[0]
+        indImages = []
+        indImages = [invIndex[ind] for ind in indNonZero]
+        for j in range(len(indNonZero)):
+            temp_min[0,indImages[j]] = temp_min[0,indImages[j]]+ np.minimum(V[i,indNonZero[j]],V[indImages[j],indNonZero[j]])
+        jaccard_dist[i] = 1-temp_min/(2.-temp_min)
+
+    final_dist = jaccard_dist*(1-lambda_value) + original_dist*lambda_value
+    del original_dist
+    del V
+    del jaccard_dist
+    final_dist = final_dist[:query_num,query_num:]
+    return final_dist</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.step"><code class="name flex">
+<span>def <span class="ident">step</span></span>(<span>self, batch)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step(self,batch):
+    self.model.train()
+    self.optimizer.zero_grad()
+    if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+        self.loss_optimizer.zero_grad()
+    batch_kwargs = {}
+    img, batch_kwargs[&#34;labels&#34;] = batch
+    img, batch_kwargs[&#34;labels&#34;] = img.cuda(), batch_kwargs[&#34;labels&#34;].cuda()
+    # logits, features, labels
+    batch_kwargs[&#34;logits&#34;], batch_kwargs[&#34;features&#34;] = self.model(img)
+    batch_kwargs[&#34;epoch&#34;] = self.global_epoch   # For CompactContrastiveLoss
+    loss = self.loss_fn(**batch_kwargs)
+    if self.fp16 and self.apex is not None:
+        with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
+            scaled_loss.backward()
+    else:
+        loss.backward()
+    self.optimizer.step()
+    if self.loss_optimizer is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+        self.loss_optimizer.step()
+    
+    self.loss.append(loss.cpu().item())
+    
+    if batch_kwargs[&#34;logits&#34;] is not None:
+        softmax_accuracy = (batch_kwargs[&#34;logits&#34;].max(1)[1] == batch_kwargs[&#34;labels&#34;]).float().mean()
+        self.softaccuracy.append(softmax_accuracy.cpu().item())
+    else:
+        self.softaccuracy.append(0)</code></pre>
+</details>
+</dd>
+<dt id="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>self, continue_epoch=0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(self,continue_epoch = 0):    
+    self.logger.info(&#34;Starting training&#34;)
+    self.logger.info(&#34;Logging to:\t%s&#34;%self.logger_file)
+    self.logger.info(&#34;Models will be saved to local directory:\t%s&#34;%self.save_directory)
+    if self.save_backup:
+        self.logger.info(&#34;Models will be backed up to drive directory:\t%s&#34;%self.backup_directory)
+    self.logger.info(&#34;Models will be saved with base name:\t%s_epoch[].pth&#34;%self.model_save_name)
+    self.logger.info(&#34;Optimizers will be saved with base name:\t%s_epoch[]_optimizer.pth&#34;%self.model_save_name)
+    self.logger.info(&#34;Schedulers will be saved with base name:\t%s_epoch[]_scheduler.pth&#34;%self.model_save_name)
+    
+
+    if continue_epoch &gt; 0:
+        load_epoch = continue_epoch - 1
+        self.load(load_epoch)
+
+    self.logger.info(&#34;Performing initial evaluation...&#34;)
+    #self.initial_evaluate()
+
+    for epoch in range(self.epochs):
+        if epoch &gt;= continue_epoch:
+            for batch in self.train_loader:
+                if not self.global_batch:
+                    lrs = self.scheduler.get_lr(); lrs = sum(lrs)/float(len(lrs))
+                    self.logger.info(&#34;Starting epoch {0} with {1} steps and learning rate {2:2.5E}&#34;.format(epoch, len(self.train_loader) - (len(self.train_loader)%10), lrs))
+                self.step(batch)
+                self.global_batch += 1
+                if (self.global_batch + 1) % self.step_verbose == 0:
+                    loss_avg = sum(self.loss[-100:]) / float(len(self.loss[-100:]))
+                    soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
+                    self.logger.info(&#39;Epoch{0}.{1}\tTotal Loss: {2:.3f} Softmax: {3:.3f}&#39;.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
+            self.global_batch = 0
+            self.scheduler.step()
+            if self.loss_scheduler is not None:
+                self.loss_scheduler.step()
+            self.logger.info(&#39;{0} Completed epoch {1} {2}&#39;.format(&#39;*&#39;*10, self.global_epoch, &#39;*&#39;*10))
+            if self.global_epoch % self.test_frequency == 0:
+                self.evaluate()
+            if self.global_epoch % self.save_frequency == 0:
+                self.save()
+            self.global_epoch += 1
+        else:
+            self.global_epoch = epoch+1</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="GLAMOR.trainer.BaseTrainer.BaseTrainer" href="BaseTrainer.html#GLAMOR.trainer.BaseTrainer.BaseTrainer">BaseTrainer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="GLAMOR.trainer.BaseTrainer.BaseTrainer.epoch_step" href="BaseTrainer.html#GLAMOR.trainer.BaseTrainer.BaseTrainer.epoch_step">epoch_step</a></code></li>
+<li><code><a title="GLAMOR.trainer.BaseTrainer.BaseTrainer.initial_evaluate" href="BaseTrainer.html#GLAMOR.trainer.BaseTrainer.BaseTrainer.initial_evaluate">initial_evaluate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="GLAMOR.trainer" href="index.html">GLAMOR.trainer</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer">SimpleTrainer</a></code></h4>
+<ul class="">
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.apex" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.apex">apex</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.build_track_distmat" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.build_track_distmat">build_track_distmat</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cmc" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cmc">cmc</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cosine_query_to_gallery_distances" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.cosine_query_to_gallery_distances">cosine_query_to_gallery_distances</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_func" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_func">eval_func</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_vid" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.eval_vid">eval_vid</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.evaluate" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.evaluate">evaluate</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.k_reciprocal_neigh" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.k_reciprocal_neigh">k_reciprocal_neigh</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.mean_ap" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.mean_ap">mean_ap</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.query_to_gallery_distances" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.query_to_gallery_distances">query_to_gallery_distances</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.rerank" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.rerank">rerank</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.step" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.step">step</a></code></li>
+<li><code><a title="GLAMOR.trainer.SimpleTrainer.SimpleTrainer.train" href="#GLAMOR.trainer.SimpleTrainer.SimpleTrainer.train">train</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

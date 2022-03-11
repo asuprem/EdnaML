@@ -48,14 +48,19 @@ def main(config, mode, weights):
     if DRIVE_BACKUP:
         backup_logger = os.path.join(CHECKPOINT_DIRECTORY, LOGGER_SAVE_NAME)
         if os.path.exists(backup_logger):
-            shutil.copy2(backup_logger, ".")
+            logger.info("Existing log file exists at %s. Will attempt to copy to local directory %s."%(backup_logger, MODEL_SAVE_FOLDER))
+            shutil.copy2(backup_logger, MODEL_SAVE_FOLDER)
     else:
-        backup_logger = None
+        # Check if there is a backup logger locally
+        backup_logger = os.path.join(MODEL_SAVE_FOLDER,LOGGER_SAVE_NAME)
+        if os.path.exists(backup_logger):
+            logger.info("Existing log file exists at %s. Will attempt to append there."%backup_logger)
 
     NUM_GPUS = torch.cuda.device_count()
     if NUM_GPUS > 1:
         raise RuntimeError("Not built for multi-GPU. Please start with single-GPU.")
     logger.info("Found %i GPUs"%NUM_GPUS)
+
 
     # --------------------- BUILD GENERATORS ------------------------
     data_crawler_ = config.get("EXECUTION.CRAWLER", "CoLabelVehicleColorCrawler")
