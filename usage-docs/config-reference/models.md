@@ -22,7 +22,7 @@ For `CoLabelResnet`, the following are available:
 ```      
     Kwargs (MODEL_KWARGS):
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
-        attention (str, None): The attention module to use. Only supports ['cbam', None]
+        attention (str, None): The attention module to use. Only supports ['cbam', 'dbam']
         input_attention (bool, false): Whether to include the IA module
         ia_attention (bool, false): Whether to include input IA module
         part_attention (bool, false): Whether to include Part-CBAM Mobule
