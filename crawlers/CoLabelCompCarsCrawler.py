@@ -35,6 +35,8 @@ class CoLabelCompCarsCrawler:
         self.classes = {}
         self.data_folder = data_folder
         self.train_folder = os.path.join(self.data_folder, train_folder)
+        self.train_file = kwargs.get("trainfile")
+        self.test_file = kwargs.get("testfile")
         
         self.logger = kwargs.get("logger")
 
@@ -97,8 +99,8 @@ class CoLabelCompCarsCrawler:
         
 
         self.metadata["train"], self.metadata["test"], self.metadata["val"], self.metadata["full"]= {}, {}, {}, {}
-        self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(class_folder, "train.txt", model_id_type_dict)
-        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, "test.txt", model_id_type_dict)
+        self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(class_folder, self.train_file, model_id_type_dict)
+        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, self.test_file, model_id_type_dict)
         self.metadata["val"]["crawl"], self.metadata["val"]["imgs"] = [], 0
         # full is usually handled in generator
         self.metadata["full"]["crawl"], self.metadata["full"]["imgs"] = [], 0

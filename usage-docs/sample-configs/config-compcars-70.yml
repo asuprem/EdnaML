@@ -9,6 +9,8 @@ EXECUTION:
     CRAWLER_ARGS:
       data_folder: "Data/CompCars"
       train_folder: "image"
+      trainfile: "train7030.txt"
+      testfile: "test7030.txt"
     DATASET_ARGS: 
       pathidx: 4
       annotationidx: 3
