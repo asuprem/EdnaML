@@ -103,7 +103,7 @@ class CoLabelCompCarsCrawler:
         self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(class_folder, self.test_file, model_id_type_dict)
         self.metadata["val"]["crawl"], self.metadata["val"]["imgs"] = [], 0
         # full is usually handled in generator
-        self.metadata["full"]["crawl"], self.metadata["full"]["imgs"] = [], 0
+        self.metadata["full"]["crawl"], self.metadata["full"]["imgs"] = [],  0
 
 
         # Here we need to perform some data cleaning

@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 import re
 import glob
@@ -38,15 +39,15 @@ class VehicleIDDataCrawler:
 
     def crawl(self,):
 
-        self.colordict={}
+        self.colordict=defaultdict(lambda:-1)
         with open(os.path.join(self.attribute_folder, "color_attr.txt"), "r") as cfile:
             for line in cfile:
-                line=line.strip.split(" ")
+                line=line.strip().split(" ")
                 self.colordict[int(line[0])] = int(line[1])   # colordict[vehicleid]=colorid
-        self.modeldict={}
+        self.modeldict=defaultdict(lambda:-1)
         with open(os.path.join(self.attribute_folder, "model_attr.txt"), "r") as cfile:
             for line in cfile:
-                line=line.strip.split(" ")
+                line=line.strip().split(" ")
                 self.modeldict[int(line[0])] = int(line[1])   # modeldict[vehicleid]=modelid
 
         self.classes={}
@@ -60,6 +61,7 @@ class VehicleIDDataCrawler:
         self.__querycrawl(self.query_list)
 
         # Extras for colabel...
+        self.metadata["val"] , self.metadata["full"]  = {}, {}
         self.metadata["val"]["crawl"], self.metadata["full"]["crawl"] = [], []
         for meta in ["train", "test", "val", "full"]:
             self.metadata[meta]["imgs"] = len(self.metadata[meta]["crawl"])

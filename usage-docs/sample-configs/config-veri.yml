@@ -5,11 +5,9 @@ EXECUTION:
   SKIPEVAL: True
   TEST_FREQUENCY: 5
   DATAREADER: 
-    DATAREADER: VehicleID
+    DATAREADER: VeRi
     CRAWLER_ARGS:
-      data_folder: "Data/VehicleID"
-      train_folder: "image"
-      attribute_folder: "attribute"
+      data_folder: "Data/VeRi"
     DATASET_ARGS: 
       pathidx: 0
       annotationidx: 3

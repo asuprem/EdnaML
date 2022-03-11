@@ -15,3 +15,5 @@ class DataReader:
 
 from .VehicleColor import VehicleColor
 from .CompCars import CompCars
+from .VehicleID import VehicleID
+from .VeRi import VeRi

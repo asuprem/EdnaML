@@ -1,10 +1,10 @@
 
 from . import DataReader
-from crawlers import VehicleIDDataCrawler
+from crawlers import VeRiDataCrawler
 from generators.CoLabelGenerator import CoLabelDataset, CoLabelGenerator
 
-class VehicleID(DataReader):
-    CRAWLER = VehicleIDDataCrawler
+class VeRi(DataReader):
+    CRAWLER = VeRiDataCrawler
     DATASET = CoLabelDataset
     GENERATOR = CoLabelGenerator
 
