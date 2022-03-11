@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 import re
 import glob
+import random 
 
 # Tuple:
 # (imgpath, pid, cid, color, model)
@@ -55,15 +56,24 @@ class VehicleIDDataCrawler:
         self.classes["model"]=250
 
 
-        self.metadata["train"], self.metadata["test"], self.metadata["query"] = {}, {}, {}
+        self.metadata["train"], self.metadata["gallery"], self.metadata["query"] = {}, {}, {}
         self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.train_list, reset_labels=True)
         
+        self.metadata["test"] = {}
+        #self.metadata["test"]["crawl"] = [self.metadata["train"]["crawl"].pop(random.randrange(len(self.metadata["train"]["crawl"]))) for _ in range(int(len(self.metadata["train"]["crawl"])*0.1))]
+        random.shuffle(self.metadata["train"]["crawl"])
+        nshuffle = int(len(self.metadata["train"]["crawl"])*0.1)
+        self.metadata["test"]["crawl"] = self.metadata["train"]["crawl"][:nshuffle]
+        self.metadata["train"]["crawl"] = self.metadata["train"]["crawl"][nshuffle:]
+        self.metadata["train"]["imgs"] = len(self.metadata["train"]["crawl"])
+        self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
+
         self.__querycrawl(self.query_list)
 
         # Extras for colabel...
         self.metadata["val"] , self.metadata["full"]  = {}, {}
         self.metadata["val"]["crawl"], self.metadata["full"]["crawl"] = [], []
-        for meta in ["train", "test", "val", "full"]:
+        for meta in ["train", "gallery", "val", "full", "test"]:
             self.metadata[meta]["imgs"] = len(self.metadata[meta]["crawl"])
             self.metadata[meta]["classes"] = {}
             self.metadata[meta]["classes"]["color"] = 7
@@ -71,7 +81,7 @@ class VehicleIDDataCrawler:
 
 
         self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
-        self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
+        self.logger.info("Gallery \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["gallery"]["pids"], self.metadata["gallery"]["cids"], self.metadata["gallery"]["imgs"]))
         self.logger.info("Query\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"]))
 
 
@@ -114,7 +124,7 @@ class VehicleIDDataCrawler:
                 crawler.append((img_path, pids[pid], cid))
         
         pid_in_gallery = {}
-        self.metadata["test"]["crawl"], self.metadata["query"]["crawl"] = [], []
+        self.metadata["gallery"]["crawl"], self.metadata["query"]["crawl"] = [], []
 
         for crawled_img in crawler:
             img_path, pid, cid = crawled_img
@@ -123,10 +133,10 @@ class VehicleIDDataCrawler:
                 self.metadata["query"]["crawl"].append((img_path, pid, cid, self.colordict[pid], self.modeldict[pid]))
             else:
                 pid_in_gallery[pid] = 1
-                self.metadata["test"]["crawl"].append((img_path, pid, cid, self.colordict[pid], self.modeldict[pid]))
+                self.metadata["gallery"]["crawl"].append((img_path, pid, cid, self.colordict[pid], self.modeldict[pid]))
         
-        self.metadata["test"]["pids"], self.metadata["test"]["cids"] = len(pids), 1
+        self.metadata["gallery"]["pids"], self.metadata["gallery"]["cids"] = len(pids), 1
         self.metadata["query"]["pids"], self.metadata["query"]["cids"] = len(pids), 1
         
-        self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
+        self.metadata["gallery"]["imgs"] = len(self.metadata["gallery"]["crawl"])
         self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
