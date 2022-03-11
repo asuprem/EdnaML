@@ -70,26 +70,27 @@ class VeRiDataCrawler:
   def crawl(self,):
     self.colordict=defaultdict(lambda:-1)
     self.typedict=defaultdict(lambda:-1)
-    traintree = ET.parse(self.trainlabel)
-    trainroot = traintree.getroot()
-    for item in trainroot:
-      for imgs in item.findall("Item"):
-        vid = imgs.find("vehicleID")
-        colorid = imgs.find("colorID")
-        typeid = imgs.find("typeID")
+    with open(self.trainlabel, 'r') as rfile:
+      traintree=ET.fromstring(rfile.read())
+    #traintree = ET.parse(self.trainlabel, parser=ET.XMLParser(encoding='gb2312'))
+
+    for item in traintree[0]:
+        vid = item.get("vehicleID")
+        colorid = item.get("colorID")
+        typeid = item.get("typeID")
         self.colordict[int(vid)] = int(colorid)-1
         self.typedict[int(vid)] = int(typeid)-1
-    traintree = ET.parse(self.testlabel)
-    trainroot = traintree.getroot()
-    for item in trainroot:
-      for imgs in item.findall("Item"):
-        vid = imgs.find("vehicleID")
-        colorid = imgs.find("colorID")
-        typeid = imgs.find("typeID")
-        self.colordict[int(vid)] = int(colorid)-1
-        self.typedict[int(vid)] = int(typeid)-1
+    #traintree = ET.parse(self.testlabel, parser=ET.XMLParser(encoding='gb2312'))
+    with open(self.testlabel, 'r') as rfile:
+      traintree=ET.fromstring(rfile.read())
+    #trainroot = traintree.find("Items")
+    for item in traintree[0]:
+      vid = item.get("vehicleID")
+      colorid = item.get("colorID")
+      typeid = item.get("typeID")
+      self.colordict[int(vid)] = int(colorid)-1
+      self.typedict[int(vid)] = int(typeid)-1
     del traintree
-    del trainroot
 
     self.classes={}
     self.classes["color"]=10
