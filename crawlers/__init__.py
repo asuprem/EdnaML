@@ -1,6 +1,7 @@
 # Vehicle Re-ID Crawlers
 from .VeRiDataCrawler import VeRiDataCrawler
 from .VRICDataCrawler import VRICDataCrawler
+from .VehicleIDDataCrawler import VehicleIDDataCrawler
 
 # Carzam crawlers
 from .Cars196DataCrawler import Cars196DataCrawler
