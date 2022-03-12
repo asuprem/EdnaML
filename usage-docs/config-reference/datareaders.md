@@ -33,6 +33,8 @@ The following values for `EXECUTION.DATAREADER.DATAREADER` are available:
 
 - `CompCars`
 - `VehicleColor`
+- `VehicleID`
+- `VeRi`
 
 Subsequent parameters for each `EXECUTION.DATAREADER.DATAREADER` is provided below.
 
@@ -68,6 +70,36 @@ Unused
 
 Unused
 
+## `VehicleColor`
+
+The datareader for the VehicleColor dataset.
+
+### `CRAWLER_ARGS`
+
+The crawler extracts all paths to tuples. 2 arguments:
+
+- `data_folder`: path to the root VehicleColor directory that contains the the `image` directory, e.g. `Data/VehicleColor`
+- `train_folder`: name of the `train` directory, e.g. `train`
+- `validation_folder`: name of the `val` directory, e.g. `val`
+- `test_folder`: name of the `test` directory, e.g. `test`
+
+### DATASET_ARGS
+
+TorchDataset stes up functions to load images from path, and well as yield a single annotation/label. We need to provide the index of the annotation, since VehicleColor has a single annotations.
+Each tuple of a sample is of the form: `(path/to/image, color)`
+3 arguments:
+
+- `pathidx`: The index where the path exists. This is `0` for VehicleColor
+- `annotationidx`: the index where the annotation exists. `1` is the only option. 
+- `classificationclass`: The name of the annotation used. See tuple above. `color` is the only option
+
+### GENERATOR_ARGS
+
+Unused
+
+### DATALOADER_ARGS
+
+Unused
 
 
 ## `VehicleID`
@@ -78,13 +110,13 @@ The datareader for the VehicleID dataset.
 
 The crawler extracts all paths to tuples. 2 arguments:
 
-- `data_folder`: path to the root CompCars directory that contains the the `image` directory, e.g. `Data/VehicleID`
+- `data_folder`: path to the root VehicleID directory that contains the the `image` directory, e.g. `Data/VehicleID`
 - `train_folder`: name of the `image` directory, e.g. `image`
 - `attribute_folder`: The directory containing attributes. Use `attribute`.
 
 ### DATASET_ARGS
 
-TorchDataset stes up functions to load images from path, and well as yield a single annotation/label. We need to provide the index of the annotation, since CompCars has multiple annotations.
+TorchDataset stes up functions to load images from path, and well as yield a single annotation/label. We need to provide the index of the annotation, since VehicleID has multiple annotations.
 Each tuple of a sample is of the form: `(path/to/image, pid, cid, color, model)`
 3 arguments:
 
@@ -108,11 +140,11 @@ The datareader for the VeRi dataset.
 
 The crawler extracts all paths to tuples. 2 arguments:
 
-- `data_folder`: path to the root CompCars directory that contains the the `image` directory, e.g. `data/VeRi`
+- `data_folder`: path to the root VeRi directory that contains the the `image` directory, e.g. `data/VeRi`
 
 ### DATASET_ARGS
 
-TorchDataset stes up functions to load images from path, and well as yield a single annotation/label. We need to provide the index of the annotation, since CompCars has multiple annotations.
+TorchDataset stes up functions to load images from path, and well as yield a single annotation/label. We need to provide the index of the annotation, since VeRi has multiple annotations.
 Each tuple of a sample is of the form: `(path/to/image, pid, cid, color, type)`
 3 arguments:
 
