@@ -27,9 +27,11 @@ class SoftmaxLabelSmooth(Loss):
             logits: prediction matrix (before softmax) with shape (batch_size, soft_dim)
             labels: ground truth labels with shape (batch_size)
         """
-        log_probs = self.logsoftmax(logits)
-        labels = torch.zeros(log_probs.size()).scatter_(1, labels.unsqueeze(1).data.cpu(), 1)
-        labels = labels.cuda()
-        labels = (1 - self.eps) * labels + self.eps / self.soft_dim
-        loss = (- labels * log_probs).mean(0).sum()
+        llogits=logits[labels>=0]
+        llabels=labels[labels>=0]
+        log_probs = self.logsoftmax(llogits)
+        llabels = torch.zeros(log_probs.size()).scatter_(1, llabels.unsqueeze(1).data.cpu(), 1)
+        llabels = llabels.cuda()
+        llabels = (1 - self.eps) * llabels + self.eps / self.soft_dim
+        loss = (- llabels * log_probs).mean(0).sum()
         return loss

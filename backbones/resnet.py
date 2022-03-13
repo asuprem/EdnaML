@@ -4,6 +4,9 @@ from torch import nn
 import torch
 import pdb
 
+
+
+
 class ChannelAttention(nn.Module):
     """Channel Attention module that forms part of CBAM attention.
     See the ECCV paper at https://openaccess.thecvf.com/content_ECCV_2018/papers/Sanghyun_Woo_Convolutional_Block_Attention_ECCV_2018_paper.pdf
