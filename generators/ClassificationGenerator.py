@@ -12,7 +12,7 @@ import torchvision.transforms as T
 from . import ImageGenerator
 
 
-class CoLabelDataset(TorchDataset):
+class ClassificationDataset(TorchDataset):
     def __init__(self, dataset, transform=None, **kwargs):
         self.dataset = dataset
         self.transform = transform
@@ -33,7 +33,7 @@ class CoLabelDataset(TorchDataset):
         img_load = Image.open(img).convert('RGB')
         return img_load
 
-class CoLabelGenerator(ImageGenerator):
+class ClassificationGenerator(ImageGenerator):
     def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
         """ Data generator for training and testing. Works with the <>. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
@@ -50,7 +50,7 @@ class CoLabelGenerator(ImageGenerator):
             rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
         
         """
-        super(CoLabelGenerator,self).__init__(  gpus, i_shape = i_shape, 
+        super(ClassificationGenerator,self).__init__(  gpus, i_shape = i_shape, 
                                                 normalization_mean = normalization_mean, normalization_std = normalization_std, normalization_scale = normalization_scale, 
                                                 h_flip = h_flip, t_crop = t_crop, rea = rea, 
                                                 **kwargs)
@@ -58,12 +58,12 @@ class CoLabelGenerator(ImageGenerator):
 
     def buildDataset(self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
         if mode == "train":
-            return CoLabelDataset(datacrawler.metadata[mode]["crawl"], transform, **kwargs)
+            return ClassificationDataset(datacrawler.metadata[mode]["crawl"], transform, **kwargs)
         elif mode == "test":
             # For testing, we combine images in the query and testing set to generate batches
-            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], transform, **kwargs)
+            return ClassificationDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata[mode]["crawl"], transform, **kwargs)
         elif mode == "full":
-            return CoLabelDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], transform, **kwargs)
+            return ClassificationDataset(datacrawler.metadata["val"]["crawl"] + datacrawler.metadata["train"]["crawl"]+ datacrawler.metadata["test"]["crawl"], transform, **kwargs)
         else:
             raise NotImplementedError()
 

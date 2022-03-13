@@ -1,12 +1,12 @@
 
 from . import DataReader
 from crawlers import CoLabelCompCarsCrawler
-from generators.CoLabelGenerator import CoLabelDataset, CoLabelGenerator
+from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 
 class CompCars(DataReader):
     CRAWLER = CoLabelCompCarsCrawler
-    DATASET = CoLabelDataset
-    GENERATOR = CoLabelGenerator
+    DATASET = ClassificationDataset
+    GENERATOR = ClassificationGenerator
 
     def __init__(self):
         super().__init__() 
