@@ -1,0 +1,81 @@
+EXECUTION:
+  OPTIMIZER_BUILDER: CoLabelOptimizer
+  MODEL_SERVING: None
+  EPOCHS: 10
+  SKIPEVAL: True
+  TEST_FREQUENCY: 5
+  DATAREADER: 
+    DATAREADER: CompCars
+    CRAWLER_ARGS:
+      data_folder: "Data/CompCars"
+      train_folder: "image"
+      trainfile: "train.txt"
+      testfile: "test.txt"
+    DATASET_ARGS: 
+      pathidx: 4
+      annotationidx: 3
+      classificationclass: type
+    GENERATOR_ARGS: {}      
+    DATALOADER_ARGS: {}
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "sample-ccars-micro"
+  MODEL_BACKBONE: "r18-att-part"
+  MODEL_QUALIFIER: "type"
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+  
+
+TRANSFORMATION:
+  SHAPE: [100,100]
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0.0
+  T_CROP: False
+  RANDOM_ERASE: False
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 32
+  WORKERS: 2
+
+MODEL:
+  BUILDER: colabel_model_builder
+  MODEL_ARCH: 'CoLabelResnet'
+  MODEL_BASE: 'resnet18'
+  EMBEDDING_DIMENSIONS:
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS:
+    attention: dbam
+    input_attention: True
+    part_attention: True
+    secondary_attention: 2
+
+COLABEL:
+  COMPRESSION: 5
+  ENSEMBLE: "majority"
+  CONFIDENCE: "decay"
+
+LOSS:
+  - LOSSES: ['SoftmaxLabelSmooth']
+    KWARGS: [{'soft_dim':12}]
+    LAMBDAS: [1.0]
+    NAME: out1
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "Adam"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.00001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'StepLR'
+  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch
