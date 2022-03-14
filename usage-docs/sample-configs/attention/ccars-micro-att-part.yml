@@ -46,9 +46,9 @@ MODEL:
   MODEL_ARCH: 'CoLabelResnet'
   MODEL_BASE: 'resnet18'
   EMBEDDING_DIMENSIONS:
-  MODEL_NORMALIZATION: 'bn'
+  MODEL_NORMALIZATION: 'gn'
   MODEL_KWARGS:
-    attention: dbam
+    attention: cbam
     input_attention: True
     part_attention: True
     secondary_attention: 2

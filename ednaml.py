@@ -73,6 +73,11 @@ def main(config, mode, weights):
     logger.info("Reading data with DataReader %s"%data_reader_class)
     crawler = data_reader.CRAWLER(logger=logger, **config.get("EXECUTION.DATAREADER.CRAWLER_ARGS"))
     
+    # Update the generator...if needed
+    new_generator_class = config.get("EXECUTION.DATAREADER.GENERATOR", None)
+    if new_generator_class is not None:
+        new_generator = __import__("generators."+new_generator_class, fromlist=[new_generator_class])
+        data_reader.GENERATOR = getattr(new_generator, new_generator_class)
     
     train_generator = data_reader.GENERATOR(gpus=NUM_GPUS, i_shape=config.get("TRANSFORMATION.SHAPE"), \
                                 normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
@@ -86,6 +91,7 @@ def main(config, mode, weights):
     TRAIN_CLASSES = config.get("MODEL.SOFTMAX_DIM", train_generator.num_entities)
     if TRAIN_CLASSES is None:
         TRAIN_CLASSES = train_generator.num_entities
+    print("Running classification model with %i classes"%TRAIN_CLASSES)
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
                                             i_shape=config.get("TRANSFORMATION.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 

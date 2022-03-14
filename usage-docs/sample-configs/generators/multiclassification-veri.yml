@@ -2,35 +2,33 @@ EXECUTION:
   OPTIMIZER_BUILDER: CoLabelOptimizer
   MODEL_SERVING: None
   EPOCHS: 10
+  SKIPEVAL: True
   TEST_FREQUENCY: 5
   DATAREADER: 
-    DATAREADER: VehicleColor
-    CRAWLER_ARGS: {}
+    DATAREADER: VeRi
+    CRAWLER_ARGS:
+      data_folder: "Data/VeRi"
     DATASET_ARGS: 
       pathidx: 0
-      annotationidx: 1
-      classificationclass: color
-    GENERATOR: 
-    GENERATOR_ARGS: 
+      annotationidx: [3,4]
+      classificationclass: ['color','type']
+    GENERATOR: MultiClassificationGenerator
+    GENERATOR_ARGS: {}      
     DATALOADER_ARGS: {}
+  TRAINER: CoLabelTrainer
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: "colabel_devel"
+  MODEL_CORE_NAME: "multiclass-veri"
   MODEL_BACKBONE: "res18"
-  MODEL_QUALIFIER: "all"
+  MODEL_QUALIFIER: "color-type"
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
-
-DATASET:
-  ROOT_DATA_FOLDER: "Data/CompCars"
-  TRAIN_FOLDER: "train"
-  TEST_FOLDER: "test"
-  VAL_FOLDER: "val"
-  SHAPE: [228,228]
+  
 
 TRANSFORMATION:
+  SHAPE: [100,100]
   NORMALIZATION_MEAN: 0.5
   NORMALIZATION_STD: 0.5
   NORMALIZATION_SCALE: 255
@@ -43,11 +41,12 @@ TRANSFORMATION:
   WORKERS: 2
 
 MODEL:
-  MODEL_BASE: 'resnet18'
+  BUILDER: colabel_model_builder
   MODEL_ARCH: 'CoLabelResnet'
-  EMB_DIM: 512
+  MODEL_BASE: 'resnet18'
+  EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'bn'
-  MODEL_KWARGS: ''
+  MODEL_KWARGS: '{}'
 
 COLABEL:
   COMPRESSION: 5
