@@ -82,7 +82,9 @@ class ClassificationGenerator(ImageGenerator):
         
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
-            return datacrawler.metadata[mode]["classes"][kwargs.get("classificationclass", "color")]
+            return {
+                item:datacrawler.metadata[mode]["classes"][item] for item in kwargs.get("classificationclass", ["color"])
+            }
             #TODO fix this
         else:
             raise NotImplementedError()

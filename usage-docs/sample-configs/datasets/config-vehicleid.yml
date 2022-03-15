@@ -41,8 +41,8 @@ TRANSFORMATION:
   WORKERS: 2
 
 MODEL:
-  BUILDER: colabel_model_builder
-  MODEL_ARCH: 'CoLabelResnet'
+  BUILDER: classification_model_builder
+  MODEL_ARCH: 'ClassificationResnet'
   MODEL_BASE: 'resnet18'
   EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'bn'

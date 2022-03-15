@@ -14,7 +14,7 @@ LOSS:
 ```
 
 
-# `LOSS` array
+## `LOSS` array
 
 Each array corresponds to a single output of the model and comprises of 4 parameters:
 
@@ -25,8 +25,23 @@ Each array corresponds to a single output of the model and comprises of 4 parame
 
 
 
-# `LOSS` array order
+## `LOSS` array order
 
 Since each entry in the loss array corresponds to a single output, you need to check the model you are building. The model's `forward` function gives the order of outputs. 
+
+# Loss options
+
+## `SoftmaxLogitsLoss`
+
+The standard softmax crossentropy loss. Returns the cross entropy loss
+
+## `SoftmaxLabelSmooth`
+
+Labeled smoothed cross entropy loss. 
+
+Keyword arguments:
+
+- `eps`: Smoothing factor $\epsilon$. Default `0.1`
+- `softmax_dimensions`: Dimensions of the softmax layer. Can be left blank if you want EdnaML to infer it automatically. In this case, the `NAME` parameter MUST correspond to the label name from the crawler. (See `classificationnames` in [`datareaders.md`](datareaders.md))
 
 

@@ -11,6 +11,10 @@ class LossBuilder(nn.Module):
         fn_len = len(loss_functions)
         lambda_len = len(loss_lambda)
         kwargs_len = len(loss_kwargs)
+        self.loss_labelname = kwargs.get("name", "loss-1")
+        self.loss_classes_metadata = kwargs.get("metadata", {"loss-1":0})
+        loss_kwargs["loss_labelname"]  = kwargs.get("name", "loss-1")
+        loss_kwargs["loss_classes_metadata"]  = kwargs.get("metadata", {"loss-1":0})
         # Set up the logger
         self.logger = kwargs.get("logger")
         # Sanity check

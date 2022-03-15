@@ -8,17 +8,17 @@ The `MODEL.MODEL_BUILDER` paramter controls the overall model research architect
 
 Values for `MODEL.MODEL_BUILDER` include:
 
-- `colabel_model_builder`
+- `classification_model_builder`
 
-## `MODEL.MODEL_BUILDER: colabel_model_builder`
+## `MODEL.MODEL_BUILDER: classification_model_builder`
 
-There are several architectures in `MODEL.MODEL_ARCH` for `colabel_model_builder`. For each architecture, we have different bases.
-### `MODEL.MODEL_ARCH: CoLabelResnet`
+There are several architectures in `MODEL.MODEL_ARCH` for `classification_model_builder`. For each architecture, we have different bases.
+### `MODEL.MODEL_ARCH: ClassificationResnet`
 
-For `CoLabelResnet`, the following are available:
+For `ClassificationResnet`, the following are available:
 
 - `MODEL_BASE`: `resnet18`, `resnet34`, `resnet50`, `resnet101`, `resnet152`
-- `MODEL_KWARGS`: see [`CoLabelResnetAbstract`](/models/abstracts.py) class
+- `MODEL_KWARGS`: see [`ClassificationResnetAbstract`](/models/abstracts.py) class
 
     - `last_stride` (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2. No need to change.
     - `attention` (str, None): The attention module to use. Supports [`'cbam'`, `'dbam'`]. This is applied to all layers, or to specific ResNet blocks, depending on the value of `secondary_attention`

@@ -42,8 +42,8 @@ TRANSFORMATION:
   WORKERS: 2
 
 MODEL:
-  BUILDER: colabel_model_builder
-  MODEL_ARCH: 'CoLabelResnet'
+  BUILDER: classification_model_builder
+  MODEL_ARCH: 'ClassificationResnet'
   MODEL_BASE: 'resnet18'
   EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'gn'
@@ -60,7 +60,7 @@ COLABEL:
 
 LOSS:
   - LOSSES: ['SoftmaxLabelSmooth']
-    KWARGS: [{'soft_dim':12}]
+    KWARGS: [{'softmax_dimensions':12}]
     LAMBDAS: [1.0]
     NAME: out1
 

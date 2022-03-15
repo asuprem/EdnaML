@@ -1,12 +1,12 @@
 import pdb
 from torch import nn
-from .abstracts import CoLabelResnetAbstract
+from .abstracts import ClassificationResnetAbstract
 from utils import layers
 import torch
 
 # CHANGELOG: secondary attention is List, not a single number
 
-class CoLabelResnet(CoLabelResnetAbstract):
+class ClassificationResnet(ClassificationResnetAbstract):
     """Basic CoLabel Resnet model.
 
     A CoLabel model is a base ResNet, but during prediction, employs additional pieces such as 
@@ -18,7 +18,7 @@ class CoLabelResnet(CoLabelResnetAbstract):
         weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
         normalization (str, None): Can be None, where it is torch's normalization. Else create a normalization layer. Supports: ["bn", "l2", "in", "gn", "ln"]
         embedding_dimensions (int): Dimensions for the feature embedding. Leave empty if feature dimensions should be same as architecture core output (e.g. resnet50 base model has 2048-dim feature outputs). If providing a value, it should be less than the architecture core's base feature dimensions.
-        soft_dimensions (int, None): Whether to include softmax classification layer. If None, softmax layer is not created in model.
+        softmax_dimensions (int, None): Number of FC dimensions for classification
 
     Kwargs (MODEL_KWARGS):
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
@@ -40,8 +40,8 @@ class CoLabelResnet(CoLabelResnetAbstract):
 
     """
 
-    def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, soft_dimensions = None, **kwargs):
-        super(CoLabelResnet, self).__init__(base, weights, normalization, embedding_dimensions, soft_dimensions=soft_dimensions, **kwargs)
+    def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions = None, **kwargs):
+        super(ClassificationResnet, self).__init__(base, weights, normalization, embedding_dimensions, softmax_dimensions=softmax_dimensions, **kwargs)
 
     def build_base(self,base, weights, **kwargs):
         """Build the model base.

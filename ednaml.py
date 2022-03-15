@@ -88,10 +88,8 @@ def main(config, mode, weights):
     # TODO we need t fix the dataset part, where it is defined inside the generator file... we need to move it elsewhere into datasets/<>
     # TODO, second, we need to fix the TRAIN_CLASSES thing, and how to obtain it
     # TODO Third, we need to fix the embedding dim, softmax_dim, and any other dim debacle...
-    TRAIN_CLASSES = config.get("MODEL.SOFTMAX_DIM", train_generator.num_entities)
-    if TRAIN_CLASSES is None:
-        TRAIN_CLASSES = train_generator.num_entities
-    print("Running classification model with %i classes"%TRAIN_CLASSES)
+    TRAIN_CLASSES = train_generator.num_entities
+    print("Running classification model with classes:", TRAIN_CLASSES)
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
                                             i_shape=config.get("TRANSFORMATION.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 
@@ -110,8 +108,8 @@ def main(config, mode, weights):
 
     # --------------------- INSTANTIATE MODEL ------------------------    
     model_builder = __import__("models", fromlist=["*"])
-    model_builder = getattr(model_builder, config.get("MODEL.BUILDER", "colabel_model_builder"))
-    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("MODEL.BUILDER", "colabel_model_builder"), "models"))
+    model_builder = getattr(model_builder, config.get("MODEL.BUILDER", "classification_model_builder"))
+    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("MODEL.BUILDER", "classification_model_builder"), "models"))
     
     if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
         model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
@@ -122,8 +120,7 @@ def main(config, mode, weights):
     colabel_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
-                                soft_dimensions = config.get("MODEL.SOFTMAX_DIMENSIONS",TRAIN_CLASSES), \
-                                embedding_dimensions = config.get("MODEL.EMBEDDING_DIMENSIONS", None), \
+                                metadata = TRAIN_CLASSES, \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **model_kwargs_dict)
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
@@ -156,7 +153,8 @@ def main(config, mode, weights):
         ClassificationLossBuilder(  loss_functions=loss_item["LOSSES"], 
                                     loss_lambda=loss_item["LAMBDAS"], 
                                     loss_kwargs=loss_item["KWARGS"], 
-                                    
+                                    name=loss_item.get("NAME", None),
+                                    metadata=TRAIN_CLASSES,
                                     **{"logger":logger})
         for loss_item in config.get("LOSS")
     ]
@@ -246,7 +244,8 @@ def main(config, mode, weights):
                             test_loader = test_generator.dataloader, 
                             epochs = config.get("EXECUTION.EPOCHS"), 
                             skipeval = config.get("EXECUTION.SKIPEVAL"),
-                            logger = logger, crawler=crawler)
+                            logger = logger, crawler=crawler,
+                            config = config)
 
     trainer.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
     trainer.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 

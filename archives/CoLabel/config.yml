@@ -44,7 +44,7 @@ TRANSFORMATION:
 
 MODEL:
   MODEL_BASE: 'resnet18'
-  MODEL_ARCH: 'CoLabelResnet'
+  MODEL_ARCH: 'ClassificationResnet'
   EMB_DIM: 512
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: ''

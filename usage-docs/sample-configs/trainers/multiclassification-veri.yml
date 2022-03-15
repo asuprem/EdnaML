@@ -44,13 +44,12 @@ MODEL:
   BUILDER: multiclassification_model_builder
   MODEL_ARCH: 'MultiClassificationResnet'
   MODEL_BASE: 'resnet18'
-  EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: 'bn'
-  MODEL_KWARGS: '{}'
-  NUMBER_OUTPUTS: 2
-  OUTPUT_DIMENSIONS: 
-  OUTPUT_CLASSNAMES: ['type', 'type']
-  LABELNAMES: ['color','type']
+  MODEL_KWARGS: 
+    number_outputs: 2
+    softmax_dimensions: 
+    output_classnames: ['type', 'color']
+    labelnames: ['color','type']
 
 COLABEL:
   COMPRESSION: 5
@@ -63,7 +62,7 @@ LOSS:
     LAMBDAS: [1.0]
     NAME: color
   - LOSSES: ['SoftmaxLabelSmooth']
-    KWARGS: [{'soft_dim':9}]
+    KWARGS: [{'softmax_dimensions':9}]
     LAMBDAS: [1.0]
     NAME: type
 
