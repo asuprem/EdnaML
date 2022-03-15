@@ -231,8 +231,8 @@ def main(config, mode, weights):
 
     # --------------------- PERFORM TRAINING ------------------------
     ExecutionTrainer = __import__("trainer", fromlist=["*"])
-    ExecutionTrainer = getattr(ExecutionTrainer, config.get("EXECUTION.TRAINER","CoLabelTrainer"))
-    logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER","CoLabelTrainer"), "trainer"))
+    ExecutionTrainer = getattr(ExecutionTrainer, config.get("EXECUTION.TRAINER","ClassificationTrainer"))
+    logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER","ClassificationTrainer"), "trainer"))
 
     trainer = ExecutionTrainer( model=colabel_model, 
                             loss_fn = loss_function_array, 

@@ -142,20 +142,13 @@ class ClassificationResnetAbstract(nn.Module):
         """
         super(ClassificationResnetAbstract, self).__init__()
         self.base = None
-        
         self.embedding_dimensions = embedding_dimensions
-        self.softmax_dimensions = softmax_dimensions
         self.normalization = normalization if normalization != '' else None
         self.build_base(base, weights, **kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
-        
         self.feat_norm = None
         self.build_normalization(self.normalization)
+        self.build_softmax(softmax_dimensions)
         
-        if self.softmax_dimensions is not None:
-            self.softmax = nn.Linear(self.embedding_dimensions, self.softmax_dimensions, bias=False)
-            self.softmax.apply(self.weights_init_softmax)
-        else:
-            self.softmax = None
 
     def weights_init_kaiming(self,m):
         classname = m.__class__.__name__
@@ -201,11 +194,16 @@ class ClassificationResnetAbstract(nn.Module):
 
 
     def build_base(self,**kwargs):
-        """Build the architecture base.        
+        """Build the architecture base using the correct resnet
         """
         raise NotImplementedError()
     def build_normalization(self,**kwargs):
+        """Add normalization neck"""
         raise NotImplementedError()
+    def build_softmax(self, **kwargs):
+        """Build the softmax/FC classification layer(s)
+        """
+        raise NotImplementedError()    
     def base_forward(self,**kwargs):
         raise NotImplementedError()
     def forward(self,**kwargs):

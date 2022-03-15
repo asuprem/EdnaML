@@ -25,6 +25,7 @@ class ClassificationResnet(ClassificationResnetAbstract):
         attention (str, None): The attention module to use. Only supports ['cbam', None]
         input_attention (bool, false): Whether to include the IA module
         secondary_attention (List[int], None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic blocks provided here in List.
+        part_attention (bool): Whether to use local attention
 
     Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
         zero_init_residual (bool, false): Whether the final layer uses zero initialization
@@ -60,11 +61,7 @@ class ClassificationResnet(ClassificationResnetAbstract):
         self.emb_linear = torch.nn.Identity()
         if self.embedding_dimensions is None:
             self.embedding_dimensions = 512*self.base.block.expansion
-        if self.embedding_dimensions > 512 * self.base.block.expansion:
-            raise ValueError("You are trying to scale up embedding dimensions from %i to %i. Try using same or less dimensions."%(512*self.base.block.expansion, self.embedding_dimensions))
-        elif self.embedding_dimensions == 512*self.base.block.expansion:
-            pass
-        else:
+        if self.embedding_dimensions != 512*self.base.block.expansion:
             self.emb_linear = nn.Linear(self.base.block.expansion*512, self.embedding_dimensions, bias=False)
 
     def build_normalization(self, normalization):
@@ -90,6 +87,13 @@ class ClassificationResnet(ClassificationResnetAbstract):
             self.feat_norm = layers.L2Norm(self.embedding_dimensions,scale=1.0)
         else:
             raise NotImplementedError()
+
+    def build_softmax(self, softmax_dimensions, **kwargs):
+        if softmax_dimensions is not None:
+            self.softmax = nn.Linear(self.embedding_dimensions, softmax_dimensions, bias=False)
+            self.softmax.apply(self.weights_init_softmax)
+        else:
+            self.softmax = None
 
     def base_forward(self,x):
         features = self.gap(self.base(x))

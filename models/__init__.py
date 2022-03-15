@@ -91,7 +91,7 @@ def carzam_model_builder(arch, base, weights=None, normalization=None, embedding
     return model
 
 
-def classification_model_builder(arch, base, weights=None, normalization=None, **kwargs):
+def classification_model_builder(arch, base, weights=None, normalization=None, metadata = None, **kwargs):
     """Corroborative/Colaborative/Complementary Labeler Model Builder
 
     This builds a model for colabeler. Refer to paper [] for general construction. The model contains:
@@ -136,12 +136,12 @@ def classification_model_builder(arch, base, weights=None, normalization=None, *
             raise RuntimeError("Softmax dimensions not provided as int or dictionary")
     kwargs["softmax_dimensions"] = softdim
 
-    model = archbase(base = base, weights=weights, normalization = normalization, **kwargs)
+    model = archbase(base = base, weights=weights, normalization = normalization, metadata = metadata, **kwargs)
     return model
 
 
 
-def multiclassification_builder(arch, base, weights=None, normalization=None, **kwargs):
+def multiclassification_builder(arch, base, weights=None, normalization=None, metadata=None, **kwargs):
     """Multiclassification model builder. This builds a model with a single backbone, and multiple classification FC layers.
 
     The model contains:
@@ -156,6 +156,7 @@ def multiclassification_builder(arch, base, weights=None, normalization=None, **
         base (str): The architecture subtype, e.g. "resnet50", "resnet18"
         weights (str): Local path to weights file for the architecture core, e.g. pretrained resnet50 weights path.
         normalization (str): Normalization layer for reid-model. Can be None. Supported normalizations: ["bn", "l2", "in", "gn", "ln"]
+        metadata (Dict[str, int]): Label names to num-classes dictionary
 
     Kwargs:
         number_outputs (int): Number of different FC layers connected to the feature layer of the backbone.
@@ -168,19 +169,13 @@ def multiclassification_builder(arch, base, weights=None, normalization=None, **
 
     """
 
-    # make the MultiClassificationResNet, with resnet base, with multiple output fc layers
-    if arch != "MultiClassificationResNet":
+    # make the MultiClassificationResnet, with resnet base, with multiple output fc layers
+    if arch != "MultiClassificationResnet":
         raise NotImplementedError()
     archbase = __import__("models."+arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
-    
-    # Verify that softmax_dimensions is dictionary of annotation->numclasses. 
-    softdim = kwargs.get("softmax_dimensions")
-    if type(softdim) is not dict:
-        raise ValueError("Did not provide dictionary of labels-to-numclasses to built multiclassification FC-layer. If there is only one FC, a singleton dict must be provided")
-
-    model = archbase(base = base, weights=weights, normalization = normalization, **kwargs)
+    model = archbase(base = base, weights=weights, normalization = normalization, metadata=metadata, *kwargs)
     return model
 
 
