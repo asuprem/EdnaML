@@ -5,6 +5,4 @@ class Loss(nn.Module):
     def forward(self):
         raise NotImplementedError()
 
-from .builders import ReIDLossBuilder
-from .builders import CarZamLossBuilder
-from .builders import CoLabelLossBuilder
+from .builders import CoLabelLossBuilder, ClassificationLossBuilder, ReIDLossBuilder, CarZamLossBuilder

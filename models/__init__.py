@@ -1,3 +1,6 @@
+from multiprocessing.sharedctypes import Value
+
+
 def veri_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
     """Vehicle Re-id model builder.
 
@@ -88,7 +91,7 @@ def carzam_model_builder(arch, base, weights=None, normalization=None, embedding
     return model
 
 
-def colabel_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, **kwargs):
+def classification_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, **kwargs):
     """Corroborative/Colaborative/Complementary Labeler Model Builder
 
     This builds a model for colabeler. Refer to paper [] for general construction. The model contains:
@@ -118,9 +121,25 @@ def colabel_model_builder(arch, base, weights=None, normalization=None, embeddin
     archbase = __import__("models."+arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
+
+    # We want to make sure soft_dim is a number, and not a dictionary...
+    # Because this can retrieve a number SOFT_DIM, or a dictionary of annotation->numclasses. 
+    softdim = kwargs.get("soft_dimensions")
+    if type(softdim) is not int:
+        print("Softmax dimensions not provided as int. Attempting to infer number of classes")
+        if type(softdim) is dict:
+            if len(softdim)>1:
+                raise ValueError("More than one annotation provided. Use a multiclassification model or multibranch model instead")
+            key=softdim.keys()[0]
+            softdim=softdim[key]
+        else:
+            raise RuntimeError("Softmax dimensions not provided as int or dictionary")
+        kwargs["soft_dimensions"] = softdim
+
     model = archbase(base = base, weights=weights, normalization = normalization, embedding_dimensions = embedding_dimensions, **kwargs)
     return model
 
+colabel_model_builder=classification_model_builder
 
 def colabel_interpretable_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, **kwargs):
     """Corroborative/Colaborative/Complementary Labeler Model Builder

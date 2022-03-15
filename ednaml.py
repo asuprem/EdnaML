@@ -153,7 +153,11 @@ def main(config, mode, weights):
     # to use in the config file for that model_builder to work properly. So a multi-branch model builder will tell us that the template should correspond to multiple
     # outputs...
     loss_function_array = [
-        ClassificationLossBuilder(loss_functions=loss_item["LOSSES"], loss_lambda=loss_item["LAMBDAS"], loss_kwargs=loss_item["KWARGS"], **{"logger":logger})
+        ClassificationLossBuilder(  loss_functions=loss_item["LOSSES"], 
+                                    loss_lambda=loss_item["LAMBDAS"], 
+                                    loss_kwargs=loss_item["KWARGS"], 
+                                    
+                                    **{"logger":logger})
         for loss_item in config.get("LOSS")
     ]
     logger.info("Built loss function")
