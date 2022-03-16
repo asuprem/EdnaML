@@ -77,6 +77,7 @@ class MultiClassificationResnet(ClassificationResnet):
             elif self.output_classnames is None and self.number_outputs == 1:
                 # Here we infer using metadata
                 self.softmax_dimensions[0] = self.metadata[self.metadata.keys()[0]]
+                self.output_classnames = [self.metadata.keys()[0]]
             elif self.output_classnames is not None:
                 if len(self.output_classnames)!=self.number_outputs:
                     raise ValueError("Length of output_classnames MUST match number_outputs. Expected %i and got %i"%(self.number_outputs, len(self.output_classnames)))
