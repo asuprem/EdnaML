@@ -109,7 +109,7 @@ def main(config, mode, weights):
     # --------------------- INSTANTIATE MODEL ------------------------    
     model_builder = __import__("models", fromlist=["*"])
     model_builder = getattr(model_builder, config.get("MODEL.BUILDER", "classification_model_builder"))
-    logger.info("Loaded {} from {} to build CoLabel model".format(config.get("MODEL.BUILDER", "classification_model_builder"), "models"))
+    logger.info("Loaded {} from {} to build model".format(config.get("MODEL.BUILDER", "classification_model_builder"), "models"))
     
     if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
         model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
@@ -117,7 +117,7 @@ def main(config, mode, weights):
         model_kwargs_dict = json.loads(config.get("MODEL.MODEL_KWARGS"))
 
     # TODO!!!!!!!
-    colabel_model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
+    model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
                                 metadata = TRAIN_CLASSES, \
@@ -126,16 +126,16 @@ def main(config, mode, weights):
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
 
     if mode == "test":
-        colabel_model.load_state_dict(torch.load(weights))
-        colabel_model.cuda()
-        colabel_model.eval()
+        model.load_state_dict(torch.load(weights))
+        model.cuda()
+        model.eval()
     else:
         if weights != "":   # Load weights if train and starting from a another model base...
             logger.info("Commencing partial model load from {}".format(weights))
-            colabel_model.partial_load(weights)
+            model.partial_load(weights)
             logger.info("Completed partial model load from {}".format(weights))
-        colabel_model.cuda()
-        logger.info(torchsummary.summary(colabel_model, input_size=(config.get("TRANSFORMATION.CHANNELS"), *config.get("TRANSFORMATION.SHAPE"))))
+        model.cuda()
+        logger.info(torchsummary.summary(model, input_size=(config.get("TRANSFORMATION.CHANNELS"), *config.get("TRANSFORMATION.SHAPE"))))
 
 
     # --------------------- INSTANTIATE LOSS ------------------------
@@ -183,7 +183,7 @@ def main(config, mode, weights):
     logger.info("Loaded {} from {} to build Optimizer model".format(config.get("EXECUTION.OPTIMIZER_BUILDER", "OptimizerBuilder"), "optimizer"))
 
     OPT = optimizer_builder(base_lr=config.get("OPTIMIZER.BASE_LR"), lr_bias = config.get("OPTIMIZER.LR_BIAS_FACTOR"), weight_decay=config.get("OPTIMIZER.WEIGHT_DECAY"), weight_bias=config.get("OPTIMIZER.WEIGHT_BIAS_FACTOR"), gpus=NUM_GPUS)
-    optimizer = OPT.build(colabel_model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
+    optimizer = OPT.build(model, config.get("OPTIMIZER.OPTIMIZER_NAME"), **json.loads(config.get("OPTIMIZER.OPTIMIZER_KWARGS")))
     logger.info("Built optimizer")
 
     # --------------------- INSTANTIATE SCHEDULER ------------------------
@@ -234,7 +234,7 @@ def main(config, mode, weights):
     ExecutionTrainer = getattr(ExecutionTrainer, config.get("EXECUTION.TRAINER","ClassificationTrainer"))
     logger.info("Loaded {} from {} to build Trainer".format(config.get("EXECUTION.TRAINER","ClassificationTrainer"), "trainer"))
 
-    trainer = ExecutionTrainer( model=colabel_model, 
+    trainer = ExecutionTrainer( model=model, 
                             loss_fn = loss_function_array, 
                             optimizer = optimizer, 
                             loss_optimizer = loss_optimizer_array, 

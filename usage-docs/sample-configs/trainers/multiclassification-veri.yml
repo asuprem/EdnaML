@@ -50,6 +50,7 @@ MODEL:
     softmax_dimensions: 
     output_classnames: ['type', 'color']
     labelnames: ['color','type']
+    attention: 'cbam'
 
 COLABEL:
   COMPRESSION: 5
