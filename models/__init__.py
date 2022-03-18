@@ -141,7 +141,7 @@ def classification_model_builder(arch, base, weights=None, normalization=None, m
 
 
 
-def multiclassification_builder(arch, base, weights=None, normalization=None, metadata=None, **kwargs):
+def multiclassification_model_builder(arch, base, weights=None, normalization=None, metadata=None, **kwargs):
     """Multiclassification model builder. This builds a model with a single backbone, and multiple classification FC layers.
 
     The model contains:
@@ -175,7 +175,7 @@ def multiclassification_builder(arch, base, weights=None, normalization=None, me
     archbase = __import__("models."+arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
-    model = archbase(base = base, weights=weights, normalization = normalization, metadata=metadata, *kwargs)
+    model = archbase(base = base, weights=weights, normalization = normalization, metadata=metadata, **kwargs)
     return model
 
 

@@ -113,7 +113,9 @@ class VeRiDataCrawler:
         self.metadata[meta]["imgs"] = len(self.metadata[meta]["crawl"])
         self.metadata[meta]["classes"] = {}
         self.metadata[meta]["classes"]["color"] = 10
-        self.metadata[meta]["classes"]["type"] = 2590
+        self.metadata[meta]["classes"]["type"] = 9
+        self.metadata[meta]["classes"]["pids"] = self.metadata["train"]["pids"]
+        self.metadata[meta]["classes"]["cids"] = self.metadata["train"]["cids"]
 
     self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
     self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))

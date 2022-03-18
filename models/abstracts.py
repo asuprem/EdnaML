@@ -147,7 +147,7 @@ class ClassificationResnetAbstract(nn.Module):
         self.build_base(base, weights, **kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
         self.feat_norm = None
         self.build_normalization(self.normalization)
-        self.build_softmax(softmax_dimensions)
+        self.build_softmax(softmax_dimensions=softmax_dimensions)
         
 
     def weights_init_kaiming(self,m):

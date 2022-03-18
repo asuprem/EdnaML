@@ -21,7 +21,7 @@ class MultiClassificationTrainer(BaseTrainer):
                     train_loader, test_loader, 
                     epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
         
-        super(MultiClassificationTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger)
+        super().__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger)
         
         self.crawler = kwargs.get("crawler", None)
         self.softaccuracy = []
@@ -32,7 +32,7 @@ class MultiClassificationTrainer(BaseTrainer):
         self.labelnames_dict = {item:idx for idx,item in self.model.labelnames}
         self.output_classnames_dict = {item:idx for idx,item in self.model.output_classnames}
         self.loss_fn = {item.loss_labelname:item for item in self.loss_fn}
-        self.loss={item.loss_labelname:[] for item in self.loss_fn} 
+        self.loss={item:[] for item in self.loss_fn} 
     # The train function for the CoLabel model is inherited
 
 
@@ -125,31 +125,32 @@ class MultiClassificationTrainer(BaseTrainer):
         self.model.eval()
         # TODO need to check what torch.cat does...
         import pdb
-        features, logits, labels = [], [], []
+        features, logits, labels = [], [[] for _ in range(self.model.number_outputs)], []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 data, label = batch
                 data = data.cuda()
                 logit, feature  = self.model(data)
                 feature = feature.detach().cpu()
-                logit = logit.detach().cpu()
+                for idx in range(self.model.number_outputs):
+                  logits[idx].append(logit[idx])
                 features.append(feature)
                 logits.append(logit)
                 labels.append(label)
         pdb.set_trace()
-        features, logits, labels = torch.cat(features, dim=0), torch.cat(logits, dim=0), torch.cat(labels, dim=0)
+        features, logits, labels = torch.cat(features, dim=0), [torch.cat(logit, dim=0) for logit in logits], torch.cat(labels, dim=0)
         # Now we compute the loss...
         self.logger.info('Obtained features, validation in progress')
         # for evaluation...
         #pdb.set_trace()
 
-        logit_labels = torch.argmax(logits, dim=1)
-        accuracy = (logit_labels==labels).sum().float()/float(labels.size(0))
-        micro_fscore = np.mean(f1_score(labels,logit_labels, average='micro'))
-        weighted_fscore = np.mean(f1_score(labels,logit_labels, average='weighted'))
-        self.logger.info('Accuracy: {:.3%}'.format(accuracy))
-        self.logger.info('Micro F-score: {:.3f}'.format(micro_fscore))
-        self.logger.info('Weighted F-score: {:.3f}'.format(weighted_fscore))
+        logit_labels = [torch.argmax(logit, dim=1) for logit in logits]
+        accuracy = [(logit_labels[idx]==labels[:,idx]).sum().float()/float(labels.size(0)) for idx in range(self.model.number_outputs)]
+        micro_fscore = [np.mean(f1_score(labels[:,idx],logit_labels[idx], average='micro')) for idx in range(self.model.number_outputs)]
+        weighted_fscore = [np.mean(f1_score(labels[:,idx],logit_labels[idx], average='weighted')) for idx in range(self.model.number_outputs)]
+        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'.format(self.model.labelnames[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'.format(self.model.labelnames[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'.format(self.model.labelnames[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
         return logit_labels, labels, self.crawler.classes
 
     def saveMetadata(self,):

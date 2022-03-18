@@ -1,7 +1,7 @@
 import pdb
 from pydoc import classname
 from torch import nn, softmax
-from ClassificationResnet import ClassificationResnet
+from model.ClassificationResnet import ClassificationResnet
 from utils import layers
 import torch
 
@@ -67,7 +67,7 @@ class MultiClassificationResnet(ClassificationResnet):
         
         if self.softmax_dimensions is None:
             # sets the size of softmax_dimensions to match number of outputs in this model...
-            self.softmax_dimensions = [None](self.number_outputs)
+            self.softmax_dimensions = [None]*(self.number_outputs)
 
             # TODO we assume if softmax_dimensions is none, that the output_classnames is constructed properly. Handle the bad case, by passing in a logger instance to this to log warnings and errors
             # Also, need to check errors where if we are inferring softmax_dimensions, there should only be 1 output, and if numberoutputs>1 while output_classnames is not provided, throw an error, etc.
@@ -88,11 +88,11 @@ class MultiClassificationResnet(ClassificationResnet):
 
         # NOTE, for re-id type models...multiclassification model will anyway yield the features with softmax outputs, so we don't have to worry about that...
         # For pure-reid model, probably best to use ClassificationResNet and modify to use no softmax...TODO this is a future step...
-        self.softmax = [None]*self.number_outputs
+        tsoftmax = [None]*self.number_outputs
         for idx,fc_dimension in enumerate(self.softmax_dimensions):
-            self.softmax[idx] = nn.Linear(self.embedding_dimensions, fc_dimension, bias=False)
-            self.softmax[idx].apply(self.weights_init_softmax)
-
+            tsoftmax[idx] = nn.Linear(self.embedding_dimensions, fc_dimension, bias=False)
+            tsoftmax[idx].apply(self.weights_init_softmax)
+        self.softmax = nn.ModuleList(tsoftmax)
 
     def base_forward(self,x):
         features = self.gap(self.base(x))
