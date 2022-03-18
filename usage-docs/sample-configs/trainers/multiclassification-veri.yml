@@ -1,8 +1,8 @@
 EXECUTION:
   OPTIMIZER_BUILDER: CoLabelOptimizer
   MODEL_SERVING: None
-  EPOCHS: 10
-  SKIPEVAL: False
+  EPOCHS: 11
+  SKIPEVAL: True
   TEST_FREQUENCY: 5
   DATAREADER: 
     DATAREADER: VeRi
@@ -18,7 +18,7 @@ EXECUTION:
   TRAINER: MultiClassificationTrainer
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 2
   MODEL_CORE_NAME: "multiclass-veri"
   MODEL_BACKBONE: "res18"
   MODEL_QUALIFIER: "color-type"
@@ -28,16 +28,16 @@ SAVE:
   
 
 TRANSFORMATION:
-  SHAPE: [100,100]
+  SHAPE: [200,200]
   NORMALIZATION_MEAN: 0.5
   NORMALIZATION_STD: 0.5
   NORMALIZATION_SCALE: 255
-  H_FLIP: 0.0
-  T_CROP: False
+  H_FLIP: 0.5
+  T_CROP: True
   RANDOM_ERASE: False
   RANDOM_ERASE_VALUE: 0.5
   CHANNELS: 3
-  BATCH_SIZE: 32
+  BATCH_SIZE: 128
   WORKERS: 2
 
 MODEL:
@@ -58,19 +58,19 @@ COLABEL:
   CONFIDENCE: "decay"
 
 LOSS:
-  - LOSSES: ['SoftmaxLogitsLoss']
-    KWARGS: [{}]
-    LAMBDAS: [1.0]
+  - LOSSES: ['SoftmaxLogitsLoss', 'SoftmaxLabelSmooth']
+    KWARGS: [{}, {'eps':0.2}]
+    LAMBDAS: [1.0, 1.0]
     NAME: color
-  - LOSSES: ['SoftmaxLabelSmooth']
-    KWARGS: [{'softmax_dimensions':9}]
-    LAMBDAS: [1.0]
+  - LOSSES: ['SoftmaxLabelSmooth', 'SoftmaxLogitsLoss']
+    KWARGS: [{'eps':0.3}, {}]
+    LAMBDAS: [1.0, 2.0]
     NAME: type
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
   OPTIMIZER_KWARGS: '{}'
-  BASE_LR: 0.00001
+  BASE_LR: 0.0001
   LR_BIAS_FACTOR: 1.0
   WEIGHT_DECAY: 0.0005
   WEIGHT_BIAS_FACTOR: 0.0005

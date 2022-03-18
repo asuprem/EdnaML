@@ -1,7 +1,7 @@
 import pdb
 from pydoc import classname
 from torch import nn, softmax
-from model.ClassificationResnet import ClassificationResnet
+from models.ClassificationResnet import ClassificationResnet
 from utils import layers
 import torch
 
