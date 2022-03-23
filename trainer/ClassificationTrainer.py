@@ -81,7 +81,7 @@ class ClassificationTrainer(BaseTrainer):
         img, batch_kwargs["labels"] = batch # This is the tensor response from collate_fn
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
-        batch_kwargs["logits"], batch_kwargs["features"] = self.model(img)
+        batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         
         # TODO fix this with info about how many output are in the model...from the config file!!!!!
@@ -137,7 +137,7 @@ class ClassificationTrainer(BaseTrainer):
         self.logger.info('Accuracy: {:.3%}'.format(accuracy))
         self.logger.info('Micro F-score: {:.3f}'.format(micro_fscore))
         self.logger.info('Weighted F-score: {:.3f}'.format(weighted_fscore))
-        return logit_labels, labels, self.crawler.classes
+        return logit_labels, labels, self.crawler.classes, features
 
     def saveMetadata(self,):
         self.logger.info("Saving model metadata")

@@ -87,7 +87,7 @@ class MultiClassificationTrainer(BaseTrainer):
         img, batch_kwargs["labels"] = batch # This is the tensor response from collate_fn
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda() # labels are in order of labelnames
         # logits, features, labels
-        batch_kwargs["logits"], batch_kwargs["features"] = self.model(img)  # logits are in order of output_classnames --> model.output_classnames
+        batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)  # logits are in order of output_classnames --> model.output_classnames
         batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         
         loss={loss_name:None for loss_name in self.loss_fn} 
@@ -158,7 +158,7 @@ class MultiClassificationTrainer(BaseTrainer):
         self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
         self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
         self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
-        return logit_labels, labels, self.crawler.classes
+        return logit_labels, labels, self.crawler.classes, features
 
     def saveMetadata(self,):
         self.logger.info("Saving model metadata")
