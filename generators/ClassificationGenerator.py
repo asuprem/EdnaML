@@ -14,7 +14,7 @@ from . import ImageGenerator
 
 class ClassificationDataset(TorchDataset):
     def __init__(self, dataset, transform=None, **kwargs):
-        self.dataset = dataset
+        self.dataset = dataset  # this is crawler.metadata["train"]["crawl"] -> [(), (), ()]
         self.transform = transform
         self.pathidx = kwargs.get("pathidx", 0)
         self.annotationidx = kwargs.get("annotationidx", 1)
@@ -26,7 +26,7 @@ class ClassificationDataset(TorchDataset):
         # NOTE we will need to do our idx transforms here as well...
         # NOTE or leave it to be done in the crawler, and leave the generator as pristine and untouched???
         return self.transform(self.load(self.dataset[idx][self.pathidx])), self.dataset[idx][self.annotationidx]    # NOTE make this return a tuple for deploy (tuple of compressed), label
-
+        
     def load(self,img):
         if not osp.exists(img):
             raise IOError("{img} does not exist in path".format(img=img))
