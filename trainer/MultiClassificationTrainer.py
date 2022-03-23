@@ -130,7 +130,7 @@ class MultiClassificationTrainer(BaseTrainer):
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 data, label = batch
                 data = data.cuda()
-                logit, feature  = self.model(data)
+                logit, feature , _ = self.model(data)
                 feature = feature.detach().cpu()
                 for idx in range(self.model.number_outputs):
                   logits[idx].append(logit[idx].detach().cpu())

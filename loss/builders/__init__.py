@@ -7,7 +7,7 @@ class LossBuilder(nn.Module):
     LOSS_PARAMS = {}
     
     def __init__(self, loss_functions, loss_lambda, loss_kwargs, **kwargs):
-        super(LossBuilder, self).__init__()
+        super().__init__()
         self.loss = nn.ModuleList([])
             
         fn_len = len(loss_functions)
@@ -16,10 +16,7 @@ class LossBuilder(nn.Module):
         self.loss_labelname = kwargs.get("name", "loss-1")
         self.loss_classes_metadata:LabelMetadata = kwargs.get("metadata")
 
-        # Common to all losses for this output
-        for idx,_ in enumerate(loss_kwargs):
-            loss_kwargs[idx]["loss_labelname"]  = self.loss_labelname
-            loss_kwargs[idx]["loss_classes_metadata"]  = self.loss_classes_metadata
+
         # Set up the logger
         self.logger = kwargs.get("logger")
         # Sanity check
@@ -29,7 +26,7 @@ class LossBuilder(nn.Module):
             raise ValueError("Loss function list length is %i. Expected %i length loss_kwargs, got %i"%(fn_len, fn_len, kwargs_len))
         # Add the loss functions with the correct features. Lambda is applied later
         for idx, fn in enumerate(loss_functions):
-            self.loss.append(self.LOSS_PARAMS[fn]['fn'](**loss_kwargs[idx]))
+            self.loss.append(self.LOSS_PARAMS[fn]['fn'](lossname=self.loss_labelname, metadata = self.loss_classes_metadata, **loss_kwargs[idx]))
             self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=fn, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
         
         lambda_sum = sum(loss_lambda)

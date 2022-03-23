@@ -58,12 +58,12 @@ class ModelAbstract(nn.Module):
                 continue
             self.state_dict()[_key].copy_(params[_key])
 
-    def forward(self,**kwargs):
-        feature_logits, features, secondary_outputs = self.forward_impl(**kwargs)
+    def forward(self,x, **kwargs):
+        feature_logits, features, secondary_outputs = self.forward_impl(x, **kwargs)
 
         return feature_logits, features, secondary_outputs
 
-    def foward_impl(self, **kwargs):
+    def foward_impl(self, x, **kwargs):
 
         raise NotImplementedError()
 

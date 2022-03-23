@@ -112,7 +112,7 @@ class MultiClassificationResnet(ClassificationResnet):
         return features
 
 
-    def forward_impl(self,x):
+    def forward_impl(self,x, **kwargs):
         features = self.base_forward(x)
         
         #if self.feat_norm is not None: <-- no need, identity

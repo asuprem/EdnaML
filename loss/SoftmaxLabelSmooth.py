@@ -15,11 +15,11 @@ class SoftmaxLabelSmooth(Loss):
         __call__: Returns loss given logits and labels.
 
     """
-    def __init__(self, **kwargs):
-        super(SoftmaxLabelSmooth, self).__init__()
+    def __init__(self, lossname, metadata, **kwargs):
+        super().__init__()
         self.softmax_dimensions = kwargs.get('softmax_dimensions', None)
         if self.softmax_dimensions is None:
-            self.softmax_dimensions = kwargs.get("loss_classes_metadata").getLabelDimensions(kwargs.get("loss_labelname"))
+            self.softmax_dimensions = metadata.getLabelDimensions(lossname)
         self.eps = kwargs.get('eps', 0.1)
         self.logsoftmax = nn.LogSoftmax(dim=1)
 

@@ -4,7 +4,6 @@ import click
 from datareaders import DataReader
 import utils
 import torch, torchsummary
-
 from utils.LabelMetadata import LabelMetadata
 
 

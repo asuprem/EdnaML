@@ -12,9 +12,9 @@ class LabelMetadata:
     """
     labels : List[str]
     totalLabels : int
-    metadata: Dict[str,Dict[str,Union[str,int]]]
+    metadata: Dict[str,Dict[str,int]]
         
-    def __init__(self, label_dict:Dict[str,Dict[str,Union[str,int]]] = {}):
+    def __init__(self, label_dict: Dict[str,Dict[str,int]] = {}):
         """Initializes the LabelMetadata and populates it. If given an empty dict as input, the LabelMetadata will be empty
 
         Args:

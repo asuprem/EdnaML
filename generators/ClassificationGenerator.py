@@ -50,7 +50,7 @@ class ClassificationGenerator(ImageGenerator):
             rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
         
         """
-        super(ClassificationGenerator,self).__init__(  gpus, i_shape = i_shape, 
+        super().__init__(  gpus, i_shape = i_shape, 
                                                 normalization_mean = normalization_mean, normalization_std = normalization_std, normalization_scale = normalization_scale, 
                                                 h_flip = h_flip, t_crop = t_crop, rea = rea, 
                                                 **kwargs)
@@ -83,7 +83,7 @@ class ClassificationGenerator(ImageGenerator):
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
             label_dict= {
-                item:datacrawler.metadata[mode]["classes"][item] for item in kwargs.get("classificationclass", ["color"])
+                item:{"classes":datacrawler.metadata[mode]["classes"][item]} for item in kwargs.get("classificationclass", ["color"])
             }
             return LabelMetadata(label_dict=label_dict)
             #TODO fix this
