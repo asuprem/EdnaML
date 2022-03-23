@@ -54,68 +54,12 @@ class ModelAbstract(nn.Module):
         feature_logits, features, secondary_outputs = self.forward_impl(**kwargs)
 
         return feature_logits, features, secondary_outputs
-class ClassificationResnetAbstract(ModelAbstract):
-    def __init__(self, base=None, weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions=None, **kwargs):
-        """Basic Classification Resnet model.
-
-        A CoLabel model performs classification using corroboratively labeled data to generate labels for unlabeed data.
-
-        Args:
-            base (str): The architecture base for resnet, i.e. resnet50, resnet18
-            weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
-            normalization (str, None): Can be None, where no normalization is used. Else create a normalization layer. Supports: ["bn", "l2", "in", "gn", "ln"]
-            embedding_dimensions (int): Dimensions for the feature embedding. Leave empty if feature dimensions should be same as architecture core output (e.g. resnet50 base model has 2048-dim feature outputs). If providing a value, it should be less than the architecture core's base feature dimensions.
-            softmax_dimensions (int, None): Number of FC dimensions for classification
-        
-        Kwargs (MODEL_KWARGS):
-            last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
-            attention (str, None): The attention module to use. Only supports ['cbam', None]
-            input_attention (bool, false): Whether to include the IA module
-            ia_attention (bool, false): Whether to include input IA module
-            part_attention (bool, false): Whether to include Part-CBAM Mobule
-            secondary_attention (List[int], None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic block number provided here.
-
-        Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS; set in backbones.resnet):
-            zero_init_residual (bool, false): Whether the final layer uses zero initialization
-            top_only (bool, true): Whether to keep only the architecture base without imagenet fully-connected layers (1000 classes)
-            num_classes (int, 1000): Number of features in final imagenet FC layer
-            groups (int, 1): Used during resnet variants construction
-            width_per_group (int, 64): Used during resnet variants construction
-            replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
-            norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
-
-        """
-        super(ClassificationResnetAbstract, self).__init__()
-        self.base = base
-        self.embedding_dimensions = embedding_dimensions
-        self.normalization = normalization if normalization != '' else None
-        self.build_base(base, weights, **kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
-        self.feat_norm = None
-        self.build_normalization(self.normalization)
-        self.build_softmax(softmax_dimensions=softmax_dimensions)
-        
-
-    def build_base(self,**kwargs):
-        """Build the architecture base using the correct resnet
-        """
-        raise NotImplementedError()
-    def build_normalization(self,**kwargs):
-        """Add normalization neck"""
-        raise NotImplementedError()
-    def build_softmax(self, **kwargs):
-        """Build the softmax/FC classification layer(s)
-        """
-        raise NotImplementedError()    
-    def base_forward(self,**kwargs):
-        raise NotImplementedError()
 
     def foward_impl(self, **kwargs):
+
         raise NotImplementedError()
-    
 
 
-
-# prework notes -- copying over code to this format -- fix the inconsistencies
 
 class CoLabelInterpretableResnetAbstract(nn.Module):
     def __init__(self, base, weights=None, normalization=None, embedding_dimensions=None, soft_dimensions=None, **kwargs):
