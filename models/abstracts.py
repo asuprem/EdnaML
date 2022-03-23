@@ -4,6 +4,14 @@ import torch
 
 
 class ModelAbstract(nn.Module):
+    model_name = "ModelAbstract"
+    model_arch = None
+    model_base = None
+    number_outputs = 1
+    output_classnames = ["out1"]
+    output_dimensions = [512]
+    secondary_outputs = []
+
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -58,6 +66,14 @@ class ModelAbstract(nn.Module):
     def foward_impl(self, **kwargs):
 
         raise NotImplementedError()
+
+
+    def getModelName(self):
+        return self.model_name
+    def getModelBase(self):
+        return self.model_base
+    def getModelArch(self):
+        return self.model_arch
 
 
 

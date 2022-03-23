@@ -1,5 +1,7 @@
 from multiprocessing.sharedctypes import Value
 
+from utils.LabelMetadata import LabelMetadata
+
 
 def veri_model_builder(arch, base, weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions=None, **kwargs):
     """Vehicle Re-id model builder.
@@ -91,7 +93,7 @@ def carzam_model_builder(arch, base, weights=None, normalization=None, embedding
     return model
 
 
-def classification_model_builder(arch, base, weights=None, normalization=None, metadata = None, **kwargs):
+def classification_model_builder(arch, base, weights=None, normalization=None, metadata:LabelMetadata = None, **kwargs):
     """Corroborative/Colaborative/Complementary Labeler Model Builder
 
     This builds a model for colabeler. Refer to paper [] for general construction. The model contains:
@@ -124,17 +126,7 @@ def classification_model_builder(arch, base, weights=None, normalization=None, m
 
 
     # Extract the dimensions from the classes metadata provided by EdnaML
-    softdim = kwargs.get("metadata")
-    if type(softdim) is not int:
-        print("Softmax dimensions not provided as int. Attempting to infer number of classes")
-        if type(softdim) is dict:
-            if len(softdim)>1:
-                raise ValueError("More than one annotation provided. Use a multiclassification model or multibranch model instead")
-            key=softdim.keys()[0]
-            softdim=softdim[key]
-        else:
-            raise RuntimeError("Softmax dimensions not provided as int or dictionary")
-    kwargs["softmax_dimensions"] = softdim
+    kwargs["softmax_dimensions"] = metadata.getLabelDimensions()
 
     model = archbase(base = base, weights=weights, normalization = normalization, metadata = metadata, **kwargs)
     return model

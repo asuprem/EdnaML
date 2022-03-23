@@ -5,6 +5,8 @@ from models.ClassificationResnet import ClassificationResnet
 from utils import layers
 import torch
 
+from utils.LabelMetadata import LabelMetadata
+
 
 class MultiClassificationResnet(ClassificationResnet):
     """Multiclassification Resnet model, that performs multiple classifications from the same backbone.
@@ -43,6 +45,15 @@ class MultiClassificationResnet(ClassificationResnet):
 
     """
 
+    model_name = "MultiClassificationResNet"
+    model_arch = "MultiClassificationResNet"
+    model_base = "resnet50"
+    number_outputs = 1
+    output_classnames = ["out1"]
+    softmax_dimensions = [2048]
+    secondary_outputs = []
+
+
     def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
@@ -52,7 +63,7 @@ class MultiClassificationResnet(ClassificationResnet):
             normalization (_type_, optional): _description_. Defaults to None.
             metadata (_type_, optional): _description_. Defaults to None.
         """
-        self.metadata = metadata
+        self.metadata:LabelMetadata = metadata
         self.number_outputs = kwargs.get("number_outputs", 1)
         self.softmax_dimensions = kwargs.get("softmax_dimensions", None)
         self.output_classnames = kwargs.get("output_classnames", None)
@@ -76,13 +87,13 @@ class MultiClassificationResnet(ClassificationResnet):
                 raise ValueError("`number_outputs`>1, but no output dimensions or class names provided. If you want automatic inference of number of softmax dimensions, provide ")
             elif self.output_classnames is None and self.number_outputs == 1:
                 # Here we infer using metadata
-                self.softmax_dimensions[0] = self.metadata[self.metadata.keys()[0]]
-                self.output_classnames = [self.metadata.keys()[0]]
+                self.softmax_dimensions[0] = self.metadata.getLabelDimensions()
+                self.output_classnames = [self.metadata.getLabel(0)]
             elif self.output_classnames is not None:
                 if len(self.output_classnames)!=self.number_outputs:
                     raise ValueError("Length of output_classnames MUST match number_outputs. Expected %i and got %i"%(self.number_outputs, len(self.output_classnames)))
                 for idx,classname in enumerate(self.output_classnames):
-                    self.softmax_dimensions[idx] = self.metadata[classname] # This will raise KeyError if the classname is not in metadata...
+                    self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(classname) # This will raise KeyError if the classname is not in metadata...
             else:
                 raise RuntimeError("Case of number_outputs ", self.number_outputs, " with output_classnames ", self.output_classnames, " not handled. Oops.")
 

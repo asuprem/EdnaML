@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+from utils.LabelMetadata import LabelMetadata
+
 class LossBuilder(nn.Module):
     LOSS_PARAMS = {}
     
@@ -12,12 +14,12 @@ class LossBuilder(nn.Module):
         lambda_len = len(loss_lambda)
         kwargs_len = len(loss_kwargs)
         self.loss_labelname = kwargs.get("name", "loss-1")
-        self.loss_classes_metadata = kwargs.get("metadata", {"loss-1":0})
+        self.loss_classes_metadata:LabelMetadata = kwargs.get("metadata")
 
         # Common to all losses for this output
         for idx,_ in enumerate(loss_kwargs):
-            loss_kwargs[idx]["loss_labelname"]  = kwargs.get("name", "loss-1")
-            loss_kwargs[idx]["loss_classes_metadata"]  = kwargs.get("metadata", {"loss-1":0})
+            loss_kwargs[idx]["loss_labelname"]  = self.loss_labelname
+            loss_kwargs[idx]["loss_classes_metadata"]  = self.loss_classes_metadata
         # Set up the logger
         self.logger = kwargs.get("logger")
         # Sanity check

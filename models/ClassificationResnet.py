@@ -41,6 +41,15 @@ class ClassificationResnet(ModelAbstract):
 
     """
 
+    model_name = "ClassificationResNet"
+    model_arch = "ClassificationResNet"
+    model_base = "resnet50"
+    number_outputs = 1
+    output_classnames = ["out1"]
+    softmax_dimensions = [2048]
+    secondary_outputs = []
+
+
     def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions = None, **kwargs):
         super().__init__(**kwargs)
         self.base = base
@@ -50,6 +59,11 @@ class ClassificationResnet(ModelAbstract):
         self.feat_norm = None
         self.build_normalization(self.normalization)
         self.build_softmax(softmax_dimensions=softmax_dimensions)
+
+
+        self.softmax_dimensions = [softmax_dimensions]
+        self.model_base = base
+        self.output_classnames = kwargs.get("output_classnames", ["out1"])
 
     def build_base(self,base, weights, **kwargs):
         """Build the model base.
@@ -70,6 +84,8 @@ class ClassificationResnet(ModelAbstract):
             self.embedding_dimensions = 512*self.base.block.expansion
         if self.embedding_dimensions != 512*self.base.block.expansion:
             self.emb_linear = nn.Linear(self.base.block.expansion*512, self.embedding_dimensions, bias=False)
+
+       
 
     def build_normalization(self, normalization):
         if self.normalization == 'bn':

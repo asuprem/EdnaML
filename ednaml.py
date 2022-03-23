@@ -5,6 +5,8 @@ from datareaders import DataReader
 import utils
 import torch, torchsummary
 
+from utils.LabelMetadata import LabelMetadata
+
 
 @click.command()
 @click.argument('config')
@@ -89,8 +91,8 @@ def main(config, mode, weights):
     # TODO we need t fix the dataset part, where it is defined inside the generator file... we need to move it elsewhere into datasets/<>
     # TODO, second, we need to fix the TRAIN_CLASSES thing, and how to obtain it
     # TODO Third, we need to fix the embedding dim, softmax_dim, and any other dim debacle...
-    TRAIN_CLASSES = train_generator.num_entities
-    print("Running classification model with classes:", TRAIN_CLASSES)
+    labelMetadata:LabelMetadata = train_generator.num_entities
+    print("Running classification model with classes:", labelMetadata)
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
                                             i_shape=config.get("TRANSFORMATION.SHAPE"),
                                             normalization_mean=NORMALIZATION_MEAN, 
@@ -121,7 +123,7 @@ def main(config, mode, weights):
     model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
-                                metadata = TRAIN_CLASSES, \
+                                metadata = labelMetadata, \
                                 normalization = config.get("MODEL.MODEL_NORMALIZATION"), \
                                 **model_kwargs_dict)
     logger.info("Finished instantiating model with {} architecture".format(config.get("MODEL.MODEL_ARCH")))
@@ -155,7 +157,7 @@ def main(config, mode, weights):
                                     loss_lambda=loss_item["LAMBDAS"], 
                                     loss_kwargs=loss_item["KWARGS"], 
                                     name=loss_item.get("NAME", None),
-                                    metadata=TRAIN_CLASSES,
+                                    metadata=labelMetadata,
                                     **{"logger":logger})
         for loss_item in config.get("LOSS")
     ]

@@ -19,7 +19,7 @@ class SoftmaxLabelSmooth(Loss):
         super(SoftmaxLabelSmooth, self).__init__()
         self.softmax_dimensions = kwargs.get('softmax_dimensions', None)
         if self.softmax_dimensions is None:
-            self.softmax_dimensions = kwargs.get("loss_classes_metadata")[kwargs.get("loss_labelname")]
+            self.softmax_dimensions = kwargs.get("loss_classes_metadata").getLabelDimensions(kwargs.get("loss_labelname"))
         self.eps = kwargs.get('eps', 0.1)
         self.logsoftmax = nn.LogSoftmax(dim=1)
 

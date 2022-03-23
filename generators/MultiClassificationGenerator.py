@@ -4,6 +4,8 @@ import torch
 from torchvision.io import read_image
 from PIL import Image
 from PIL import ImageFile
+
+from utils.LabelMetadata import LabelMetadata
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
@@ -85,9 +87,10 @@ class MultiClassificationGenerator(ImageGenerator):
         
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
-            return {
+            label_dict= {
                 item:datacrawler.metadata[mode]["classes"][item] for item in kwargs.get("classificationclass", ["color"])
             }
+            return LabelMetadata(label_dict=label_dict)
         else:
             raise NotImplementedError()
         
