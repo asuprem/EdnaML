@@ -82,7 +82,7 @@ class ImageGenerator:
         
         self.workers = workers*self.gpus
 
-        self.dataset = self.buildDataset(datacrawler, mode, self.transformer, **kwargs)
+        self.dataset = self.buildDataset(datacrawler, mode, self.transformer, **kwargs) 
         self.dataloader = self.buildDataLoader(self.dataset, mode, batch_size=batch_size, **kwargs)
         self.num_entities = self.getNumEntities(datacrawler, mode, **kwargs)
 
@@ -123,18 +123,10 @@ class ImageGenerator:
         raise NotImplementedError()
 
 
-from .SequencedGenerator import SequencedGenerator
-TripletGenerator = SequencedGenerator
-
-from .ClassedGenerator import ClassedGenerator
-
-from .Cars196Generator import Cars196Generator
-CUB200_2011Generator=Cars196Generator
-
 from .ClassificationGenerator import ClassificationGenerator
 from .CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator
 from .CoLabelDeployGenerator import CoLabelDeployGenerator
-
+from .MultiClassificationGenerator import MultiClassificationGenerator
 KnowledgeIntegratedGenerator = CoLabelIntegratedDatasetGenerator
 
 

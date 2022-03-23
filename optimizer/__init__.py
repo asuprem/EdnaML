@@ -51,8 +51,6 @@ class BaseOptimizer:
         return optimizer  
 
 
-from .ReIDOptimizerBuilder import ReIDOptimizerBuilder
-from .VAEGANOptimizerBuilder import VAEGANOptimizerBuilder
 from .CoLabelOptimizer import CoLabelOptimizer
+from .StandardLossOptimizer import StandardLossOptimizer
 # for re-id compatibility 
-OptimizerBuilder = ReIDOptimizerBuilder
