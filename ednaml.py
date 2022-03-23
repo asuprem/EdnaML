@@ -73,6 +73,7 @@ def main(config, mode, weights):
     logger.info("Reading data with DataReader %s"%data_reader_class)
     crawler = data_reader.CRAWLER(logger=logger, **config.get("EXECUTION.DATAREADER.CRAWLER_ARGS"))
     
+
     # Update the generator...if needed
     new_generator_class = config.get("EXECUTION.DATAREADER.GENERATOR", None)
     if new_generator_class is not None:
