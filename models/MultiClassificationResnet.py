@@ -58,7 +58,7 @@ class MultiClassificationResnet(ClassificationResnet):
         self.output_classnames = kwargs.get("output_classnames", None)
         self.labelnames = kwargs.get("labelnames", None)
         
-        super(MultiClassificationResnet, self).__init__(base, weights, normalization, **kwargs)
+        super().__init__(base, weights, normalization, **kwargs)
         
 
     def build_softmax(self, **kwargs):
@@ -101,15 +101,15 @@ class MultiClassificationResnet(ClassificationResnet):
         return features
 
 
-    def forward(self,x):
+    def forward_impl(self,x):
         features = self.base_forward(x)
         
         #if self.feat_norm is not None: <-- no need, identity
-        inference = self.feat_norm(features)
+        features = self.feat_norm(features)
 
         softmax_logits = [None]*self.number_outputs
         for idx,softmaxlayer in enumerate(self.softmax):
-            softmax_logits[idx] = softmaxlayer(inference)
-        return softmax_logits, inference   # soft logits are the softmax logits we will use to for training. We can use inference to store the historical probability????
+            softmax_logits[idx] = softmaxlayer(features)
+        return softmax_logits, features, []   # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????
   
     

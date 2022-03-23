@@ -1,12 +1,12 @@
 import pdb
 from torch import nn
-from .abstracts import ClassificationResnetAbstract
+from .abstracts import ModelAbstract
 from utils import layers
 import torch
 
 # CHANGELOG: secondary attention is List, not a single number
 
-class ClassificationResnet(ClassificationResnetAbstract):
+class ClassificationResnet(ModelAbstract):
     """Basic CoLabel Resnet model.
 
     A CoLabel model is a base ResNet, but during prediction, employs additional pieces such as 
@@ -42,7 +42,14 @@ class ClassificationResnet(ClassificationResnetAbstract):
     """
 
     def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions = None, **kwargs):
-        super(ClassificationResnet, self).__init__(base, weights, normalization, embedding_dimensions, softmax_dimensions=softmax_dimensions, **kwargs)
+        super().__init__(**kwargs)
+        self.base = base
+        self.embedding_dimensions = embedding_dimensions
+        self.normalization = normalization if normalization != '' else None
+        self.build_base(base, weights, **kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
+        self.feat_norm = None
+        self.build_normalization(self.normalization)
+        self.build_softmax(softmax_dimensions=softmax_dimensions)
 
     def build_base(self,base, weights, **kwargs):
         """Build the model base.
@@ -101,13 +108,13 @@ class ClassificationResnet(ClassificationResnetAbstract):
         features = self.emb_linear(features)
         return features
 
-    def forward(self,x):
+    def forward_impl(self,x):
         features = self.base_forward(x)
         
         #if self.feat_norm is not None: <-- no need, identity
-        inference = self.feat_norm(features)
+        feaetures = self.feat_norm(features)
 
         soft_logits = None
         if self.softmax:
-            soft_logits = self.softmax(inference)
-        return soft_logits, inference   # soft logits are the softmax logits we will use to for training. We can use inference to store the historical probability????
+            soft_logits = self.softmax(features)
+        return soft_logits, features, []   # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????
