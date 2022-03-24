@@ -1,3 +1,4 @@
+from typing import List
 import torch
 from torch import nn
 
@@ -5,7 +6,11 @@ from utils.LabelMetadata import LabelMetadata
 
 class LossBuilder(nn.Module):
     LOSS_PARAMS = {}
-    
+    loss:nn.ModuleList
+    loss_labelname: str
+    loss_classes_metadata: LabelMetadata
+    loss_lambda: List[int]
+
     def __init__(self, loss_functions, loss_lambda, loss_kwargs, **kwargs):
         super().__init__()
         self.loss = nn.ModuleList([])
@@ -25,9 +30,9 @@ class LossBuilder(nn.Module):
         if fn_len != kwargs_len:
             raise ValueError("Loss function list length is %i. Expected %i length loss_kwargs, got %i"%(fn_len, fn_len, kwargs_len))
         # Add the loss functions with the correct features. Lambda is applied later
-        for idx, fn in enumerate(loss_functions):
-            self.loss.append(self.LOSS_PARAMS[fn]['fn'](lossname=self.loss_labelname, metadata = self.loss_classes_metadata, **loss_kwargs[idx]))
-            self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=fn, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
+        for idx, loss_fn_name in enumerate(loss_functions):
+            self.loss.append(self.LOSS_PARAMS[loss_fn_name]['fn'](lossname=self.loss_labelname, metadata = self.loss_classes_metadata, **loss_kwargs[idx]))
+            self.logger.info("Added {loss} with lambda = {lamb} and loss arguments {largs}".format(loss=loss_fn_name, lamb=loss_lambda[idx], largs=str(loss_kwargs[idx])))
         
         lambda_sum = sum(loss_lambda)
         loss_lambda = [float(item)/float(lambda_sum) for item in loss_lambda]
