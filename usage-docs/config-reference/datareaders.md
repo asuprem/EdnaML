@@ -148,7 +148,7 @@ TorchDataset stes up functions to load images from path, and well as yield a sin
 Each tuple of a sample is of the form: `(path/to/image, pid, cid, color, type)`
 3 arguments:
 
-- `pathidx`: The index where the path exists. This is `0` for VehicleID
+- `pathidx`: The index where the path exists. This is `0` for VeRi
 - `annotationidx`: the index where the annotation exists. If you want to use the `color` annotation, use `3`. 
 - `classificationclass`: The name of the annotation used. See tuple above. If you want to use the make annotation, use `color`
 
