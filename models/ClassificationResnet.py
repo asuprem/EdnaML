@@ -1,5 +1,5 @@
 import pdb
-from torch import nn
+from torch import nn, softmax
 from .abstracts import ModelAbstract
 from utils import layers
 import torch
@@ -43,39 +43,48 @@ class ClassificationResnet(ModelAbstract):
 
     model_name = "ClassificationResNet"
     model_arch = "ClassificationResNet"
-    model_base = "resnet50"
     number_outputs = 1
     output_classnames = ["out1"]
     softmax_dimensions = [2048]
     secondary_outputs = []
 
 
-    def __init__(self, base = 'resnet50', weights=None, normalization=None, embedding_dimensions=None, softmax_dimensions = None, **kwargs):
-        super().__init__(**kwargs)
-        self.base = base
-        self.embedding_dimensions = embedding_dimensions
-        self.normalization = normalization if normalization != '' else None
-        self.build_base(base, weights, **kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
-        self.feat_norm = None
-        self.build_normalization(self.normalization)
-        self.build_softmax(softmax_dimensions=softmax_dimensions)
-
-
-        self.softmax_dimensions = [softmax_dimensions]
-        self.model_base = base
+    def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
+        super().__init__(base = base, weights=weights, normalization=normalization, metadata=metadata, **kwargs)
+        
+    def model_attributes_setup(self, **kwargs):
+        self.embedding_dimensions = kwargs.get("embedding_dimensions", None)
+        if self.normalization == '':
+            self.normalization = None
+        
+        self.softmax_dimensions = [kwargs.get("softmax_dimensions", None)]
         self.output_classnames = kwargs.get("output_classnames", ["out1"])
 
-    def build_base(self,base, weights, **kwargs):
+        self.base = None
+        self.gap = None
+        self.emb_linear = None
+        self.feat_norm = None
+        self.softmax = None
+        
+
+
+    def model_setup(self, **kwargs):
+        self.build_base(**kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
+        self.build_normalization()
+        self.build_softmax()
+        
+        
+    def build_base(self,**kwargs):
         """Build the model base.
 
         Builds the architecture base/core.
         """
         _resnet = __import__("backbones.resnet", fromlist=["resnet"])
-        _resnet = getattr(_resnet, base)
+        _resnet = getattr(_resnet, self.model_base)
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
-        if weights is not None:
-            self.base.load_param(weights)
+        if self.weights is not None:
+            self.base.load_param(self.weights)
         
         self.gap = nn.AdaptiveAvgPool2d(1)
 
@@ -87,7 +96,7 @@ class ClassificationResnet(ModelAbstract):
 
        
 
-    def build_normalization(self, normalization):
+    def build_normalization(self):
         if self.normalization == 'bn':
             self.feat_norm = nn.BatchNorm1d(self.embedding_dimensions)
             self.feat_norm.bias.requires_grad_(False)
@@ -107,16 +116,16 @@ class ClassificationResnet(ModelAbstract):
         elif self.normalization == 'l2':
             self.feat_norm = layers.L2Norm(self.embedding_dimensions,scale=1.0)
         elif self.normalization is None or self.normalization == '':
-            self.feat_norm = layers.L2Norm(self.embedding_dimensions,scale=1.0)
+            self.feat_norm = torch.nn.Identity()
         else:
             raise NotImplementedError()
 
-    def build_softmax(self, softmax_dimensions, **kwargs):
-        if softmax_dimensions is not None:
-            self.softmax = nn.Linear(self.embedding_dimensions, softmax_dimensions, bias=False)
+    def build_softmax(self, **kwargs):
+        if self.softmax_dimensions[0] is not None:
+            self.softmax = nn.Linear(self.embedding_dimensions, self.softmax_dimensions[0], bias=False)
             self.softmax.apply(self.weights_init_softmax)
         else:
-            self.softmax = None
+            self.softmax = None # TODO replace this with a zero compute layer that yields zero and has no_grad...
 
     def base_forward(self,x):
         features = self.gap(self.base(x))
@@ -128,7 +137,7 @@ class ClassificationResnet(ModelAbstract):
         features = self.base_forward(x)
         
         #if self.feat_norm is not None: <-- no need, identity
-        feaetures = self.feat_norm(features)
+        features = self.feat_norm(features)
 
         soft_logits = None
         if self.softmax:
