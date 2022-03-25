@@ -7,6 +7,8 @@ import numpy as np
 import loss.builders
 from typing import List
 
+from models.abstracts import ModelAbstract
+
 from .BaseTrainer import BaseTrainer
 
 import pdb
@@ -14,7 +16,7 @@ import pdb
 
 class MultiClassificationTrainer(BaseTrainer):
     def __init__(   self, 
-                    model: torch.nn.Module, 
+                    model: ModelAbstract, 
                     loss_fn: List[loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
@@ -31,8 +33,7 @@ class MultiClassificationTrainer(BaseTrainer):
         # labelnames in MODEL, so that there is less redundancy...
         self.labelnames_dict = {item:idx for idx,item in enumerate(self.model.labelnames)}
         self.output_classnames_dict = {item:idx for idx,item in enumerate(self.model.output_classnames)}
-        self.loss_fn = {item.loss_labelname:item for item in self.loss_fn}
-        self.loss={item:[] for item in self.loss_fn} 
+        
     # The train function for the CoLabel model is inherited
 
 
@@ -51,8 +52,8 @@ class MultiClassificationTrainer(BaseTrainer):
 
             if (self.global_batch + 1) % self.step_verbose == 0:
                 loss_avg=0.0
-                for lossname in self.loss:
-                    loss_avg += sum(self.loss[lossname][-self.step_verbose:]) / self.step_verbose
+                for lossname in self.losses:
+                    loss_avg += sum(self.losses[lossname][-self.step_verbose:]) / self.step_verbose
                 loss_avg/=self.num_losses
                 soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
                 self.logger.info('Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
@@ -61,9 +62,9 @@ class MultiClassificationTrainer(BaseTrainer):
 
         # Step the lr schedule to update the learning rate
         self.scheduler.step()
-        for idx in range(self.num_losses):
-            if self.loss_scheduler[idx] is not None:
-                self.loss_scheduler[idx].step()
+        for lossname in self.loss_fn:
+            if self.loss_scheduler[lossname] is not None:
+                self.loss_scheduler[lossname].step()
         
         self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
         
@@ -80,9 +81,10 @@ class MultiClassificationTrainer(BaseTrainer):
         # Switch the model to training mode
         self.model.train()
         self.optimizer.zero_grad()
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
-                self.loss_optimizer[idx].zero_grad()
+        for lossname in self.loss_fn:
+            if self.loss_optimizer[lossname] is not None:
+                self.loss_optimizer[lossname].zero_grad()
+
         batch_kwargs = {}
         img, batch_kwargs["labels"] = batch # This is the tensor response from collate_fn
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda() # labels are in order of labelnames
@@ -107,12 +109,12 @@ class MultiClassificationTrainer(BaseTrainer):
         #    loss[idx].backward()
         
         self.optimizer.step()
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None: # TODO convert this to dictionary
-                self.loss_optimizer[idx].step()
+        for lossname in self.loss_fn:
+            if self.loss_optimizer[lossname] is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+                self.loss_optimizer[lossname].step()
         
-        for lossname in loss:
-            self.loss[lossname].append(loss[lossname].cpu().item())
+        for idx,lossname in enumerate(self.loss_fn):
+            self.losses[lossname].append(loss[lossname].cpu().item())
         
         #if batch_kwargs["logits"] is not None:
             #softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
@@ -122,9 +124,7 @@ class MultiClassificationTrainer(BaseTrainer):
 
 
     def evaluate(self):
-        self.model.eval()
-        # TODO need to check what torch.cat does...
-        
+        self.model.eval()        
         features, logits, labels = [], [[] for _ in range(self.model.number_outputs)], []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
@@ -176,6 +176,7 @@ class MultiClassificationTrainer(BaseTrainer):
         self.logger.info("Finished metadata backup")
 
 
+    """
     def save(self):
         self.logger.info("Saving model, optimizer, and scheduler.")
         MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
@@ -230,8 +231,8 @@ class MultiClassificationTrainer(BaseTrainer):
             self.loss_fn[lossname].load_state_dict(checkpoint["loss_fn"][lossname])
             self.logger.info("Finished loading loss state_dict from %s"%training_load_path)
         for idx in range(self.num_losses):
-            
             if self.loss_optimizer[idx] is not None:
                 self.loss_optimizer[idx].load_state_dict(checkpoint["loss_optimizer"][idx])
             if self.loss_scheduler[idx] is not None:
                 self.loss_scheduler[idx].load_state_dict(checkpoint["loss_scheduler"][idx])
+    """

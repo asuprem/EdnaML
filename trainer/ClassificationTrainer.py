@@ -18,7 +18,7 @@ class ClassificationTrainer(BaseTrainer):
                     model: torch.nn.Module, 
                     loss_fn: List[loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
-                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
+                    scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler], 
                     train_loader, test_loader, 
                     epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
         
@@ -45,8 +45,8 @@ class ClassificationTrainer(BaseTrainer):
 
             if (self.global_batch + 1) % self.step_verbose == 0:
                 loss_avg=0.0
-                for idx in range(self.num_losses):
-                    loss_avg += sum(self.loss[idx][-self.step_verbose:]) / self.step_verbose
+                for lossname in self.loss_fn:
+                    loss_avg += sum(self.losses[lossname][-self.step_verbose:]) / self.step_verbose
                 loss_avg/=self.num_losses
                 soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
                 self.logger.info('Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}'.format(self.global_epoch, self.global_batch, loss_avg, soft_avg))
@@ -55,9 +55,9 @@ class ClassificationTrainer(BaseTrainer):
 
         # Step the lr schedule to update the learning rate
         self.scheduler.step()
-        for idx in range(self.num_losses):
-            if self.loss_scheduler[idx] is not None:
-                self.loss_scheduler[idx].step()
+        for lossname in self.loss_fn:
+            if self.loss_scheduler[lossname] is not None:
+                self.loss_scheduler[lossname].step()
         
         self.logger.info('{0} Completed epoch {1} {2}'.format('*'*10, self.global_epoch, '*'*10))
         
@@ -74,9 +74,10 @@ class ClassificationTrainer(BaseTrainer):
         # Switch the model to training mode
         self.model.train()
         self.optimizer.zero_grad()
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
-                self.loss_optimizer[idx].zero_grad()
+        for lossname in self.loss_fn:
+            if self.loss_optimizer[lossname] is not None:
+                self.loss_optimizer[lossname].zero_grad()
+                
         batch_kwargs = {}
         img, batch_kwargs["labels"] = batch # This is the tensor response from collate_fn
         img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
@@ -85,23 +86,24 @@ class ClassificationTrainer(BaseTrainer):
         batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         
         # TODO fix this with info about how many output are in the model...from the config file!!!!!
-        loss=[None]*self.num_losses
-        for idx in range(self.num_losses):
-            loss[idx] = self.loss_fn[idx](**batch_kwargs)
+        loss={loss_name:None for loss_name in self.loss_fn} 
+        for lossname in self.loss_fn:
+            loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
         #if self.fp16 and self.apex is not None:
         #    with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
         #        scaled_loss.backward()
         #else:
         #    loss.backward()
-        for idx in range(self.num_losses):
-            loss[idx].backward()
+        lossbackward=sum(loss.values())
+        lossbackward.backward()
+
         self.optimizer.step()
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
-                self.loss_optimizer[idx].step()
+        for lossname in self.loss_fn:
+            if self.loss_optimizer[lossname] is not None: # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+                self.loss_optimizer[lossname].step()
         
-        for idx in range(self.num_losses):
-            self.loss[idx].append(loss[idx].cpu().item())
+        for idx,lossname in enumerate(self.loss_fn):
+            self.losses[lossname].append(loss[lossname].cpu().item())
         
         if batch_kwargs["logits"] is not None:
             softmax_accuracy = (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"]).float().mean()
