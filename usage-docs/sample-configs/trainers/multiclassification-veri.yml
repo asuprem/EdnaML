@@ -47,9 +47,13 @@ MODEL:
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: 
     number_outputs: 2
-    softmax_dimensions: 
-    output_classnames: ['type', 'color']
-    labelnames: ['color','type']
+    outputs:
+      - dimensions:
+        name: type
+        label: type
+      - dimensions:
+        name: color
+        label: color
     attention: 'cbam'
 
 COLABEL:
