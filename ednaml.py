@@ -247,7 +247,8 @@ def main(config, mode, weights):
                             epochs = config.get("EXECUTION.EPOCHS"), 
                             skipeval = config.get("EXECUTION.SKIPEVAL"),
                             logger = logger, crawler=crawler,
-                            config = config)
+                            config = config,
+                            labels = labelMetadata)
 
     trainer.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
     trainer.setup( step_verbose = config.get("LOGGING.STEP_VERBOSE"), 

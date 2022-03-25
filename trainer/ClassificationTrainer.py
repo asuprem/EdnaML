@@ -22,7 +22,7 @@ class ClassificationTrainer(BaseTrainer):
                     train_loader, test_loader, 
                     epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
         
-        super(ClassificationTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger)
+        super(ClassificationTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, **kwargs)
         
         self.crawler = kwargs.get("crawler", None)
         self.softaccuracy = []

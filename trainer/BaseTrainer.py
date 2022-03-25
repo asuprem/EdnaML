@@ -8,6 +8,7 @@ from typing import Dict, List
 from torch.utils.data import DataLoader
 
 from optimizer import BaseOptimizer
+from utils.LabelMetadata import LabelMetadata
 
 class BaseTrainer: 
     model: torch.nn.Module
@@ -29,7 +30,7 @@ class BaseTrainer:
     losses: Dict[str, List[int]]          # output-name: losses
     # config metadata, trainer metadata ???????
     metadata:Dict[str,str]
-
+    labelMetadata: LabelMetadata
 
     def __init__(   self, 
                     model: torch.nn.Module, 
@@ -64,6 +65,7 @@ class BaseTrainer:
 
         
         self.metadata = {}
+        self.labelMetadata = kwargs.get("labels")
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:

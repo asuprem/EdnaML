@@ -6,8 +6,7 @@ import torch
 import numpy as np
 import loss.builders
 from typing import List
-
-from models.abstracts import ModelAbstract
+from models.MultiClassificationResnet import MultiClassificationResnet
 
 from .BaseTrainer import BaseTrainer
 
@@ -15,15 +14,16 @@ import pdb
 
 
 class MultiClassificationTrainer(BaseTrainer):
+    model: MultiClassificationResnet
     def __init__(   self, 
-                    model: ModelAbstract, 
+                    model: MultiClassificationResnet, 
                     loss_fn: List[loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
                     epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
         
-        super().__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger)
+        super().__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, **kwargs)
         
         self.crawler = kwargs.get("crawler", None)
         self.softaccuracy = []
@@ -31,8 +31,8 @@ class MultiClassificationTrainer(BaseTrainer):
         # mapping label names and class names to their index for faster retrieval. 
         # TODO some way to integrate classificationclass in DATAREADER to 
         # labelnames in MODEL, so that there is less redundancy...
-        self.labelnames_dict = {item:idx for idx,item in enumerate(self.model.labelnames)}
-        self.output_classnames_dict = {item:idx for idx,item in enumerate(self.model.output_classnames)}
+        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.output_labels)}
+        self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}
         
     # The train function for the CoLabel model is inherited
 
@@ -95,8 +95,8 @@ class MultiClassificationTrainer(BaseTrainer):
         loss={loss_name:None for loss_name in self.loss_fn} 
         for lossname in loss:
             akwargs={}
-            akwargs["logits"] = batch_kwargs["logits"][self.output_classnames_dict[lossname]] # this looks up the lossname in the outputclass names
-            akwargs["labels"] = batch_kwargs["labels"][:, self.labelnames_dict[lossname]] # ^ditto
+            akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[lossname]] # this looks up the lossname in the outputclass names
+            akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[lossname]] # ^ditto
             akwargs["epoch"] = batch_kwargs["epoch"]
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
@@ -151,13 +151,13 @@ class MultiClassificationTrainer(BaseTrainer):
         micro_fscore = [[] for _ in range(self.model.number_outputs)]
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
         for idx, lossname in enumerate(self.loss_fn):
-            accuracy[idx] = (logit_labels[self.output_classnames_dict[lossname]]==labels[:,self.labelnames_dict[lossname]]).sum().float()/float(labels.size(0))
-            micro_fscore[idx] = np.mean(f1_score(labels[:,self.labelnames_dict[lossname]],logit_labels[self.output_classnames_dict[lossname]], average='micro'))
-            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.labelnames_dict[lossname]],logit_labels[self.output_classnames_dict[lossname]], average='weighted'))
+            accuracy[idx] = (logit_labels[self.model_labelorder[lossname]]==labels[:,self.data_labelorder[lossname]]).sum().float()/float(labels.size(0))
+            micro_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='micro'))
+            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='weighted'))
         self.logger.info("Metrics\t"+"\t".join(["%s"%lossname for lossname in self.loss_fn]))
-        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.labelnames[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
         return logit_labels, labels, self.crawler.classes, features
 
     def saveMetadata(self,):
