@@ -2,20 +2,39 @@ from torch import nn
 import torch.nn.functional as F
 import torch
 
+from utils.LabelMetadata import LabelMetadata
+
 
 class ModelAbstract(nn.Module):
     model_name = "ModelAbstract"
     model_arch = None
-    model_base = None
     number_outputs = 1
     output_classnames = ["out1"]
     output_dimensions = [512]
     secondary_outputs = []
-
-    def __init__(self, **kwargs):
-        super().__init__()
-
     
+    model_base:str
+    weights:str
+    normalization:str
+    metadata:LabelMetadata
+
+    def __init__(self, base=None, weights=None, metadata:LabelMetadata = None, normalization = None, **kwargs):
+        super().__init__()
+        self.metadata:LabelMetadata = metadata
+        self.model_base = base
+        self.weights = weights
+        self.normalization = normalization
+
+
+        self.model_attributes_setup(**kwargs)
+        self.model_setup(**kwargs)
+
+    def model_attributes_setup(self, **kwargs):
+        raise NotImplementedError()
+
+    def model_setup(self, **kwargs):
+        raise NotImplementedError()
+
     def weights_init_kaiming(self,m):
         classname = m.__class__.__name__
         if classname.find('Linear') != -1:
