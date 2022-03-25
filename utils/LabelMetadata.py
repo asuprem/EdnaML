@@ -20,7 +20,7 @@ class LabelMetadata:
         Args:
             label_dict (Dict[str,Dict[str,Union[str,int]]], optional): A dictionary of label-names to their metadata, stored as label_dict[labelname]["classes"]. Defaults to {}.
         """
-        self.labels = label_dict.keys()
+        self.labels = [*label_dict]
         self.totalLabels = len(label_dict)
 
         self.metadata = {labelname: {

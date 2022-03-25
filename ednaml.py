@@ -115,6 +115,8 @@ def main(config, mode, weights):
     
     if type(config.get("MODEL.MODEL_KWARGS")) is dict:  # Compatibility with old configs. TODO fix all old configs.
         model_kwargs_dict = config.get("MODEL.MODEL_KWARGS")
+    elif type(config.get("MODEL.MODEL_KWARGS")) is None:
+        model_kwargs_dict = {}
     else:
         model_kwargs_dict = json.loads(config.get("MODEL.MODEL_KWARGS"))
 

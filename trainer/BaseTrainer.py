@@ -42,14 +42,14 @@ class BaseTrainer:
 
         self.model = model
         self.loss_fn_order = {idx:lossbuilder.loss_labelname for idx, lossbuilder in enumerate(loss_fn)}
-        self.loss_fn = {lossbuilder.loss_labelname for lossbuilder in loss_fn}
+        self.loss_fn = {lossbuilder.loss_labelname:lossbuilder for lossbuilder in loss_fn}
         self.num_losses = len(self.loss_fn)
         self.losses = {lossname:[] for lossname in self.loss_fn}
         self.loss_optimizer = {self.loss_fn_order[idx]:loss_optimizer_content for idx, loss_optimizer_content in enumerate(loss_optimizer)}
-        if type(loss_scheduler) is not List:
-            self.loss_scheduler = {self.loss_fn_order[idx]:loss_scheduler for idx in range(self.num_losses)}
-        else:
+        if type(loss_scheduler) is list:
             self.loss_scheduler = {self.loss_fn_order[idx]:loss_scheduler_content for idx, loss_scheduler_content in enumerate(loss_scheduler)}
+        else:
+            self.loss_scheduler = {self.loss_fn_order[idx]:loss_scheduler for idx in range(self.num_losses)}
 
         self.optimizer = optimizer
         self.scheduler = scheduler

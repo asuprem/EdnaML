@@ -83,7 +83,7 @@ class ClassificationGenerator(ImageGenerator):
     def getNumEntities(self, datacrawler, mode, **kwargs):
         if mode in ["train", "test","full"]:
             label_dict= {
-                item:{"classes":datacrawler.metadata[mode]["classes"][item]} for item in kwargs.get("classificationclass", ["color"])
+                item:{"classes":datacrawler.metadata[mode]["classes"][item]} for item in [kwargs.get("classificationclass", "color")]
             }
             return LabelMetadata(label_dict=label_dict)
             #TODO fix this
