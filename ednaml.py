@@ -119,7 +119,7 @@ def main(config, mode, weights):
         model_kwargs_dict = json.loads(config.get("MODEL.MODEL_KWARGS"))
 
     # TODO!!!!!!!
-    model = model_builder( arch = config.get("MODEL.MODEL_ARCH"), \
+    model = model_builder(      arch = config.get("MODEL.MODEL_ARCH"), \
                                 base=config.get("MODEL.MODEL_BASE"), \
                                 weights=MODEL_WEIGHTS, \
                                 metadata = labelMetadata, \
