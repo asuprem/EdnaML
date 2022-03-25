@@ -44,12 +44,13 @@ Multiclassification is when the model has multiple outputs, and each output is f
 
 There are several architectures in `MODEL.MODEL_ARCH` for `multiclassification_model_builder`. For each architecture, we have different bases.
 
-There are also additional parameters:
+There are also additional parameters for `MODEL_KWARGS` common to all MultiClassification models
 
-- `NUMBER_OUTPUTS`: This is the number of classification outputs for the model
-- `OUTPUT_DIMENSIONS`: This is the number of classes in each dimension. This can be left blank if you want the builder to automatically infer the dimensions using the number of classes in the dataset
-- `OUTPUT_CLASSNAMES`: This is the name of each of the outputs. The names of outputs should correspond to the label names in `DATASET_ARGS.classificationclass` in `EXECUTION.DATAREADER`, but they do have have to be in the same order.
-- `LABELNAMES`: This is the name of each label provided in a batch. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`</span>
+- `number_outputs`: This is the number of classification outputs for the model
+- `outputs`: A list, each element is the i-th output's metadata
+    - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below. 
+    - `name`: This is the name of this output. This is used by model_builder to keep track of output names and labels. If left blank, EdnaML will automatically name all outputs. Outputs are named because multiple outputs can track the same class, sometimes, e.g. in a contrastive non-weight sharing setting
+    - `label`: This is the name of the label this output is tracking. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`</span> labels. 
 ### `MODEL.MODEL_ARCH: MultiClassificationResnet`
 
 For `MultiClassificationResnet`, the following are available:
