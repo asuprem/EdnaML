@@ -47,7 +47,6 @@ class MultiClassificationResnet(ClassificationResnet):
 
     model_name = "MultiClassificationResNet"
     model_arch = "MultiClassificationResNet"
-    model_base = "resnet50"
     number_outputs = 1
     output_classnames = ["out1"]
     softmax_dimensions = [2048]
@@ -63,14 +62,34 @@ class MultiClassificationResnet(ClassificationResnet):
             normalization (_type_, optional): _description_. Defaults to None.
             metadata (_type_, optional): _description_. Defaults to None.
         """
-        self.metadata:LabelMetadata = metadata
+        
+        
+        super().__init__(base=base, weights=weights, normalization=normalization, metadata=metadata, **kwargs)
+        
+
+    def model_attributes_setup(self, **kwargs):
+
+        self.embedding_dimensions = kwargs.get("embedding_dimensions", None)
+        if self.normalization == '':
+            self.normalization = None
+        
+        
+
         self.number_outputs = kwargs.get("number_outputs", 1)
         self.softmax_dimensions = kwargs.get("softmax_dimensions", None)
         self.output_classnames = kwargs.get("output_classnames", None)
         self.labelnames = kwargs.get("labelnames", None)
-        
-        super().__init__(base, weights, normalization, **kwargs)
-        
+
+
+        self.softmax_dimensions = [kwargs.get("softmax_dimensions", [None])]
+        self.output_classnames = kwargs.get("output_classnames", ["out1"])
+
+        self.base = None
+        self.gap = None
+        self.emb_linear = None
+        self.feat_norm = None
+        self.softmax = None
+
 
     def build_softmax(self, **kwargs):
         """Build the softmax layers, using info either in self.softmax_dimensions or by combining metadata info of labelname->numclasses and the outputclassnames
