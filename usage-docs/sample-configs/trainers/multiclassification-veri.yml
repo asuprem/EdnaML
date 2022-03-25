@@ -52,7 +52,7 @@ MODEL:
         name: type
         label: type
       - dimensions:
-        name: color
+        name: out2
         label: color
     attention: 'cbam'
 

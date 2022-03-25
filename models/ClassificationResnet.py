@@ -57,8 +57,10 @@ class ClassificationResnet(ModelAbstract):
         if self.normalization == '':
             self.normalization = None
         
-        self.softmax_dimensions = [kwargs.get("softmax_dimensions", None)]
-        self.output_classnames = kwargs.get("output_classnames", ["out1"])
+        self.softmax_dimensions = [kwargs.get("softmax_dimensions", self.metadata.getLabelDimensions())]  
+        
+
+        self.output_classnames = [kwargs.get("output_classnames", "out1")]
 
         self.base = None
         self.gap = None

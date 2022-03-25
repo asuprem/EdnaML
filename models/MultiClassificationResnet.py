@@ -48,10 +48,12 @@ class MultiClassificationResnet(ClassificationResnet):
     model_name = "MultiClassificationResNet"
     model_arch = "MultiClassificationResNet"
     number_outputs = 1
-    output_classnames = ["out1"]
-    softmax_dimensions = [2048]
+    output_names = ["out0"]
+    softmax_dimensions = [None]
+    output_labels = ["color"]
     secondary_outputs = []
 
+    _internal_name_count=0
 
     def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
@@ -76,13 +78,22 @@ class MultiClassificationResnet(ClassificationResnet):
         
 
         self.number_outputs = kwargs.get("number_outputs", 1)
-        self.softmax_dimensions = kwargs.get("softmax_dimensions", None)
-        self.output_classnames = kwargs.get("output_classnames", None)
-        self.labelnames = kwargs.get("labelnames", None)
 
+        outputs = kwargs.get("outputs", [{  "name":self._internal_name_counter(), 
+                                            "label":"color",
+                                            "dimensions":None }] )
 
-        self.softmax_dimensions = [kwargs.get("softmax_dimensions", [None])]
-        self.output_classnames = kwargs.get("output_classnames", ["out1"])
+        if len(outputs)!=self.number_outputs:
+            raise ValueError("Mismatch in length of outputs %i and number of outputs %i"%(len(outputs), self.number_outputs))
+        
+        self.softmax_dimensions = [None]*self.number_outputs
+        self.output_names = [None]*self.number_outputs
+        self.output_labels = [None]*self.number_outputs
+
+        for idx, output_details in enumerate(outputs):
+            self.softmax_dimensions[idx] = output_details.get("dimensions", None)
+            self.output_names[idx] = output_details.get("name", self._internal_name_counter())
+            self.output_labels[idx] = output_details["label"]
 
         self.base = None
         self.gap = None
@@ -90,31 +101,20 @@ class MultiClassificationResnet(ClassificationResnet):
         self.feat_norm = None
         self.softmax = None
 
+    def _internal_name_counter(self):
+        out="out"+str(self._internal_name_count)
+        self._internal_name_count+=1
+        return out
 
     def build_softmax(self, **kwargs):
         """Build the softmax layers, using info either in self.softmax_dimensions or by combining metadata info of labelname->numclasses and the outputclassnames
         """
-        
-        if self.softmax_dimensions is None:
-            # sets the size of softmax_dimensions to match number of outputs in this model...
-            self.softmax_dimensions = [None]*(self.number_outputs)
-
-            # TODO we assume if softmax_dimensions is none, that the output_classnames is constructed properly. Handle the bad case, by passing in a logger instance to this to log warnings and errors
-            # Also, need to check errors where if we are inferring softmax_dimensions, there should only be 1 output, and if numberoutputs>1 while output_classnames is not provided, throw an error, etc.
-            # Then later, adjust this for re-id case where there may be no softmax, and direct inference from features.
-            if self.output_classnames is None and self.number_outputs > 1:
-                raise ValueError("`number_outputs`>1, but no output dimensions or class names provided. If you want automatic inference of number of softmax dimensions, provide ")
-            elif self.output_classnames is None and self.number_outputs == 1:
-                # Here we infer using metadata
-                self.softmax_dimensions[0] = self.metadata.getLabelDimensions()
-                self.output_classnames = [self.metadata.getLabel(0)]
-            elif self.output_classnames is not None:
-                if len(self.output_classnames)!=self.number_outputs:
-                    raise ValueError("Length of output_classnames MUST match number_outputs. Expected %i and got %i"%(self.number_outputs, len(self.output_classnames)))
-                for idx,classname in enumerate(self.output_classnames):
-                    self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(classname) # This will raise KeyError if the classname is not in metadata...
-            else:
-                raise RuntimeError("Case of number_outputs ", self.number_outputs, " with output_classnames ", self.output_classnames, " not handled. Oops.")
+        for idx in range(self.number_outputs):
+            if self.softmax_dimensions[idx] is None:
+                # TODO we assume if softmax_dimensions is none, that the output_classnames is constructed properly. Handle the bad case, by passing in a logger instance to this to log warnings and errors
+                if self.output_labels[idx] is None:
+                    raise ValueError("No label provided for output %i. Cannot automatically infer dimensions"%idx)
+                self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(self.output_labels[idx])
 
         # NOTE, for re-id type models...multiclassification model will anyway yield the features with softmax outputs, so we don't have to worry about that...
         # For pure-reid model, probably best to use ClassificationResNet and modify to use no softmax...TODO this is a future step...
