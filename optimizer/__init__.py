@@ -2,6 +2,7 @@ class BaseOptimizer:
     """ Base Optimizer Builder
 
     """
+    name:str="optimizer1"
     def __init__(self,base_lr, lr_bias, gpus, weight_decay, weight_bias):
         """ Initializes the optimizer builder.
 
