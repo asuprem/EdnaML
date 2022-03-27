@@ -158,6 +158,7 @@ def main(config, mode, weights):
                                     loss_lambda=loss_item["LAMBDAS"], 
                                     loss_kwargs=loss_item["KWARGS"], 
                                     name=loss_item.get("NAME", None),
+                                    label=loss_item.get("LABEL", None),
                                     metadata=labelMetadata,
                                     **{"logger":logger})
         for loss_item in config.get("LOSS")

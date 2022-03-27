@@ -64,6 +64,7 @@ MODEL:
     fuse_outputs: ['vcolor', 'vtype']
     fuse_dimensions:
     fuse_label: pid
+    fuse_name: fuse
     attention: 'cbam'
     shared_block: 3
 

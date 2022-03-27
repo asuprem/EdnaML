@@ -1,5 +1,6 @@
 import pdb
 from pydoc import classname
+from typing import List
 from torch import nn, softmax
 from backbones.multibranchresnet import multibranchresnet
 from models.abstracts import ModelAbstract
@@ -63,6 +64,8 @@ class MultiBranchResnet(ModelAbstract):
     secondary_outputs = []
     base: multibranchresnet
     _internal_name_count=0
+
+    model_labelorder: List[str]
 
     def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
@@ -174,8 +177,10 @@ class MultiBranchResnet(ModelAbstract):
         
         # need metadata for model_labelorder for the output
         self.model_labelorder = [item for item in self.output_label_order]
+        self.model_nameorder = [item for item in self.output_name_order]
         if self.branch_fuse:
             self.model_labelorder += [self.fuse_label]
+            self.model_nameorder += [kwargs.get('fuse_name','fuse')]
         
         self.base = None
         self.branches = {}

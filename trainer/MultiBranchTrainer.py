@@ -6,17 +6,17 @@ import torch
 import numpy as np
 import loss.builders
 from typing import List
-from models.MultiClassificationResnet import MultiClassificationResnet
+from models.MultiBranchResnet import MultiBranchResnet
 
 from .BaseTrainer import BaseTrainer
 
 import pdb
 
 
-class MultiClassificationTrainer(BaseTrainer):
-    model: MultiClassificationResnet
+class MultiBranchTrainer(BaseTrainer):
+    model: MultiBranchResnet
     def __init__(   self, 
-                    model: MultiClassificationResnet, 
+                    model: MultiBranchResnet, 
                     loss_fn: List[loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
@@ -31,8 +31,7 @@ class MultiClassificationTrainer(BaseTrainer):
         # mapping label names and class names to their index for faster retrieval. 
         # TODO some way to integrate classificationclass in DATAREADER to 
         # labelnames in MODEL, so that there is less redundancy...
-        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
-        self.model_nameorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
+        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.output_labels)}
         self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}
         
     # The train function for the CoLabel model is inherited
@@ -96,8 +95,8 @@ class MultiClassificationTrainer(BaseTrainer):
         loss={loss_name:None for loss_name in self.loss_fn} 
         for lossname in loss:
             akwargs={}
-            akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[self.loss_fn[lossname].loss_label]] # this looks up the lossname in the outputclass names
-            akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[self.loss_fn[lossname].loss_label]] # ^ditto
+            akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[lossname]] # this looks up the lossname in the outputclass names
+            akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[lossname]] # ^ditto
             akwargs["epoch"] = batch_kwargs["epoch"]
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 

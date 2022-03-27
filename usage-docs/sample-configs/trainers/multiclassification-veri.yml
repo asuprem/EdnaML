@@ -65,11 +65,11 @@ LOSS:
   - LOSSES: ['SoftmaxLogitsLoss', 'SoftmaxLabelSmooth']
     KWARGS: [{}, {'eps':0.2}]
     LAMBDAS: [1.0, 1.0]
-    NAME: color
+    LABEL: color
   - LOSSES: ['SoftmaxLabelSmooth', 'SoftmaxLogitsLoss']
     KWARGS: [{'eps':0.3}, {}]
     LAMBDAS: [1.0, 2.0]
-    NAME: type
+    LABEL: type
 
 OPTIMIZER:
   OPTIMIZER_NAME: "Adam"
