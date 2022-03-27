@@ -48,23 +48,24 @@ MODEL:
   MODEL_KWARGS: 
     number_branches: 2
     branches:
-      - name: color
+      - name: vcolor
         number_outputs: 1
         outputs: 
           - dimensions:
             name: color-fc
             label: color
-      - name: type
+      - name: vtype
         number_outputs: 1
         outputs: 
           - dimensions:
             name: type-fc
             label: type
     fuse: True
-    fuse_outputs: ['color', 'type']
+    fuse_outputs: ['vcolor', 'vtype']
     fuse_dimensions:
     fuse_label: pid
     attention: 'cbam'
+    shared_block: 3
 
 COLABEL:
   COMPRESSION: 5

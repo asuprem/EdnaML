@@ -219,7 +219,7 @@ class MultiBranchResnet(ModelAbstract):
 
             self.branches[bname]["feat_norm"] = None
             self.branches[bname]["softmax"] = [None]*self.branches_meta[bname]["number_outputs"]
-
+            
 
 
     def build_normalization(self):
@@ -264,8 +264,13 @@ class MultiBranchResnet(ModelAbstract):
                                                                     bias=False)
                 self.branches[bname]["softmax"][idx].apply(self.weights_init_softmax)
             self.branches[bname]["softmax"] = nn.ModuleList(self.branches[bname]["softmax"])
+          
 
     def build_fused(self):
+        for bname in self.branch_name_order:
+          self.branches[bname] = nn.ModuleDict(self.branches[bname])
+
+        self.branches = nn.ModuleDict(self.branches)
         if self.branch_fuse:
             self.fused_feat_dimensions = len(self.branch_fuse_idx) * 512 * self.base.block.expansion
             self.softmax_fused = nn.Linear(self.fused_feat_dimensions, self.fuse_dimensions, bias=False)
@@ -290,15 +295,16 @@ class MultiBranchResnet(ModelAbstract):
 
 
     def forward_impl(self,x, **kwargs):
+
         features = self.base_forward(x)
         fused_features = []
         if self.branch_fuse:
-            fused_features+= [self.fused_feat_norm(torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=0))]
+            fused_features+= [self.fused_feat_norm(torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=1))]
 
 
         outputs = [None]*self.number_outputs
         out_idx= 0
-        for b_idx,bname in self.branch_name_order:
+        for b_idx,bname in enumerate(self.branch_name_order):
             features[b_idx] = self.branches[bname]["feat_norm"](features[b_idx])
             for o_idx,_ in enumerate(self.branches_meta[bname]["output_nameorder"]):
                 outputs[out_idx] = self.branches[bname]["softmax"][o_idx](features[b_idx])

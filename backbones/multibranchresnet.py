@@ -83,7 +83,8 @@ class multibranchresnet(nn.Module):
                                     dilate=layer_zip[5],
                                     stride=layer_zip[2])
             )
-
+        self.shared_inplanes = self.inplanes
+        self.shared_dilation = self.dilation
         # Then, given the branches, put the remaining resnet blocks in their branches
         # During prediction, we will just get branch features so order does not matter yet. it will matter in MultiBranchResnet
         # So, self.branches will be a nn.moduleList, with a bunch of nn.Sequentials
@@ -92,8 +93,6 @@ class multibranchresnet(nn.Module):
         for bidx in range(self.num_branches):
             branches[bidx] = []
             for layer_zip in layer_arguments[self.shared_block_count:]:
-                import pdb
-                pdb.set_trace()
                 branches[bidx].append(
                     self._make_layer(   self.block, 
                                         layer_zip[1], 
@@ -105,6 +104,8 @@ class multibranchresnet(nn.Module):
                                         stride=layer_zip[2])
                 )
             branches[bidx] = nn.Sequential(*branches[bidx])
+            self.inplanes = self.shared_inplanes
+            self.dilation = self.shared_dilation
 
         self.resnetinput = ResnetInput(ia_attention=ia_attention)
         if len(sharedlayers)>0:

@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 class VeRiDataCrawler:
   """ Data crawler for the VeRi-776 dataset
 
-    The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective Pid and Cid.
+    The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective PIDs and CIDs.
 
     Args:
       data_folder (str): Name of the VeRi folder. Default: "VeRi"
@@ -19,21 +19,21 @@ class VeRiDataCrawler:
       logger: Instance of Logging object
 
     Attributes:
-      metadata (dict): Contains image paths, Pid, and Cid of training, testing, and query sets
-        train (dict): contains image paths, Pid, and Cid
+      metadata (dict): Contains image paths, PIDs, and CIDs of training, testing, and query sets
+        train (dict): contains image paths, PIDs, and CIDs
           crawl (list): List of tuples. Each tuple is a 5-tuple of (image_path, PID, CID, color, type)
-          pid (int): Number of Pid in training set
-          cid (int): Number of Cid in training set
+          pids (int): Number of PIDs in training set
+          cids (int): Number of CIDs in training set
           imgs (int): Number of images in training set
-        test (dict): contains image paths, Pid, and Cid
+        test (dict): contains image paths, PIDs, and CIDs
           crawl (list): List of tuples. Each tuple is a 5-tuple of (image_path, PID, CID, color, type)
-          pid (int): Number of Pid in testing set
-          cid (int): Number of Cid in testing set
+          pids (int): Number of PIDs in testing set
+          cids (int): Number of CIDs in testing set
           imgs (int): Number of images in testing set
-        query (dict): contains image paths, Pid, and Cid
+        query (dict): contains image paths, PIDs, and CIDs
           crawl (list): List of tuples. Each tuple is a 5-tuple of (image_path, PID, CID, color, type)
-          pid (int): Number of Pid in query set
-          cid (int): Number of Cid in query set
+          pids (int): Number of PIDs in query set
+          cids (int): Number of CIDs in query set
           imgs (int): Number of images in query set
 
     Methods:
@@ -99,11 +99,11 @@ class VeRiDataCrawler:
     
 
     self.metadata["train"], self.metadata["test"], self.metadata["query"], self.metadata["track"] = {}, {}, {}, {}
-    self.metadata["train"]["crawl"], self.metadata["train"]["pid"], self.metadata["train"]["cid"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder, reset_labels=True)
-    self.metadata["test"]["crawl"], self.metadata["test"]["pid"], self.metadata["test"]["cid"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
-    self.metadata["query"]["crawl"], self.metadata["query"]["pid"], self.metadata["query"]["cid"], self.metadata["query"]["imgs"] = self.__crawl(self.query_folder)
+    self.metadata["train"]["crawl"], self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"] = self.__crawl(self.train_folder, reset_labels=True)
+    self.metadata["test"]["crawl"], self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"] = self.__crawl(self.test_folder)
+    self.metadata["query"]["crawl"], self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"] = self.__crawl(self.query_folder)
 
-    self.metadata["track"]["crawl"], self.metadata["track"]["pid"], self.metadata["track"]["cid"], self.metadata["track"]["imgs"], self.metadata["track"]["dict"], self.metadata["track"]["info"] = self.__crawltracks(self.test_folder)
+    self.metadata["track"]["crawl"], self.metadata["track"]["pids"], self.metadata["track"]["cids"], self.metadata["track"]["imgs"], self.metadata["track"]["dict"], self.metadata["track"]["info"] = self.__crawltracks(self.test_folder)
 
 
     # Extras for colabel...
@@ -114,13 +114,13 @@ class VeRiDataCrawler:
         self.metadata[meta]["classes"] = {}
         self.metadata[meta]["classes"]["color"] = 10
         self.metadata[meta]["classes"]["type"] = 9
-        self.metadata[meta]["classes"]["pid"] = self.metadata["train"]["pid"]
-        self.metadata[meta]["classes"]["cid"] = self.metadata["train"]["cid"]
+        self.metadata[meta]["classes"]["pids"] = self.metadata["train"]["pids"]
+        self.metadata[meta]["classes"]["cids"] = self.metadata["train"]["cids"]
 
-    self.logger.info("Train\tPID: {:6d}\tCID: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pid"], self.metadata["train"]["cid"], self.metadata["train"]["imgs"]))
-    self.logger.info("Test \tPID: {:6d}\tCID: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pid"], self.metadata["test"]["cid"], self.metadata["test"]["imgs"]))
-    self.logger.info("Query\tPID: {:6d}\tCID: {:6d}\tIMGS: {:8d}".format(self.metadata["query"]["pid"], self.metadata["query"]["cid"], self.metadata["query"]["imgs"]))
-    self.logger.info("Tracks\tPID: {:6d}\tCID: {:6d}\Tracks: {:8d}".format(self.metadata["track"]["pid"], self.metadata["track"]["cid"], self.metadata["track"]["imgs"]))
+    self.logger.info("Train\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["train"]["pids"], self.metadata["train"]["cids"], self.metadata["train"]["imgs"]))
+    self.logger.info("Test \tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["test"]["pids"], self.metadata["test"]["cids"], self.metadata["test"]["imgs"]))
+    self.logger.info("Query\tPIDS: {:6d}\tCIDS: {:6d}\tIMGS: {:8d}".format(self.metadata["query"]["pids"], self.metadata["query"]["cids"], self.metadata["query"]["imgs"]))
+    self.logger.info("Tracks\tPIDS: {:6d}\tCIDS: {:6d}\Tracks: {:8d}".format(self.metadata["track"]["pids"], self.metadata["track"]["cids"], self.metadata["track"]["imgs"]))
 
   def __crawl(self,folder, reset_labels=False):
     imgs = glob.glob(os.path.join(folder, "*.jpg"))
@@ -138,7 +138,7 @@ class VeRiDataCrawler:
         pid_labeler += 1
       if cid not in cid_tracker:
         cid_tracker[cid] = cid-1
-      crawler.append((img, pid_tracker[pid], cid-1, self.colordict[pid], self.typedict[pid]))  # cid start at 1 in data
+      crawler.append((img, pid_tracker[pid], cid-1, self.colordict[pid], self.typedict[pid]))  # cids start at 1 in data
     return crawler, len(pid_tracker), len(cid_tracker), len(crawler)
 
   def __crawltracks(self, folder, reset_labels=False):
@@ -165,7 +165,7 @@ class VeRiDataCrawler:
         if pid not in pid_tracker:
           pid_tracker[pid] = pid_labeler if reset_labels else pid
           pid_labeler += 1
-        crawler.append((track_images, pid_tracker[pid], cid-1, self.colordict[pid], self.typedict[pid]))  # cid start at 1 in data
+        crawler.append((track_images, pid_tracker[pid], cid-1, self.colordict[pid], self.typedict[pid]))  # cids start at 1 in data
         #if len(crawler) == 1650:
         #  pdb.set_trace()
         for img  in track_images:
