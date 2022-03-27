@@ -147,7 +147,48 @@ class multibranchresnet(nn.Module):
             self.load_params_from_weights(weights_path)
 
     def load_params_from_pytorch(self, weights_path):
-        pass
+        param_dict = torch.load(weights_path)
+        # Three stages: load resnetinput params, load shared block params, and then load branch params...
+        inputparams = ['conv1.weight','bn1.running_mean','bn1.running_var','bn1.weight','bn1.bias']
+        # Load the input params
+        for param in inputparams:
+            self.state_dict()['resnetinput.'+param].copy_(param_dict[param])
+
+        #load shared block params,
+        for layer_idx in range(self.shared_block_count):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2 
+            full_layer_list = [item for item in param_dict if ('layer'+str(layer_idx+1) in item)]   # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for layer_name in full_layer_list:
+                # First, get the raw layer info, then append sharedblock to it...
+                local_param_name = self._build_local_layer_param_from_pytorch_name(layer_name, layer_idx)
+                self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+        # Now, we need to load branch params...
+        for layer_idx in range(self.shared_block_count,4):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2 
+            full_layer_list = [item for item in param_dict if ('layer'+str(layer_idx+1) in item)]   # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for branch_idx in range(self.num_branches):
+                for layer_name in full_layer_list:
+                    # First, get the raw layer info, then append sharedblock to it...
+                    local_param_name = self._build_branch_layer_param_from_pytorch_name(layer_name, layer_idx, branch_idx, self.shared_block_count)
+                    self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+    def _build_local_layer_param_from_pytorch_name(self, paramname, layeridx):
+        param_list = paramname.split(".")
+        new_param_list = ["sharedblock", str(layeridx)]+param_list[1:]
+        return ".".join(new_param_list)
+    
+    def _build_branch_layer_param_from_pytorch_name(self, paramname, layeridx, branch_idx, layer_reset):
+        param_list = paramname.split(".")
+        new_param_list = ["branches", str(branch_idx), str(layeridx-layer_reset)]+param_list[1:]
+        return ".".join(new_param_list)
+
 
 
 
