@@ -18,7 +18,7 @@ class multibranchresnet(nn.Module):
                     **kwargs):
         super().__init__()
         
-        
+        self.pytorch_weights_paths = self._model_weights()
         self.block=block
         self.inplanes = 64
         if norm_layer is None:
@@ -102,7 +102,7 @@ class multibranchresnet(nn.Module):
                                         dilate=layer_zip[5],
                                         stride=layer_zip[2])
                 )
-                branches[bidx] = nn.Sequential(*branches[bidx])
+            branches[bidx] = nn.Sequential(*branches[bidx])
 
         self.resnetinput = ResnetInput(ia_attention=ia_attention)
         if len(sharedlayers)>0:
@@ -138,13 +138,43 @@ class multibranchresnet(nn.Module):
         return [self.branches[idx](x) for idx in range(self.num_branches)]
     
     def load_param(self, weights_path):
+        if weights_path in self.pytorch_weights_paths:
+            self.load_params_from_pytorch(weights_path)
+        else:
+            self.load_params_from_weights(weights_path)
+
+    def load_params_from_pytorch(self, weights_path):
+        pass
+
+    
+
+    def load_params_from_weights(self, weights_path):
         param_dict = torch.load(weights_path)
         for i in param_dict:
             if 'fc' in i and self.top_only:
                 continue
             self.state_dict()[i].copy_(param_dict[i])
-            
-            
+
+
+    def _model_weights(self):
+        mw = ['resnet18-5c106cde.pth', 
+                'resnet34-333f7ec4.pth', 
+                'resnet50-19c8e357.pth', 
+                'resnet101-5d3b4d8f.pth', 
+                'resnet152-b121ed2d.pth', 
+                'resnext50_32x4d-7cdf4587.pth', 
+                'resnext101_32x8d-8ba56ff5.pth', 
+                'wide_resnet50_2-95faca4d.pth', 
+                'wide_resnet50_2-95faca4d.pth', 
+                'resnet18-5c106cde_cbam.pth', 
+                'resnet34-333f7ec4_cbam.pth', 
+                'resnet50-19c8e357_cbam.pth', 
+                'resnet101-5d3b4d8f_cbam.pth', 
+                'resnet152-b121ed2d_cbam.pth']
+        return {item:1 for item in mw}
+
+
+
 def _multibranchresnet(arch, block, layers, pretrained, progress, **kwargs):
     model = multibranchresnet(block, layers, **kwargs)
     return model

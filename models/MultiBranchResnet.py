@@ -9,10 +9,10 @@ import torch
 from utils.LabelMetadata import LabelMetadata
 
 
-class MultiClassificationResnet(ModelAbstract):
+class MultiBranchResnet(ModelAbstract):
     """Multibranch Resnet model, that performs multiple classifications with different branches. Branches may be fused as well.
 
-    A MulticlassificationResnet model is a base ResNet with multiple FC classification layers.
+    A MultiBranchResnet model is a base ResNet with multiple FC classification layers.
 
     Args: (TODO)
         base (str): The architecture base for resnet, i.e. resnet50, resnet18
@@ -203,7 +203,7 @@ class MultiClassificationResnet(ModelAbstract):
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
-            self.base.load_param(self.weights)
+            #self.base.load_param(self.weights)
         
         if self.embedding_dimensions is None:
             self.embedding_dimensions = 512*self.base.block.expansion
