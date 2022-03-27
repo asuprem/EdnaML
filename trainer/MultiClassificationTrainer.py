@@ -31,8 +31,7 @@ class MultiClassificationTrainer(BaseTrainer):
         # mapping label names and class names to their index for faster retrieval. 
         # TODO some way to integrate classificationclass in DATAREADER to 
         # labelnames in MODEL, so that there is less redundancy...
-        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
-        self.model_nameorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
+        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.output_labels)}
         self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}
         
     # The train function for the CoLabel model is inherited
@@ -152,9 +151,9 @@ class MultiClassificationTrainer(BaseTrainer):
         micro_fscore = [[] for _ in range(self.model.number_outputs)]
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
         for idx, lossname in enumerate(self.loss_fn):
-            accuracy[idx] = (logit_labels[self.model_labelorder[lossname]]==labels[:,self.data_labelorder[lossname]]).sum().float()/float(labels.size(0))
-            micro_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='micro'))
-            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='weighted'))
+            accuracy[idx] = (logit_labels[self.model_labelorder[self.loss_fn[lossname].loss_label]]==labels[:,self.data_labelorder[self.loss_fn[lossname].loss_label]]).sum().float()/float(labels.size(0))
+            micro_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[self.loss_fn[lossname].loss_label]],logit_labels[self.model_labelorder[self.loss_fn[lossname].loss_label]], average='micro'))
+            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[self.loss_fn[lossname].loss_label]],logit_labels[self.model_labelorder[self.loss_fn[lossname].loss_label]], average='weighted'))
         self.logger.info("Metrics\t"+"\t".join(["%s"%lossname for lossname in self.loss_fn]))
         self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
         self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
@@ -176,64 +175,3 @@ class MultiClassificationTrainer(BaseTrainer):
             shutil.copy2(localmetafile, backupmetafile)
         self.logger.info("Finished metadata backup")
 
-
-    """
-    def save(self):
-        self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
-        TRAINING_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_training.pth'
-
-        save_dict = {}
-        #save_dict["model"] = self.model.state_dict()
-        save_dict["optimizer"] = self.optimizer.state_dict()
-        save_dict["scheduler"] = self.scheduler.state_dict()
-        save_dict["loss_fn"] = {lossname:self.loss_fn[lossname].state_dict() for lossname in self.loss_fn}
-        save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
-        save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
-
-        torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
-        torch.save(save_dict, os.path.join(self.save_directory, TRAINING_SAVE))
-
-        if self.save_backup:
-            shutil.copy2(os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory)
-            shutil.copy2(os.path.join(self.save_directory, TRAINING_SAVE), self.backup_directory)
-            self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
-            
-            LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
-            if os.path.exists(LOGGER_SAVE):
-                os.remove(LOGGER_SAVE)
-            shutil.copy2(os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE)
-
-    def load(self, load_epoch):
-        self.logger.info("Resuming training from epoch %i. Loading saved state from %i"%(load_epoch+1,load_epoch))
-        model_load = self.model_save_name + '_epoch%i'%load_epoch + '.pth'
-        training_load = self.model_save_name + '_epoch%i'%load_epoch + '_training.pth'
-
-        if self.save_backup:
-            self.logger.info("Loading model, optimizer, and scheduler from drive backup.")
-            model_load_path = os.path.join(self.backup_directory, model_load)
-            training_load_path = os.path.join(self.backup_directory, training_load)
-
-        else:
-            self.logger.info("Loading model, optimizer, and scheduler from local backup.")
-            model_load_path = os.path.join(self.save_directory, model_load)
-            training_load_path = os.path.join(self.save_directory, training_load)
-
-        self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info("Finished loading model state_dict from %s"%model_load_path)
-
-        checkpoint = torch.load(training_load_path)
-        self.optimizer.load_state_dict(checkpoint["optimizer"])
-        self.logger.info("Finished loading optimizer state_dict from %s"%training_load_path)
-        self.scheduler.load_state_dict(checkpoint["scheduler"])
-        self.logger.info("Finished loading scheduler state_dict from %s"%training_load_path)
-        
-        for lossname in self.loss_fn:
-            self.loss_fn[lossname].load_state_dict(checkpoint["loss_fn"][lossname])
-            self.logger.info("Finished loading loss state_dict from %s"%training_load_path)
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None:
-                self.loss_optimizer[idx].load_state_dict(checkpoint["loss_optimizer"][idx])
-            if self.loss_scheduler[idx] is not None:
-                self.loss_scheduler[idx].load_state_dict(checkpoint["loss_scheduler"][idx])
-    """

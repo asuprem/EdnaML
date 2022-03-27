@@ -31,7 +31,8 @@ class MultiBranchTrainer(BaseTrainer):
         # mapping label names and class names to their index for faster retrieval. 
         # TODO some way to integrate classificationclass in DATAREADER to 
         # labelnames in MODEL, so that there is less redundancy...
-        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.output_labels)}
+        self.model_labelorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
+        self.model_nameorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
         self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}
         
     # The train function for the CoLabel model is inherited
