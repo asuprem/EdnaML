@@ -204,6 +204,7 @@ class MultiBranchResnet(ModelAbstract):
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
             #self.base.load_param(self.weights)
+            pass
         
         if self.embedding_dimensions is None:
             self.embedding_dimensions = 512*self.base.block.expansion
