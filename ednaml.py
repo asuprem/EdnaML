@@ -3,7 +3,8 @@ import kaptan
 import click
 from datareaders import DataReader
 import utils
-import torch, torchsummary
+import torch
+from torchinfo import summary
 from utils.LabelMetadata import LabelMetadata
 
 
@@ -139,7 +140,13 @@ def main(config, mode, weights):
             model.partial_load(weights)
             logger.info("Completed partial model load from {}".format(weights))
         model.cuda()
-        logger.info(torchsummary.summary(model, input_size=(config.get("TRANSFORMATION.CHANNELS"), *config.get("TRANSFORMATION.SHAPE"))))
+        model_summary = summary(model, 
+                      input_size=( config.get("TRANSFORMATION.BATCH_SIZE"), config.get("TRANSFORMATION.CHANNELS"), *config.get("TRANSFORMATION.SHAPE")),
+                      col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"],
+                      depth=4,
+                      mode= "train",
+                      verbose= 2)
+        logger.info(str(model_summary))
 
 
     # --------------------- INSTANTIATE LOSS ------------------------
