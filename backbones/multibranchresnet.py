@@ -92,6 +92,8 @@ class multibranchresnet(nn.Module):
         for bidx in range(self.num_branches):
             branches[bidx] = []
             for layer_zip in layer_arguments[self.shared_block_count:]:
+                import pdb
+                pdb.set_trace()
                 branches[bidx].append(
                     self._make_layer(   self.block, 
                                         layer_zip[1], 
@@ -146,7 +148,7 @@ class multibranchresnet(nn.Module):
     def load_params_from_pytorch(self, weights_path):
         pass
 
-    
+
 
     def load_params_from_weights(self, weights_path):
         param_dict = torch.load(weights_path)
