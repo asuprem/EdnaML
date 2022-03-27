@@ -51,9 +51,9 @@ There are also additional parameters for `MODEL_KWARGS` common to all MultiClass
     - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below. 
     - `name`: This is the name of this output. This is used by model_builder to keep track of output names and labels. If left blank, EdnaML will automatically name all outputs. Outputs are named because multiple outputs can track the same class, sometimes, e.g. in a contrastive non-weight sharing setting
     - `label`: This is the name of the label this output is tracking. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`</span> labels. 
-### `MODEL.MODEL_ARCH: MultiClassificationResnet`
+### `MODEL.MODEL_ARCH: MultiBranchResnet`
 
-For `MultiClassificationResnet`, the following are available:
+For `MultiBranchResnet`, the following are available:
 
 - `MODEL_BASE`: `resnet18`, `resnet34`, `resnet50`, `resnet101`, `resnet152`
 - `MODEL_KWARGS`: see [`MultiClassificationResnetAbstract`](/models/abstracts.py) class
@@ -93,7 +93,7 @@ There are also additional parameters for `MODEL_KWARGS` common to all MultiClass
         - `name`: This is the name of this output. 
         - `label`: This is the name of the label this output is tracking. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`</span> labels.
 - `fuse`: **Bool**. Whether branch outputs are going to be fused
-- `fuse_outputs`: List of output names (not branch names) that are fused
+- `fuse_outputs`: List of output branches that are fused
 - `fuse_dimensions`: The dimensions of the fused output. If left blank, EdnaML will infer from `fuse_label`
 - `fuse_label`: The label that tracks the fused output
 
