@@ -5,9 +5,9 @@ EXECUTION:
   SKIPEVAL: True
   TEST_FREQUENCY: 5
   DATAREADER: 
-    DATAREADER: CompCars
+    DATAREADER: VeRi
     CRAWLER_ARGS:
-      data_folder: "Data/CompCars"
+      data_folder: "Data/VeRi"
     DATASET_ARGS: 
       pathidx: 0
       annotationidx: [3, 4, 1]
