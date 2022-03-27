@@ -94,7 +94,8 @@ class MultiClassificationResnet(ClassificationResnet):
             self.softmax_dimensions[idx] = output_details.get("dimensions", None)
             self.output_names[idx] = output_details.get("name", self._internal_name_counter())
             self.output_labels[idx] = output_details["label"]
-
+            if self.softmax_dimensions[idx] is None:
+                self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(self.output_labels[idx])
         self.base = None
         self.gap = None
         self.emb_linear = None
@@ -109,13 +110,6 @@ class MultiClassificationResnet(ClassificationResnet):
     def build_softmax(self, **kwargs):
         """Build the softmax layers, using info either in self.softmax_dimensions or by combining metadata info of labelname->numclasses and the outputclassnames
         """
-        for idx in range(self.number_outputs):
-            if self.softmax_dimensions[idx] is None:
-                # TODO we assume if softmax_dimensions is none, that the output_classnames is constructed properly. Handle the bad case, by passing in a logger instance to this to log warnings and errors
-                if self.output_labels[idx] is None:
-                    raise ValueError("No label provided for output %i. Cannot automatically infer dimensions"%idx)
-                self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(self.output_labels[idx])
-
         # NOTE, for re-id type models...multiclassification model will anyway yield the features with softmax outputs, so we don't have to worry about that...
         # For pure-reid model, probably best to use ClassificationResNet and modify to use no softmax...TODO this is a future step...
         tsoftmax = [None]*self.number_outputs
