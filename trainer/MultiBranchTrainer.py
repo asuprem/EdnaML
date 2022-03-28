@@ -32,8 +32,9 @@ class MultiBranchTrainer(BaseTrainer):
         # TODO some way to integrate classificationclass in DATAREADER to 
         # labelnames in MODEL, so that there is less redundancy...
         self.model_labelorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
-        self.model_nameorder = {item:idx for idx,item in enumerate(self.model.model_labelorder)}
-        self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}
+        self.model_nameorder = {item:idx for idx,item in enumerate(self.model.model_nameorder)} 
+        self.data_labelorder = {item:idx for idx,item in enumerate(self.labelMetadata.labels)}  
+        self.model_name_label_map = {item[0]:item[1] for item in zip(self.model.model_nameorder, self.model.model_labelorder)}
         
     # The train function for the CoLabel model is inherited
 
@@ -93,11 +94,13 @@ class MultiBranchTrainer(BaseTrainer):
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)  # logits are in order of output_classnames --> model.output_classnames
         batch_kwargs["epoch"] = self.global_epoch   # For CompactContrastiveLoss
         
+        
         loss={loss_name:None for loss_name in self.loss_fn} 
-        for lossname in loss:
+        for lossname in loss:   # this loss targets a specific output
             akwargs={}
-            akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[lossname]] # this looks up the lossname in the outputclass names
-            akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[lossname]] # ^ditto
+            
+            akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[self.model_name_label_map[lossname]]] # this looks up the lossname in the outputclass names
+            akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[self.model_name_label_map[lossname]]] # ^ditto
             akwargs["epoch"] = batch_kwargs["epoch"]
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
@@ -151,14 +154,24 @@ class MultiBranchTrainer(BaseTrainer):
         accuracy = [[] for _ in range(self.model.number_outputs)]
         micro_fscore = [[] for _ in range(self.model.number_outputs)]
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
+
+        """
+        akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[self.model_name_label_map[lossname]]] # this looks up the lossname in the outputclass names
+        akwargs["labels"] = batch_kwargs["labels"][:, self.data_labelorder[self.model_name_label_map[lossname]]] # ^ditto
+        """
         for idx, lossname in enumerate(self.loss_fn):
-            accuracy[idx] = (logit_labels[self.model_labelorder[lossname]]==labels[:,self.data_labelorder[lossname]]).sum().float()/float(labels.size(0))
-            micro_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='micro'))
-            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[lossname]],logit_labels[self.model_labelorder[lossname]], average='weighted'))
+            accuracy[idx] = (  
+                                logit_labels[self.model_labelorder[self.model_name_label_map[lossname]]]   
+                                    ==   labels[:, self.data_labelorder[self.model_name_label_map[lossname]]]    
+                                ).sum().float()/float(labels.size(0))
+            micro_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[self.model_name_label_map[lossname]]],logit_labels[self.model_labelorder[self.model_name_label_map[lossname]]], average='micro'))
+            weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[self.model_name_label_map[lossname]]],logit_labels[self.model_labelorder[self.model_name_label_map[lossname]]], average='weighted'))
+        
         self.logger.info("Metrics\t"+"\t".join(["%s"%lossname for lossname in self.loss_fn]))
-        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        
         return logit_labels, labels, self.crawler.classes, features
 
     def saveMetadata(self,):
@@ -177,63 +190,4 @@ class MultiBranchTrainer(BaseTrainer):
         self.logger.info("Finished metadata backup")
 
 
-    """
-    def save(self):
-        self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '.pth'
-        TRAINING_SAVE = self.model_save_name + '_epoch%i'%self.global_epoch + '_training.pth'
-
-        save_dict = {}
-        #save_dict["model"] = self.model.state_dict()
-        save_dict["optimizer"] = self.optimizer.state_dict()
-        save_dict["scheduler"] = self.scheduler.state_dict()
-        save_dict["loss_fn"] = {lossname:self.loss_fn[lossname].state_dict() for lossname in self.loss_fn}
-        save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
-        save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
-
-        torch.save(self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE))
-        torch.save(save_dict, os.path.join(self.save_directory, TRAINING_SAVE))
-
-        if self.save_backup:
-            shutil.copy2(os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory)
-            shutil.copy2(os.path.join(self.save_directory, TRAINING_SAVE), self.backup_directory)
-            self.logger.info("Performing drive backup of model, optimizer, and scheduler.")
-            
-            LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
-            if os.path.exists(LOGGER_SAVE):
-                os.remove(LOGGER_SAVE)
-            shutil.copy2(os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE)
-
-    def load(self, load_epoch):
-        self.logger.info("Resuming training from epoch %i. Loading saved state from %i"%(load_epoch+1,load_epoch))
-        model_load = self.model_save_name + '_epoch%i'%load_epoch + '.pth'
-        training_load = self.model_save_name + '_epoch%i'%load_epoch + '_training.pth'
-
-        if self.save_backup:
-            self.logger.info("Loading model, optimizer, and scheduler from drive backup.")
-            model_load_path = os.path.join(self.backup_directory, model_load)
-            training_load_path = os.path.join(self.backup_directory, training_load)
-
-        else:
-            self.logger.info("Loading model, optimizer, and scheduler from local backup.")
-            model_load_path = os.path.join(self.save_directory, model_load)
-            training_load_path = os.path.join(self.save_directory, training_load)
-
-        self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info("Finished loading model state_dict from %s"%model_load_path)
-
-        checkpoint = torch.load(training_load_path)
-        self.optimizer.load_state_dict(checkpoint["optimizer"])
-        self.logger.info("Finished loading optimizer state_dict from %s"%training_load_path)
-        self.scheduler.load_state_dict(checkpoint["scheduler"])
-        self.logger.info("Finished loading scheduler state_dict from %s"%training_load_path)
-        
-        for lossname in self.loss_fn:
-            self.loss_fn[lossname].load_state_dict(checkpoint["loss_fn"][lossname])
-            self.logger.info("Finished loading loss state_dict from %s"%training_load_path)
-        for idx in range(self.num_losses):
-            if self.loss_optimizer[idx] is not None:
-                self.loss_optimizer[idx].load_state_dict(checkpoint["loss_optimizer"][idx])
-            if self.loss_scheduler[idx] is not None:
-                self.loss_scheduler[idx].load_state_dict(checkpoint["loss_scheduler"][idx])
-    """
+    
