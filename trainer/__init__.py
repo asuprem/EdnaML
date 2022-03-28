@@ -1,2 +1,3 @@
 from .ClassificationTrainer import ClassificationTrainer
 from .MultiClassificationTrainer import MultiClassificationTrainer
+from .MultiBranchTrainer import MultiBranchTrainer

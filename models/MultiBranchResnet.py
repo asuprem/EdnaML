@@ -191,6 +191,12 @@ class MultiBranchResnet(ModelAbstract):
             self.branches[bname]["feat_norm"] = None
             self.branches[bname]["softmax"] = [None]*self.branches_meta[bname]["number_outputs"]
 
+        self.output_count = self.number_outputs
+        self.feature_count = self.number_branches
+        if self.branch_fuse:
+            self.output_count+=1
+            self.feature_count+=1
+
 
     def model_setup(self, **kwargs):
         self.build_base(**kwargs)

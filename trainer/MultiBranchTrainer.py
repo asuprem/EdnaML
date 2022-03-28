@@ -129,20 +129,20 @@ class MultiBranchTrainer(BaseTrainer):
 
     def evaluate(self):
         self.model.eval()        
-        features, logits, labels = [], [[] for _ in range(self.model.number_outputs)], []
+        features, logits, labels = [[] for _ in range(self.model.feature_count)], [[] for _ in range(self.model.output_count)], []
         with torch.no_grad():
             for batch in tqdm.tqdm(self.test_loader, total=len(self.test_loader), leave=False):
                 data, label = batch
                 data = data.cuda()
                 logit, feature , _ = self.model(data)
-                feature = feature.detach().cpu()
-                for idx in range(self.model.number_outputs):
+                for idx in range(self.model.feature_count):
+                  features[idx].append(feature[idx].detach().cpu())
+                for idx in range(self.model.output_count):
                   logits[idx].append(logit[idx].detach().cpu())
-                features.append(feature)
                 labels.append(label)
         
         #features, logits, labels = torch.cat(features, dim=0), [torch.cat(logit, dim=0) for logit in logits], torch.cat(labels, dim=0)
-        features = torch.cat(features, dim=0)
+        features = [torch.cat(feature, dim=0) for feature in features]
         logits = [torch.cat(logit, dim=0) for logit in logits]
         labels = torch.cat(labels, dim=0)
         # Now we compute the loss...
@@ -151,9 +151,9 @@ class MultiBranchTrainer(BaseTrainer):
         #pdb.set_trace()
 
         logit_labels = [torch.argmax(logit, dim=1) for logit in logits]
-        accuracy = [[] for _ in range(self.model.number_outputs)]
-        micro_fscore = [[] for _ in range(self.model.number_outputs)]
-        weighted_fscore = [[] for _ in range(self.model.number_outputs)]
+        accuracy = [[] for _ in range(self.model.output_count)]
+        micro_fscore = [[] for _ in range(self.model.output_count)]
+        weighted_fscore = [[] for _ in range(self.model.output_count)]
 
         """
         akwargs["logits"] = batch_kwargs["logits"][self.model_labelorder[self.model_name_label_map[lossname]]] # this looks up the lossname in the outputclass names
@@ -168,9 +168,9 @@ class MultiBranchTrainer(BaseTrainer):
             weighted_fscore[idx] = np.mean(f1_score(labels[:,self.data_labelorder[self.model_name_label_map[lossname]]],logit_labels[self.model_labelorder[self.model_name_label_map[lossname]]], average='weighted'))
         
         self.logger.info("Metrics\t"+"\t".join(["%s"%lossname for lossname in self.loss_fn]))
-        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
-        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model_nameorder[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
+        self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.model.model_nameorder[idx], accuracy[idx].item()) for idx in range(self.model.output_count)]))
+        self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.model_nameorder[idx], micro_fscore[idx].item()) for idx in range(self.model.output_count)]))
+        self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.model_nameorder[idx], weighted_fscore[idx].item()) for idx in range(self.model.output_count)]))
         
         return logit_labels, labels, self.crawler.classes, features
 
