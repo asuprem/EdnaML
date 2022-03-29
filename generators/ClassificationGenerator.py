@@ -34,7 +34,7 @@ class ClassificationDataset(TorchDataset):
         return img_load
 
 class ClassificationGenerator(ImageGenerator):
-    def __init__(self,gpus, i_shape = (208,208), normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
+    def __init__(self,gpus, i_shape = (208,208), channels=3, normalization_mean = 0.5, normalization_std = 0.5, normalization_scale = 1./255., h_flip = 0.5, t_crop = True, rea = True, **kwargs):
         """ Data generator for training and testing. Works with the <>. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
         Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
@@ -50,7 +50,7 @@ class ClassificationGenerator(ImageGenerator):
             rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
         
         """
-        super().__init__(  gpus, i_shape = i_shape, 
+        super().__init__(  gpus, i_shape = i_shape, channels = channels,
                                                 normalization_mean = normalization_mean, normalization_std = normalization_std, normalization_scale = normalization_scale, 
                                                 h_flip = h_flip, t_crop = t_crop, rea = rea, 
                                                 **kwargs)

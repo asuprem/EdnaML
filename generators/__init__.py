@@ -21,6 +21,8 @@ import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 
+import utils
+
 class ImageGenerator:
     """Base class for image dataset generators
     """
@@ -47,7 +49,7 @@ class ImageGenerator:
                                     )
 
 
-    def build_transforms(self, i_shape: Union[List[int],Tuple[int,int]], normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
+    def build_transforms(self, i_shape: Union[List[int],Tuple[int,int]], channels = 3, normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
         """Builds the transforms for the images in dataset. This can be replaced for custom set of transforms
 
         Args:
@@ -59,6 +61,7 @@ class ImageGenerator:
         Returns:
             _type_: _description_
         """
+        normalization_mean, normalization_std = utils.extend_mean_arguments([normalization_mean, normalization_std], channels)
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
         if kwargs.get("h_flip") > 0:
