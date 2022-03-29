@@ -7,8 +7,9 @@ import numpy as np
 import loss.builders
 from typing import List
 from models.MultiClassificationResnet import MultiClassificationResnet
-
+from crawlers import Crawler
 from .BaseTrainer import BaseTrainer
+from utils.LabelMetadata import LabelMetadata
 
 import pdb
 
@@ -21,11 +22,12 @@ class MultiClassificationTrainer(BaseTrainer):
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
-                    epochs: int, skipeval, logger, **kwargs):   #kwargs includes crawler
+                    epochs: int, skipeval, logger, 
+                    crawler: Crawler, config, labels: LabelMetadata, **kwargs):
         
-        super().__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, **kwargs)
+        super().__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, crawler, config, labels, **kwargs)
         
-        self.crawler = kwargs.get("crawler", None)
+
         self.softaccuracy = []
 
         # mapping label names and class names to their index for faster retrieval. 

@@ -1,8 +1,10 @@
+import json
 from logging import Logger
 import logging
 import torch
 import os
 import shutil
+from crawlers import Crawler
 import loss.builders
 from typing import Dict, List
 from torch.utils.data import DataLoader
@@ -31,6 +33,7 @@ class BaseTrainer:
     # config metadata, trainer metadata ???????
     metadata:Dict[str,str]
     labelMetadata: LabelMetadata
+    logger: logging.Logger
 
     def __init__(   self, 
                     model: torch.nn.Module, 
@@ -38,7 +41,8 @@ class BaseTrainer:
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader:DataLoader, test_loader:DataLoader, 
-                    epochs:int, skipeval:bool, logger:Logger, **kwargs):
+                    epochs:int, skipeval:bool, logger:Logger, 
+                    crawler: Crawler, config, labels: LabelMetadata, **kwargs):
 
         self.model = model
         self.loss_fn_order = {idx:lossbuilder.loss_labelname for idx, lossbuilder in enumerate(loss_fn)}
@@ -65,7 +69,11 @@ class BaseTrainer:
 
         
         self.metadata = {}
-        self.labelMetadata = kwargs.get("labels")
+        self.labelMetadata = labels
+        self.crawler = crawler
+        self.config= config
+
+        self.buildMetadata(crawler=crawler.classes, config=json.loads(config.export("json")))
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
