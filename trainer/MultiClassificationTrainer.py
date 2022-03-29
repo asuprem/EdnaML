@@ -125,7 +125,7 @@ class MultiClassificationTrainer(BaseTrainer):
         self.softaccuracy.append(0) # TODO fix this
 
 
-    def evaluate(self):
+    def evaluate_impl(self):
         self.model.eval()        
         features, logits, labels = [], [[] for _ in range(self.model.number_outputs)], []
         with torch.no_grad():
@@ -160,7 +160,7 @@ class MultiClassificationTrainer(BaseTrainer):
         self.logger.info('Accuracy\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], accuracy[idx].item()) for idx in range(self.model.number_outputs)]))
         self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], micro_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
         self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.labelMetadata.labels[idx], weighted_fscore[idx].item()) for idx in range(self.model.number_outputs)]))
-        return logit_labels, labels, self.crawler.classes, features
+        return logit_labels, labels, features
 
     def saveMetadata(self,):
         self.logger.info("Saving model metadata")

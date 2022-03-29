@@ -129,7 +129,7 @@ class MultiBranchTrainer(BaseTrainer):
         self.softaccuracy.append(0) # TODO fix this
 
 
-    def evaluate(self):
+    def evaluate_impl(self):
         self.model.eval()        
         features, logits, labels = [[] for _ in range(self.model.feature_count)], [[] for _ in range(self.model.output_count)], []
         with torch.no_grad():
@@ -174,7 +174,7 @@ class MultiBranchTrainer(BaseTrainer):
         self.logger.info('M F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.model_nameorder[idx], micro_fscore[idx].item()) for idx in range(self.model.output_count)]))
         self.logger.info('W F-Score\t'+'\t'.join(['%s: %0.3f'%(self.model.model_nameorder[idx], weighted_fscore[idx].item()) for idx in range(self.model.output_count)]))
         
-        return logit_labels, labels, self.crawler.classes, features
+        return logit_labels, labels, features
 
     def saveMetadata(self,):
         self.logger.info("Saving model metadata")

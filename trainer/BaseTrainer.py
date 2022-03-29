@@ -220,5 +220,9 @@ class BaseTrainer:
         raise NotImplementedError()
 
     def evaluate(self):
-        raise NotImplementedError()
+        logit_labels, true_labels, features = self.evaluate_impl()
+        return logit_labels, true_labels, self.crawler.classes, features
+
+    def evaluate_impl(self):
+        raise NotImplementedError
 

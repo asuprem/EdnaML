@@ -152,6 +152,12 @@ class EdnaML:
         self.buildTrainer()
         self.setupTrainer()
 
+    def train(self):
+        self.trainer.train(continue_epoch=self.previous_stop)
+
+    def eval(self):
+        return self.trainer.evaluate()
+
     def buildTrainer(self):
         """Builds the EdnaML trainer
         """

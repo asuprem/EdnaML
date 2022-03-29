@@ -114,7 +114,7 @@ class ClassificationTrainer(BaseTrainer):
             self.softaccuracy.append(0)
 
 
-    def evaluate(self):
+    def evaluate_impl(self):
         self.model.eval()
         features, logits, labels = [], [], []
         with torch.no_grad():
@@ -141,7 +141,7 @@ class ClassificationTrainer(BaseTrainer):
         self.logger.info('Accuracy: {:.3%}'.format(accuracy))
         self.logger.info('Micro F-score: {:.3f}'.format(micro_fscore))
         self.logger.info('Weighted F-score: {:.3f}'.format(weighted_fscore))
-        return logit_labels, labels, self.crawler.classes, features
+        return logit_labels, labels, features
 
     def saveMetadata(self,):
         self.logger.info("Saving model metadata")
