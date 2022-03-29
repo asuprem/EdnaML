@@ -23,3 +23,13 @@ def main(config, mode, weights):
 
     ednaml.train()  # includes buildTrainer()
     ednaml.evaluate()
+
+
+
+    --
+
+    ednaml = EdnaML(config, mode, weights)
+    EdnaML.quicksetup()
+    
+    EdnaML.train()
+    EdnaML.evaluate()

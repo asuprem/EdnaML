@@ -27,8 +27,6 @@ def main(config, mode, weights):
     logger.info(config.export("yaml", indent=4))
     logger.info("");logger.info("");logger.info("*"*40)
 
-    # TODO fix this for the random erase value...
-    NORMALIZATION_MEAN, NORMALIZATION_STD, _ = utils.fix_generator_arguments(config)
 
     """ MODEL PARAMS """
     # This will setup the model weights and load the appropriate one given our configuration
@@ -83,7 +81,7 @@ def main(config, mode, weights):
         data_reader.GENERATOR = getattr(new_generator, new_generator_class)
     
     train_generator = data_reader.GENERATOR(gpus=NUM_GPUS, i_shape=config.get("TRANSFORMATION.SHAPE"), \
-                                normalization_mean=NORMALIZATION_MEAN, normalization_std=NORMALIZATION_STD, normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
+                                normalization_mean=config.get("TRANSFORMATION.NORMALIZATION_MEAN"), normalization_std=config.get("TRANSFORMATION.NORMALIZATION_STD"), normalization_scale=1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"), \
                                 h_flip = config.get("TRANSFORMATION.H_FLIP"), t_crop=config.get("TRANSFORMATION.T_CROP"), rea=config.get("TRANSFORMATION.RANDOM_ERASE"), 
                                 rea_value=config.get("TRANSFORMATION.RANDOM_ERASE_VALUE"), **config.get("EXECUTION.DATAREADER.GENERATOR_ARGS"))
     train_generator.setup(crawler, mode='train',batch_size=config.get("TRANSFORMATION.BATCH_SIZE"), workers = config.get("TRANSFORMATION.WORKERS"), **config.get("EXECUTION.DATAREADER.DATASET_ARGS"))
@@ -95,8 +93,9 @@ def main(config, mode, weights):
     print("Running classification model with classes:", labelMetadata)
     test_generator=  data_reader.GENERATOR( gpus=NUM_GPUS, 
                                             i_shape=config.get("TRANSFORMATION.SHAPE"),
-                                            normalization_mean=NORMALIZATION_MEAN, 
-                                            normalization_std = NORMALIZATION_STD, 
+                                            channels=config.get("TRANSFORMATION.CHANNELS"),
+                                            normalization_mean=cfg.get("TRANSFORMATION.NORMALIZATION_MEAN"), 
+                                            normalization_std = cfg.get("TRANSFORMATION.NORMALIZATION_STD"), 
                                             normalization_scale = 1./config.get("TRANSFORMATION.NORMALIZATION_SCALE"),
                                             h_flip = 0, 
                                             t_crop = False, 
