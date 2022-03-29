@@ -1,6 +1,6 @@
 import pdb
 from torch import nn, softmax
-from .abstracts import ModelAbstract
+from .ModelAbstract import ModelAbstract
 from utils import layers
 import torch
 

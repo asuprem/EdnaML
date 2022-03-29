@@ -3,7 +3,7 @@ from pydoc import classname
 from typing import List
 from torch import nn, softmax
 from backbones.multibranchresnet import multibranchresnet
-from models.abstracts import ModelAbstract
+from models.ModelAbstract import ModelAbstract
 from utils import layers
 import torch
 
@@ -86,49 +86,7 @@ class MultiBranchResnet(ModelAbstract):
         self.embedding_dimensions = kwargs.get("embedding_dimensions", None)
         if self.normalization == '':
             self.normalization = None
-        
-        
-        """
-        When we do forward, we will receive outputs as:
-        
-            logits, features, secondary-outputs
-        
-        Each of logits, features, and secondary-outputs is a list. 
-        
-        The size of features corresponds to branch-features, +1 if they are fused.
-        The size of logits, on the other hand, does not correspond to features,
-        because each branch may have multiple outputs, ergo multiple logits. 
-        
-        Our order for outputs is determined by the order of branches. In future, we can also specify 
-        in the configuration the order of outputs, but we will leave it alone for now.
-
-        So, when doing forward, we will do, given input x:
-
-        x = pre-branch(x)   <-- this is the bit before branching, i.e. for branching, we can adjust where it occurs in resnet, i.e. at which basic block...
-        branch-feats = [none]*numbranches
-        for branch in self.branches:        <-- in here, branches are in the order we specified in the config!!!
-            branch_feats[idx] = self.branches[idx][base](x)
-        if fused:
-            fused-feats = self.fuse(branch-feats)       <-- at this point, we have all the features
-        
-        # Now, we will need to extract the outputs themselves
-        outputs = [None]*self.num-outputs
-        output_counter = 0
-        for bidx, branch in self.branches:
-            for softlayer in self.branches[idx]["softmax"]:       <-- this is a list of softmax within each branch, in order
-                outputs[output_counter] = softlayer ( branch-feats[bidx] )
-                output_counter += 1
-        
-        if fused:
-            fused-outs = self.soft_fuse(fused-feats)
-
-        return outputs+[fused-outs], branch_feats+[fused-feats], []
-
-
-
-         [output1, output2, output3, ..., fuse-output], [feature1, feature2, fused-feature], []
-        """
-        
+   
         # So, things we need
         # num branches
         # 
@@ -214,8 +172,7 @@ class MultiBranchResnet(ModelAbstract):
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
-            #self.base.load_param(self.weights)
-            pass
+            self.base.load_param(self.weights)
         
         if self.embedding_dimensions is None:
             self.embedding_dimensions = 512*self.base.block.expansion
