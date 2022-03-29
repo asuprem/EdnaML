@@ -4,6 +4,7 @@ from crawlers import VeRiDataCrawler
 from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 
 class VeRi(DataReader):
+    name: str = "VeRi"
     CRAWLER = VeRiDataCrawler
     DATASET = ClassificationDataset
     GENERATOR = ClassificationGenerator

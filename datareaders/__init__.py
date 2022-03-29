@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 
 from generators import ImageGenerator
 class DataReader:
+    name: str = "DataReader"
     CRAWLER: Crawler = Crawler
     DATASET: Dataset = Dataset
     DATALOADER: DataLoader = DataLoader

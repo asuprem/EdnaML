@@ -4,6 +4,7 @@ from crawlers import VehicleIDDataCrawler
 from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 
 class VehicleID(DataReader):
+    name: str = "VehicleID"
     CRAWLER = VehicleIDDataCrawler
     DATASET = ClassificationDataset
     GENERATOR = ClassificationGenerator

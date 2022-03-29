@@ -4,6 +4,7 @@ from crawlers import CoLabelVehicleColorCrawler
 from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 
 class VehicleColor(DataReader):
+    name: str = "VehicleColors"
     CRAWLER = CoLabelVehicleColorCrawler
     DATASET = ClassificationDataset
     GENERATOR = ClassificationGenerator
