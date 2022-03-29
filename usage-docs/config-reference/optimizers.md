@@ -4,7 +4,7 @@ The optimizer builder is set in `EXECUTION.OPTIMIZER_BUILDER`. The optimizer man
 
 Options are:
 
-- `CoLabelOptimizer`: The optimizer for CoLabel classifier models. This is a basic optimizer builder that uses a conventional optimizer to update all trainable parameters of a model.
+- `ClassificationOptimizer`: The optimizer for CoLabel classifier models. This is a basic optimizer builder that uses a conventional optimizer to update all trainable parameters of a model.
 
 
 

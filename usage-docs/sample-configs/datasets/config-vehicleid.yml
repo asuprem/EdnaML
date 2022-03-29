@@ -1,5 +1,5 @@
 EXECUTION:
-  OPTIMIZER_BUILDER: CoLabelOptimizer
+  OPTIMIZER_BUILDER: ClassificationOptimizer
   MODEL_SERVING: None
   EPOCHS: 10
   SKIPEVAL: True

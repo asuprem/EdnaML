@@ -27,7 +27,7 @@ The `EXECUTION` section contains parameters for EdnaML pipeline execution. They 
 
 ```
 EXECUTION:
-  OPTIMIZER_BUILDER: CoLabelOptimizer
+  OPTIMIZER_BUILDER: ClassificationOptimizer
   MODEL_SERVING: None
   EPOCHS: 10
   TEST_FREQUENCY: 5

@@ -2,7 +2,7 @@ import torch
 from . import BaseOptimizer
 
 
-class CoLabelOptimizer(BaseOptimizer):
+class ClassificationOptimizer(BaseOptimizer):
     """ Optimizer Builder for CoLabel experiments.
 
     """
@@ -20,4 +20,4 @@ class CoLabelOptimizer(BaseOptimizer):
             build:  builds an optimizer given optimizer name and torch model
 
         """
-        super(CoLabelOptimizer, self).__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)
+        super().__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)

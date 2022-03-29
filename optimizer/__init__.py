@@ -53,6 +53,6 @@ class BaseOptimizer:
         return optimizer  
 
 
-from .CoLabelOptimizer import CoLabelOptimizer
+from .ClassificationOptimizer import ClassificationOptimizer
 from .StandardLossOptimizer import StandardLossOptimizer
 # for re-id compatibility 
