@@ -19,6 +19,8 @@ from .CoLabelCompCarsCrawler import CoLabelCompCarsCrawler
 
 import os
 class Crawler:
+    """The base crawler class. TODO
+    """
     def __init__():
         raise NotImplementedError()
 

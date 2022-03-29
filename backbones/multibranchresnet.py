@@ -1,21 +1,109 @@
+"""Contains code to build a multi-branch resnet, with a mix of
+weight-shared and independent branches.
+
+`multibranchresnet` creates subbranches contained all or part of resnet. 
+Branching occurs at a specified resnet block, after which the remaining 
+blocks occur on their own branches with no weight sharing. The branched 
+model also has an option for branch fusing, to concatenate features.
+
+  Typical usage example:
+
+  model = multibranchresnet()
+  x = torch.randn((3,100,100))
+  features = model(x)
+"""
+
 from ctypes import Union
-import warnings
 from torch import nn
 import torch
-import pdb
-
-from utils.blocks import ChannelAttention, SpatialAttention
-from utils.blocks import DenseAttention, InputAttention
+from typing import Dict, List
 from utils.blocks import ResnetInput, ResnetBasicBlock, ResnetBottleneck
 
 
-
 class multibranchresnet(nn.Module):
-    def __init__(self, block=ResnetBottleneck, layers=[3, 4, 6, 3], last_stride=2, zero_init_residual=False, \
-                    top_only=True, num_classes=1000, groups=1, width_per_group=64, replace_stride_with_dilation=None,norm_layer=None, 
-                    attention=None, input_attention = None, secondary_attention=None, ia_attention = None, part_attention = None,
-                    num_branches=2, shared_block=0,
-                    **kwargs):
+    """`multibranchresnet` creates a resnet with specified branches. 
+    
+    `multibranchresnet` creates subbranches contained all or part of resnet. 
+    Branching occurs at a specified resnet block, after which the remaining 
+    blocks occur on their own branches with no weight sharing. The branched 
+    model also has an option for branch fusing, to concatenate features.
+
+    Attributes:
+        block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture
+        attention (str): Which type of attentio, if any, is implemented in this model. One of `cbam`, `dbam`
+        input_attention (bool): Whether model uses input attention at the first resnet block
+        ia_attention (bool): Whether the model uses input attention at the first layer
+        part_attention (bool): Whether the model uses local/part attention at the first resnet block
+        secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int). 
+        shared_block_count (int): Number of resnet blocks with weight sharing. Maximum value 4
+        num_branches (int): Number of branches after weight-shared blocks
+        pytorch_weights_paths (Dict[str,int]): Strings corresponding to official imagenet resnet weights from pytorch
+        resnetinput (ResnetInput): The input block consisting of conv layer, relu, and pooling.
+        sharedblock (Union[nn.Sequential,nn.Identity]): The shared layers, consisting of at most 4 Resnet blocks.
+        branches (nn.ModuleList): List of branching layers, with at most 4 Resnet blocks each.
+    """
+
+    block: nn.Module
+    attention: str
+    input_attention: bool
+    ia_attention: bool
+    part_attention: bool
+    secondary_attention: int
+
+    shared_block_count: int
+    num_branches: int
+    pytorch_weights_paths: Dict[str,int]
+
+    resnetinput: ResnetInput
+    sharedblock: Union[nn.Sequential,nn.Identity]
+    branches: nn.ModuleList
+    
+    def __init__(self,  block:nn.Module = ResnetBottleneck, 
+                        layers: List[int] = [3, 4, 6, 3], 
+                        last_stride: int =2, 
+                        zero_init_residual: bool = False,
+                        top_only: bool = True, 
+                        num_classes: bool = 1000, 
+                        groups: int = 1, 
+                        width_per_group: int = 64, 
+                        replace_stride_with_dilation: List[int] = None,
+                        norm_layer: nn.Module = None, 
+                        attention: str = None, 
+                        input_attention: bool = None, 
+                        secondary_attention: int = None, 
+                        ia_attention: bool = None, 
+                        part_attention: bool = None,
+                        num_branches: int = 2, 
+                        shared_block: int = 0,
+                        **kwargs):
+        """Initializes the multibranchresnet model and sets up internal modules.
+
+        Args:
+            block (nn.Module, optional): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            layers (List[int], optional): Number of layers in each block. Defaults to [3, 4, 6, 3].
+            last_stride (int, optional): The stride for the last block. Defaults to 2.
+            zero_init_residual (bool, optional): Whether to initialize network with only zeros. Unused. Defaults to False.
+            top_only (bool, optional): Whether to keep only the feature extractor block. Defaults to True.
+            num_classes (bool, optional): Number of classes for the imagenet layer. Unused. Defaults to 1000.
+            groups (int, optional): see nn.conv2D. Defaults to 1.
+            width_per_group (int, optional): see nn.conv2D. Defaults to 64.
+            replace_stride_with_dilation (List[int], optional): Whether to replace stride with dilation for each block. Defaults to None.
+            norm_layer (nn.Module, optional): The default normalization layer. If None, uses batchnorm. Defaults to None.
+            attention (str, optional): What attention to use, among `cbam`, `dbam`. Defaults to None.
+            input_attention (bool, optional): Whether to use input attention at the first resnet block. Defaults to None.
+            secondary_attention (int, optional): Whether to use secondary attention to apply `attention` to the specific resnet block only. Defaults to None.
+            ia_attention (bool, optional): Whether to use input attention at the first conv layer. Exclusive with `input_attention`. Defaults to None.
+            part_attention (bool, optional): Whether to use the local attention module. Defaults to None.
+            num_branches (int, optional): Number of branches for this resnet. Defaults to 2.
+            shared_block (int, optional): Number of weight-shared resnet blocks. Defaults to 0.
+
+        Raises:
+            ValueError: If attention blocks are not self-consistent. Specifically, the following rules:
+                - cannot have both `ia_attention` and `input_attention`.
+                - cannot have `part_attention` with `attention`, unless `secondary_attention`!=1
+            ValueError: If branching does not occur, i.e. `shared_block`>=4
+            ValueError: If `replace_stride_with_dilation` is not a 3-tuple or None.
+        """
         super().__init__()
         
         self.pytorch_weights_paths = self._model_weights()
@@ -115,7 +203,24 @@ class multibranchresnet(nn.Module):
         self.branches = nn.ModuleList(branches)
         
     
-    def _make_layer(self, block, planes, blocks, stride=1, dilate = False, attention = None, input_attention=False, ia_attention = False, part_attention = False):
+    def _make_layer(self, block: nn.Module, planes: int, blocks: int, stride: int=1, dilate: bool = False, 
+            attention: str = None, input_attention: bool =False, ia_attention: bool = False, part_attention: bool = False) -> nn.Sequential:
+        """Creates a resnet block
+
+        Args:
+            block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            planes (int): Number of input depth
+            blocks (int): Number of blocks in this ResnetBlock
+            stride (int, optional): Stride for the conv layers. Defaults to 1.
+            dilate (bool, optional): Dilation for the conv layers. Defaults to False.
+            attention (str, optional): Which of `cbam`, `dbam` attention to use. Defaults to None.
+            input_attention (bool, optional): Whether to use `input_attention`. Defaults to False.
+            ia_attention (bool, optional): Whether to use `ia_attention`. Unused. Defaults to False.
+            part_attention (bool, optional): Whether to use local attention. Defaults to False.
+
+        Returns:
+            nn.Sequential: The layers comprising this Resnet Block as an nn.Sequential
+        """
         downsample = None
         previous_dilation = self.dilation
         if dilate:
@@ -140,13 +245,23 @@ class multibranchresnet(nn.Module):
         x = self.sharedblock(x)
         return [self.branches[idx](x) for idx in range(self.num_branches)]
     
-    def load_param(self, weights_path):
+    def load_param(self, weights_path: str):
+        """Loads parameters from saved weights file
+
+        Args:
+            weights_path (str): Path to the weights file
+        """
         if weights_path in self.pytorch_weights_paths:
             self.load_params_from_pytorch(weights_path)
         else:
             self.load_params_from_weights(weights_path)
 
-    def load_params_from_pytorch(self, weights_path):
+    def load_params_from_pytorch(self, weights_path: str):
+        """Loads default pytorch weights file into the multibranch resnet
+
+        Args:
+            weights_path (str): Path to the weights file
+        """
         param_dict = torch.load(weights_path)
         # Three stages: load resnetinput params, load shared block params, and then load branch params...
         inputparams = ['conv1.weight','bn1.running_mean','bn1.running_var','bn1.weight','bn1.bias']
@@ -179,20 +294,43 @@ class multibranchresnet(nn.Module):
                     local_param_name = self._build_branch_layer_param_from_pytorch_name(layer_name, layer_idx, branch_idx, self.shared_block_count)
                     self.state_dict()[local_param_name].copy_(param_dict[layer_name])
 
-    def _build_local_layer_param_from_pytorch_name(self, paramname, layeridx):
+    def _build_local_layer_param_from_pytorch_name(self, paramname: str, layeridx: int) -> str:
+        """Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the shared block.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+
+        Returns:
+            str: Converted parameter name
+        """
         param_list = paramname.split(".")
         new_param_list = ["sharedblock", str(layeridx)]+param_list[1:]
         return ".".join(new_param_list)
     
-    def _build_branch_layer_param_from_pytorch_name(self, paramname, layeridx, branch_idx, layer_reset):
+    def _build_branch_layer_param_from_pytorch_name(self, paramname: str, layeridx: int, branch_idx: int, layer_reset: int) -> str:
+        """Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the branches.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+            branch_idx (int): The target branch for this parameter
+            layer_reset (int): The layer reset number, since `multibranchresnet` restarts layer numbering at the branch junction
+
+        Returns:
+            str: Converted parameter name
+        """
         param_list = paramname.split(".")
         new_param_list = ["branches", str(branch_idx), str(layeridx-layer_reset)]+param_list[1:]
         return ".".join(new_param_list)
 
 
+    def load_params_from_weights(self, weights_path: str):
+        """Loads parameters from a saved `multibranchresnet`
 
-
-    def load_params_from_weights(self, weights_path):
+        Args:
+            weights_path (str): Path to the weights file
+        """
         param_dict = torch.load(weights_path)
         for i in param_dict:
             if 'fc' in i and self.top_only:
@@ -200,7 +338,12 @@ class multibranchresnet(nn.Module):
             self.state_dict()[i].copy_(param_dict[i])
 
 
-    def _model_weights(self):
+    def _model_weights(self) -> Dict[str,int]:
+        """Constructs a dictionary to quickly retrieve pytorch weight paths
+
+        Returns:
+            Dict[str,int]: the dictinary storing paths
+        """
         mw = ['resnet18-5c106cde.pth', 
                 'resnet34-333f7ec4.pth', 
                 'resnet50-19c8e357.pth', 
@@ -219,7 +362,19 @@ class multibranchresnet(nn.Module):
 
 
 
-def _multibranchresnet(arch, block, layers, pretrained, progress, **kwargs):
+def _multibranchresnet(arch, block, layers, pretrained, progress, **kwargs) -> multibranchresnet:
+    """Builds a `multibranchresnet`
+
+    Args:
+        arch (str): Architecture base. Unused.
+        block (nn.Module): The class of the ResnetBlock (BasicBlock or Bottleneck)
+        layers (List[int]): The layers for each ResnetBlock
+        pretrained (bool): Unused
+        progress (bool): Unused
+
+    Returns:
+        multibranchresnet: The `multibranchresnet` model
+    """
     model = multibranchresnet(block, layers, **kwargs)
     return model
 
