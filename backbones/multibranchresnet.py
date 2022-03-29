@@ -56,7 +56,7 @@ class multibranchresnet(nn.Module):
     pytorch_weights_paths: Dict[str,int]
 
     resnetinput: ResnetInput
-    sharedblock: Union[nn.Sequential,nn.Identity]
+    sharedblock: nn.Sequential
     branches: nn.ModuleList
     
     def __init__(self,  block:nn.Module = ResnetBottleneck, 

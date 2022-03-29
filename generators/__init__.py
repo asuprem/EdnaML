@@ -28,6 +28,7 @@ class ImageGenerator:
     """
     def __init__(self,  gpus : int, 
                         i_shape: Union[List[int],Tuple[int,int]], 
+                        channels: int,
                         normalization_mean: float, 
                         normalization_std: float, 
                         normalization_scale: float,
@@ -44,12 +45,12 @@ class ImageGenerator:
         self.gpus=gpus
         self.transformer = T.Compose(
                                 self.build_transforms(
-                                    i_shape, normalization_mean, normalization_std, normalization_scale,
+                                    i_shape, channels, normalization_mean, normalization_std, normalization_scale,
                                     **kwargs)
                                     )
 
 
-    def build_transforms(self, i_shape: Union[List[int],Tuple[int,int]], channels = 3, normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
+    def build_transforms(self, i_shape: Union[List[int],Tuple[int,int]], channels: int, normalization_mean: float, normalization_std: float, normalization_scale: float,**kwargs) -> List[object]:
         """Builds the transforms for the images in dataset. This can be replaced for custom set of transforms
 
         Args:

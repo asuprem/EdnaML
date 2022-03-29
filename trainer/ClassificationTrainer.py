@@ -24,7 +24,7 @@ class ClassificationTrainer(BaseTrainer):
                     epochs: int, skipeval, logger, 
                     crawler: Crawler, config, labels: LabelMetadata, **kwargs):
         
-        super(ClassificationTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, **kwargs)
+        super(ClassificationTrainer,self).__init__(model, loss_fn, optimizer, loss_optimizer, scheduler, loss_scheduler, train_loader, test_loader, epochs, skipeval, logger, crawler, config, labels,**kwargs)
         
 
         self.softaccuracy = []

@@ -3,14 +3,14 @@ import os, shutil, logging, glob, re, json
 from typing import Dict, List
 import warnings
 import kaptan
-from torchsummary import ModelStatistics
+from torchinfo import ModelStatistics
 from crawlers import Crawler
 from datareaders import DataReader
 from loss.builders import LossBuilder
 from models.ModelAbstract import ModelAbstract
 from optimizer import BaseOptimizer
 from optimizer.StandardLossOptimizer import StandardLossOptimizer
-from loss.builders import LossBuilder
+from loss.builders import ClassificationLossBuilder
 from trainer.BaseTrainer import BaseTrainer
 import utils
 import torch
@@ -67,10 +67,10 @@ class EdnaML:
         self.epochs = self.cfg.get("EXECUTION.EPOCHS")
         self.skipeval = self.cfg.get("EXECUTION.SKIPEVAL")
 
-        self.step_verbose = config.get("LOGGING.STEP_VERBOSE"), 
-        self.save_frequency=config.get("SAVE.SAVE_FREQUENCY"), 
-        self.test_frequency = config.get("EXECUTION.TEST_FREQUENCY")
-        self.fp16 = config.get("OPTIMIZER.FP16")
+        self.step_verbose = self.cfg.get("LOGGING.STEP_VERBOSE")
+        self.save_frequency = self.cfg.get("SAVE.SAVE_FREQUENCY")
+        self.test_frequency = self.cfg.get("EXECUTION.TEST_FREQUENCY")
+        self.fp16 = self.cfg.get("OPTIMIZER.FP16")
         
         self.logger = self.buildLogger(logger=logger)
         
@@ -299,7 +299,7 @@ class EdnaML:
             
         
 
-    def _covert_model_kwargs(self) -> Dict[str,Union[str,int]]:
+    def _covert_model_kwargs(self) -> Dict[str, int]:
         """Converts the model_kwargs inside config into the correct format, depending on whether it is provided directly in yaml format, or as a json string
 
         Returns:
@@ -350,9 +350,9 @@ class EdnaML:
         self.model_summary = summary(self.model, 
                     input_size=( self.cfg.get("TRANSFORMATION.BATCH_SIZE"), self.cfg.get("TRANSFORMATION.CHANNELS"), *self.cfg.get("TRANSFORMATION.SHAPE")),
                     col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"],
-                    depth=4,
+                    depth=3,
                     mode= "train",
-                    verbose= 2)
+                    verbose= 1)
         self.logger.info(str(self.model_summary))
 
 
@@ -418,7 +418,7 @@ class EdnaML:
                                 **self.cfg.get("EXECUTION.DATAREADER.DATASET_ARGS"))
         self.logger.info("Generated training data generator")
         self.labelMetadata = self.train_generator.num_entities
-        self.logger.info("Running classification model with classes:", self.labelMetadata)
+        self.logger.info("Running classification model with classes:", str(self.metadata))
 
     def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
         """Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
@@ -495,14 +495,14 @@ class EdnaML:
         if not filehandler:
             fh = logging.FileHandler(logger_save_path)
             fh.setLevel(self.logLevels[self.verbose])
-            formatter = logging.Formatter('%(msecs)d %(message)s',datefmt="%H:%M:%S")
+            formatter = logging.Formatter('%(asctime)s %(message)s',datefmt="%H:%M:%S")
             fh.setFormatter(formatter)
             logger.addHandler(fh)
         
         if not streamhandler:
             cs = logging.StreamHandler()
             cs.setLevel(self.logLevels[self.verbose])
-            cs.setFormatter(logging.Formatter('%(msecs)d %(message)s',datefmt="%H:%M:%S"))
+            cs.setFormatter(logging.Formatter('%(asctime)s %(message)s',datefmt="%H:%M:%S"))
             logger.addHandler(cs)
 
         return logger
