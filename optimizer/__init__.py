@@ -1,3 +1,4 @@
+import torch
 class BaseOptimizer:
     """ Base Optimizer Builder
 
@@ -24,7 +25,7 @@ class BaseOptimizer:
         self.weight_bias = weight_bias
 
 
-    def build(self, model, name = 'Adam', **kwargs):
+    def build(self, model, name = 'Adam', **kwargs) -> torch.optim.Optimizer:
         """ Builds an optimizer.
 
         Args:

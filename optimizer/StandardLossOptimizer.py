@@ -25,7 +25,7 @@ class StandardLossOptimizer(BaseOptimizer):
         """
         super(StandardLossOptimizer, self).__init__(base_lr, lr_bias, gpus, weight_decay, weight_bias)
 
-    def build(self, loss_builder: LossBuilder, name = 'Adam', **kwargs):
+    def build(self, loss_builder: LossBuilder, name = 'Adam', **kwargs) -> torch.optim.Optimizer:
         """ Builds an optimizer.
 
         Args:
