@@ -14,6 +14,7 @@ model also has an option for branch fusing, to concatenate features.
 """
 
 from ctypes import Union
+import os
 from torch import nn
 import torch
 from typing import Dict, List
@@ -251,7 +252,7 @@ class multibranchresnet(nn.Module):
         Args:
             weights_path (str): Path to the weights file
         """
-        if weights_path in self.pytorch_weights_paths:
+        if os.path.basename(weights_path) in self.pytorch_weights_paths:
             self.load_params_from_pytorch(weights_path)
         else:
             self.load_params_from_weights(weights_path)
