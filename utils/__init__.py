@@ -24,6 +24,10 @@ def dynamic_import(cfg, module_name: str, import_name: str, default: str=None):
     imported_module = __import__("%s."%module_name+import_name, fromlist=[import_name])
     return  getattr(imported_module, import_name)
 
+
+def extend_mean_arguments(params_to_fix: List[str]=[0.5, 0.5], channels=3)->Tuple[List[float]]:
+    return tuple([[item]*channels for item in params_to_fix])
+
 def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
     if logger.hasHandlers():
