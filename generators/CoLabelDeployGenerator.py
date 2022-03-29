@@ -11,20 +11,6 @@ from torch.utils.data import DataLoader as TorchDataLoader
 import torchvision.transforms as T
 
 
-"""
-
-
-# Transforms
-    simple_transform = transforms.Compose(
-        [
-            transforms.Lambda(randomJPEGcompression),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ]
-    )
-"""
-
-
 
 class CoLabelDeployDataset(TorchDataset):
     def __init__(self, dataset, transform=None, jpeg = []):

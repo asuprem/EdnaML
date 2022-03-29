@@ -63,10 +63,8 @@ class LossBuilder(nn.Module):
             loss += self.loss_lambda[idx] * loss_fn(*[ kwargs.get(arg_name)   for arg_name in self.LOSS_PARAMS[self.loss_fn[idx]]['args']])
             
         return loss
-        
-from .ReIDLossBuilder import ReIDLossBuilder
-from .CarZamLossBuilder import CarZamLossBuilder
-from .CoLabelLossBuilder import CoLabelLossBuilder
-ClassificationLossBuilder = CoLabelLossBuilder
+
+
+from .ClassificationLossBuilder import ClassificationLossBuilder
 
 

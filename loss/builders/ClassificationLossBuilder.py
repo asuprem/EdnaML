@@ -6,7 +6,7 @@ from ..SoftmaxLabelSmooth import SoftmaxLabelSmooth
 
 
 
-class CoLabelLossBuilder(LossBuilder):
+class ClassificationLossBuilder(LossBuilder):
     LOSS_PARAMS = {}
     LOSS_PARAMS['SoftmaxLogitsLoss'] = {}
     LOSS_PARAMS['SoftmaxLogitsLoss']['fn'] = SoftmaxLogitsLoss
