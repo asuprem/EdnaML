@@ -207,7 +207,7 @@ class EdnaML:
             self.logger.info("No previous stop detected. Will start from epoch 0")
         else:
             self.previous_stop = max(previous_stop) + 1
-            self.logger.info("Previous stop detected. Will attempt to resume from epoch %i"%previous_stop)
+            self.logger.info("Previous stop detected. Will attempt to resume from epoch %i"%self.previous_stop)
 
 
     def buildLossScheduler(self):
