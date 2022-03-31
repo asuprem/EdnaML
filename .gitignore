@@ -173,6 +173,7 @@ Data
 goof
 drive
 venv
+devenv
 
 # Ignore model artifacts
 *.pth
