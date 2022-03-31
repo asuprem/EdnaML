@@ -1,5 +1,5 @@
 from torch import nn
-import torch
+
 
 class ChannelAttention(nn.Module):
     """Channel Attention module that forms part of CBAM attention.

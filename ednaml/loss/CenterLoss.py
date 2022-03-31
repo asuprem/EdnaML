@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from . import Loss
+from ednaml.loss import Loss
 
 class CenterLoss(Loss):
     """Center loss.

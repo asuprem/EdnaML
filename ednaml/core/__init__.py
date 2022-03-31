@@ -1,1 +1,1 @@
-from .EdnaML import EdnaML
+from ednaml.core.EdnaML import EdnaML

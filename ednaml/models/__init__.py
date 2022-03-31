@@ -1,5 +1,5 @@
-from utils.LabelMetadata import LabelMetadata
-
+from ednaml.utils.LabelMetadata import LabelMetadata
+from ednaml.models.ModelAbstract import ModelAbstract
 
 
 def classification_model_builder(arch, base, weights=None, normalization=None, metadata:LabelMetadata = None, **kwargs):

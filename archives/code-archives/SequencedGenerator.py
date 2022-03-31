@@ -11,7 +11,6 @@ import random
 import os.path as osp
 import numpy as np
 
-import pdb
 class TDataSet(TorchDataset):
   def __init__(self,dataset, transform):
     self.dataset = dataset

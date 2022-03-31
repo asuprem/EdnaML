@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-from . import Loss
+from ednaml.loss import Loss
 
 class SoftmaxLabelSmooth(Loss):
     """Softmax with label smoothing

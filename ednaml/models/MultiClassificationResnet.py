@@ -1,11 +1,6 @@
-import pdb
-from pydoc import classname
-from torch import nn, softmax
-from models.ClassificationResnet import ClassificationResnet
-from utils import layers
-import torch
+from torch import nn
+from ednaml.models.ClassificationResnet import ClassificationResnet
 
-from utils.LabelMetadata import LabelMetadata
 
 
 class MultiClassificationResnet(ClassificationResnet):

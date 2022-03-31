@@ -1,15 +1,14 @@
 import os.path as osp
 from typing import List
 import torch
-from torchvision.io import read_image
+#from torchvision.io import read_image
 from PIL import Image
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
-from utils.LabelMetadata import LabelMetadata
-import torchvision.transforms as T
-from . import ImageGenerator
+from ednaml.utils.LabelMetadata import LabelMetadata
+from ednaml.generators import ImageGenerator
 
 
 class ClassificationDataset(TorchDataset):

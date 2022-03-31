@@ -1,11 +1,18 @@
 from setuptools import setup
+import os
 
-# Metadata goes in setup.cfg. These are here for GitHub's dependency graph.
+_PATH_ROOT = os.path.dirname(__file__)
+_PATH_REQUIRE = os.path.join(_PATH_ROOT, "requirements")
+
+
 requires = [
         "kaptan>=0.5.12",
         "scikit-learn>=1.0.2",
-        "torch>=1.11.0",
+        "torch>=1.11.*",
         "torchinfo>=1.6.5",
+        "torchvision>=0.12.*",
+        "Pillow>=9.0.*",
+        "tqdm>=4.63.*",
     ]
 
 

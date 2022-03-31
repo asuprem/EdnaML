@@ -123,7 +123,6 @@ class CoLabelEnsemble:
         # Now we compute the loss...
         self.logger.info('Obtained features, validation in progress')
         # for evaluation...
-        #pdb.set_trace()
 
         self.logit_labels = logit_labels
         self.labels = labels

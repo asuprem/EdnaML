@@ -1,9 +1,6 @@
-from torch import nn
 import torch
-import pdb
-
-from utils.blocks import ChannelAttention, SpatialAttention, DenseAttention, InputAttention
-
+from torch import nn
+from ednaml.utils.blocks import ChannelAttention, DenseAttention, InputAttention
 
 
 class SELayer(nn.Module):

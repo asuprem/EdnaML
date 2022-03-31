@@ -1,5 +1,6 @@
 import torch
-from . import Loss
+from ednaml.loss import Loss
+
 class SoftmaxLogitsLoss(Loss):
   """Standard softmax loss
 

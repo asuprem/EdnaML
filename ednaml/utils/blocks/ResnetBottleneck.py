@@ -1,9 +1,9 @@
 from torch import nn
 
-from utils.blocks import ChannelAttention
-from utils.blocks import DenseAttention
-from utils.blocks import InputAttention
-from utils.blocks import SpatialAttention
+from ednaml.utils.blocks import ChannelAttention
+from ednaml.utils.blocks import DenseAttention
+from ednaml.utils.blocks import InputAttention
+from ednaml.utils.blocks import SpatialAttention
 
 class ResnetBottleneck(nn.Module):
     expansion = 4

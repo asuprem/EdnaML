@@ -1,13 +1,11 @@
 from io import BytesIO
 import os.path as osp
 import torch
-from torchvision.io import read_image
 from PIL import Image
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
-
 import torchvision.transforms as T
 
 

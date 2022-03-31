@@ -1,5 +1,4 @@
-import torch
-from . import BaseOptimizer
+from ednaml.optimizer import BaseOptimizer
 
 
 class ClassificationOptimizer(BaseOptimizer):

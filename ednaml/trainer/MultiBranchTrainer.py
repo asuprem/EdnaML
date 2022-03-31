@@ -4,21 +4,19 @@ import shutil
 import os
 import torch
 import numpy as np
-import loss.builders
+import ednaml.loss.builders
 from typing import List
-from models.MultiBranchResnet import MultiBranchResnet
-from crawlers import Crawler
-from .BaseTrainer import BaseTrainer
-from utils.LabelMetadata import LabelMetadata
-
-import pdb
+from ednaml.models import MultiBranchResnet
+from ednaml.crawlers import Crawler
+from ednaml.trainer import BaseTrainer
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 
 class MultiBranchTrainer(BaseTrainer):
     model: MultiBranchResnet
     def __init__(   self, 
                     model: MultiBranchResnet, 
-                    loss_fn: List[loss.builders.LossBuilder], 
+                    loss_fn: List[ednaml.loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader, test_loader, 
@@ -150,7 +148,6 @@ class MultiBranchTrainer(BaseTrainer):
         # Now we compute the loss...
         self.logger.info('Obtained features, validation in progress')
         # for evaluation...
-        #pdb.set_trace()
 
         logit_labels = [torch.argmax(logit, dim=1) for logit in logits]
         accuracy = [[] for _ in range(self.model.output_count)]

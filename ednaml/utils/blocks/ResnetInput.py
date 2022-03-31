@@ -1,5 +1,5 @@
 from torch import nn
-from utils.blocks import InputAttention
+from ednaml.utils.blocks import InputAttention
 
 class ResnetInput(nn.Module):
     def __init__(self, ia_attention:bool=False) -> None:

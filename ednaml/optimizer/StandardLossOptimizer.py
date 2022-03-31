@@ -1,6 +1,6 @@
 import torch
-from loss.builders import LossBuilder
-from . import BaseOptimizer
+from ednaml.loss.builders import LossBuilder
+from ednaml.optimizer import BaseOptimizer
 class StandardLossOptimizer(BaseOptimizer):
     """ Optimizer for Loss Functions
 

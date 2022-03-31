@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from . import Loss
-from utils.math import pairwise_distance
-import pdb
+from ednaml.loss import Loss
+from ednaml.utils.math import pairwise_distance
+
 class ProxyNCA(Loss):
     """ProxyNCA Loss
 

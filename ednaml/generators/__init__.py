@@ -19,13 +19,14 @@ List of supported generators:
 from typing import Any, List, Tuple, Union
 import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
-from torch.utils.data import DataLoader as TorchDataLoader
 
-import utils
+import ednaml.utils
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 class ImageGenerator:
     """Base class for image dataset generators
     """
+    num_entities: LabelMetadata
     def __init__(self,  gpus : int, 
                         i_shape: Union[List[int],Tuple[int,int]], 
                         channels: int,
@@ -62,7 +63,7 @@ class ImageGenerator:
         Returns:
             _type_: _description_
         """
-        normalization_mean, normalization_std = utils.extend_mean_arguments([normalization_mean, normalization_std], channels)
+        normalization_mean, normalization_std = ednaml.utils.extend_mean_arguments([normalization_mean, normalization_std], channels)
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
         if kwargs.get("h_flip") > 0:
@@ -118,7 +119,7 @@ class ImageGenerator:
 
         raise NotImplementedError()
 
-    def getNumEntities(self,datacrawler, mode, **kwargs):
+    def getNumEntities(self,datacrawler, mode, **kwargs) -> LabelMetadata:
         """Return the number of classes in the overall label scheme
         Raises:
             NotImplementedError: _description_

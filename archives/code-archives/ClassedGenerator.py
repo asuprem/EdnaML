@@ -12,7 +12,6 @@ import random
 import os.path as osp
 import numpy as np
 
-import pdb
 
 
 class ClassedGenerator:
@@ -72,7 +71,6 @@ class ClassedGenerator:
                     target_convert = "list"
                     self.__dataset.targets = torch.Tensor(self.__dataset.targets).int()
                 #if type(self.__dataset.data).__name__ == "ndarray":
-                #    pdb.set_trace()
                 #self.__dataset.data = torch.from_numpy(self.__dataset.data).double()
 
             if len(preload_classes) > 0:

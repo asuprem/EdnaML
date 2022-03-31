@@ -3,7 +3,7 @@ import math
 import os
 import random
 
-import utils.splits.sun
+import ednaml.utils.splits.sun
 
 class SUNDataCrawler:
     def __init__(self,data_folder="SUNAttributeDB_Images",  **kwargs):
@@ -39,7 +39,7 @@ class SUNDataCrawler:
         traincrawler = []
         querycrawler = []
 
-        for idx, class_name in enumerate(utils.splits.sun.trainval):
+        for idx, class_name in enumerate(ednaml.utils.splits.sun.trainval):
             # since the proposed split names are not separated by folders, we have to manually extract folders...
             alphabetical = class_name[0]
             directory_splits = class_name.split("_")
@@ -51,7 +51,7 @@ class SUNDataCrawler:
             traincrawler += [(item, idx, 0) for item in image_list]
 
 
-        for idx, class_name in enumerate(utils.splits.sun.query):
+        for idx, class_name in enumerate(ednaml.utils.splits.sun.query):
             # since the proposed split names are not separated by folders, we have to manually extract folders...
             alphabetical = class_name[0]
             directory_splits = class_name.split("_")
@@ -59,24 +59,24 @@ class SUNDataCrawler:
             if path_proposal == False:
                 raise ValueError()
             image_list = glob.glob(path_proposal + "/*.jpg")
-            querycrawler += [(item, idx+len(utils.splits.sun.trainval), 0) for item in image_list]
+            querycrawler += [(item, idx+len(ednaml.utils.splits.sun.trainval), 0) for item in image_list]
         
         random.shuffle(traincrawler)
         split=0.9
         split_idx = math.ceil(split*len(traincrawler))
 
         self.metadata["test"]["crawl"] = traincrawler[split_idx:]
-        self.metadata["test"]["pids"] = len(utils.splits.sun.trainval)
+        self.metadata["test"]["pids"] = len(ednaml.utils.splits.sun.trainval)
         self.metadata["test"]["cids"] = 1
         self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
 
         self.metadata["query"]["crawl"] = querycrawler
-        self.metadata["query"]["pids"] = len(utils.splits.sun.query)
+        self.metadata["query"]["pids"] = len(ednaml.utils.splits.sun.query)
         self.metadata["query"]["cids"] = 1
         self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])
 
         self.metadata["train"]["crawl"] = traincrawler[:split_idx]
-        self.metadata["train"]["pids"] = len(utils.splits.sun.trainval)
+        self.metadata["train"]["pids"] = len(ednaml.utils.splits.sun.trainval)
         self.metadata["train"]["cids"] = 1
         self.metadata["train"]["imgs"] = len(traincrawler[:split_idx])
 

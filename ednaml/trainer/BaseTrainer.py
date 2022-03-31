@@ -4,17 +4,17 @@ import logging
 import torch
 import os
 import shutil
-from crawlers import Crawler
-import loss.builders
+from ednaml.crawlers import Crawler
+import ednaml.loss.builders
 from typing import Dict, List
 from torch.utils.data import DataLoader
 
-from optimizer import BaseOptimizer
-from utils.LabelMetadata import LabelMetadata
+from ednaml.optimizer import BaseOptimizer
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 class BaseTrainer: 
     model: torch.nn.Module
-    loss_fn: Dict[str, loss.builders.LossBuilder]                                   # output-name: lossBuilder
+    loss_fn: Dict[str, ednaml.loss.builders.LossBuilder]                                   # output-name: lossBuilder
     optimizer: Dict[str, BaseOptimizer]                                             # optimizer-name: optimizer             e.g. discriminator: params...
     loss_optimizer = Dict[str, List[BaseOptimizer]]                                 # output-name: optimizer
     scheduler: Dict[str, torch.optim.lr_scheduler._LRScheduler]                     # TODO scheduler class
@@ -37,7 +37,7 @@ class BaseTrainer:
 
     def __init__(   self, 
                     model: torch.nn.Module, 
-                    loss_fn: List[loss.builders.LossBuilder], 
+                    loss_fn: List[ednaml.loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader:DataLoader, test_loader:DataLoader, 

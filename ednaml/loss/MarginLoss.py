@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from . import Loss
+from ednaml.loss import Loss
 
 class MarginLoss(Loss):
   """Standard triplet loss

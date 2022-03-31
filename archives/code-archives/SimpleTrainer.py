@@ -10,7 +10,6 @@ import loss.builders
 
 from .BaseTrainer import BaseTrainer
 
-import pdb
 
 class SimpleTrainer(BaseTrainer):
     try:
@@ -194,7 +193,6 @@ class SimpleTrainer(BaseTrainer):
             track_pids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_cids = [0]*len(self.crawler.metadata["track"]["crawl"])
             track_count = [0]*len(self.crawler.metadata["track"]["crawl"])
-            #pdb.set_trace()
             #count = 0
             for idx, img in enumerate(imgs[self.queries:]):  # use only gallery features, no query features
                 track_idx = self.crawler.metadata["track"]["dict"][img]

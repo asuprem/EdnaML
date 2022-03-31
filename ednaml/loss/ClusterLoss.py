@@ -1,7 +1,6 @@
 import torch
-from torch import nn
 import torch.nn.functional as F
-from . import Loss
+from ednaml.loss import Loss
 
 class ClusterLoss(Loss):
     def __init__(self, margin: float, instances: int, images_per_instance: int):

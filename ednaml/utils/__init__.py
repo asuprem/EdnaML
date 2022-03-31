@@ -1,5 +1,4 @@
 from typing import List, Dict, Tuple
-from . import web as web
 import os
 import logging
 

@@ -1,7 +1,7 @@
 
-from . import DataReader
-from crawlers import CoLabelVehicleColorCrawler
-from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
+from ednaml.datareaders import DataReader
+from ednaml.crawlers import CoLabelVehicleColorCrawler
+from ednaml.generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 
 class VehicleColor(DataReader):
     name: str = "VehicleColors"

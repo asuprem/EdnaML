@@ -1,6 +1,4 @@
 import os
-import re
-import glob
 
 class VRICDataCrawler:
   """ Data crawler for the VRIC (Vehicle Re-identification in Context) dataset

@@ -11,9 +11,9 @@ from typing import List
 from torch import nn
 import torch
 
-from utils.blocks import InputAttention
-from utils.blocks import ResnetBasicBlock as BasicBlock
-from utils.blocks import ResnetBottleneck as Bottleneck
+from ednaml.utils.blocks import InputAttention
+from ednaml.utils.blocks import ResnetBasicBlock as BasicBlock
+from ednaml.utils.blocks import ResnetBottleneck as Bottleneck
 
 
 class resnet(nn.Module):

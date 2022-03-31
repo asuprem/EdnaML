@@ -1,11 +1,8 @@
 from itertools import combinations
 import numpy as np
-import pdb
 import torch
-from torch import nn
 import torch.nn.functional as F
-from . import Loss
-
+from ednaml.loss import Loss
 
 class ContrastiveLoss(Loss):
     """Standard contrastive loss

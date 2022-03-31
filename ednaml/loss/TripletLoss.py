@@ -1,7 +1,6 @@
-import pdb
 import torch
-from torch import nn
-from . import Loss
+from ednaml.loss import Loss
+
 
 # Adapted from https://github.com/NegatioN/OnlineMiningTripletLoss/blob/master/triplet_loss.py
 class TripletLoss(Loss):

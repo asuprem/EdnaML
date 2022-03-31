@@ -1,13 +1,9 @@
-import pdb
-from pydoc import classname
 from typing import List
-from torch import nn, softmax
-from backbones.multibranchresnet import multibranchresnet
-from models.ModelAbstract import ModelAbstract
-from utils import layers
+from torch import nn
+from ednaml.backbones.multibranchresnet import multibranchresnet
+from ednaml.models import ModelAbstract
+from ednaml.utils import layers
 import torch
-
-from utils.LabelMetadata import LabelMetadata
 
 
 class MultiBranchResnet(ModelAbstract):

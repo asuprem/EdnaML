@@ -13,12 +13,11 @@ model also has an option for branch fusing, to concatenate features.
   features = model(x)
 """
 
-from ctypes import Union
 import os
 from torch import nn
 import torch
 from typing import Dict, List
-from utils.blocks import ResnetInput, ResnetBasicBlock, ResnetBottleneck
+from ednaml.utils.blocks import ResnetInput, ResnetBasicBlock, ResnetBottleneck
 
 
 class multibranchresnet(nn.Module):

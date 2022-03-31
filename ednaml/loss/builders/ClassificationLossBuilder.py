@@ -1,8 +1,7 @@
-from loss import Loss
-from . import LossBuilder
+from ednaml.loss.builders import LossBuilder
 
-from ..SoftmaxLogitsLoss import SoftmaxLogitsLoss
-from ..SoftmaxLabelSmooth import SoftmaxLabelSmooth
+from ednaml.loss import SoftmaxLogitsLoss
+from ednaml.loss import SoftmaxLabelSmooth
 
 
 

@@ -1,5 +1,4 @@
 import os
-import glob
 import random, math
 
 class Cars196DataCrawler:

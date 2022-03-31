@@ -1,7 +1,5 @@
 from collections import defaultdict
 import os
-import re
-import glob
 import random 
 
 # Tuple:

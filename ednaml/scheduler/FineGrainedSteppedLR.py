@@ -1,6 +1,5 @@
 import torch
 from bisect import bisect_right
-import pdb
 
 class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
     """FineGrainedSteppedLR allows definition of additively or multiplicative changes to LR (either increasing or decreasing).

@@ -1,23 +1,23 @@
-from ctypes import Union
 import os, shutil, logging, glob, re, json
 from typing import Dict, List
 import warnings
 import kaptan
 from torchinfo import ModelStatistics
-from crawlers import Crawler
-from datareaders import DataReader
-from loss.builders import LossBuilder
-from models.ModelAbstract import ModelAbstract
-from optimizer import BaseOptimizer
-from optimizer.StandardLossOptimizer import StandardLossOptimizer
-from loss.builders import ClassificationLossBuilder
-from trainer.BaseTrainer import BaseTrainer
-import utils
+from ednaml.crawlers import Crawler
+from ednaml.datareaders import DataReader
+from ednaml.generators import ImageGenerator
+from ednaml.loss.builders import LossBuilder
+from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.optimizer import BaseOptimizer
+from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
+from ednaml.loss.builders import ClassificationLossBuilder
+from ednaml.trainer.BaseTrainer import BaseTrainer
+import ednaml.utils
 import torch
 from torchinfo import summary
-from utils.LabelMetadata import LabelMetadata
-
-from utils.SaveMetadata import SaveMetadata
+from ednaml.utils.LabelMetadata import LabelMetadata
+import ednaml.utils.web
+from ednaml.utils.SaveMetadata import SaveMetadata
 import logging
 
 """TODO
@@ -38,6 +38,8 @@ class EdnaML:
     previous_stop: int
     trainer: BaseTrainer
     crawler: Crawler
+    train_generator: ImageGenerator
+    test_generator: ImageGenerator
 
     def __init__(self, config:str="config.yaml", mode:str="train", weights:str=None, logger:logging.Logger=None, verbose:int=2):
         """Initializes the EdnaML object with the associated config, mode, weights, and verbosity. 
@@ -73,6 +75,7 @@ class EdnaML:
         self.fp16 = self.cfg.get("OPTIMIZER.FP16")
         
         self.logger = self.buildLogger(logger=logger)
+        
         
 
     def buildConfig(self, config:str, handler="yaml"):
@@ -124,7 +127,7 @@ class EdnaML:
                 pass
             else:
                 self.logger.info("Model weights file {} does not exist. Downloading.".format(model_weights[model_base][1]))
-                utils.web.download(model_weights[model_base][1], model_weights[model_base][0])
+                ednaml.utils.web.download(model_weights[model_base][1], model_weights[model_base][0])
             self.pretrained_weights = model_weights[model_base][1]
         else:
             warnings.warn("Model %s is not available. Please choose one of the following: %s if you want to load pretrained weights"%(model_base, str(model_weights.keys())))
@@ -274,7 +277,7 @@ class EdnaML:
         """Builds the loss function array using the LOSS list in the provided configuration
         """
         self.loss_function_array = [
-            LossBuilder(  loss_functions=loss_item["LOSSES"], 
+            ClassificationLossBuilder(  loss_functions=loss_item["LOSSES"], 
                                         loss_lambda=loss_item["LAMBDAS"], 
                                         loss_kwargs=loss_item["KWARGS"], 
                                         name=loss_item.get("NAME", None),
@@ -339,10 +342,13 @@ class EdnaML:
         if self.mode == "test":
             self.model.load_state_dict(torch.load(self.weights))
         else:
-            if self.weights != "":   # Load weights if train and starting from a another model base...
-                self.logger.info("Commencing partial model load from {}".format(self.weights))
-                self.model.partial_load(self.weights)
-                self.logger.info("Completed partial model load from {}".format(self.weights))
+            if self.weights is None:
+                self.logger.info("No saved model weights provided.")
+            else:
+                if self.weights != "":   # Load weights if train and starting from a another model base...
+                    self.logger.info("Commencing partial model load from {}".format(self.weights))
+                    self.model.partial_load(self.weights)
+                    self.logger.info("Completed partial model load from {}".format(self.weights))
     def getModelSummary(self):
         """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
         """
@@ -362,7 +368,7 @@ class EdnaML:
     def buildDataloaders(self):
         """Sets up the datareader classes and builds the train and test dataloaders
         """
-        data_reader: DataReader = utils.dynamic_import(cfg=self.cfg, 
+        data_reader: DataReader = ednaml.utils.dynamic_import(cfg=self.cfg, 
                                                         module_name="datareaders", 
                                                         import_name="EXECUTION.DATAREADER.DATAREADER", 
                                                         default="VehicleColor")
@@ -372,7 +378,7 @@ class EdnaML:
         # Update the generator...if needed
         new_generator_class = self.cfg.get("EXECUTION.DATAREADER.GENERATOR", None)
         if new_generator_class is not None:    
-            data_reader.GENERATOR = utils.dynamic_import(cfg=self.cfg, 
+            data_reader.GENERATOR = ednaml.utils.dynamic_import(cfg=self.cfg, 
                                             module_name="generators", 
                                             import_name="EXECUTION.DATAREADER.GENERATOR")
 
@@ -400,7 +406,7 @@ class EdnaML:
             data_reader (DataReader): A datareader class
             crawler_instance (Crawler): A crawler instance
         """
-        self.train_generator = data_reader.GENERATOR(gpus=self.gpus, 
+        self.train_generator:ImageGenerator = data_reader.GENERATOR(gpus=self.gpus, 
                                 i_shape=self.cfg.get("TRANSFORMATION.SHAPE"),
                                 normalization_mean=self.cfg.get("TRANSFORMATION.NORMALIZATION_MEAN"), 
                                 normalization_std=self.cfg.get("TRANSFORMATION.NORMALIZATION_STD"), 
@@ -418,7 +424,7 @@ class EdnaML:
                                 **self.cfg.get("EXECUTION.DATAREADER.DATASET_ARGS"))
         self.logger.info("Generated training data generator")
         self.labelMetadata = self.train_generator.num_entities
-        self.logger.info("Running classification model with classes:", str(self.metadata))
+        self.logger.info("Running classification model with classes: %s"%str(self.labelMetadata.metadata))
 
     def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
         """Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
@@ -427,7 +433,7 @@ class EdnaML:
             data_reader (DataReader): A datareader class
             crawler_instance (Crawler): A crawler instance
         """
-        self.test_generator=  data_reader.GENERATOR( gpus=self.gpus, 
+        self.test_generator:ImageGenerator = data_reader.GENERATOR( gpus=self.gpus, 
                                             i_shape=self.cfg.get("TRANSFORMATION.SHAPE"),
                                             normalization_mean=self.cfg.get("TRANSFORMATION.NORMALIZATION_MEAN"), 
                                             normalization_std=self.cfg.get("TRANSFORMATION.NORMALIZATION_STD"), 

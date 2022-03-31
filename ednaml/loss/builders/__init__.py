@@ -1,8 +1,7 @@
 from typing import List
-import torch
 from torch import nn
 import warnings
-from utils.LabelMetadata import LabelMetadata
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 class LossBuilder(nn.Module):
     LOSS_PARAMS = {}

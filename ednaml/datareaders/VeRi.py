@@ -1,5 +1,5 @@
 
-from . import DataReader
+from ednaml.datareaders import DataReader
 from crawlers import VeRiDataCrawler
 from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
 

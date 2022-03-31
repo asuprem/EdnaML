@@ -1,4 +1,3 @@
-import pdb
 import importlib
 from torch import nn
 from .abstracts import ReidModel

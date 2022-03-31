@@ -1,10 +1,9 @@
 
-from tkinter import Image
-from crawlers import Crawler
+from ednaml.crawlers import Crawler
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
-from generators import ImageGenerator
+from ednaml.generators import ImageGenerator
 class DataReader:
     name: str = "DataReader"
     CRAWLER: Crawler = Crawler
@@ -15,7 +14,9 @@ class DataReader:
     def __init__(self):
         pass
 
+"""
 from .VehicleColor import VehicleColor
 from .CompCars import CompCars
 from .VehicleID import VehicleID
 from .VeRi import VeRi
+"""

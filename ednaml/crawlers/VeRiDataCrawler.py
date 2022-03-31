@@ -150,12 +150,10 @@ class VeRiDataCrawler:
     pid_counter, cid_counter, img_counter = 0, 0, 0
     track_dict, track_info = {}, {}
     track_idx = 0
-    #import pdb
     with open(self.tracks_file, "r") as tracks_file_reader:
       for line in tracks_file_reader:
         # each line is a track...
         track_list = line.strip().split(" ")
-        #pdb.set_trace()
         track_index = track_list[0]
         track_images = track_list[1:]
         track_images = [os.path.join(folder, item) for item in track_images]
@@ -167,10 +165,8 @@ class VeRiDataCrawler:
           pid_labeler += 1
         crawler.append((track_images, pid_tracker[pid], cid-1, self.colordict[pid], self.typedict[pid]))  # cid start at 1 in data
         #if len(crawler) == 1650:
-        #  pdb.set_trace()
         for img  in track_images:
           track_dict[img] = track_idx
         track_info[track_idx] = {"pid":pid_tracker[pid], "cid":cid-1}
         track_idx += 1
-    #pdb.set_trace()
     return crawler, len(pid_tracker), len(cid_tracker), len(crawler), track_dict, track_info 
