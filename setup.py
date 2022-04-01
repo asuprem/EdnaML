@@ -8,9 +8,9 @@ _PATH_REQUIRE = os.path.join(_PATH_ROOT, "requirements")
 requires = [
         "kaptan>=0.5.12",
         "scikit-learn>=1.0.2",
-        "torch>=1.11.*",
+        "torch>=1.10.*",
         "torchinfo>=1.6.5",
-        "torchvision>=0.12.*",
+        "torchvision>=0.11.*",
         "Pillow>=9.0.*",
         "tqdm>=4.63.*",
     ]
