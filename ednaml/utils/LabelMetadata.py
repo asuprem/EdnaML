@@ -9,11 +9,12 @@ class LabelMetadata:
         totalLabels (int): The total number of labels in the LabelMetadata
         metadata (Dict[str,Dict[str,Union[str,int]]]): A dictionary of label-names to their metadata. Currently, stores the number of classes in metadata[labelname]["classes"]
     """
-    labels : List[str]
-    totalLabels : int
-    metadata: Dict[str,Dict[str,int]]
-        
-    def __init__(self, label_dict: Dict[str,Dict[str,int]] = {}):
+
+    labels: List[str]
+    totalLabels: int
+    metadata: Dict[str, Dict[str, int]]
+
+    def __init__(self, label_dict: Dict[str, Dict[str, int]] = {}):
         """Initializes the LabelMetadata and populates it. If given an empty dict as input, the LabelMetadata will be empty
 
         Args:
@@ -22,11 +23,10 @@ class LabelMetadata:
         self.labels = [*label_dict]
         self.totalLabels = len(label_dict)
 
-        self.metadata = {labelname: {
-                                "classes": label_dict[labelname]["classes"],
-                            } 
-                            for labelname in self.labels}
-
+        self.metadata = {
+            labelname: {"classes": label_dict[labelname]["classes"],}
+            for labelname in self.labels
+        }
 
     def getLabels(self) -> List[str]:
         """Get the list of labels stored in this LabelMetadata
@@ -44,7 +44,7 @@ class LabelMetadata:
         """
         return self.labels[idx]
 
-    def getLabelDimensions(self, label:str=None) -> int:
+    def getLabelDimensions(self, label: str = None) -> int:
         """Get the number of classes for a label.
 
         Args:
@@ -53,12 +53,12 @@ class LabelMetadata:
         Returns:
             int: The number of classes
         """
-        
+
         if label is None:
             return self.metadata[self.labels[0]]["classes"]
         return self.metadata[label]["classes"]
 
-    def getTotalLabels(self)->int:
+    def getTotalLabels(self) -> int:
         """Gets the total number of labels stored in this LabelMetadata
 
         Returns:
@@ -66,7 +66,7 @@ class LabelMetadata:
         """
         return self.totalLabels
 
-    def addLabel(self, label:str):
+    def addLabel(self, label: str):
         if label in self.metadata:
-            raise KeyError("Label %s already in class"%label)
+            raise KeyError("Label %s already in class" % label)
         self.metadata[label] = {}

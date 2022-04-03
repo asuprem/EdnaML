@@ -5,6 +5,7 @@ import torch
 
 # CHANGELOG: secondary attention is List, not a single number
 
+
 class ClassificationResnet(ModelAbstract):
     """Basic CoLabel Resnet model.
 
@@ -47,17 +48,25 @@ class ClassificationResnet(ModelAbstract):
     softmax_dimensions = [2048]
     secondary_outputs = []
 
+    def __init__(
+        self, base="resnet50", weights=None, normalization=None, metadata=None, **kwargs
+    ):
+        super().__init__(
+            base=base,
+            weights=weights,
+            normalization=normalization,
+            metadata=metadata,
+            **kwargs
+        )
 
-    def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
-        super().__init__(base = base, weights=weights, normalization=normalization, metadata=metadata, **kwargs)
-        
     def model_attributes_setup(self, **kwargs):
         self.embedding_dimensions = kwargs.get("embedding_dimensions", None)
-        if self.normalization == '':
+        if self.normalization == "":
             self.normalization = None
-        
-        self.softmax_dimensions = [kwargs.get("softmax_dimensions", self.metadata.getLabelDimensions())]  
-        
+
+        self.softmax_dimensions = [
+            kwargs.get("softmax_dimensions", self.metadata.getLabelDimensions())
+        ]
 
         self.output_classnames = [kwargs.get("output_classnames", "out1")]
 
@@ -66,16 +75,15 @@ class ClassificationResnet(ModelAbstract):
         self.emb_linear = None
         self.feat_norm = None
         self.softmax = None
-        
-
 
     def model_setup(self, **kwargs):
-        self.build_base(**kwargs)    # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
+        self.build_base(
+            **kwargs
+        )  # All kwargs are passed into build_base,, which in turn passes kwargs into _resnet()
         self.build_normalization()
         self.build_softmax()
-        
-        
-    def build_base(self,**kwargs):
+
+    def build_base(self, **kwargs):
         """Build the model base.
 
         Builds the architecture base/core.
@@ -86,61 +94,73 @@ class ClassificationResnet(ModelAbstract):
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
             self.base.load_param(self.weights)
-        
+
         self.gap = nn.AdaptiveAvgPool2d(1)
 
         self.emb_linear = torch.nn.Identity()
         if self.embedding_dimensions is None:
-            self.embedding_dimensions = 512*self.base.block.expansion
-        if self.embedding_dimensions != 512*self.base.block.expansion:
-            self.emb_linear = nn.Linear(self.base.block.expansion*512, self.embedding_dimensions, bias=False)
-
-       
+            self.embedding_dimensions = 512 * self.base.block.expansion
+        if self.embedding_dimensions != 512 * self.base.block.expansion:
+            self.emb_linear = nn.Linear(
+                self.base.block.expansion * 512, self.embedding_dimensions, bias=False
+            )
 
     def build_normalization(self):
-        if self.normalization == 'bn':
+        if self.normalization == "bn":
             self.feat_norm = nn.BatchNorm1d(self.embedding_dimensions)
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == "in":
-            self.feat_norm = layers.FixedInstanceNorm1d(self.embedding_dimensions, affine=True)
+            self.feat_norm = layers.FixedInstanceNorm1d(
+                self.embedding_dimensions, affine=True
+            )
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == "gn":
-            self.feat_norm = nn.GroupNorm(self.embedding_dimensions // 16, self.embedding_dimensions, affine=True)
+            self.feat_norm = nn.GroupNorm(
+                self.embedding_dimensions // 16, self.embedding_dimensions, affine=True
+            )
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == "ln":
-            self.feat_norm = nn.LayerNorm(self.embedding_dimensions,elementwise_affine=True)
+            self.feat_norm = nn.LayerNorm(
+                self.embedding_dimensions, elementwise_affine=True
+            )
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
-        elif self.normalization == 'l2':
-            self.feat_norm = layers.L2Norm(self.embedding_dimensions,scale=1.0)
-        elif self.normalization is None or self.normalization == '':
+        elif self.normalization == "l2":
+            self.feat_norm = layers.L2Norm(self.embedding_dimensions, scale=1.0)
+        elif self.normalization is None or self.normalization == "":
             self.feat_norm = torch.nn.Identity()
         else:
             raise NotImplementedError()
 
     def build_softmax(self, **kwargs):
         if self.softmax_dimensions[0] is not None:
-            self.softmax = nn.Linear(self.embedding_dimensions, self.softmax_dimensions[0], bias=False)
+            self.softmax = nn.Linear(
+                self.embedding_dimensions, self.softmax_dimensions[0], bias=False
+            )
             self.softmax.apply(self.weights_init_softmax)
         else:
-            self.softmax = None # TODO replace this with a zero compute layer that yields zero and has no_grad...
+            self.softmax = None  # TODO replace this with a zero compute layer that yields zero and has no_grad...
 
-    def base_forward(self,x):
+    def base_forward(self, x):
         features = self.gap(self.base(x))
-        features = features.view(features.shape[0],-1)
+        features = features.view(features.shape[0], -1)
         features = self.emb_linear(features)
         return features
 
-    def forward_impl(self,x, **kwargs):
+    def forward_impl(self, x, **kwargs):
         features = self.base_forward(x)
-        
-        #if self.feat_norm is not None: <-- no need, identity
+
+        # if self.feat_norm is not None: <-- no need, identity
         features = self.feat_norm(features)
 
         soft_logits = None
         if self.softmax:
             soft_logits = self.softmax(features)
-        return soft_logits, features, []   # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????
+        return (
+            soft_logits,
+            features,
+            [],
+        )  # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????

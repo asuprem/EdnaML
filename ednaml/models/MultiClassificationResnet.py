@@ -2,7 +2,6 @@ from torch import nn
 from ednaml.models.ClassificationResnet import ClassificationResnet
 
 
-
 class MultiClassificationResnet(ClassificationResnet):
     """Multiclassification Resnet model, that performs multiple classifications from the same backbone.
 
@@ -48,9 +47,11 @@ class MultiClassificationResnet(ClassificationResnet):
     output_labels = ["color"]
     secondary_outputs = []
 
-    _internal_name_count=0
+    _internal_name_count = 0
 
-    def __init__(self, base = 'resnet50', weights=None, normalization=None, metadata=None, **kwargs):
+    def __init__(
+        self, base="resnet50", weights=None, normalization=None, metadata=None, **kwargs
+    ):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
         Args:
@@ -59,38 +60,54 @@ class MultiClassificationResnet(ClassificationResnet):
             normalization (_type_, optional): _description_. Defaults to None.
             metadata (_type_, optional): _description_. Defaults to None.
         """
-        
-        
-        super().__init__(base=base, weights=weights, normalization=normalization, metadata=metadata, **kwargs)
-        
+
+        super().__init__(
+            base=base,
+            weights=weights,
+            normalization=normalization,
+            metadata=metadata,
+            **kwargs
+        )
 
     def model_attributes_setup(self, **kwargs):
 
         self.embedding_dimensions = kwargs.get("embedding_dimensions", None)
-        if self.normalization == '':
+        if self.normalization == "":
             self.normalization = None
-        
-        
 
         self.number_outputs = kwargs.get("number_outputs", 1)
 
-        outputs = kwargs.get("outputs", [{  "name":self._internal_name_counter(), 
-                                            "label":"color",
-                                            "dimensions":None }] )
+        outputs = kwargs.get(
+            "outputs",
+            [
+                {
+                    "name": self._internal_name_counter(),
+                    "label": "color",
+                    "dimensions": None,
+                }
+            ],
+        )
 
-        if len(outputs)!=self.number_outputs:
-            raise ValueError("Mismatch in length of outputs %i and number of outputs %i"%(len(outputs), self.number_outputs))
-        
-        self.softmax_dimensions = [None]*self.number_outputs
-        self.output_names = [None]*self.number_outputs
-        self.output_labels = [None]*self.number_outputs
+        if len(outputs) != self.number_outputs:
+            raise ValueError(
+                "Mismatch in length of outputs %i and number of outputs %i"
+                % (len(outputs), self.number_outputs)
+            )
+
+        self.softmax_dimensions = [None] * self.number_outputs
+        self.output_names = [None] * self.number_outputs
+        self.output_labels = [None] * self.number_outputs
 
         for idx, output_details in enumerate(outputs):
             self.softmax_dimensions[idx] = output_details.get("dimensions", None)
-            self.output_names[idx] = output_details.get("name", self._internal_name_counter())
+            self.output_names[idx] = output_details.get(
+                "name", self._internal_name_counter()
+            )
             self.output_labels[idx] = output_details["label"]
             if self.softmax_dimensions[idx] is None:
-                self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(self.output_labels[idx])
+                self.softmax_dimensions[idx] = self.metadata.getLabelDimensions(
+                    self.output_labels[idx]
+                )
         self.base = None
         self.gap = None
         self.emb_linear = None
@@ -98,8 +115,8 @@ class MultiClassificationResnet(ClassificationResnet):
         self.softmax = None
 
     def _internal_name_counter(self):
-        out="out"+str(self._internal_name_count)
-        self._internal_name_count+=1
+        out = "out" + str(self._internal_name_count)
+        self._internal_name_count += 1
         return out
 
     def build_softmax(self, **kwargs):
@@ -107,28 +124,31 @@ class MultiClassificationResnet(ClassificationResnet):
         """
         # NOTE, for re-id type models...multiclassification model will anyway yield the features with softmax outputs, so we don't have to worry about that...
         # For pure-reid model, probably best to use ClassificationResNet and modify to use no softmax...TODO this is a future step...
-        tsoftmax = [None]*self.number_outputs
-        for idx,fc_dimension in enumerate(self.softmax_dimensions):
-            tsoftmax[idx] = nn.Linear(self.embedding_dimensions, fc_dimension, bias=False)
+        tsoftmax = [None] * self.number_outputs
+        for idx, fc_dimension in enumerate(self.softmax_dimensions):
+            tsoftmax[idx] = nn.Linear(
+                self.embedding_dimensions, fc_dimension, bias=False
+            )
             tsoftmax[idx].apply(self.weights_init_softmax)
         self.softmax = nn.ModuleList(tsoftmax)
 
-    def base_forward(self,x):
+    def base_forward(self, x):
         features = self.gap(self.base(x))
-        features = features.view(features.shape[0],-1)
+        features = features.view(features.shape[0], -1)
         features = self.emb_linear(features)
         return features
 
-
-    def forward_impl(self,x, **kwargs):
+    def forward_impl(self, x, **kwargs):
         features = self.base_forward(x)
-        
-        #if self.feat_norm is not None: <-- no need, identity
+
+        # if self.feat_norm is not None: <-- no need, identity
         features = self.feat_norm(features)
 
-        softmax_logits = [None]*self.number_outputs
-        for idx,softmaxlayer in enumerate(self.softmax):
+        softmax_logits = [None] * self.number_outputs
+        for idx, softmaxlayer in enumerate(self.softmax):
             softmax_logits[idx] = softmaxlayer(features)
-        return softmax_logits, features, []   # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????
-  
-    
+        return (
+            softmax_logits,
+            features,
+            [],
+        )  # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????

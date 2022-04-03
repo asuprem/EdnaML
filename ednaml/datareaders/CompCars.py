@@ -1,7 +1,10 @@
-
 from ednaml.datareaders import DataReader
 from ednaml.crawlers import CoLabelCompCarsCrawler
-from ednaml.generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
+from ednaml.generators.ClassificationGenerator import (
+    ClassificationDataset,
+    ClassificationGenerator,
+)
+
 
 class CompCars(DataReader):
     name: str = "CompCars"
@@ -10,4 +13,4 @@ class CompCars(DataReader):
     GENERATOR = ClassificationGenerator
 
     def __init__(self):
-        super().__init__() 
+        super().__init__()

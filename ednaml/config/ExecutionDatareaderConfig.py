@@ -1,18 +1,13 @@
-
-
-
-
 from typing import Dict
 
 
 class ExecutionDatareaderConfig:
     DATAREADER: str
-    CRAWLER_ARGS: Dict[str,str]
-    DATASET_ARGS: Dict[str,str]
+    CRAWLER_ARGS: Dict[str, str]
+    DATASET_ARGS: Dict[str, str]
     GENERATOR: str
-    GENERATOR_ARGS: Dict[str,str]
-    DATALOADER_ARGS: Dict[str,str]
-
+    GENERATOR_ARGS: Dict[str, str]
+    DATALOADER_ARGS: Dict[str, str]
 
     def __init__(self, datareader_dict):
         self.DATAREADER = datareader_dict.get("DATAREADER")

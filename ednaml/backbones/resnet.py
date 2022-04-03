@@ -17,22 +17,25 @@ from ednaml.utils.blocks import ResnetBottleneck as Bottleneck
 
 
 class resnet(nn.Module):
-    def __init__(self,  block:nn.Module = Bottleneck, 
-                        layers: List[int] = [3, 4, 6, 3], 
-                        last_stride: int =2, 
-                        zero_init_residual: bool = False,
-                        top_only: bool = True, 
-                        num_classes: bool = 1000, 
-                        groups: int = 1, 
-                        width_per_group: int = 64, 
-                        replace_stride_with_dilation: List[int] = None,
-                        norm_layer: nn.Module = None, 
-                        attention: str = None, 
-                        input_attention: bool = None, 
-                        secondary_attention: int = None, 
-                        ia_attention: bool = None, 
-                        part_attention: bool = None,
-                        **kwargs):
+    def __init__(
+        self,
+        block: nn.Module = Bottleneck,
+        layers: List[int] = [3, 4, 6, 3],
+        last_stride: int = 2,
+        zero_init_residual: bool = False,
+        top_only: bool = True,
+        num_classes: bool = 1000,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: List[int] = None,
+        norm_layer: nn.Module = None,
+        attention: str = None,
+        input_attention: bool = None,
+        secondary_attention: int = None,
+        ia_attention: bool = None,
+        part_attention: bool = None,
+        **kwargs
+    ):
         """Initializes the resnet model.
 
 
@@ -60,26 +63,32 @@ class resnet(nn.Module):
             ValueError: If `replace_stride_with_dilation` is not a 3-tuple or None.
         """
         super().__init__()
-        
-        self.attention=attention
-        self.input_attention=input_attention
-        self.secondary_attention=secondary_attention
-        self.block=block
+
+        self.attention = attention
+        self.input_attention = input_attention
+        self.secondary_attention = secondary_attention
+        self.block = block
         self.inplanes = 64
         if norm_layer is None:
             self._norm_layer = nn.BatchNorm2d
-        #elif norm_layer == "ln":
+        # elif norm_layer == "ln":
         #    self._norm_layer = nn.LayerNorm
         self.dilation = 1
         if replace_stride_with_dilation is None:
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
-            raise ValueError("replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}".format(replace_stride_with_dilation))
+            raise ValueError(
+                "replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}".format(
+                    replace_stride_with_dilation
+                )
+            )
         self.groups = groups
         self.base_width = width_per_group
 
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)
-        #if norm_layer == "gn":
+        self.conv1 = nn.Conv2d(
+            3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
+        )
+        # if norm_layer == "gn":
         #    self.bn1 = nn.GroupNorm2d
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu1 = nn.ReLU(inplace=True)
@@ -87,47 +96,97 @@ class resnet(nn.Module):
 
         self.ia_attention = ia_attention
         self.part_attention = part_attention
-        
+
         # Make sure ia and input_attention do not conflict
         if self.ia_attention is not None and self.input_attention is not None:
             raise ValueError("Cannot have both ia_attention and input_attention.")
-        if self.part_attention is not None and (self.attention is not None and self.secondary_attention is None):
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention is None
+        ):
             raise ValueError("Cannot have part-attention with CBAM everywhere")
-        if self.part_attention is not None and (self.attention is not None and self.secondary_attention==1):
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention == 1
+        ):
             raise ValueError("Cannot have part-attention with CBAM-Early")
 
         # Create true IA
         if self.ia_attention:
-            self.ia_attention = InputAttention(self.inplanes)   # 64, set above
+            self.ia_attention = InputAttention(self.inplanes)  # 64, set above
         else:
             self.ia_attention = None
 
         att = self.attention
-        if secondary_attention is not None and secondary_attention != 1: # leave alone if sec attention not set
+        if (
+            secondary_attention is not None and secondary_attention != 1
+        ):  # leave alone if sec attention not set
             att = None
-        self.layer1 = self._make_layer(self.block, 64, layers[0], attention = att, input_attention=self.input_attention, part_attention = self.part_attention)
+        self.layer1 = self._make_layer(
+            self.block,
+            64,
+            layers[0],
+            attention=att,
+            input_attention=self.input_attention,
+            part_attention=self.part_attention,
+        )
         att = self.attention
-        if secondary_attention is not None and secondary_attention != 2: # leave alone if sec attention not set
+        if (
+            secondary_attention is not None and secondary_attention != 2
+        ):  # leave alone if sec attention not set
             att = None
-        self.layer2 = self._make_layer(self.block, 128, layers[1], stride=2, attention = att, dilate=replace_stride_with_dilation[0])
+        self.layer2 = self._make_layer(
+            self.block,
+            128,
+            layers[1],
+            stride=2,
+            attention=att,
+            dilate=replace_stride_with_dilation[0],
+        )
         att = self.attention
-        if secondary_attention is not None and secondary_attention != 3: # leave alone if sec attention not set
+        if (
+            secondary_attention is not None and secondary_attention != 3
+        ):  # leave alone if sec attention not set
             att = None
-        self.layer3 = self._make_layer(self.block, 256, layers[2], stride=2, attention = att, dilate=replace_stride_with_dilation[1])
+        self.layer3 = self._make_layer(
+            self.block,
+            256,
+            layers[2],
+            stride=2,
+            attention=att,
+            dilate=replace_stride_with_dilation[1],
+        )
         att = self.attention
-        if secondary_attention is not None and secondary_attention != 4: # leave alone if sec attention not set
+        if (
+            secondary_attention is not None and secondary_attention != 4
+        ):  # leave alone if sec attention not set
             att = None
-        self.layer4 = self._make_layer(self.block, 512, layers[3], stride=last_stride, attention = att, dilate=replace_stride_with_dilation[2])
-        
+        self.layer4 = self._make_layer(
+            self.block,
+            512,
+            layers[3],
+            stride=last_stride,
+            attention=att,
+            dilate=replace_stride_with_dilation[2],
+        )
+
         self.top_only = top_only
         self.avgpool, self.fc = None, None
 
         if not self.top_only:
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.fc = nn.Linear(512 * block.expansion, num_classes)
-    
-    def _make_layer(self, block: nn.Module, planes: int, blocks: int, stride: int=1, dilate: bool = False, 
-            attention: str = None, input_attention: bool =False, ia_attention: bool = False, part_attention: bool = False) -> nn.Sequential:
+
+    def _make_layer(
+        self,
+        block: nn.Module,
+        planes: int,
+        blocks: int,
+        stride: int = 1,
+        dilate: bool = False,
+        attention: str = None,
+        input_attention: bool = False,
+        ia_attention: bool = False,
+        part_attention: bool = False,
+    ) -> nn.Sequential:
         """Creates a resnet block
 
         Args:
@@ -151,27 +210,56 @@ class resnet(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                            kernel_size=1, stride=stride, bias=False),
+                nn.Conv2d(
+                    self.inplanes,
+                    planes * block.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                ),
                 self._norm_layer(planes * block.expansion),
             )
-    
+
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=attention, input_attention=input_attention, part_attention=part_attention))
+        layers.append(
+            block(
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                groups=self.groups,
+                base_width=self.base_width,
+                dilation=previous_dilation,
+                norm_layer=self._norm_layer,
+                attention=attention,
+                input_attention=input_attention,
+                part_attention=part_attention,
+            )
+        )
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=attention))
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=self._norm_layer,
+                    attention=attention,
+                )
+            )
         return nn.Sequential(*layers)
-    
+
     def forward(self, x):
         x = self.conv1(x)
-        
+
         if self.ia_attention is not None:
             x = self.ia_attention(x) * x
         x = self.bn1(x)
         x = self.relu1(x)
         x = self.maxpool(x)
-    
+
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -179,10 +267,10 @@ class resnet(nn.Module):
 
         if not self.top_only:
             x = self.avgpool(x)
-            x = torch.flatten(x,1)
-            x = self.fc(x)            
+            x = torch.flatten(x, 1)
+            x = self.fc(x)
         return x
-    
+
     def load_param(self, weights_path: str):
         """Loads parameters frm saved weights file
 
@@ -191,11 +279,11 @@ class resnet(nn.Module):
         """
         param_dict = torch.load(weights_path)
         for i in param_dict:
-            if 'fc' in i and self.top_only:
+            if "fc" in i and self.top_only:
                 continue
             self.state_dict()[i].copy_(param_dict[i])
-            
-            
+
+
 def _resnet(arch, block, layers, pretrained, progress, **kwargs) -> resnet:
     """Builds a resnet
 
@@ -220,8 +308,7 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained, progress,
-                   **kwargs)
+    return _resnet("resnet18", BasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs)
 
 
 def resnet34(pretrained=False, progress=True, **kwargs):
@@ -231,8 +318,7 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet34', BasicBlock, [3, 4, 6, 3], pretrained, progress,
-                   **kwargs)
+    return _resnet("resnet34", BasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs)
 
 
 def resnet50(pretrained=False, progress=True, **kwargs):
@@ -242,8 +328,7 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained, progress,
-                   **kwargs)
+    return _resnet("resnet50", Bottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs)
 
 
 def resnet101(pretrained=False, progress=True, **kwargs):
@@ -253,8 +338,9 @@ def resnet101(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet101', Bottleneck, [3, 4, 23, 3], pretrained, progress,
-                   **kwargs)
+    return _resnet(
+        "resnet101", Bottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnet152(pretrained=False, progress=True, **kwargs):
@@ -264,8 +350,9 @@ def resnet152(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet152', Bottleneck, [3, 8, 36, 3], pretrained, progress,
-                   **kwargs)
+    return _resnet(
+        "resnet152", Bottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
@@ -275,10 +362,11 @@ def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['groups'] = 32
-    kwargs['width_per_group'] = 4
-    return _resnet('resnext50_32x4d', Bottleneck, [3, 4, 6, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 4
+    return _resnet(
+        "resnext50_32x4d", Bottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
@@ -288,10 +376,11 @@ def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['groups'] = 32
-    kwargs['width_per_group'] = 8
-    return _resnet('resnext101_32x8d', Bottleneck, [3, 4, 23, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 8
+    return _resnet(
+        "resnext101_32x8d", Bottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )
 
 
 def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
@@ -305,9 +394,10 @@ def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['width_per_group'] = 64 * 2
-    return _resnet('wide_resnet50_2', Bottleneck, [3, 4, 6, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["width_per_group"] = 64 * 2
+    return _resnet(
+        "wide_resnet50_2", Bottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
 
 
 def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
@@ -321,6 +411,7 @@ def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['width_per_group'] = 64 * 2
-    return _resnet('wide_resnet101_2', Bottleneck, [3, 4, 23, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["width_per_group"] = 64 * 2
+    return _resnet(
+        "wide_resnet101_2", Bottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )

@@ -52,30 +52,33 @@ class multibranchresnet(nn.Module):
 
     shared_block_count: int
     num_branches: int
-    pytorch_weights_paths: Dict[str,int]
+    pytorch_weights_paths: Dict[str, int]
 
     resnetinput: ResnetInput
     sharedblock: nn.Sequential
     branches: nn.ModuleList
-    
-    def __init__(self,  block:nn.Module = ResnetBottleneck, 
-                        layers: List[int] = [3, 4, 6, 3], 
-                        last_stride: int =2, 
-                        zero_init_residual: bool = False,
-                        top_only: bool = True, 
-                        num_classes: bool = 1000, 
-                        groups: int = 1, 
-                        width_per_group: int = 64, 
-                        replace_stride_with_dilation: List[int] = None,
-                        norm_layer: nn.Module = None, 
-                        attention: str = None, 
-                        input_attention: bool = None, 
-                        secondary_attention: int = None, 
-                        ia_attention: bool = None, 
-                        part_attention: bool = None,
-                        num_branches: int = 2, 
-                        shared_block: int = 0,
-                        **kwargs):
+
+    def __init__(
+        self,
+        block: nn.Module = ResnetBottleneck,
+        layers: List[int] = [3, 4, 6, 3],
+        last_stride: int = 2,
+        zero_init_residual: bool = False,
+        top_only: bool = True,
+        num_classes: bool = 1000,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: List[int] = None,
+        norm_layer: nn.Module = None,
+        attention: str = None,
+        input_attention: bool = None,
+        secondary_attention: int = None,
+        ia_attention: bool = None,
+        part_attention: bool = None,
+        num_branches: int = 2,
+        shared_block: int = 0,
+        **kwargs
+    ):
         """Initializes the multibranchresnet model and sets up internal modules.
 
         Args:
@@ -105,71 +108,97 @@ class multibranchresnet(nn.Module):
             ValueError: If `replace_stride_with_dilation` is not a 3-tuple or None.
         """
         super().__init__()
-        
+
         self.pytorch_weights_paths = self._model_weights()
-        self.block=block
+        self.block = block
         self.inplanes = 64
         if norm_layer is None:
             self._norm_layer = nn.BatchNorm2d
-        #elif norm_layer == "ln":
+        # elif norm_layer == "ln":
         #    self._norm_layer = nn.LayerNorm
         self.dilation = 1
         if replace_stride_with_dilation is None:
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
-            raise ValueError("replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}".format(replace_stride_with_dilation))
+            raise ValueError(
+                "replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}".format(
+                    replace_stride_with_dilation
+                )
+            )
         self.groups = groups
         self.base_width = width_per_group
 
         # Attention parameters
-        self.attention=attention
-        self.input_attention=input_attention
+        self.attention = attention
+        self.input_attention = input_attention
         self.ia_attention = ia_attention
         self.part_attention = part_attention
-        self.secondary_attention=secondary_attention
-        
+        self.secondary_attention = secondary_attention
+
         # Make sure ia and input_attention do not conflict
         if self.ia_attention is not None and self.input_attention is not None:
             raise ValueError("Cannot have both ia_attention and input_attention.")
-        if self.part_attention is not None and (self.attention is not None and self.secondary_attention is None):
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention is None
+        ):
             raise ValueError("Cannot have part-attention with CBAM everywhere")
-        if self.part_attention is not None and (self.attention is not None and self.secondary_attention==1):
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention == 1
+        ):
             raise ValueError("Cannot have part-attention with CBAM-Early")
 
         # Here, set up where the branching begins in the resnet backbone
         self.shared_block_count = shared_block
-        if self.shared_block_count>4:
-            raise ValueError("`shared_block_count` value is %i. Cannot be greater than 4"%self.shared_block_count)
-        if self.shared_block_count==4:
-            raise ValueError("`shared_block_count` value is %i. This is a non-branching model."%self.shared_block_count)
+        if self.shared_block_count > 4:
+            raise ValueError(
+                "`shared_block_count` value is %i. Cannot be greater than 4"
+                % self.shared_block_count
+            )
+        if self.shared_block_count == 4:
+            raise ValueError(
+                "`shared_block_count` value is %i. This is a non-branching model."
+                % self.shared_block_count
+            )
 
         # Set up the per-layer parameters for the primary ResNet blocks
-        layer_strides = [1,2,2,last_stride]
+        layer_strides = [1, 2, 2, last_stride]
         layer_part_attention = [self.part_attention, False, False, False]
         layer_input_attention = [self.input_attention, False, False, False]
-        layer_dilate = [False]+replace_stride_with_dilation
-        layer_outplanes = [64,128,256,512]
+        layer_dilate = [False] + replace_stride_with_dilation
+        layer_outplanes = [64, 128, 256, 512]
         # Fix secondary attention
         if secondary_attention is None:
-            layer_att = [self.attention]*4
+            layer_att = [self.attention] * 4
         else:
-            layer_att=[None]*4
+            layer_att = [None] * 4
             layer_att[secondary_attention] = self.attention
         # Zip layer arguments
-        layer_arguments = list(zip(layers, layer_outplanes, layer_strides, layer_part_attention, layer_input_attention, layer_dilate, layer_att))
-        
+        layer_arguments = list(
+            zip(
+                layers,
+                layer_outplanes,
+                layer_strides,
+                layer_part_attention,
+                layer_input_attention,
+                layer_dilate,
+                layer_att,
+            )
+        )
+
         # First, given the shared_block_count, generate the shared layers list. We will nn.Sequential them later
-        sharedlayers=[]
-        for layer_zip in layer_arguments[:self.shared_block_count]:
+        sharedlayers = []
+        for layer_zip in layer_arguments[: self.shared_block_count]:
             sharedlayers.append(
-                self._make_layer(   self.block, 
-                                    layer_zip[1], 
-                                    layer_zip[0], 
-                                    attention=layer_zip[6],
-                                    input_attention=layer_zip[4],
-                                    part_attention=layer_zip[3],
-                                    dilate=layer_zip[5],
-                                    stride=layer_zip[2])
+                self._make_layer(
+                    self.block,
+                    layer_zip[1],
+                    layer_zip[0],
+                    attention=layer_zip[6],
+                    input_attention=layer_zip[4],
+                    part_attention=layer_zip[3],
+                    dilate=layer_zip[5],
+                    stride=layer_zip[2],
+                )
             )
         self.shared_inplanes = self.inplanes
         self.shared_dilation = self.dilation
@@ -177,34 +206,45 @@ class multibranchresnet(nn.Module):
         # During prediction, we will just get branch features so order does not matter yet. it will matter in MultiBranchResnet
         # So, self.branches will be a nn.moduleList, with a bunch of nn.Sequentials
         self.num_branches = num_branches
-        branches = [None]*self.num_branches
+        branches = [None] * self.num_branches
         for bidx in range(self.num_branches):
             branches[bidx] = []
-            for layer_zip in layer_arguments[self.shared_block_count:]:
+            for layer_zip in layer_arguments[self.shared_block_count :]:
                 branches[bidx].append(
-                    self._make_layer(   self.block, 
-                                        layer_zip[1], 
-                                        layer_zip[0], 
-                                        attention=layer_zip[6],
-                                        input_attention=layer_zip[4],
-                                        part_attention=layer_zip[3],
-                                        dilate=layer_zip[5],
-                                        stride=layer_zip[2])
+                    self._make_layer(
+                        self.block,
+                        layer_zip[1],
+                        layer_zip[0],
+                        attention=layer_zip[6],
+                        input_attention=layer_zip[4],
+                        part_attention=layer_zip[3],
+                        dilate=layer_zip[5],
+                        stride=layer_zip[2],
+                    )
                 )
             branches[bidx] = nn.Sequential(*branches[bidx])
             self.inplanes = self.shared_inplanes
             self.dilation = self.shared_dilation
 
         self.resnetinput = ResnetInput(ia_attention=ia_attention)
-        if len(sharedlayers)>0:
+        if len(sharedlayers) > 0:
             self.sharedblock = nn.Sequential(*sharedlayers)
         else:
             self.sharedblock = nn.Identity()
         self.branches = nn.ModuleList(branches)
-        
-    
-    def _make_layer(self, block: nn.Module, planes: int, blocks: int, stride: int=1, dilate: bool = False, 
-            attention: str = None, input_attention: bool =False, ia_attention: bool = False, part_attention: bool = False) -> nn.Sequential:
+
+    def _make_layer(
+        self,
+        block: nn.Module,
+        planes: int,
+        blocks: int,
+        stride: int = 1,
+        dilate: bool = False,
+        attention: str = None,
+        input_attention: bool = False,
+        ia_attention: bool = False,
+        part_attention: bool = False,
+    ) -> nn.Sequential:
         """Creates a resnet block
 
         Args:
@@ -228,23 +268,52 @@ class multibranchresnet(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                            kernel_size=1, stride=stride, bias=False),
+                nn.Conv2d(
+                    self.inplanes,
+                    planes * block.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                ),
                 self._norm_layer(planes * block.expansion),
             )
-    
+
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample,groups = self.groups, base_width = self.base_width, dilation = previous_dilation, norm_layer=self._norm_layer, attention=attention, input_attention=input_attention, part_attention=part_attention))
+        layers.append(
+            block(
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                groups=self.groups,
+                base_width=self.base_width,
+                dilation=previous_dilation,
+                norm_layer=self._norm_layer,
+                attention=attention,
+                input_attention=input_attention,
+                part_attention=part_attention,
+            )
+        )
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups = self.groups, base_width = self.base_width, dilation = self.dilation, norm_layer=self._norm_layer, attention=attention))
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=self._norm_layer,
+                    attention=attention,
+                )
+            )
         return nn.Sequential(*layers)
-    
+
     def forward(self, x):
         x = self.resnetinput(x)
         x = self.sharedblock(x)
         return [self.branches[idx](x) for idx in range(self.num_branches)]
-    
+
     def load_param(self, weights_path: str):
         """Loads parameters from saved weights file
 
@@ -264,37 +333,53 @@ class multibranchresnet(nn.Module):
         """
         param_dict = torch.load(weights_path)
         # Three stages: load resnetinput params, load shared block params, and then load branch params...
-        inputparams = ['conv1.weight','bn1.running_mean','bn1.running_var','bn1.weight','bn1.bias']
+        inputparams = [
+            "conv1.weight",
+            "bn1.running_mean",
+            "bn1.running_var",
+            "bn1.weight",
+            "bn1.bias",
+        ]
         # Load the input params
         for param in inputparams:
-            self.state_dict()['resnetinput.'+param].copy_(param_dict[param])
+            self.state_dict()["resnetinput." + param].copy_(param_dict[param])
 
-        #load shared block params,
+        # load shared block params,
         for layer_idx in range(self.shared_block_count):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
-            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2 
-            full_layer_list = [item for item in param_dict if ('layer'+str(layer_idx+1) in item)]   # get all weights inside layer[x]
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for layer_name in full_layer_list:
                 # First, get the raw layer info, then append sharedblock to it...
-                local_param_name = self._build_local_layer_param_from_pytorch_name(layer_name, layer_idx)
+                local_param_name = self._build_local_layer_param_from_pytorch_name(
+                    layer_name, layer_idx
+                )
                 self.state_dict()[local_param_name].copy_(param_dict[layer_name])
 
         # Now, we need to load branch params...
-        for layer_idx in range(self.shared_block_count,4):
+        for layer_idx in range(self.shared_block_count, 4):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
-            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2 
-            full_layer_list = [item for item in param_dict if ('layer'+str(layer_idx+1) in item)]   # get all weights inside layer[x]
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for branch_idx in range(self.num_branches):
                 for layer_name in full_layer_list:
                     # First, get the raw layer info, then append sharedblock to it...
-                    local_param_name = self._build_branch_layer_param_from_pytorch_name(layer_name, layer_idx, branch_idx, self.shared_block_count)
+                    local_param_name = self._build_branch_layer_param_from_pytorch_name(
+                        layer_name, layer_idx, branch_idx, self.shared_block_count
+                    )
                     self.state_dict()[local_param_name].copy_(param_dict[layer_name])
 
-    def _build_local_layer_param_from_pytorch_name(self, paramname: str, layeridx: int) -> str:
+    def _build_local_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int
+    ) -> str:
         """Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the shared block.
 
         Args:
@@ -305,10 +390,12 @@ class multibranchresnet(nn.Module):
             str: Converted parameter name
         """
         param_list = paramname.split(".")
-        new_param_list = ["sharedblock", str(layeridx)]+param_list[1:]
+        new_param_list = ["sharedblock", str(layeridx)] + param_list[1:]
         return ".".join(new_param_list)
-    
-    def _build_branch_layer_param_from_pytorch_name(self, paramname: str, layeridx: int, branch_idx: int, layer_reset: int) -> str:
+
+    def _build_branch_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int, branch_idx: int, layer_reset: int
+    ) -> str:
         """Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the branches.
 
         Args:
@@ -321,9 +408,12 @@ class multibranchresnet(nn.Module):
             str: Converted parameter name
         """
         param_list = paramname.split(".")
-        new_param_list = ["branches", str(branch_idx), str(layeridx-layer_reset)]+param_list[1:]
+        new_param_list = [
+            "branches",
+            str(branch_idx),
+            str(layeridx - layer_reset),
+        ] + param_list[1:]
         return ".".join(new_param_list)
-
 
     def load_params_from_weights(self, weights_path: str):
         """Loads parameters from a saved `multibranchresnet`
@@ -333,36 +423,38 @@ class multibranchresnet(nn.Module):
         """
         param_dict = torch.load(weights_path)
         for i in param_dict:
-            if 'fc' in i and self.top_only:
+            if "fc" in i and self.top_only:
                 continue
             self.state_dict()[i].copy_(param_dict[i])
 
-
-    def _model_weights(self) -> Dict[str,int]:
+    def _model_weights(self) -> Dict[str, int]:
         """Constructs a dictionary to quickly retrieve pytorch weight paths
 
         Returns:
             Dict[str,int]: the dictinary storing paths
         """
-        mw = ['resnet18-5c106cde.pth', 
-                'resnet34-333f7ec4.pth', 
-                'resnet50-19c8e357.pth', 
-                'resnet101-5d3b4d8f.pth', 
-                'resnet152-b121ed2d.pth', 
-                'resnext50_32x4d-7cdf4587.pth', 
-                'resnext101_32x8d-8ba56ff5.pth', 
-                'wide_resnet50_2-95faca4d.pth', 
-                'wide_resnet50_2-95faca4d.pth', 
-                'resnet18-5c106cde_cbam.pth', 
-                'resnet34-333f7ec4_cbam.pth', 
-                'resnet50-19c8e357_cbam.pth', 
-                'resnet101-5d3b4d8f_cbam.pth', 
-                'resnet152-b121ed2d_cbam.pth']
-        return {item:1 for item in mw}
+        mw = [
+            "resnet18-5c106cde.pth",
+            "resnet34-333f7ec4.pth",
+            "resnet50-19c8e357.pth",
+            "resnet101-5d3b4d8f.pth",
+            "resnet152-b121ed2d.pth",
+            "resnext50_32x4d-7cdf4587.pth",
+            "resnext101_32x8d-8ba56ff5.pth",
+            "wide_resnet50_2-95faca4d.pth",
+            "wide_resnet50_2-95faca4d.pth",
+            "resnet18-5c106cde_cbam.pth",
+            "resnet34-333f7ec4_cbam.pth",
+            "resnet50-19c8e357_cbam.pth",
+            "resnet101-5d3b4d8f_cbam.pth",
+            "resnet152-b121ed2d_cbam.pth",
+        ]
+        return {item: 1 for item in mw}
 
 
-
-def _multibranchresnet(arch, block, layers, pretrained, progress, **kwargs) -> multibranchresnet:
+def _multibranchresnet(
+    arch, block, layers, pretrained, progress, **kwargs
+) -> multibranchresnet:
     """Builds a `multibranchresnet`
 
     Args:
@@ -386,8 +478,9 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _multibranchresnet('resnet18', ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress,
-                   **kwargs)
+    return _multibranchresnet(
+        "resnet18", ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs
+    )
 
 
 def resnet34(pretrained=False, progress=True, **kwargs):
@@ -397,8 +490,9 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _multibranchresnet('resnet34', ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress,
-                   **kwargs)
+    return _multibranchresnet(
+        "resnet34", ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnet50(pretrained=False, progress=True, **kwargs):
@@ -408,8 +502,9 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _multibranchresnet('resnet50', ResnetBottleneck, [3, 4, 6, 3], pretrained, progress,
-                   **kwargs)
+    return _multibranchresnet(
+        "resnet50", ResnetBottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnet101(pretrained=False, progress=True, **kwargs):
@@ -419,8 +514,9 @@ def resnet101(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _multibranchresnet('resnet101', ResnetBottleneck, [3, 4, 23, 3], pretrained, progress,
-                   **kwargs)
+    return _multibranchresnet(
+        "resnet101", ResnetBottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnet152(pretrained=False, progress=True, **kwargs):
@@ -430,8 +526,9 @@ def resnet152(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _multibranchresnet('resnet152', ResnetBottleneck, [3, 8, 36, 3], pretrained, progress,
-                   **kwargs)
+    return _multibranchresnet(
+        "resnet152", ResnetBottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
+    )
 
 
 def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
@@ -441,10 +538,16 @@ def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['groups'] = 32
-    kwargs['width_per_group'] = 4
-    return _multibranchresnet('resnext50_32x4d', ResnetBottleneck, [3, 4, 6, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 4
+    return _multibranchresnet(
+        "resnext50_32x4d",
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
 
 
 def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
@@ -454,10 +557,16 @@ def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['groups'] = 32
-    kwargs['width_per_group'] = 8
-    return _multibranchresnet('resnext101_32x8d', ResnetBottleneck, [3, 4, 23, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 8
+    return _multibranchresnet(
+        "resnext101_32x8d",
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
 
 
 def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
@@ -471,9 +580,15 @@ def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['width_per_group'] = 64 * 2
-    return _multibranchresnet('wide_resnet50_2', ResnetBottleneck, [3, 4, 6, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["width_per_group"] = 64 * 2
+    return _multibranchresnet(
+        "wide_resnet50_2",
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
 
 
 def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
@@ -487,6 +602,12 @@ def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    kwargs['width_per_group'] = 64 * 2
-    return _multibranchresnet('wide_resnet101_2', ResnetBottleneck, [3, 4, 23, 3],
-                   pretrained, progress, **kwargs)
+    kwargs["width_per_group"] = 64 * 2
+    return _multibranchresnet(
+        "wide_resnet101_2",
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )

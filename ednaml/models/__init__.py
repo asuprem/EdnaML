@@ -2,7 +2,14 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.models.ModelAbstract import ModelAbstract
 
 
-def classification_model_builder(arch, base, weights=None, normalization=None, metadata:LabelMetadata = None, **kwargs):
+def classification_model_builder(
+    arch,
+    base,
+    weights=None,
+    normalization=None,
+    metadata: LabelMetadata = None,
+    **kwargs
+):
     """Corroborative/Colaborative/Complementary Labeler Model Builder
 
     This builds a model for colabeler. Refer to paper [] for general construction. The model contains:
@@ -30,19 +37,25 @@ def classification_model_builder(arch, base, weights=None, normalization=None, m
     """
     if arch != "ClassificationResnet":
         raise NotImplementedError()
-    archbase = __import__("models."+arch, fromlist=[arch])
+    archbase = __import__("models." + arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
-
 
     # Extract the dimensions from the classes metadata provided by EdnaML
     kwargs["softmax_dimensions"] = metadata.getLabelDimensions()
 
-    model = archbase(base = base, weights=weights, normalization = normalization, metadata = metadata, **kwargs)
+    model = archbase(
+        base=base,
+        weights=weights,
+        normalization=normalization,
+        metadata=metadata,
+        **kwargs
+    )
     return model
 
 
-
-def multiclassification_model_builder(arch, base, weights=None, normalization=None, metadata=None, **kwargs):
+def multiclassification_model_builder(
+    arch, base, weights=None, normalization=None, metadata=None, **kwargs
+):
     """Multiclassification model builder. This builds a model with a single backbone, and multiple classification FC layers.
 
     The model contains:
@@ -73,14 +86,22 @@ def multiclassification_model_builder(arch, base, weights=None, normalization=No
     # make the MultiClassificationResnet, with resnet base, with multiple output fc layers
     if arch != "MultiClassificationResnet":
         raise NotImplementedError()
-    archbase = __import__("models."+arch, fromlist=[arch])
+    archbase = __import__("models." + arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
-    model = archbase(base = base, weights=weights, normalization = normalization, metadata=metadata, **kwargs)
+    model = archbase(
+        base=base,
+        weights=weights,
+        normalization=normalization,
+        metadata=metadata,
+        **kwargs
+    )
     return model
 
 
-def multibranch_model_builder(arch, base, weights=None, normalization=None, metadata=None, **kwargs):
+def multibranch_model_builder(
+    arch, base, weights=None, normalization=None, metadata=None, **kwargs
+):
     """Multibranch model builder builds a model with multiple branches, each with their set of outputs.
 
     The model contains:
@@ -119,8 +140,14 @@ def multibranch_model_builder(arch, base, weights=None, normalization=None, meta
     # make the MultiClassificationResnet, with resnet base, with multiple output fc layers
     if arch != "MultiBranchResnet":
         raise NotImplementedError()
-    archbase = __import__("models."+arch, fromlist=[arch])
+    archbase = __import__("models." + arch, fromlist=[arch])
     archbase = getattr(archbase, arch)
 
-    model = archbase(base = base, weights=weights, normalization = normalization, metadata=metadata, **kwargs)
+    model = archbase(
+        base=base,
+        weights=weights,
+        normalization=normalization,
+        metadata=metadata,
+        **kwargs
+    )
     return model

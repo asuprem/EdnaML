@@ -1,7 +1,10 @@
-
 from ednaml.datareaders import DataReader
 from ednaml.crawlers import CoLabelVehicleColorCrawler
-from ednaml.generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
+from ednaml.generators.ClassificationGenerator import (
+    ClassificationDataset,
+    ClassificationGenerator,
+)
+
 
 class VehicleColor(DataReader):
     name: str = "VehicleColors"
@@ -10,4 +13,4 @@ class VehicleColor(DataReader):
     GENERATOR = ClassificationGenerator
 
     def __init__(self):
-        super().__init__() 
+        super().__init__()

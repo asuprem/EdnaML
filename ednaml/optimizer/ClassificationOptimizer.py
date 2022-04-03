@@ -5,7 +5,18 @@ class ClassificationOptimizer(BaseOptimizer):
     """ Optimizer Builder for CoLabel experiments.
 
     """
-    def __init__(self,name, optimizer, base_lr, lr_bias, gpus, weight_decay, weight_bias, opt_kwargs):
+
+    def __init__(
+        self,
+        name,
+        optimizer,
+        base_lr,
+        lr_bias,
+        gpus,
+        weight_decay,
+        weight_bias,
+        opt_kwargs,
+    ):
         """ Initializes the optimizer builder.
 
         Args:
@@ -19,4 +30,13 @@ class ClassificationOptimizer(BaseOptimizer):
             build:  builds an optimizer given optimizer name and torch model
 
         """
-        super().__init__(name, optimizer, base_lr, lr_bias, gpus, weight_decay, weight_bias, opt_kwargs)
+        super().__init__(
+            name,
+            optimizer,
+            base_lr,
+            lr_bias,
+            gpus,
+            weight_decay,
+            weight_bias,
+            opt_kwargs,
+        )

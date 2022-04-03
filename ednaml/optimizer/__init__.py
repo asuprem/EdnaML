@@ -2,12 +2,26 @@ import importlib
 import torch
 
 from ednaml.models.ModelAbstract import ModelAbstract
+
+
 class BaseOptimizer:
     """ Base Optimizer Builder
 
     """
-    name:str="optimizer1"
-    def __init__(self,name, optimizer, base_lr, lr_bias, gpus, weight_decay, weight_bias, opt_kwargs):
+
+    name: str = "optimizer1"
+
+    def __init__(
+        self,
+        name,
+        optimizer,
+        base_lr,
+        lr_bias,
+        gpus,
+        weight_decay,
+        weight_bias,
+        opt_kwargs,
+    ):
         """ Initializes the optimizer builder.
 
         Args:
@@ -30,7 +44,6 @@ class BaseOptimizer:
         self.weight_bias = weight_bias
         self.kwargs = opt_kwargs
 
-
     def build(self, model: ModelAbstract) -> torch.optim.Optimizer:
         """ Builds an optimizer.
 
@@ -52,12 +65,19 @@ class BaseOptimizer:
                 else:
                     learning_rate = self.base_lr * self.gpus
                     weight_decay = self.weight_decay
-                params += [{"params": [value], "lr":learning_rate, "weight_decay": weight_decay}]
-        optimizer = importlib.import_module(self.optimizer, package='torch.optim')
+                params += [
+                    {
+                        "params": [value],
+                        "lr": learning_rate,
+                        "weight_decay": weight_decay,
+                    }
+                ]
+        optimizer = importlib.import_module(self.optimizer, package="torch.optim")
         optimizer = optimizer(params, **self.kwargs)
-        return optimizer  
+        return optimizer
 
 
 from .ClassificationOptimizer import ClassificationOptimizer
 from .StandardLossOptimizer import StandardLossOptimizer
-# for re-id compatibility 
+
+# for re-id compatibility

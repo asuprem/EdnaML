@@ -5,7 +5,7 @@ from ednaml.config.ConfigDefaults import ConfigDefaults
 
 class LossConfig:
     LOSSES: List[str]
-    KWARGS: List[Dict[str,str]]
+    KWARGS: List[Dict[str, str]]
     LAMBDAS: List[int]
     LABEL: str
     NAME: str

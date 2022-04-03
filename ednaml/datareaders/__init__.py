@@ -1,9 +1,10 @@
-
 from ednaml.crawlers import Crawler
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
 from ednaml.generators import ImageGenerator
+
+
 class DataReader:
     name: str = "DataReader"
     CRAWLER: Crawler = Crawler
@@ -13,6 +14,7 @@ class DataReader:
 
     def __init__(self):
         pass
+
 
 """
 from .VehicleColor import VehicleColor

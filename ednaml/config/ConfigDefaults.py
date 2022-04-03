@@ -1,8 +1,3 @@
-
-
-
-
-
 from typing import Dict, List
 
 
@@ -33,21 +28,20 @@ class ConfigDefaults:
     BATCH_SIZE: int
     WORKERS: int
 
-
     BUILDER: str
     MODEL_ARCH: str
     MODEL_BASE: str
     MODEL_NORMALIZATION: str
-    MODEL_KWARGS: Dict[str,str]
+    MODEL_KWARGS: Dict[str, str]
 
     LOSSES: List[str]
-    LOSS_KWARGS: List[Dict[str,str]]
+    LOSS_KWARGS: List[Dict[str, str]]
     LAMBDAS: List[int]
     LOSS_LABEL: str
     LOSS_NAME: str
 
     OPTIMIZER_NAME: str
-    OPTIMIZER_KWARGS: Dict[str,str]
+    OPTIMIZER_KWARGS: Dict[str, str]
     BASE_LR: float
     LR_BIAS_FACTOR: float
     WEIGHT_DECAY: float
@@ -56,13 +50,15 @@ class ConfigDefaults:
 
     SCHEDULER_NAME: str
     LR_SCHEDULER: str
-    LR_KWARGS: Dict[str,str]
+    LR_KWARGS: Dict[str, str]
 
     STEP_VERBOSE: int
 
     def __init__(self, **kwargs):
 
-        self.OPTIMIZER_BUILDER = kwargs.get("OPTIMIZER_BUILDER", "ClassificationOptimizer")
+        self.OPTIMIZER_BUILDER = kwargs.get(
+            "OPTIMIZER_BUILDER", "ClassificationOptimizer"
+        )
         self.MODEL_SERVING = kwargs.get("MODEL_SERVING", False)
         self.EPOCHS = kwargs.get("EPOCHS", 10)
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
@@ -77,8 +73,7 @@ class ConfigDefaults:
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
         self.CHECKPOINT_DIRECTORY = kwargs.get("CHECKPOINT_DIRECTORY", "checkpoint")
 
-
-        self.SHAPE = kwargs.get("SHAPE", [100,100])
+        self.SHAPE = kwargs.get("SHAPE", [100, 100])
         self.NORMALIZATION_MEAN = kwargs.get("NORMALIZATION_MEAN", 0.5)
         self.NORMALIZATION_STD = kwargs.get("NORMALIZATION_STD", 0.5)
         self.NORMALIZATION_SCALE = kwargs.get("NORMALIZATION_SCALE", 255)
@@ -113,6 +108,6 @@ class ConfigDefaults:
 
         self.SCHEDULER_NAME = kwargs.get("SCHEDULER_NAME", "opt-1")
         self.LR_SCHEDULER = kwargs.get("LR_SCHEDULER", "StepLR")
-        self.LR_KWARGS = kwargs.get("LR_KWARGS", {"step_size":20})
+        self.LR_KWARGS = kwargs.get("LR_KWARGS", {"step_size": 20})
 
-        self.STEP_VERBOSE =  kwargs.get("STEP_VERBOSE", 100)
+        self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)

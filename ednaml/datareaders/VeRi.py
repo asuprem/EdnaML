@@ -1,7 +1,10 @@
-
 from ednaml.datareaders import DataReader
 from crawlers import VeRiDataCrawler
-from generators.ClassificationGenerator import ClassificationDataset, ClassificationGenerator
+from generators.ClassificationGenerator import (
+    ClassificationDataset,
+    ClassificationGenerator,
+)
+
 
 class VeRi(DataReader):
     name: str = "VeRi"
@@ -10,4 +13,4 @@ class VeRi(DataReader):
     GENERATOR = ClassificationGenerator
 
     def __init__(self):
-        super().__init__() 
+        super().__init__()

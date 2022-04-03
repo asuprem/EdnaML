@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from ednaml.loss import Loss
 
+
 class ClusterLoss(Loss):
     def __init__(self, margin: float, instances: int, images_per_instance: int):
         """ ClusterLoss from Cluster Loss for Person Re-Identification
@@ -15,7 +16,6 @@ class ClusterLoss(Loss):
         self.margin = margin
         self.ids_per_batch = instances
         self.imgs_per_id = images_per_instance
-        
 
     def _euclidean_dist(self, x, y):
         """
@@ -33,7 +33,7 @@ class ClusterLoss(Loss):
         dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
         return dist
 
-    def _cluster_loss(self, features, targets,ids_per_batch=32, imgs_per_id=4):
+    def _cluster_loss(self, features, targets, ids_per_batch=32, imgs_per_id=4):
         """
         Args:
             features: prediction matrix (before softmax) with shape (batch_size, feature_dim)
@@ -43,7 +43,7 @@ class ClusterLoss(Loss):
         Return:
              cluster_loss
         """
-        
+
         unique_labels = targets.cpu().unique().cuda()
 
         inter_min_distance = torch.zeros(unique_labels.size(0))
@@ -59,17 +59,23 @@ class ClusterLoss(Loss):
             label = unique_labels[i]
             same_class_features = features[targets == label]
             center_features[i] = same_class_features.mean(dim=0)
-            intra_class_distance = self._euclidean_dist(center_features[index==i], same_class_features)
+            intra_class_distance = self._euclidean_dist(
+                center_features[index == i], same_class_features
+            )
             # print('intra_class_distance', intra_class_distance)
             intra_max_distance[i] = intra_class_distance.max()
         # print('intra_max_distance:', intra_max_distance)
 
         for i in range(unique_labels.size(0)):
-            inter_class_distance = self._euclidean_dist(center_features[index==i], center_features[index != i])
+            inter_class_distance = self._euclidean_dist(
+                center_features[index == i], center_features[index != i]
+            )
             # print('inter_class_distance', inter_class_distance)
             inter_min_distance[i] = inter_class_distance.min()
         #  print('inter_min_distance:', inter_min_distance)
-        cluster_loss = torch.mean(torch.relu(intra_max_distance - inter_min_distance + self.margin))
+        cluster_loss = torch.mean(
+            torch.relu(intra_max_distance - inter_min_distance + self.margin)
+        )
         return cluster_loss, intra_max_distance, inter_min_distance
 
     def forward(self, features, labels):
@@ -81,5 +87,7 @@ class ClusterLoss(Loss):
         Return:
              cluster_loss
         """
-        cluster_loss, cluster_dist_ap, cluster_dist_an = self._cluster_loss(features, labels, self.ids_per_batch, self.imgs_per_id)
+        cluster_loss, cluster_dist_ap, cluster_dist_an = self._cluster_loss(
+            features, labels, self.ids_per_batch, self.imgs_per_id
+        )
         return cluster_loss

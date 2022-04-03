@@ -1,4 +1,4 @@
-# Proposed Splits for SUN from 
+# Proposed Splits for SUN from
 # Zero-shot Learning - The Good, the Bad and the Ugly. Y. Xian, B. Schiele, Z. Akata. IEEE CVPR 2017.
 
 trainval = r"""bakery_shop

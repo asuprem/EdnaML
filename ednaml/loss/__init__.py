@@ -1,9 +1,13 @@
 from torch import nn
+
+
 class Loss(nn.Module):
     def __init__(self, lossname=None, metadata=None, **kwargs):
-            super().__init__()
+        super().__init__()
+
     def forward(self):
         raise NotImplementedError()
+
 
 from ednaml.loss.CenterLoss import CenterLoss
 from ednaml.loss.ClusterLoss import ClusterLoss

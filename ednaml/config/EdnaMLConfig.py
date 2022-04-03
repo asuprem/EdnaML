@@ -14,39 +14,59 @@ from ednaml.config.SchedulerConfig import SchedulerConfig
 from ednaml.config.TransformationConfig import TransformationConfig
 from ednaml.config.ModelConfig import ModelConfig
 
+
 class EdnaMLConfig:
     EXECUTION: ExecutionConfig
     SAVE: SaveConfig
     TRANSFORMATION: TransformationConfig
     MODEL: ModelConfig
     LOSS: List[LossConfig]
-    OPTIMIZER: List[OptimizerConfig]    # one optimizer for each set of model params
-    SCHEDULER: List[SchedulerConfig]    # one scheduler for each optimizer
-    LOSS_OPTIMIZER: List[OptimizerConfig]   # one optimizer for each loss with params
-    LOSS_SCHEDULER: List[SchedulerConfig]   # one scheduler for each loss_optimizer
+    OPTIMIZER: List[OptimizerConfig]  # one optimizer for each set of model params
+    SCHEDULER: List[SchedulerConfig]  # one scheduler for each optimizer
+    LOSS_OPTIMIZER: List[OptimizerConfig]  # one optimizer for each loss with params
+    LOSS_SCHEDULER: List[SchedulerConfig]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
+
     def __init__(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()):
         ydict = {}
         with open(config_path, "r") as cfile:
             ydict = yaml.safe_load(cfile.read().strip())
 
-        self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION",{}), defaults)
-        self.SAVE = SaveConfig(ydict.get("SAVE",{}), defaults)
-        self.TRANSFORMATION = TransformationConfig(ydict.get("TRANSFORMATION",{}), defaults)
-        self.MODEL = ModelConfig(ydict.get("MODEL",{}), defaults)   # No default MODEL itself, though it will be instantiated here? deal with this TODO
-        self.LOSS = [LossConfig(loss_item, defaults) for loss_item in ydict.get("LOSS", [])]    # No default LOSS itself
+        self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
+        self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
+        self.TRANSFORMATION = TransformationConfig(
+            ydict.get("TRANSFORMATION", {}), defaults
+        )
+        self.MODEL = ModelConfig(
+            ydict.get("MODEL", {}), defaults
+        )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
+        self.LOSS = [
+            LossConfig(loss_item, defaults) for loss_item in ydict.get("LOSS", [])
+        ]  # No default LOSS itself
 
         # Default optimizer is Adam
-        self.OPTIMIZER = [OptimizerConfig(optimizer_item, defaults) for optimizer_item in ydict.get("OPTIMIZER", [{}])]
-        self.SCHEDULER = [SchedulerConfig(scheduler_item, defaults) for scheduler_item in ydict.get("SCHEDULER", [{}])]
-        
-        self.LOSS_OPTIMIZER = [OptimizerConfig(optimizer_item, defaults) for optimizer_item in ydict.get("LOSS_OPTIMIZER", [{}])]
-        self.LOSS_SCHEDULER = [SchedulerConfig(scheduler_item, defaults) for scheduler_item in ydict.get("LOSS_SCHEDULER", [{}])]
-        
-        self.LOGGING = LoggingConfig(ydict.get("LOGGING", {}), defaults) 
+        self.OPTIMIZER = [
+            OptimizerConfig(optimizer_item, defaults)
+            for optimizer_item in ydict.get("OPTIMIZER", [{}])
+        ]
+        self.SCHEDULER = [
+            SchedulerConfig(scheduler_item, defaults)
+            for scheduler_item in ydict.get("SCHEDULER", [{}])
+        ]
 
+        self.LOSS_OPTIMIZER = [
+            OptimizerConfig(optimizer_item, defaults)
+            for optimizer_item in ydict.get("LOSS_OPTIMIZER", [{}])
+        ]
+        self.LOSS_SCHEDULER = [
+            SchedulerConfig(scheduler_item, defaults)
+            for scheduler_item in ydict.get("LOSS_SCHEDULER", [{}])
+        ]
+
+        self.LOGGING = LoggingConfig(ydict.get("LOGGING", {}), defaults)
 
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
+
 
 """
 Notes for LOSS_OPTIMIZER and LOSS_SCHEDULER
