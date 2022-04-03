@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 
-from utils.LabelMetadata import LabelMetadata
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 
 class ModelAbstract(nn.Module):

@@ -1,12 +1,8 @@
 from setuptools import setup
 import os
 
-_PATH_ROOT = os.path.dirname(__file__)
-_PATH_REQUIRE = os.path.join(_PATH_ROOT, "requirements")
-
 
 requires = [
-        "kaptan>=0.5.12",
         "scikit-learn>=1.0.2",
         "torch>=1.10.*",
         "torchinfo>=1.6.5",
