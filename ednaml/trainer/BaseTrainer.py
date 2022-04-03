@@ -4,16 +4,18 @@ import logging
 import torch
 import os
 import shutil
+from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 import ednaml.loss.builders
 from typing import Dict, List
 from torch.utils.data import DataLoader
+from ednaml.models.ModelAbstract import ModelAbstract
 
 from ednaml.optimizer import BaseOptimizer
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 class BaseTrainer: 
-    model: torch.nn.Module
+    model: ModelAbstract
     loss_fn: Dict[str, ednaml.loss.builders.LossBuilder]                                   # output-name: lossBuilder
     optimizer: Dict[str, BaseOptimizer]                                             # optimizer-name: optimizer             e.g. discriminator: params...
     loss_optimizer = Dict[str, List[BaseOptimizer]]                                 # output-name: optimizer
@@ -36,13 +38,13 @@ class BaseTrainer:
     logger: logging.Logger
 
     def __init__(   self, 
-                    model: torch.nn.Module, 
+                    model: ModelAbstract, 
                     loss_fn: List[ednaml.loss.builders.LossBuilder], 
                     optimizer: torch.optim.Optimizer, loss_optimizer: List[torch.optim.Optimizer], 
                     scheduler: torch.optim.lr_scheduler._LRScheduler, loss_scheduler: torch.optim.lr_scheduler._LRScheduler, 
                     train_loader:DataLoader, test_loader:DataLoader, 
                     epochs:int, skipeval:bool, logger:Logger, 
-                    crawler: Crawler, config, labels: LabelMetadata, **kwargs):
+                    crawler: Crawler, config: EdnaMLConfig, labels: LabelMetadata, **kwargs):
 
         self.model = model
         self.loss_fn_order = {idx:lossbuilder.loss_labelname for idx, lossbuilder in enumerate(loss_fn)}
