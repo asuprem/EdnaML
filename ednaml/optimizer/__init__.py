@@ -1,10 +1,13 @@
+import importlib
 import torch
+
+from ednaml.models.ModelAbstract import ModelAbstract
 class BaseOptimizer:
     """ Base Optimizer Builder
 
     """
     name:str="optimizer1"
-    def __init__(self,base_lr, lr_bias, gpus, weight_decay, weight_bias):
+    def __init__(self,name, optimizer, base_lr, lr_bias, gpus, weight_decay, weight_bias, opt_kwargs):
         """ Initializes the optimizer builder.
 
         Args:
@@ -18,14 +21,17 @@ class BaseOptimizer:
         build:  builds an optimizer given optimizer name and torch model
 
         """
+        self.name = name
+        self.optimizer = optimizer
         self.base_lr = base_lr
         self.gpus = gpus
         self.weight_decay = weight_decay
         self.lr_bias = lr_bias
         self.weight_bias = weight_bias
+        self.kwargs = opt_kwargs
 
 
-    def build(self, model, name = 'Adam', **kwargs) -> torch.optim.Optimizer:
+    def build(self, model: ModelAbstract) -> torch.optim.Optimizer:
         """ Builds an optimizer.
 
         Args:
@@ -47,9 +53,8 @@ class BaseOptimizer:
                     learning_rate = self.base_lr * self.gpus
                     weight_decay = self.weight_decay
                 params += [{"params": [value], "lr":learning_rate, "weight_decay": weight_decay}]
-        optimizer = __import__('torch.optim', fromlist=['optim'])
-        optimizer = getattr(optimizer, name)
-        optimizer = optimizer(params, **kwargs)
+        optimizer = importlib.import_module(self.optimizer, package='torch.optim')
+        optimizer = optimizer(params, **self.kwargs)
         return optimizer  
 
 
