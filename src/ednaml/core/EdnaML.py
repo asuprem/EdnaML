@@ -1,6 +1,5 @@
 import importlib
-import os, shutil, logging, glob, re, json
-from pydoc import locate
+import os, shutil, logging, glob, re
 from typing import Dict, List, Type
 import warnings
 from torchinfo import ModelStatistics
@@ -70,41 +69,29 @@ class EdnaML:
         self.weights = weights
         self.pretrained_weights = None
         self.verbose = verbose
-
-        self.cfg = self.buildConfig(config)
-        self.saveMetadata = self.buildSaveMetadata()
-
         self.gpus = torch.cuda.device_count()
-        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
-        self.previous_stop = 0
-        self.epochs = self.cfg.EXECUTION.EPOCHS
-        self.skipeval = self.cfg.EXECUTION.SKIPEVAL
 
-        self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
-        self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
-        self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
-        self.fp16 = self.cfg.EXECUTION.FP16
+        self.cfg = EdnaMLConfig(config)
+        self.saveMetadata = SaveMetadata(self.cfg)
+        os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
-        self.makeSaveDirectories()
         self.logger = self.buildLogger(logger=logger)
 
         
 
-    def buildConfig(self, config: str, handler="yaml") -> EdnaMLConfig:
-        """Builds the internal kaptan configuration object
-
-        Args:
-            config (str): Path to config file
-            handler (str, optional): Handler for kaptan. Defaults to "yaml".
-        """
-        return EdnaMLConfig(config)
-        # kaptan.Kaptan(handler=handler)
-        # self.cfg = self.cfg.import_config(config)
-
-    def setup(self):
-        """setup() completes initial setup, allowing you to proceed with the core ml pipeline
+    
+    def recordVars(self):
+        """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
         of dataloading, model building, etc
         """
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+        self.previous_stop = 0
+        self.epochs = self.cfg.EXECUTION.EPOCHS
+        self.skipeval = self.cfg.EXECUTION.SKIPEVAL
+        self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
+        self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
+        self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
+        self.fp16 = self.cfg.EXECUTION.FP16
         self.printConfiguration()
         self.downloadModelWeights()
 
@@ -153,10 +140,10 @@ class EdnaML:
                 % (model_base, str(model_weights.keys()))
             )
 
-    def quickSetup(self):
-        """Performs a `quickstart` set-up of EdnaML
+    def apply(self):
+        """Applies the internal configuration for EdnaML
         """
-        self.setup()
+        self.recordVars()
         self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
 
         self.buildDataloaders()
@@ -587,16 +574,6 @@ class EdnaML:
             **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
         )
         self.logger.info("Generated validation data/query generator")
-
-    def buildSaveMetadata(self) -> SaveMetadata:
-        """Builds a `SaveMetadata` object containing the model save paths, logger paths, and any other information about saving.
-        """
-        return SaveMetadata(self.cfg)
-
-    def makeSaveDirectories(self):
-        """Creates the save directories for logs, model configuration, metadata, and model save files
-        """
-        os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
     def buildLogger(self, logger: logging.Logger = None) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to 
