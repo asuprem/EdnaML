@@ -1,5 +1,5 @@
 docs:
-	pdoc3 . --html -o docs
+	pdoc3 src/ednaml/ --html -o docs
 	mv docs/ usage-docs/
 
 

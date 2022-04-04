@@ -16,9 +16,9 @@ class DataReader:
         pass
 
 
-"""
-from .VehicleColor import VehicleColor
-from .CompCars import CompCars
-from .VehicleID import VehicleID
-from .VeRi import VeRi
-"""
+
+from ednaml.datareaders.VehicleColor import VehicleColor
+from ednaml.datareaders.CompCars import CompCars
+from ednaml.datareaders.VehicleID import VehicleID
+from ednaml.datareaders.VeRi import VeRi
+

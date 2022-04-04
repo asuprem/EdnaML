@@ -1,6 +1,6 @@
 from ednaml.datareaders import DataReader
-from crawlers import VehicleIDDataCrawler
-from generators.ClassificationGenerator import (
+from ednaml.crawlers import VehicleIDDataCrawler
+from ednaml.generators.ClassificationGenerator import (
     ClassificationDataset,
     ClassificationGenerator,
 )

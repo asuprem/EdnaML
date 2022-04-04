@@ -1,8 +1,9 @@
 # BaseConfig class to manage the input configurations. TODO
 
-from re import S
-from typing import Dict, List
+import json
+from typing import List
 import yaml
+from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 from ednaml.config.ExecutionConfig import ExecutionConfig
@@ -66,6 +67,16 @@ class EdnaMLConfig:
         self.LOGGING = LoggingConfig(ydict.get("LOGGING", {}), defaults)
 
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
+
+    def export(self, mode="yaml"):
+        dicts = json.dumps(self, default=config_serializer)
+        dicta = json.loads(dicts)
+        if mode == "yaml":
+            return yaml.dump(dicta)
+        elif mode == "json":
+            return dicts
+        elif mode == "dict":
+            return dicta
 
 
 """

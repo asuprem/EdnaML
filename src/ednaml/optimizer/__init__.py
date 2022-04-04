@@ -2,6 +2,7 @@ import importlib
 import torch
 
 from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.utils import locate_class
 
 
 class BaseOptimizer:
@@ -72,12 +73,12 @@ class BaseOptimizer:
                         "weight_decay": weight_decay,
                     }
                 ]
-        optimizer = importlib.import_module(self.optimizer, package="torch.optim")
+        optimizer = locate_class("torch","optim",self.optimizer)
         optimizer = optimizer(params, **self.kwargs)
         return optimizer
 
 
-from .ClassificationOptimizer import ClassificationOptimizer
-from .StandardLossOptimizer import StandardLossOptimizer
+from ednaml.optimizer.ClassificationOptimizer import ClassificationOptimizer
+from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 
 # for re-id compatibility

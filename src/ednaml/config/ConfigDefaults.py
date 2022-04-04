@@ -33,6 +33,7 @@ class ConfigDefaults:
     MODEL_BASE: str
     MODEL_NORMALIZATION: str
     MODEL_KWARGS: Dict[str, str]
+    PARAMETER_GROUPS: List[str]
 
     LOSSES: List[str]
     LOSS_KWARGS: List[Dict[str, str]]
@@ -90,6 +91,7 @@ class ConfigDefaults:
         self.MODEL_BASE = kwargs.get("MODEL_BASE", "resnet18")
         self.MODEL_NORMALIZATION = kwargs.get("MODEL_NORMALIZATION", "bn")
         self.MODEL_KWARGS = kwargs.get("MODEL_KWARGS", {})
+        self.PARAMETER_GROUPS = kwargs.get("PARAMETER_GROUPS", ['opt-1'])
 
         self.LOSSES = kwargs.get("LOSSES", [])
         self.LOSS_KWARGS = kwargs.get("LOSS_KWARGS", [])

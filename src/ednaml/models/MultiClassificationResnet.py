@@ -1,3 +1,4 @@
+from typing import List
 from torch import nn
 from ednaml.models.ClassificationResnet import ClassificationResnet
 
@@ -50,7 +51,7 @@ class MultiClassificationResnet(ClassificationResnet):
     _internal_name_count = 0
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, **kwargs
+        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
     ):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
@@ -66,6 +67,7 @@ class MultiClassificationResnet(ClassificationResnet):
             weights=weights,
             normalization=normalization,
             metadata=metadata,
+            parameter_groups=parameter_groups,
             **kwargs
         )
 

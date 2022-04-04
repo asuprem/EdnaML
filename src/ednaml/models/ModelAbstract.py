@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-
+from typing import List, Dict
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 
@@ -16,13 +16,16 @@ class ModelAbstract(nn.Module):
     weights: str
     normalization: str
     metadata: LabelMetadata
+    parameter_groups: Dict[str,nn.Module]
+
 
     def __init__(
         self,
         base=None,
         weights=None,
         metadata: LabelMetadata = None,
-        normalization=None,
+        normalization: str=None,
+        parameter_groups: List[str]=None,
         **kwargs
     ):
         super().__init__()
@@ -30,14 +33,19 @@ class ModelAbstract(nn.Module):
         self.model_base = base
         self.weights = weights
         self.normalization = normalization
+        self.parameter_groups = {}
 
         self.model_attributes_setup(**kwargs)
         self.model_setup(**kwargs)
+        self.parameter_groups_setup(parameter_groups)
 
     def model_attributes_setup(self, **kwargs):
         raise NotImplementedError()
 
     def model_setup(self, **kwargs):
+        raise NotImplementedError()
+
+    def parameter_groups_setup(self, parameter_groups: List[str]):
         raise NotImplementedError()
 
     def weights_init_kaiming(self, m):
@@ -102,3 +110,6 @@ class ModelAbstract(nn.Module):
 
     def getModelArch(self):
         return self.model_arch
+
+    def getParameterGroup(self, key:str)->nn.Module:
+        return self.parameter_groups[key]

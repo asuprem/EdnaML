@@ -21,6 +21,7 @@ class ExecutionConfig:
         self.TEST_FREQUENCY = execution_dict.get(
             "TEST_FREQUENCY", defaults.TEST_FREQUENCY
         )
+        self.FP16 = execution_dict.get("FP16", defaults.FP16)
         self.TRAINER = execution_dict.get("TRAINER", defaults.TRAINER)
 
         self.DATAREADER = ExecutionDatareaderConfig(

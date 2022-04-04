@@ -158,9 +158,9 @@ class ImageGenerator:
         raise NotImplementedError()
 
 
-from .ClassificationGenerator import ClassificationGenerator
-from .CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator
-from .CoLabelDeployGenerator import CoLabelDeployGenerator
-from .MultiClassificationGenerator import MultiClassificationGenerator
+from ednaml.generators.ClassificationGenerator import ClassificationGenerator
+from ednaml.generators.CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator
+from ednaml.generators.CoLabelDeployGenerator import CoLabelDeployGenerator
+from ednaml.generators.MultiClassificationGenerator import MultiClassificationGenerator
 
 KnowledgeIntegratedGenerator = CoLabelIntegratedDatasetGenerator

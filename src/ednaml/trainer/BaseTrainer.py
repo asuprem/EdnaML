@@ -1,31 +1,23 @@
-import json
+import json, logging, os, shutil
 from logging import Logger
-import logging
+from typing import Dict, List
+
 import torch
-import os
-import shutil
+from torch.utils.data import DataLoader
+import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
-import ednaml.loss.builders
-from typing import Dict, List
-from torch.utils.data import DataLoader
 from ednaml.models.ModelAbstract import ModelAbstract
-
-from ednaml.optimizer import BaseOptimizer
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 
 class BaseTrainer:
     model: ModelAbstract
     loss_fn: Dict[str, ednaml.loss.builders.LossBuilder]  # output-name: lossBuilder
-    optimizer: Dict[
-        str, BaseOptimizer
-    ]  # optimizer-name: optimizer             e.g. discriminator: params...
-    loss_optimizer = Dict[str, List[BaseOptimizer]]  # output-name: optimizer
-    scheduler: Dict[str, torch.optim.lr_scheduler._LRScheduler]  # TODO scheduler class
-    loss_scheduler: Dict[
-        str, List[torch.optim.lr_scheduler._LRScheduler]
-    ]  # output-name: scheduler
+    optimizer: Dict[str, torch.optim.Optimizer]  
+    loss_optimizer = Dict[str, List[torch.optim.Optimizer]] 
+    scheduler: Dict[str, torch.optim.lr_scheduler._LRScheduler]  
+    loss_scheduler: Dict[str, List[torch.optim.lr_scheduler._LRScheduler]] 
 
     skipeval: bool
     train_loader: DataLoader
@@ -36,8 +28,7 @@ class BaseTrainer:
     global_batch: int
     global_epoch: int
     num_losses: int
-    losses: Dict[str, List[int]]  # output-name: losses
-    # config metadata, trainer metadata ???????
+    losses: Dict[str, List[int]] 
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
@@ -46,10 +37,10 @@ class BaseTrainer:
         self,
         model: ModelAbstract,
         loss_fn: List[ednaml.loss.builders.LossBuilder],
-        optimizer: torch.optim.Optimizer,
+        optimizer: List[torch.optim.Optimizer],
         loss_optimizer: List[torch.optim.Optimizer],
-        scheduler: torch.optim.lr_scheduler._LRScheduler,
-        loss_scheduler: torch.optim.lr_scheduler._LRScheduler,
+        scheduler: List[torch.optim.lr_scheduler._LRScheduler],
+        loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler],
         train_loader: DataLoader,
         test_loader: DataLoader,
         epochs: int,
@@ -62,6 +53,7 @@ class BaseTrainer:
     ):
 
         self.model = model
+        self.parameter_groups = list(self.model.parameter_groups.keys())
         self.loss_fn_order = {
             idx: lossbuilder.loss_labelname for idx, lossbuilder in enumerate(loss_fn)
         }
@@ -85,8 +77,8 @@ class BaseTrainer:
                 for idx in range(self.num_losses)
             }
 
-        self.optimizer = optimizer
-        self.scheduler = scheduler
+        self.optimizer = {self.parameter_groups[idx]:optimizer_item for idx, optimizer_item in enumerate(optimizer)}
+        self.scheduler = {self.parameter_groups[idx]:scheduler_item for idx, scheduler_item in enumerate(scheduler)}
         self.skipeval = skipeval
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -159,8 +151,12 @@ class BaseTrainer:
         )
 
         save_dict = {}
-        save_dict["optimizer"] = self.optimizer.state_dict()
-        save_dict["scheduler"] = self.scheduler.state_dict()
+        save_dict["optimizer"] = {
+            pgn:self.optimizer[pgn].state_dict() for pgn in self.parameter_groups
+        }
+        save_dict["scheduler"] = {
+            pgn:self.scheduler[pgn].state_dict() for pgn in self.parameter_groups
+        }
         save_dict["loss_fn"] = {
             lossname: self.loss_fn[lossname].state_dict() for lossname in self.loss_fn
         }
@@ -234,11 +230,17 @@ class BaseTrainer:
         self.logger.info("Finished loading model state_dict from %s" % model_load_path)
 
         checkpoint = torch.load(training_load_path)
-        self.optimizer.load_state_dict(checkpoint["optimizer"])
+        for pgn in self.parameter_groups:
+            self.optimizer[pgn].load_state_dict(
+                checkpoint["optimizer"][pgn]
+            )
+
+            self.scheduler[pgn].load_state_dict(
+                checkpoint["scheduler"][pgn]
+            )
         self.logger.info(
             "Finished loading optimizer state_dict from %s" % training_load_path
         )
-        self.scheduler.load_state_dict(checkpoint["scheduler"])
         self.logger.info(
             "Finished loading scheduler state_dict from %s" % training_load_path
         )
@@ -313,7 +315,53 @@ class BaseTrainer:
     def epoch_step(self, epoch):
         """Trains model for an epoch.
         """
-        raise NotImplementedError()
+        for batch in self.train_loader:
+            if self.global_batch == 0:
+                self.printOptimizerLearningRates()
+            
+            self.model.train()
+            self.zeroGradOptimizers()
+            self.zeroGradLossOptimizers()
+
+            self.step(batch)
+            
+            self.global_batch+=1
+
+            if (self.global_batch + 1) % self.step_verbose == 0:
+                self.printStepInformation()
+
+        self.global_batch = 0
+        self.stepSchedulers()
+        self.stepLossSchedulers()
+
+        self.logger.info(
+            "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
+        )
+
+        if self.global_epoch % self.test_frequency == 0:
+            self.logger.info("Evaluating model at test-frequency")
+            self.evaluate()
+        if self.global_epoch % self.save_frequency == 0:
+            self.logger.info("Saving model at save-frequency")
+            self.save()
+        self.global_epoch += 1
+
+    def printStepInformation(self):
+        loss_avg = 0.0
+        for lossname in self.losses:
+            loss_avg += (
+                sum(self.losses[lossname][-self.step_verbose :])
+                / self.step_verbose
+            )
+        loss_avg /= self.num_losses
+        soft_avg = sum(self.softaccuracy[-100:]) / float(
+            len(self.softaccuracy[-100:])
+        )
+        self.logger.info(
+            "Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}".format(
+                self.global_epoch, self.global_batch, loss_avg, soft_avg
+            )
+        )
 
     def evaluate(self):
         logit_labels, true_labels, features = self.evaluate_impl()
@@ -321,3 +369,50 @@ class BaseTrainer:
 
     def evaluate_impl(self):
         raise NotImplementedError
+
+
+    def zeroGradOptimizers(self):
+        for optim in self.optimizer:
+            self.optimizer[optim].zero_grad()
+
+    def zeroGradLossOptimizers(self):
+        for lossname in self.loss_fn:
+            if self.loss_optimizer[lossname] is not None:
+                self.loss_optimizer[lossname].zero_grad()
+
+    def stepOptimizers(self):
+        for optim in self.optimizer:
+            self.optimizer[optim].step()
+
+    def stepLossOptimizers(self):
+        for lossname in self.loss_fn:
+            if (
+                self.loss_optimizer[lossname] is not None
+            ):  # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
+                self.loss_optimizer[lossname].step()
+
+    def stepSchedulers(self):
+        for scheduler in self.scheduler:
+            self.scheduler[scheduler].step()
+
+    def stepLossSchedulers(self):
+        for lossname in self.loss_fn:
+            if self.loss_scheduler[lossname] is not None:
+                self.loss_scheduler[lossname].step()
+
+    def printOptimizerLearningRates(self):
+        for param_group_name in self.optimizer:
+            lrs = self.scheduler[param_group_name].get_last_lr()
+            lrs = sum(lrs) / float(len(lrs))
+            self.logger.info(
+                    "Parameter Group `{0}`: Starting epoch {1} with {2} steps and learning rate {3:2.5E}".format(
+                        param_group_name,
+                        self.global_epoch,
+                        len(self.train_loader) - (len(self.train_loader) % 10),
+                        lrs,
+                    )
+                )
+
+
+
+

@@ -64,74 +64,8 @@ class MultiClassificationTrainer(BaseTrainer):
             item: idx for idx, item in enumerate(self.labelMetadata.labels)
         }
 
-    # The train function for the CoLabel model is inherited
-
-    def epoch_step(self, epoch):
-        """Trains for an epoch
-        """
-        for batch in self.train_loader:
-            # Set up scheduled LR
-            if self.global_batch == 0:
-                lrs = self.scheduler.get_last_lr()
-                lrs = sum(lrs) / float(len(lrs))
-                self.logger.info(
-                    "Starting epoch {0} with {1} steps and learning rate {2:2.5E}".format(
-                        epoch,
-                        len(self.train_loader) - (len(self.train_loader) % 10),
-                        lrs,
-                    )
-                )
-
-            # Step through the batch (including loss.backward())
-            self.step(batch)
-            self.global_batch += 1
-
-            if (self.global_batch + 1) % self.step_verbose == 0:
-                loss_avg = 0.0
-                for lossname in self.losses:
-                    loss_avg += (
-                        sum(self.losses[lossname][-self.step_verbose :])
-                        / self.step_verbose
-                    )
-                loss_avg /= self.num_losses
-                soft_avg = sum(self.softaccuracy[-100:]) / float(
-                    len(self.softaccuracy[-100:])
-                )
-                self.logger.info(
-                    "Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}".format(
-                        self.global_epoch, self.global_batch, loss_avg, soft_avg
-                    )
-                )
-
-        self.global_batch = 0
-
-        # Step the lr schedule to update the learning rate
-        self.scheduler.step()
-        for lossname in self.loss_fn:
-            if self.loss_scheduler[lossname] is not None:
-                self.loss_scheduler[lossname].step()
-
-        self.logger.info(
-            "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
-        )
-
-        if self.global_epoch % self.test_frequency == 0:
-            self.logger.info("Evaluating model at test-frequency")
-            self.evaluate()
-        if self.global_epoch % self.save_frequency == 0:
-            self.logger.info("Saving model at save-frequency")
-            self.save()
-        self.global_epoch += 1
-
     # Steps through a batch of data
     def step(self, batch):
-        # Switch the model to training mode
-        self.model.train()
-        self.optimizer.zero_grad()
-        for lossname in self.loss_fn:
-            if self.loss_optimizer[lossname] is not None:
-                self.loss_optimizer[lossname].zero_grad()
-
         batch_kwargs = {}
         (
             img,
@@ -165,12 +99,8 @@ class MultiClassificationTrainer(BaseTrainer):
         # for idx in range(self.num_losses):
         #    loss[idx].backward()
 
-        self.optimizer.step()
-        for lossname in self.loss_fn:
-            if (
-                self.loss_optimizer[lossname] is not None
-            ):  # In case loss object doesn;t have any parameters, this will be None. See optimizers.StandardLossOptimizer
-                self.loss_optimizer[lossname].step()
+        self.stepOptimizers()
+        self.stepLossOptimizers()
 
         for idx, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())

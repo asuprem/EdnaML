@@ -1,8 +1,8 @@
 from typing import List
 from torch import nn
 from ednaml.backbones.multibranchresnet import multibranchresnet
-from ednaml.models import ModelAbstract
-from ednaml.utils import layers
+from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.utils import layers, locate_class
 import torch
 
 
@@ -64,7 +64,7 @@ class MultiBranchResnet(ModelAbstract):
     model_labelorder: List[str]
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, **kwargs
+        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
     ):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
@@ -80,6 +80,7 @@ class MultiBranchResnet(ModelAbstract):
             weights=weights,
             normalization=normalization,
             metadata=metadata,
+            parameter_groups=parameter_groups,
             **kwargs
         )
 
@@ -188,8 +189,7 @@ class MultiBranchResnet(ModelAbstract):
 
         Builds the architecture base/core.
         """
-        _resnet = __import__("backbones.multibranchresnet", fromlist=["resnet"])
-        _resnet = getattr(_resnet, self.model_base)
+        _resnet = locate_class(subpackage="backbones", classpackage=self.model_base, classfile="multibranchresnet")
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
@@ -324,3 +324,6 @@ class MultiBranchResnet(ModelAbstract):
             fused_outs += [self.softmax_fused(fused_features[0])]
 
         return features + fused_features, outputs + fused_outs, []
+
+    def parameter_groups_setup(self, parameter_groups: List[str]):
+        self.parameter_groups[parameter_groups[0]] = self

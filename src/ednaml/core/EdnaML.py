@@ -1,8 +1,8 @@
 import importlib
 import os, shutil, logging, glob, re, json
+from pydoc import locate
 from typing import Dict, List, Type
 import warnings
-import kaptan
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
@@ -14,6 +14,7 @@ from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.trainer.BaseTrainer import BaseTrainer
+from ednaml.utils import locate_class
 import ednaml.utils
 import torch
 from torchinfo import summary
@@ -82,11 +83,12 @@ class EdnaML:
         self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
         self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
         self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
-        self.fp16 = self.cfg.OPTIMIZER.FP16
-
-        self.logger = self.buildLogger(logger=logger)
+        self.fp16 = self.cfg.EXECUTION.FP16
 
         self.makeSaveDirectories()
+        self.logger = self.buildLogger(logger=logger)
+
+        
 
     def buildConfig(self, config: str, handler="yaml") -> EdnaMLConfig:
         """Builds the internal kaptan configuration object
@@ -130,7 +132,7 @@ class EdnaML:
         Args:
             model_base (str): A supported `model_base`, e.g. resnet18, resnet34. See `utils.web.model_weights`.
         """
-        from utils import model_weights
+        from ednaml.utils import model_weights
 
         if model_base in model_weights:
             if os.path.exists(model_weights[model_base][1]):
@@ -155,7 +157,7 @@ class EdnaML:
         """Performs a `quickstart` set-up of EdnaML
         """
         self.setup()
-        self.getPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
+        self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
 
         self.buildDataloaders()
 
@@ -180,12 +182,10 @@ class EdnaML:
     def buildTrainer(self):
         """Builds the EdnaML trainer and sets it up
         """
-        ExecutionTrainer: Type[BaseTrainer] = importlib.import_module(
-            self.cfg.EXECUTION, package="ednaml.trainer"
-        )
+        ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage="trainer",classpackage=self.cfg.EXECUTION.TRAINER)
         self.logger.info(
             "Loaded {} from {} to build Trainer".format(
-                self.cfg.EXECUTION.TRAINER, "trainer"
+                self.cfg.EXECUTION.TRAINER, "ednaml.trainer"
             )
         )
 
@@ -218,7 +218,11 @@ class EdnaML:
             logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
         )
 
-    def getPreviousStop(self):
+    def setPreviousStop(self):
+        """Sets the previous stop
+        """
+        self.previous_stop = self.getPreviousStop()
+    def getPreviousStop(self) -> int:
         """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
         """
         if self.drive_backup:
@@ -236,21 +240,19 @@ class EdnaML:
             if item is not None
         ]
         if len(previous_stop) == 0:
-            self.previous_stop = 0
             self.logger.info("No previous stop detected. Will start from epoch 0")
+            return 0
         else:
-            self.previous_stop = max(previous_stop) + 1
             self.logger.info(
                 "Previous stop detected. Will attempt to resume from epoch %i"
                 % self.previous_stop
             )
+            return max(previous_stop) + 1
 
     def buildOptimizer(self):
         """Builds the optimizer for the model
         """
-        optimizer_builder: Type[BaseOptimizer] = importlib.import_module(
-            self.cfg.EXECUTION.OPTIMIZER_BUILDER, package="ednaml.optimizer"
-        )
+        optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
         self.logger.info(
             "Loaded {} from {} to build Optimizer model".format(
                 self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
@@ -272,7 +274,7 @@ class EdnaML:
             for optimizer_item in self.cfg.OPTIMIZER
         ]
         self.optimizer = [
-            OPT.build(self.model) for OPT in OPT_array
+            OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
         ]  # TODO deal with singleton vs multiple optimizers...
         self.logger.info("Built optimizer")
 
@@ -282,16 +284,12 @@ class EdnaML:
         self.scheduler = [None] * len(self.cfg.SCHEDULER)
         for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
             try:  # We first check if scheduler is part of torch's provided schedulers.
-                scheduler = importlib.import_module(
-                    scheduler_item.LR_SCHEDULER, package="torch.optim.lr_scheduler"
-                )
+                scheduler = locate_class(package="torch.optim", subpackage="lr_scheduler", classpackage=scheduler_item.LR_SCHEDULER)
             except (
                 ModuleNotFoundError,
                 AttributeError,
             ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
-                scheduler = importlib.import_module(
-                    scheduler_item.LR_SCHEDULER, package="ednaml.scheduler"
-                )
+                scheduler = locate_class(subpackage="scheduler", classpackage=scheduler_item.LR_SCHEDULER)
             self.scheduler[idx] = scheduler(
                 self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
             )
@@ -397,7 +395,7 @@ class EdnaML:
                     last_epoch=-1,
                     **loss_scheduler_name_dict[lookup_key].LR_KWARGS
                 )
-                self.logger.info("Built loss scheduler")
+            self.logger.info("Built loss scheduler")
 
     def _setModelTestMode(self):
         """Sets model to test mode if EdnaML is in testing mode
@@ -432,11 +430,9 @@ class EdnaML:
     def buildModel(self):
         """Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
         """
-        model_builder = importlib.import_module(
-            self.cfg.MODEL.BUILDER, package="ednaml.models"
-        )
+        model_builder = locate_class(subpackage="models", classpackage=self.cfg.MODEL.BUILDER)
         self.logger.info(
-            "Loaded {} from {} to build model".format(self.cfg.MODEL.BUILDER, "models")
+            "Loaded {} from {} to build model".format(self.cfg.MODEL.BUILDER, "ednaml.models")
         )
 
         # model_kwargs = self._covert_model_kwargs()
@@ -448,6 +444,7 @@ class EdnaML:
             weights=self.pretrained_weights,
             metadata=self.labelMetadata,
             normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
+            parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
             **self.cfg.MODEL.MODEL_KWARGS
         )
         self.logger.info(
@@ -497,24 +494,20 @@ class EdnaML:
             ],
             depth=3,
             mode="train",
-            verbose=1,
+            verbose=0,
         )
         self.logger.info(str(self.model_summary))
 
     def buildDataloaders(self):
         """Sets up the datareader classes and builds the train and test dataloaders
         """
-        data_reader: Type[DataReader] = importlib.import_module(
-            self.cfg.EXECUTION.DATAREADER.DATAREADER, package="ednaml.datareaders"
-        )
+        data_reader: Type[DataReader] = locate_class(package="ednaml", subpackage="datareaders", classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
         data_reader_instance = data_reader()
         # data_crawler is now data_reader.CRAWLER
         self.logger.info("Reading data with DataReader %s" % data_reader.name)
         # Update the generator...if needed
-        if self.cfg.EXECUTION.DATAREADER.GENERATOR is not None:
-            data_reader_instance.GENERATOR = importlib.import_module(
-                self.cfg.EXECUTION.DATAREADER.GENERATOR, package="ednaml.generators"
-            )
+        if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
+            data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
 
         self.crawler = self.buildCrawlerInstance(data_reader=data_reader_instance)
 
@@ -656,7 +649,7 @@ class EdnaML:
             logger.setLevel(logging.DEBUG)
 
         if not filehandler:
-            fh = logging.FileHandler(logger_save_path)
+            fh = logging.FileHandler(logger_save_path, mode='a', encoding='utf-8')
             fh.setLevel(self.logLevels[self.verbose])
             formatter = logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
             fh.setFormatter(formatter)
@@ -688,7 +681,7 @@ class EdnaML:
         self.logger.info("")
         self.logger.info("")
         self.logger.info("Using the following configuration:")
-        self.logger.info(self.cfg.export("yaml", indent=4))
+        self.logger.info(self.cfg.export())
         self.logger.info("")
         self.logger.info("")
         self.logger.info("*" * 40)

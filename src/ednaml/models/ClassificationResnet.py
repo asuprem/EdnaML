@@ -1,6 +1,7 @@
+from typing import List
 from torch import nn
-from ednaml.models import ModelAbstract
-from utils import layers
+from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.utils import layers, locate_class
 import torch
 
 # CHANGELOG: secondary attention is List, not a single number
@@ -49,13 +50,14 @@ class ClassificationResnet(ModelAbstract):
     secondary_outputs = []
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, **kwargs
+        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
     ):
         super().__init__(
             base=base,
             weights=weights,
             normalization=normalization,
             metadata=metadata,
+            parameter_groups=parameter_groups,
             **kwargs
         )
 
@@ -88,8 +90,7 @@ class ClassificationResnet(ModelAbstract):
 
         Builds the architecture base/core.
         """
-        _resnet = __import__("backbones.resnet", fromlist=["resnet"])
-        _resnet = getattr(_resnet, self.model_base)
+        _resnet = locate_class(subpackage="backbones", classpackage=self.model_base, classfile="resnet")
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
@@ -164,3 +165,6 @@ class ClassificationResnet(ModelAbstract):
             features,
             [],
         )  # soft logits are the softmax logits we will use to for training. We can use features to store the historical probability????
+
+    def parameter_groups_setup(self, parameter_groups: List[str]):
+        self.parameter_groups[parameter_groups[0]] = self

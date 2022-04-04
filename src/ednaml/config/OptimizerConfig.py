@@ -11,7 +11,6 @@ class OptimizerConfig:
     LR_BIAS_FACTOR: float
     WEIGHT_DECAY: float
     WEIGHT_BIAS_FACTOR: float
-    FP16: bool
 
     def __init__(self, optimizer_dict, defaults: ConfigDefaults):
         self.OPTIMIZER_NAME = optimizer_dict.get(
@@ -29,4 +28,3 @@ class OptimizerConfig:
         self.WEIGHT_BIAS_FACTOR = optimizer_dict.get(
             "WEIGHT_BIAS_FACTOR", defaults.WEIGHT_BIAS_FACTOR
         )
-        self.FP16 = optimizer_dict.get("FP16", defaults.FP16)

@@ -2,6 +2,7 @@ import importlib
 import torch
 from ednaml.loss.builders import LossBuilder
 from ednaml.optimizer import BaseOptimizer
+from ednaml.utils import locate_class
 
 
 class StandardLossOptimizer(BaseOptimizer):
@@ -78,6 +79,6 @@ class StandardLossOptimizer(BaseOptimizer):
                 ]
         if len(params) == 0:
             return None
-        optimizer = importlib.import_module(self.optimizer, package="torch.optim")
+        optimizer = locate_class("torch","optim",self.optimizer)
         optimizer = optimizer(params, **self.kwargs)
         return optimizer

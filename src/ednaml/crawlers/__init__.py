@@ -31,9 +31,7 @@ from ednaml.crawlers.ClassedCrawler import ClassedCrawler
 
 # CoLabelCrawlers
 from ednaml.crawlers.CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler
-from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import (
-    CoLabelIntegratedDatasetCrawler,
-)
+from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
 
 KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
 
