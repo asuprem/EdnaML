@@ -73,30 +73,6 @@ def safeimport(path, forceload=0, cache={}):
         except AttributeError: return None
     return module
 
-def dynamic_import(cfg, module_name: str, import_name: str, default: str = None):
-    """ Perform a dynamic import 
-
-    Args:
-        cfg (kaptan Kaptan object): A kaptan configuration object
-        module_name (str): The directory where the module-to-import resides. For example to import a crawler, module_name should be 'crawlers'
-        import_name (str): The key in the kaptan configuration that provides the import name
-        default (str): If import_name does not exist, `default` will be used instead
-
-    Returns:
-        Imported module attribute
-
-    Raises:
-        ModuleNotFoundError (implicit): If provided module is not found
-        AttributeError (implicit): If provided import_name or default does not exist
-    """
-
-    import_name = cfg.get(import_name, default)
-    imported_module = __import__(
-        "%s." % module_name + import_name, fromlist=[import_name]
-    )
-    return getattr(imported_module, import_name)
-
-
 def extend_mean_arguments(
     params_to_fix: List[str] = [0.5, 0.5], channels=3
 ) -> Tuple[List[float]]:

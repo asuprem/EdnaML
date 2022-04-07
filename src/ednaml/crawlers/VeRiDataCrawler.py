@@ -174,7 +174,7 @@ class VeRiDataCrawler:
             )
         )
         self.logger.info(
-            "Tracks\tPID: {:6d}\tCID: {:6d}\Tracks: {:8d}".format(
+            "Tracks\tPID: {:6d}\tCID: {:6d}\tTracks: {:8d}".format(
                 self.metadata["track"]["pid"],
                 self.metadata["track"]["cid"],
                 self.metadata["track"]["imgs"],
