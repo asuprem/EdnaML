@@ -6,7 +6,7 @@ import torch
 import numpy as np
 import ednaml.loss.builders
 from typing import List
-from ednaml.models import MultiBranchResnet
+from ednaml.models.MultiBranchResnet import MultiBranchResnet
 from ednaml.crawlers import Crawler
 from ednaml.trainer import BaseTrainer
 from ednaml.utils.LabelMetadata import LabelMetadata
@@ -91,14 +91,23 @@ class MultiBranchTrainer(BaseTrainer):
 
         loss = {loss_name: None for loss_name in self.loss_fn}
         for lossname in loss:  # this loss targets a specific output
+
             akwargs = {}
 
             akwargs["logits"] = batch_kwargs["logits"][
-                self.model_labelorder[self.model_name_label_map[lossname]]
+                self.model_nameorder[lossname]
             ]  # this looks up the lossname in the outputclass names
-            akwargs["labels"] = batch_kwargs["labels"][
+
+            # Check if this is a loss for a soft target
+            if lossname in self.model.soft_names:
+                # we need to adjust the labels...otherwise, we do not need to adjust labels...
+                akwargs["labels"] = batch_kwargs["logits"][
+                    self.model_nameorder[self.model.soft_target_output_source]
+                ]
+            else:
+                akwargs["labels"] = batch_kwargs["labels"][
                 :, self.data_labelorder[self.model_name_label_map[lossname]]
-            ]  # ^ditto
+                ]  # ^ditto
             akwargs["epoch"] = batch_kwargs["epoch"]
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
@@ -159,7 +168,7 @@ class MultiBranchTrainer(BaseTrainer):
         """
         for idx, lossname in enumerate(self.loss_fn):
             accuracy[idx] = (
-                logit_labels[self.model_labelorder[self.model_name_label_map[lossname]]]
+                logit_labels[self.model_nameorder[lossname]]
                 == labels[:, self.data_labelorder[self.model_name_label_map[lossname]]]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
@@ -168,7 +177,7 @@ class MultiBranchTrainer(BaseTrainer):
                         :, self.data_labelorder[self.model_name_label_map[lossname]]
                     ],
                     logit_labels[
-                        self.model_labelorder[self.model_name_label_map[lossname]]
+                        self.model_nameorder[lossname]
                     ],
                     average="micro",
                 )
@@ -179,7 +188,7 @@ class MultiBranchTrainer(BaseTrainer):
                         :, self.data_labelorder[self.model_name_label_map[lossname]]
                     ],
                     logit_labels[
-                        self.model_labelorder[self.model_name_label_map[lossname]]
+                        self.model_nameorder[lossname]
                     ],
                     average="weighted",
                 )

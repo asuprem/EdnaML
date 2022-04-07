@@ -4,6 +4,7 @@ from typing import Dict, List, Type
 import warnings
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from ednaml.core import EdnaMLBase
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import ImageGenerator
@@ -28,7 +29,7 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 """
 
 
-class EdnaML:
+class EdnaML(EdnaMLBase):
     logLevels = {0: logging.NOTSET, 1: logging.ERROR, 2: logging.INFO, 3: logging.DEBUG}
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
@@ -75,11 +76,22 @@ class EdnaML:
         self.saveMetadata = SaveMetadata(self.cfg)
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
         self.logger = self.buildLogger(logger=logger)
+        self.resetQueues()
 
-        
+    def resetQueues(self):
+        """Resets the `apply()` queue
+        """
+        self._crawlerClassQueue = None
+        self._crawlerArgsQueue = None
+        self._crawlerClassQueueFlag = False
 
-    
+        self._crawlerInstanceQueue = None
+        self._crawlerInstanceQueueFlag = False
+
+
+
     def recordVars(self):
         """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
         of dataloading, model building, etc
@@ -159,6 +171,8 @@ class EdnaML:
         self.buildLossScheduler()
 
         self.buildTrainer()
+
+        self.resetQueues()
 
     def train(self):
         self.trainer.train(continue_epoch=self.previous_stop)
@@ -485,6 +499,33 @@ class EdnaML:
         )
         self.logger.info(str(self.model_summary))
 
+
+    # ----------------------------------------------   DATAREADERS   ----------------------------------------------
+    def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
+        """Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
+
+        The crawler class is added to the internal datareader instance through `apply()`. Then,
+        the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+        to crawl the dataset and yield batches.
+
+        Args:
+            crawler_class (Type[Crawler]): _description_
+        """
+        self._crawlerClassQueue = crawler_class
+        self._crawlerArgsQueue = kwargs
+        self._crawlerClassQueueFlag = True
+
+    def addCrawler(self, crawler_instance: Crawler):
+        """Adds a crawler instance to the EdnaML `apply()` queue.
+
+        Args:
+            crawler_instance (Crawler): _description_
+        """
+        self._crawlerInstanceQueue = crawler_instance
+        self._crawlerInstanceQueueFlag = True
+
+    
+
     def buildDataloaders(self):
         """Sets up the datareader classes and builds the train and test dataloaders
         """
@@ -496,12 +537,19 @@ class EdnaML:
         if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
             data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
 
-        self.crawler = self.buildCrawlerInstance(data_reader=data_reader_instance)
+        if self._crawlerClassQueueFlag:
+            data_reader_instance.CRAWLER = self._crawlerClassQueue
+            self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+
+        if self._crawlerInstanceQueueFlag:
+            self.crawler = self._crawlerInstanceQueue
+        else:
+            self.crawler = self._buildCrawlerInstance(data_reader=data_reader_instance)
 
         self.buildTrainDataloader(data_reader_instance, self.crawler)
         self.buildTestDataloader(data_reader_instance, self.crawler)
 
-    def buildCrawlerInstance(self, data_reader: DataReader) -> Crawler:
+    def _buildCrawlerInstance(self, data_reader: DataReader) -> Crawler:
         """Builds a Crawler instance from the data_reader's provided crawler class in `data_reader.CRAWLER`
 
         Args:
