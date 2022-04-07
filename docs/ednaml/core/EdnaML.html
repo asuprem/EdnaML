@@ -1,0 +1,2465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.core.EdnaML API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.core.EdnaML</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import importlib
+import os, shutil, logging, glob, re
+from typing import Dict, List, Type
+import warnings
+from torchinfo import ModelStatistics
+from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from ednaml.core import EdnaMLBase
+from ednaml.crawlers import Crawler
+from ednaml.datareaders import DataReader
+from ednaml.generators import ImageGenerator
+from ednaml.loss.builders import LossBuilder
+from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.optimizer import BaseOptimizer
+from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
+from ednaml.loss.builders import ClassificationLossBuilder
+from ednaml.trainer.BaseTrainer import BaseTrainer
+from ednaml.utils import locate_class
+import ednaml.utils
+import torch
+from torchinfo import summary
+from ednaml.utils.LabelMetadata import LabelMetadata
+import ednaml.utils.web
+from ednaml.utils.SaveMetadata import SaveMetadata
+import logging
+
+&#34;&#34;&#34;TODO
+
+Verbosity = 0 -&gt; create no logger and use a dummy that print nothing anywhere
+&#34;&#34;&#34;
+
+
+class EdnaML(EdnaMLBase):
+    logLevels = {0: logging.NOTSET, 1: logging.ERROR, 2: logging.INFO, 3: logging.DEBUG}
+    labelMetadata: LabelMetadata
+    modelStatistics: ModelStatistics
+    model: ModelAbstract
+    loss_function_array: List[LossBuilder]
+    loss_optimizer_array: List[torch.optim.Optimizer]
+    optimizer: List[torch.optim.Optimizer]
+    scheduler: List[torch.optim.lr_scheduler._LRScheduler]
+    loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler]
+    previous_stop: int
+    trainer: BaseTrainer
+    crawler: Crawler
+    train_generator: ImageGenerator
+    test_generator: ImageGenerator
+    cfg: EdnaMLConfig
+
+    def __init__(
+        self,
+        config: str = &#34;config.yaml&#34;,
+        mode: str = &#34;train&#34;,
+        weights: str = None,
+        logger: logging.Logger = None,
+        verbose: int = 2,
+    ):
+        &#34;&#34;&#34;Initializes the EdnaML object with the associated config, mode, weights, and verbosity. 
+        Sets up the logger, as well as local logger save directory. 
+
+        Args:
+            config (str, optional): Path to the Edna config file. Defaults to &#34;config.yaml&#34;.
+            mode (str, optional): Either `train` or `test`. Defaults to &#34;train&#34;.
+            weights (str, optional): The path to the weights file. Defaults to None.
+            logger (logging.Logger, optional): A logger. If no logger is provided, EdnaML will construct its own. Defaults to None.
+            verbose (int, optional): Logging verbosity. Defaults to 2.
+        &#34;&#34;&#34;
+
+        self.config = config
+        self.mode = mode
+        self.weights = weights
+        self.pretrained_weights = None
+        self.verbose = verbose
+        self.gpus = torch.cuda.device_count()
+
+        self.cfg = EdnaMLConfig(config)
+        self.saveMetadata = SaveMetadata(self.cfg)
+        os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
+
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+        self.logger = self.buildLogger(logger=logger)
+        self.resetQueues()
+
+    def resetQueues(self):
+        &#34;&#34;&#34;Resets the `apply()` queue
+        &#34;&#34;&#34;
+        self._crawlerClassQueue = None
+        self._crawlerArgsQueue = None
+        self._crawlerClassQueueFlag = False
+
+        self._crawlerInstanceQueue = None
+        self._crawlerInstanceQueueFlag = False
+
+
+
+    def recordVars(self):
+        &#34;&#34;&#34;recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
+        of dataloading, model building, etc
+        &#34;&#34;&#34;
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+        self.previous_stop = 0
+        self.epochs = self.cfg.EXECUTION.EPOCHS
+        self.skipeval = self.cfg.EXECUTION.SKIPEVAL
+        self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
+        self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
+        self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
+        self.fp16 = self.cfg.EXECUTION.FP16
+        self.printConfiguration()
+        self.downloadModelWeights()
+
+    def downloadModelWeights(self):
+        &#34;&#34;&#34;Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
+
+        TODO -- do not throw error for no weights or missing base, if this is a new architecture to be trained from scratch
+        Raises:
+            Warning: If there are no pre-downloaded weights, and the model architecture is unsupported
+        &#34;&#34;&#34;
+        if self.weights is not None:
+            self.logger.info(&#34;Not downloading weights. Weights path already provided.&#34;)
+
+        if self.mode == &#34;train&#34;:
+            self._download_weights_from_base(self.cfg.MODEL.MODEL_BASE)
+        else:
+            if self.weights is None:
+                warnings.warn(
+                    &#34;Mode is `test` but weights is `None`. This will cause issues when EdnaML attempts to load weights&#34;
+                )
+
+    def _download_weights_from_base(self, model_base: str):
+        &#34;&#34;&#34;Downloads weights from a model_base parameter directly from pytorch&#39;s servers.
+
+        Args:
+            model_base (str): A supported `model_base`, e.g. resnet18, resnet34. See `utils.web.model_weights`.
+        &#34;&#34;&#34;
+        from ednaml.utils import model_weights
+
+        if model_base in model_weights:
+            if os.path.exists(model_weights[model_base][1]):
+                pass
+            else:
+                self.logger.info(
+                    &#34;Model weights file {} does not exist. Downloading.&#34;.format(
+                        model_weights[model_base][1]
+                    )
+                )
+                ednaml.utils.web.download(
+                    model_weights[model_base][1], model_weights[model_base][0]
+                )
+            self.pretrained_weights = model_weights[model_base][1]
+        else:
+            warnings.warn(
+                &#34;Model %s is not available. Please choose one of the following: %s if you want to load pretrained weights&#34;
+                % (model_base, str(model_weights.keys()))
+            )
+
+    def apply(self):
+        &#34;&#34;&#34;Applies the internal configuration for EdnaML
+        &#34;&#34;&#34;
+        self.recordVars()
+        self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
+
+        self.buildDataloaders()
+
+        self.buildModel()
+        self.loadWeights()
+        self.getModelSummary()
+        self.buildOptimizer()
+        self.buildScheduler()
+
+        self.buildLossArray()
+        self.buildLossOptimizer()
+        self.buildLossScheduler()
+
+        self.buildTrainer()
+
+        self.resetQueues()
+
+    def train(self):
+        self.trainer.train(continue_epoch=self.previous_stop)
+
+    def eval(self):
+        return self.trainer.evaluate()
+
+    def buildTrainer(self):
+        &#34;&#34;&#34;Builds the EdnaML trainer and sets it up
+        &#34;&#34;&#34;
+        ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage=&#34;trainer&#34;,classpackage=self.cfg.EXECUTION.TRAINER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build Trainer&#34;.format(
+                self.cfg.EXECUTION.TRAINER, &#34;ednaml.trainer&#34;
+            )
+        )
+
+        self.trainer = ExecutionTrainer(
+            model=self.model,
+            loss_fn=self.loss_function_array,
+            optimizer=self.optimizer,
+            loss_optimizer=self.loss_optimizer_array,
+            scheduler=self.scheduler,
+            loss_scheduler=self.loss_scheduler,
+            train_loader=self.train_generator.dataloader,
+            test_loader=self.test_generator.dataloader,
+            epochs=self.epochs,
+            skipeval=self.skipeval,
+            logger=self.logger,
+            crawler=self.crawler,
+            config=self.cfg,
+            labels=self.labelMetadata,
+        )
+        self.trainer.setup(
+            step_verbose=self.step_verbose,
+            save_frequency=self.save_frequency,
+            test_frequency=self.test_frequency,
+            save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+            save_backup=self.drive_backup,
+            backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+            gpus=self.gpus,
+            fp16=self.fp16,
+            model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+            logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+        )
+
+    def setPreviousStop(self):
+        &#34;&#34;&#34;Sets the previous stop
+        &#34;&#34;&#34;
+        self.previous_stop = self.getPreviousStop()
+    def getPreviousStop(self) -&gt; int:
+        &#34;&#34;&#34;Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
+        &#34;&#34;&#34;
+        if self.drive_backup:
+            fl_list = glob.glob(
+                os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, &#34;*.pth&#34;)
+            )
+        else:
+            fl_list = glob.glob(
+                os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, &#34;*.pth&#34;)
+            )
+        _re = re.compile(r&#34;.*epoch([0-9]+)\.pth&#34;)
+        previous_stop = [
+            int(item[1])
+            for item in [_re.search(item) for item in fl_list]
+            if item is not None
+        ]
+        if len(previous_stop) == 0:
+            self.logger.info(&#34;No previous stop detected. Will start from epoch 0&#34;)
+            return 0
+        else:
+            self.logger.info(
+                &#34;Previous stop detected. Will attempt to resume from epoch %i&#34;
+                % self.previous_stop
+            )
+            return max(previous_stop) + 1
+
+    def buildOptimizer(self):
+        &#34;&#34;&#34;Builds the optimizer for the model
+        &#34;&#34;&#34;
+        optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage=&#34;optimizer&#34;, classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build Optimizer model&#34;.format(
+                self.cfg.EXECUTION.OPTIMIZER_BUILDER, &#34;ednaml.optimizer&#34;
+            )
+        )
+
+        # Optimizers are in a list...
+        OPT_array = [
+            optimizer_builder(
+                name=optimizer_item.OPTIMIZER_NAME,
+                optimizer=optimizer_item.OPTIMIZER,
+                base_lr=optimizer_item.BASE_LR,
+                lr_bias=optimizer_item.LR_BIAS_FACTOR,
+                weight_decay=optimizer_item.WEIGHT_DECAY,
+                weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
+                opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
+                gpus=self.gpus,
+            )
+            for optimizer_item in self.cfg.OPTIMIZER
+        ]
+        self.optimizer = [
+            OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+        ]  # TODO deal with singleton vs multiple optimizers...
+        self.logger.info(&#34;Built optimizer&#34;)
+
+    def buildScheduler(self):
+        &#34;&#34;&#34;Builds the scheduler for the model
+        &#34;&#34;&#34;
+        self.scheduler = [None] * len(self.cfg.SCHEDULER)
+        for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
+            try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+                scheduler = locate_class(package=&#34;torch.optim&#34;, subpackage=&#34;lr_scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+            except (
+                ModuleNotFoundError,
+                AttributeError,
+            ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                scheduler = locate_class(subpackage=&#34;scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+            self.scheduler[idx] = scheduler(
+                self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
+            )
+        self.logger.info(&#34;Built scheduler&#34;)
+
+    def buildLossArray(self):
+        &#34;&#34;&#34;Builds the loss function array using the LOSS list in the provided configuration
+        &#34;&#34;&#34;
+        self.loss_function_array = [
+            ClassificationLossBuilder(
+                loss_functions=loss_item.LOSSES,
+                loss_lambda=loss_item.LAMBDAS,
+                loss_kwargs=loss_item.KWARGS,
+                name=loss_item.NAME,  # get(&#34;NAME&#34;, None),
+                label=loss_item.LABEL,  # get(&#34;LABEL&#34;, None),
+                metadata=self.labelMetadata,
+                **{&#34;logger&#34;: self.logger}
+            )
+            for loss_item in self.cfg.LOSS
+        ]
+        self.logger.info(&#34;Built loss function&#34;)
+
+    def buildLossOptimizer(self):
+        &#34;&#34;&#34;Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)
+
+        self.loss_function_array contains a list of LossBuilders. Each LossBuilder 
+        is for a specific output. Here, we build an array of StandardLossOptimizers,
+        one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer 
+        takes as input the same arguments as an Optimizer. However, the name parameter
+        should be the name of the LossBuilder it is targeting.
+
+        If there is no LOSS_OPTIMIZER section in the configuration, the EdnaML config creates a default
+        LOSS_OPTIMIZER, whose parameters we will use.
+
+        &#34;&#34;&#34;
+        loss_optimizer_name_dict = {
+            loss_optim_item.OPTIMIZER_NAME: loss_optim_item
+            for loss_optim_item in self.cfg.LOSS_OPTIMIZER
+        }
+        initial_key = list(loss_optimizer_name_dict.keys())[0]
+        LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
+        for idx, loss_builder in enumerate(self.loss_function_array):
+            if loss_builder.loss_labelname in loss_optimizer_name_dict:
+                # Means we have an optimizer corresponding to this loss
+                lookup_key = loss_builder.loss_labelname
+            else:  # We will use the first optimizer (either default or otherwise, etc, for this)
+                lookup_key = initial_key
+            LOSS_OPT[idx] = StandardLossOptimizer(
+                name=loss_optimizer_name_dict[lookup_key].OPTIMIZER_NAME,
+                optimizer=loss_optimizer_name_dict[lookup_key].OPTIMIZER,
+                base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
+                lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
+                gpus=self.gpus,
+                weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
+                weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
+                opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
+            )
+
+        # Note: build returns None if there are no differentiable parameters
+        self.loss_optimizer_array = [
+            loss_opt.build(loss_builder=self.loss_function_array[idx])
+            for idx, loss_opt in enumerate(LOSS_OPT)
+        ]
+        self.logger.info(&#34;Built loss optimizer&#34;)
+
+    def buildLossScheduler(self):
+        &#34;&#34;&#34;Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.
+        &#34;&#34;&#34;
+        loss_scheduler_name_dict = {
+            loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
+            for loss_schedule_item in self.cfg.LOSS_SCHEDULER
+        }
+        initial_key = list(loss_scheduler_name_dict.keys())[0]
+        self.loss_scheduler = [None] * len(self.loss_optimizer_array)
+
+        for idx, loss_optimizer in enumerate(self.loss_optimizer_array):
+            if (
+                loss_optimizer is not None
+            ):  # In case loss has differentiable parameters, so the optimizer is not None...we look for the loss name
+                if (
+                    self.loss_function_array[idx].loss_labelname
+                    in loss_scheduler_name_dict
+                ):
+                    lookup_key = self.loss_function_array[idx].loss_labelname
+                else:
+                    lookup_key = initial_key
+
+                try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+                    loss_scheduler = importlib.import_module(
+                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                        package=&#34;torch.optim.lr_scheduler&#34;,
+                    )
+                except (
+                    ModuleNotFoundError,
+                    AttributeError,
+                ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                    loss_scheduler = importlib.import_module(
+                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                        package=&#34;ednaml.scheduler&#34;,
+                    )
+                self.loss_scheduler[idx] = loss_scheduler(
+                    loss_optimizer,
+                    last_epoch=-1,
+                    **loss_scheduler_name_dict[lookup_key].LR_KWARGS
+                )
+            self.logger.info(&#34;Built loss scheduler&#34;)
+
+    def _setModelTestMode(self):
+        &#34;&#34;&#34;Sets model to test mode if EdnaML is in testing mode
+        &#34;&#34;&#34;
+        if self.mode == &#34;test&#34;:
+            self.model.eval()
+
+    def _setModelTrainMode(self):
+        &#34;&#34;&#34;Sets the model to train mode if EdnaML is in training mode
+        &#34;&#34;&#34;
+        if self.mode == &#34;train&#34;:
+            self.model.train()
+
+    def _covert_model_kwargs(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;Converts the model_kwargs inside config into the correct format, depending on whether it is provided directly in yaml format, or as a json string
+
+        Returns:
+            Dict[str,Union[str,int]]: Corrected model_kwargs dictionary
+        &#34;&#34;&#34;
+
+        if (
+            type(self.cfg.MODEL.MODEL_KWARGS) is dict
+        ):  # Compatibility with old configs. TODO fix all old configs.
+            model_kwargs_dict = self.cfg.MODEL.MODEL_KWARGS
+        elif type(self.cfg.MODEL.MODEL_KWARGS) is None:
+            model_kwargs_dict = {}
+        elif type(self.cfg.MODEL.MODEL_KWARGS) is str:
+            raise ValueError(&#34;Outdated model_kwargs as str&#34;)
+            # model_kwargs_dict = json.loads(self.cfg.MODEL.MODEL_KWARGS)
+        return model_kwargs_dict
+
+    def buildModel(self):
+        &#34;&#34;&#34;Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
+        &#34;&#34;&#34;
+        model_builder = locate_class(subpackage=&#34;models&#34;, classpackage=self.cfg.MODEL.BUILDER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build model&#34;.format(self.cfg.MODEL.BUILDER, &#34;ednaml.models&#34;)
+        )
+
+        # model_kwargs = self._covert_model_kwargs()
+
+        # TODO!!!!!!!
+        self.model: ModelAbstract = model_builder(
+            arch=self.cfg.MODEL.MODEL_ARCH,
+            base=self.cfg.MODEL.MODEL_BASE,
+            weights=self.pretrained_weights,
+            metadata=self.labelMetadata,
+            normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
+            parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
+            **self.cfg.MODEL.MODEL_KWARGS
+        )
+        self.logger.info(
+            &#34;Finished instantiating model with {} architecture&#34;.format(
+                self.cfg.MODEL.MODEL_ARCH
+            )
+        )
+
+    def loadWeights(self):
+        &#34;&#34;&#34;If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
+        Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
+        &#34;&#34;&#34;
+        if self.mode == &#34;test&#34;:
+            self.model.load_state_dict(torch.load(self.weights))
+        else:
+            if self.weights is None:
+                self.logger.info(&#34;No saved model weights provided.&#34;)
+            else:
+                if (
+                    self.weights != &#34;&#34;
+                ):  # Load weights if train and starting from a another model base...
+                    self.logger.info(
+                        &#34;Commencing partial model load from {}&#34;.format(self.weights)
+                    )
+                    self.model.partial_load(self.weights)
+                    self.logger.info(
+                        &#34;Completed partial model load from {}&#34;.format(self.weights)
+                    )
+
+    def getModelSummary(self):
+        &#34;&#34;&#34;Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
+        &#34;&#34;&#34;
+        self.model.cuda()
+        self.model_summary = summary(
+            self.model,
+            input_size=(
+                self.cfg.TRANSFORMATION.BATCH_SIZE,
+                self.cfg.TRANSFORMATION.CHANNELS,
+                *self.cfg.TRANSFORMATION.SHAPE,
+            ),
+            col_names=[
+                &#34;input_size&#34;,
+                &#34;output_size&#34;,
+                &#34;num_params&#34;,
+                &#34;kernel_size&#34;,
+                &#34;mult_adds&#34;,
+            ],
+            depth=3,
+            mode=&#34;train&#34;,
+            verbose=0,
+        )
+        self.logger.info(str(self.model_summary))
+
+
+    # ----------------------------------------------   DATAREADERS   ----------------------------------------------
+    def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
+        &#34;&#34;&#34;Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
+
+        The crawler class is added to the internal datareader instance through `apply()`. Then,
+        the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+        to crawl the dataset and yield batches.
+
+        Args:
+            crawler_class (Type[Crawler]): _description_
+        &#34;&#34;&#34;
+        self._crawlerClassQueue = crawler_class
+        self._crawlerArgsQueue = kwargs
+        self._crawlerClassQueueFlag = True
+
+    def addCrawler(self, crawler_instance: Crawler):
+        &#34;&#34;&#34;Adds a crawler instance to the EdnaML `apply()` queue.
+
+        Args:
+            crawler_instance (Crawler): _description_
+        &#34;&#34;&#34;
+        self._crawlerInstanceQueue = crawler_instance
+        self._crawlerInstanceQueueFlag = True
+
+    
+
+    def buildDataloaders(self):
+        &#34;&#34;&#34;Sets up the datareader classes and builds the train and test dataloaders
+        &#34;&#34;&#34;
+        data_reader: Type[DataReader] = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;datareaders&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
+        data_reader_instance = data_reader()
+        # data_crawler is now data_reader.CRAWLER
+        self.logger.info(&#34;Reading data with DataReader %s&#34; % data_reader.name)
+        # Update the generator...if needed
+        if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
+            data_reader_instance.GENERATOR = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;generators&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
+
+        if self._crawlerClassQueueFlag:
+            data_reader_instance.CRAWLER = self._crawlerClassQueue
+            self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+
+        if self._crawlerInstanceQueueFlag:
+            self.crawler = self._crawlerInstanceQueue
+        else:
+            self.crawler = self._buildCrawlerInstance(data_reader=data_reader_instance)
+
+        self.buildTrainDataloader(data_reader_instance, self.crawler)
+        self.buildTestDataloader(data_reader_instance, self.crawler)
+
+    def _buildCrawlerInstance(self, data_reader: DataReader) -&gt; Crawler:
+        &#34;&#34;&#34;Builds a Crawler instance from the data_reader&#39;s provided crawler class in `data_reader.CRAWLER`
+
+        Args:
+            data_reader (DataReader): A DataReader class
+
+        Returns:
+            Crawler: A Crawler instanece for this experiment
+        &#34;&#34;&#34;
+        return data_reader.CRAWLER(
+            logger=self.logger, **self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS
+        )
+
+    def buildTrainDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+        &#34;&#34;&#34;Builds a train dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+        Args:
+            data_reader (DataReader): A datareader class
+            crawler_instance (Crawler): A crawler instance
+        &#34;&#34;&#34;
+        self.train_generator: ImageGenerator = data_reader.GENERATOR(
+            gpus=self.gpus,
+            i_shape=self.cfg.TRANSFORMATION.SHAPE,
+            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+            h_flip=self.cfg.TRANSFORMATION.H_FLIP,
+            t_crop=self.cfg.TRANSFORMATION.T_CROP,
+            rea=self.cfg.TRANSFORMATION.RANDOM_ERASE,
+            rea_value=self.cfg.TRANSFORMATION.RANDOM_ERASE_VALUE,
+            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+        )
+
+        self.train_generator.setup(
+            crawler_instance,
+            mode=&#34;train&#34;,
+            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+            workers=self.cfg.TRANSFORMATION.WORKERS,
+            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+        )
+        self.logger.info(&#34;Generated training data generator&#34;)
+        self.labelMetadata = self.train_generator.num_entities
+        self.logger.info(
+            &#34;Running classification model with classes: %s&#34;
+            % str(self.labelMetadata.metadata)
+        )
+
+    def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+        &#34;&#34;&#34;Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+        Args:
+            data_reader (DataReader): A datareader class
+            crawler_instance (Crawler): A crawler instance
+        &#34;&#34;&#34;
+        self.test_generator: ImageGenerator = data_reader.GENERATOR(
+            gpus=self.gpus,
+            i_shape=self.cfg.TRANSFORMATION.SHAPE,
+            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+            h_flip=0,
+            t_crop=False,
+            rea=False,
+            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+        )
+        self.test_generator.setup(
+            crawler_instance,
+            mode=&#34;test&#34;,
+            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+            workers=self.cfg.TRANSFORMATION.WORKERS,
+            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+        )
+        self.logger.info(&#34;Generated validation data/query generator&#34;)
+
+    def buildLogger(self, logger: logging.Logger = None) -&gt; logging.Logger:
+        &#34;&#34;&#34;Builds a new logger or adds the correct file and stream handlers to 
+        existing logger if it does not already have them. 
+
+        Args:
+            logger (logging.Logger, optional): A logger. Defaults to None.
+
+        Returns:
+            logging.Logger: A logger with file and stream handlers.
+        &#34;&#34;&#34;
+        loggerGiven = True
+        if logger is None:
+            logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
+            loggerGiven = False
+
+        logger_save_path = os.path.join(
+            self.saveMetadata.MODEL_SAVE_FOLDER, self.saveMetadata.LOGGER_SAVE_NAME
+        )
+        # Check for backup logger
+        if self.drive_backup:
+            backup_logger = os.path.join(
+                self.saveMetadata.CHECKPOINT_DIRECTORY,
+                self.saveMetadata.LOGGER_SAVE_NAME,
+            )
+            if os.path.exists(backup_logger):
+                print(
+                    &#34;Existing log file exists at network backup %s. Will attempt to copy to local directory %s.&#34;
+                    % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+                )
+                shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+        if os.path.exists(logger_save_path):
+            print(
+                &#34;Log file exists at %s. Will attempt to append there.&#34;
+                % logger_save_path
+            )
+
+        streamhandler = False
+        filehandler = False
+
+        if logger.hasHandlers():
+            for handler in logger.handlers():
+                if isinstance(handler, logging.StreamHandler):
+                    streamhandler = True
+                if isinstance(handler, logging.FileHandler):
+                    if handler.baseFilename == os.path.abspath(logger_save_path):
+                        filehandler = True
+
+        if not loggerGiven:
+            logger.setLevel(logging.DEBUG)
+
+        if not filehandler:
+            fh = logging.FileHandler(logger_save_path, mode=&#39;a&#39;, encoding=&#39;utf-8&#39;)
+            fh.setLevel(self.logLevels[self.verbose])
+            formatter = logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+
+        if not streamhandler:
+            cs = logging.StreamHandler()
+            cs.setLevel(self.logLevels[self.verbose])
+            cs.setFormatter(
+                logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+            )
+            logger.addHandler(cs)
+
+        return logger
+
+    def log(self, message: str, verbose: int = 3):
+        &#34;&#34;&#34;Logs a message. TODO needs to be fixed.
+
+        Args:
+            message (str): Message to log
+            verbose (int, optional): Logging verbosity. Defaults to 3.
+        &#34;&#34;&#34;
+        self.logger.log(self.logLevels[verbose], message)
+
+    def printConfiguration(self):
+        &#34;&#34;&#34;Prints the EdnaML configuration
+        &#34;&#34;&#34;
+        self.logger.info(&#34;*&#34; * 40)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;Using the following configuration:&#34;)
+        self.logger.info(self.cfg.export())
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;*&#34; * 40)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.core.EdnaML.EdnaML"><code class="flex name class">
+<span>class <span class="ident">EdnaML</span></span>
+<span>(</span><span>config: str = 'config.yaml', mode: str = 'train', weights: str = None, logger: logging.Logger = None, verbose: int = 2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes the EdnaML object with the associated config, mode, weights, and verbosity.
+Sets up the logger, as well as local logger save directory. </p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>config</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Path to the Edna config file. Defaults to "config.yaml".</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Either <code>train</code> or <code>test</code>. Defaults to "train".</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The path to the weights file. Defaults to None.</dd>
+<dt><strong><code>logger</code></strong> :&ensp;<code>logging.Logger</code>, optional</dt>
+<dd>A logger. If no logger is provided, EdnaML will construct its own. Defaults to None.</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Logging verbosity. Defaults to 2.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EdnaML(EdnaMLBase):
+    logLevels = {0: logging.NOTSET, 1: logging.ERROR, 2: logging.INFO, 3: logging.DEBUG}
+    labelMetadata: LabelMetadata
+    modelStatistics: ModelStatistics
+    model: ModelAbstract
+    loss_function_array: List[LossBuilder]
+    loss_optimizer_array: List[torch.optim.Optimizer]
+    optimizer: List[torch.optim.Optimizer]
+    scheduler: List[torch.optim.lr_scheduler._LRScheduler]
+    loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler]
+    previous_stop: int
+    trainer: BaseTrainer
+    crawler: Crawler
+    train_generator: ImageGenerator
+    test_generator: ImageGenerator
+    cfg: EdnaMLConfig
+
+    def __init__(
+        self,
+        config: str = &#34;config.yaml&#34;,
+        mode: str = &#34;train&#34;,
+        weights: str = None,
+        logger: logging.Logger = None,
+        verbose: int = 2,
+    ):
+        &#34;&#34;&#34;Initializes the EdnaML object with the associated config, mode, weights, and verbosity. 
+        Sets up the logger, as well as local logger save directory. 
+
+        Args:
+            config (str, optional): Path to the Edna config file. Defaults to &#34;config.yaml&#34;.
+            mode (str, optional): Either `train` or `test`. Defaults to &#34;train&#34;.
+            weights (str, optional): The path to the weights file. Defaults to None.
+            logger (logging.Logger, optional): A logger. If no logger is provided, EdnaML will construct its own. Defaults to None.
+            verbose (int, optional): Logging verbosity. Defaults to 2.
+        &#34;&#34;&#34;
+
+        self.config = config
+        self.mode = mode
+        self.weights = weights
+        self.pretrained_weights = None
+        self.verbose = verbose
+        self.gpus = torch.cuda.device_count()
+
+        self.cfg = EdnaMLConfig(config)
+        self.saveMetadata = SaveMetadata(self.cfg)
+        os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
+
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+        self.logger = self.buildLogger(logger=logger)
+        self.resetQueues()
+
+    def resetQueues(self):
+        &#34;&#34;&#34;Resets the `apply()` queue
+        &#34;&#34;&#34;
+        self._crawlerClassQueue = None
+        self._crawlerArgsQueue = None
+        self._crawlerClassQueueFlag = False
+
+        self._crawlerInstanceQueue = None
+        self._crawlerInstanceQueueFlag = False
+
+
+
+    def recordVars(self):
+        &#34;&#34;&#34;recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
+        of dataloading, model building, etc
+        &#34;&#34;&#34;
+        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+        self.previous_stop = 0
+        self.epochs = self.cfg.EXECUTION.EPOCHS
+        self.skipeval = self.cfg.EXECUTION.SKIPEVAL
+        self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
+        self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
+        self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
+        self.fp16 = self.cfg.EXECUTION.FP16
+        self.printConfiguration()
+        self.downloadModelWeights()
+
+    def downloadModelWeights(self):
+        &#34;&#34;&#34;Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
+
+        TODO -- do not throw error for no weights or missing base, if this is a new architecture to be trained from scratch
+        Raises:
+            Warning: If there are no pre-downloaded weights, and the model architecture is unsupported
+        &#34;&#34;&#34;
+        if self.weights is not None:
+            self.logger.info(&#34;Not downloading weights. Weights path already provided.&#34;)
+
+        if self.mode == &#34;train&#34;:
+            self._download_weights_from_base(self.cfg.MODEL.MODEL_BASE)
+        else:
+            if self.weights is None:
+                warnings.warn(
+                    &#34;Mode is `test` but weights is `None`. This will cause issues when EdnaML attempts to load weights&#34;
+                )
+
+    def _download_weights_from_base(self, model_base: str):
+        &#34;&#34;&#34;Downloads weights from a model_base parameter directly from pytorch&#39;s servers.
+
+        Args:
+            model_base (str): A supported `model_base`, e.g. resnet18, resnet34. See `utils.web.model_weights`.
+        &#34;&#34;&#34;
+        from ednaml.utils import model_weights
+
+        if model_base in model_weights:
+            if os.path.exists(model_weights[model_base][1]):
+                pass
+            else:
+                self.logger.info(
+                    &#34;Model weights file {} does not exist. Downloading.&#34;.format(
+                        model_weights[model_base][1]
+                    )
+                )
+                ednaml.utils.web.download(
+                    model_weights[model_base][1], model_weights[model_base][0]
+                )
+            self.pretrained_weights = model_weights[model_base][1]
+        else:
+            warnings.warn(
+                &#34;Model %s is not available. Please choose one of the following: %s if you want to load pretrained weights&#34;
+                % (model_base, str(model_weights.keys()))
+            )
+
+    def apply(self):
+        &#34;&#34;&#34;Applies the internal configuration for EdnaML
+        &#34;&#34;&#34;
+        self.recordVars()
+        self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
+
+        self.buildDataloaders()
+
+        self.buildModel()
+        self.loadWeights()
+        self.getModelSummary()
+        self.buildOptimizer()
+        self.buildScheduler()
+
+        self.buildLossArray()
+        self.buildLossOptimizer()
+        self.buildLossScheduler()
+
+        self.buildTrainer()
+
+        self.resetQueues()
+
+    def train(self):
+        self.trainer.train(continue_epoch=self.previous_stop)
+
+    def eval(self):
+        return self.trainer.evaluate()
+
+    def buildTrainer(self):
+        &#34;&#34;&#34;Builds the EdnaML trainer and sets it up
+        &#34;&#34;&#34;
+        ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage=&#34;trainer&#34;,classpackage=self.cfg.EXECUTION.TRAINER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build Trainer&#34;.format(
+                self.cfg.EXECUTION.TRAINER, &#34;ednaml.trainer&#34;
+            )
+        )
+
+        self.trainer = ExecutionTrainer(
+            model=self.model,
+            loss_fn=self.loss_function_array,
+            optimizer=self.optimizer,
+            loss_optimizer=self.loss_optimizer_array,
+            scheduler=self.scheduler,
+            loss_scheduler=self.loss_scheduler,
+            train_loader=self.train_generator.dataloader,
+            test_loader=self.test_generator.dataloader,
+            epochs=self.epochs,
+            skipeval=self.skipeval,
+            logger=self.logger,
+            crawler=self.crawler,
+            config=self.cfg,
+            labels=self.labelMetadata,
+        )
+        self.trainer.setup(
+            step_verbose=self.step_verbose,
+            save_frequency=self.save_frequency,
+            test_frequency=self.test_frequency,
+            save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+            save_backup=self.drive_backup,
+            backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+            gpus=self.gpus,
+            fp16=self.fp16,
+            model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+            logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+        )
+
+    def setPreviousStop(self):
+        &#34;&#34;&#34;Sets the previous stop
+        &#34;&#34;&#34;
+        self.previous_stop = self.getPreviousStop()
+    def getPreviousStop(self) -&gt; int:
+        &#34;&#34;&#34;Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
+        &#34;&#34;&#34;
+        if self.drive_backup:
+            fl_list = glob.glob(
+                os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, &#34;*.pth&#34;)
+            )
+        else:
+            fl_list = glob.glob(
+                os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, &#34;*.pth&#34;)
+            )
+        _re = re.compile(r&#34;.*epoch([0-9]+)\.pth&#34;)
+        previous_stop = [
+            int(item[1])
+            for item in [_re.search(item) for item in fl_list]
+            if item is not None
+        ]
+        if len(previous_stop) == 0:
+            self.logger.info(&#34;No previous stop detected. Will start from epoch 0&#34;)
+            return 0
+        else:
+            self.logger.info(
+                &#34;Previous stop detected. Will attempt to resume from epoch %i&#34;
+                % self.previous_stop
+            )
+            return max(previous_stop) + 1
+
+    def buildOptimizer(self):
+        &#34;&#34;&#34;Builds the optimizer for the model
+        &#34;&#34;&#34;
+        optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage=&#34;optimizer&#34;, classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build Optimizer model&#34;.format(
+                self.cfg.EXECUTION.OPTIMIZER_BUILDER, &#34;ednaml.optimizer&#34;
+            )
+        )
+
+        # Optimizers are in a list...
+        OPT_array = [
+            optimizer_builder(
+                name=optimizer_item.OPTIMIZER_NAME,
+                optimizer=optimizer_item.OPTIMIZER,
+                base_lr=optimizer_item.BASE_LR,
+                lr_bias=optimizer_item.LR_BIAS_FACTOR,
+                weight_decay=optimizer_item.WEIGHT_DECAY,
+                weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
+                opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
+                gpus=self.gpus,
+            )
+            for optimizer_item in self.cfg.OPTIMIZER
+        ]
+        self.optimizer = [
+            OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+        ]  # TODO deal with singleton vs multiple optimizers...
+        self.logger.info(&#34;Built optimizer&#34;)
+
+    def buildScheduler(self):
+        &#34;&#34;&#34;Builds the scheduler for the model
+        &#34;&#34;&#34;
+        self.scheduler = [None] * len(self.cfg.SCHEDULER)
+        for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
+            try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+                scheduler = locate_class(package=&#34;torch.optim&#34;, subpackage=&#34;lr_scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+            except (
+                ModuleNotFoundError,
+                AttributeError,
+            ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                scheduler = locate_class(subpackage=&#34;scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+            self.scheduler[idx] = scheduler(
+                self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
+            )
+        self.logger.info(&#34;Built scheduler&#34;)
+
+    def buildLossArray(self):
+        &#34;&#34;&#34;Builds the loss function array using the LOSS list in the provided configuration
+        &#34;&#34;&#34;
+        self.loss_function_array = [
+            ClassificationLossBuilder(
+                loss_functions=loss_item.LOSSES,
+                loss_lambda=loss_item.LAMBDAS,
+                loss_kwargs=loss_item.KWARGS,
+                name=loss_item.NAME,  # get(&#34;NAME&#34;, None),
+                label=loss_item.LABEL,  # get(&#34;LABEL&#34;, None),
+                metadata=self.labelMetadata,
+                **{&#34;logger&#34;: self.logger}
+            )
+            for loss_item in self.cfg.LOSS
+        ]
+        self.logger.info(&#34;Built loss function&#34;)
+
+    def buildLossOptimizer(self):
+        &#34;&#34;&#34;Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)
+
+        self.loss_function_array contains a list of LossBuilders. Each LossBuilder 
+        is for a specific output. Here, we build an array of StandardLossOptimizers,
+        one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer 
+        takes as input the same arguments as an Optimizer. However, the name parameter
+        should be the name of the LossBuilder it is targeting.
+
+        If there is no LOSS_OPTIMIZER section in the configuration, the EdnaML config creates a default
+        LOSS_OPTIMIZER, whose parameters we will use.
+
+        &#34;&#34;&#34;
+        loss_optimizer_name_dict = {
+            loss_optim_item.OPTIMIZER_NAME: loss_optim_item
+            for loss_optim_item in self.cfg.LOSS_OPTIMIZER
+        }
+        initial_key = list(loss_optimizer_name_dict.keys())[0]
+        LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
+        for idx, loss_builder in enumerate(self.loss_function_array):
+            if loss_builder.loss_labelname in loss_optimizer_name_dict:
+                # Means we have an optimizer corresponding to this loss
+                lookup_key = loss_builder.loss_labelname
+            else:  # We will use the first optimizer (either default or otherwise, etc, for this)
+                lookup_key = initial_key
+            LOSS_OPT[idx] = StandardLossOptimizer(
+                name=loss_optimizer_name_dict[lookup_key].OPTIMIZER_NAME,
+                optimizer=loss_optimizer_name_dict[lookup_key].OPTIMIZER,
+                base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
+                lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
+                gpus=self.gpus,
+                weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
+                weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
+                opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
+            )
+
+        # Note: build returns None if there are no differentiable parameters
+        self.loss_optimizer_array = [
+            loss_opt.build(loss_builder=self.loss_function_array[idx])
+            for idx, loss_opt in enumerate(LOSS_OPT)
+        ]
+        self.logger.info(&#34;Built loss optimizer&#34;)
+
+    def buildLossScheduler(self):
+        &#34;&#34;&#34;Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.
+        &#34;&#34;&#34;
+        loss_scheduler_name_dict = {
+            loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
+            for loss_schedule_item in self.cfg.LOSS_SCHEDULER
+        }
+        initial_key = list(loss_scheduler_name_dict.keys())[0]
+        self.loss_scheduler = [None] * len(self.loss_optimizer_array)
+
+        for idx, loss_optimizer in enumerate(self.loss_optimizer_array):
+            if (
+                loss_optimizer is not None
+            ):  # In case loss has differentiable parameters, so the optimizer is not None...we look for the loss name
+                if (
+                    self.loss_function_array[idx].loss_labelname
+                    in loss_scheduler_name_dict
+                ):
+                    lookup_key = self.loss_function_array[idx].loss_labelname
+                else:
+                    lookup_key = initial_key
+
+                try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+                    loss_scheduler = importlib.import_module(
+                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                        package=&#34;torch.optim.lr_scheduler&#34;,
+                    )
+                except (
+                    ModuleNotFoundError,
+                    AttributeError,
+                ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                    loss_scheduler = importlib.import_module(
+                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                        package=&#34;ednaml.scheduler&#34;,
+                    )
+                self.loss_scheduler[idx] = loss_scheduler(
+                    loss_optimizer,
+                    last_epoch=-1,
+                    **loss_scheduler_name_dict[lookup_key].LR_KWARGS
+                )
+            self.logger.info(&#34;Built loss scheduler&#34;)
+
+    def _setModelTestMode(self):
+        &#34;&#34;&#34;Sets model to test mode if EdnaML is in testing mode
+        &#34;&#34;&#34;
+        if self.mode == &#34;test&#34;:
+            self.model.eval()
+
+    def _setModelTrainMode(self):
+        &#34;&#34;&#34;Sets the model to train mode if EdnaML is in training mode
+        &#34;&#34;&#34;
+        if self.mode == &#34;train&#34;:
+            self.model.train()
+
+    def _covert_model_kwargs(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;Converts the model_kwargs inside config into the correct format, depending on whether it is provided directly in yaml format, or as a json string
+
+        Returns:
+            Dict[str,Union[str,int]]: Corrected model_kwargs dictionary
+        &#34;&#34;&#34;
+
+        if (
+            type(self.cfg.MODEL.MODEL_KWARGS) is dict
+        ):  # Compatibility with old configs. TODO fix all old configs.
+            model_kwargs_dict = self.cfg.MODEL.MODEL_KWARGS
+        elif type(self.cfg.MODEL.MODEL_KWARGS) is None:
+            model_kwargs_dict = {}
+        elif type(self.cfg.MODEL.MODEL_KWARGS) is str:
+            raise ValueError(&#34;Outdated model_kwargs as str&#34;)
+            # model_kwargs_dict = json.loads(self.cfg.MODEL.MODEL_KWARGS)
+        return model_kwargs_dict
+
+    def buildModel(self):
+        &#34;&#34;&#34;Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
+        &#34;&#34;&#34;
+        model_builder = locate_class(subpackage=&#34;models&#34;, classpackage=self.cfg.MODEL.BUILDER)
+        self.logger.info(
+            &#34;Loaded {} from {} to build model&#34;.format(self.cfg.MODEL.BUILDER, &#34;ednaml.models&#34;)
+        )
+
+        # model_kwargs = self._covert_model_kwargs()
+
+        # TODO!!!!!!!
+        self.model: ModelAbstract = model_builder(
+            arch=self.cfg.MODEL.MODEL_ARCH,
+            base=self.cfg.MODEL.MODEL_BASE,
+            weights=self.pretrained_weights,
+            metadata=self.labelMetadata,
+            normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
+            parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
+            **self.cfg.MODEL.MODEL_KWARGS
+        )
+        self.logger.info(
+            &#34;Finished instantiating model with {} architecture&#34;.format(
+                self.cfg.MODEL.MODEL_ARCH
+            )
+        )
+
+    def loadWeights(self):
+        &#34;&#34;&#34;If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
+        Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
+        &#34;&#34;&#34;
+        if self.mode == &#34;test&#34;:
+            self.model.load_state_dict(torch.load(self.weights))
+        else:
+            if self.weights is None:
+                self.logger.info(&#34;No saved model weights provided.&#34;)
+            else:
+                if (
+                    self.weights != &#34;&#34;
+                ):  # Load weights if train and starting from a another model base...
+                    self.logger.info(
+                        &#34;Commencing partial model load from {}&#34;.format(self.weights)
+                    )
+                    self.model.partial_load(self.weights)
+                    self.logger.info(
+                        &#34;Completed partial model load from {}&#34;.format(self.weights)
+                    )
+
+    def getModelSummary(self):
+        &#34;&#34;&#34;Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
+        &#34;&#34;&#34;
+        self.model.cuda()
+        self.model_summary = summary(
+            self.model,
+            input_size=(
+                self.cfg.TRANSFORMATION.BATCH_SIZE,
+                self.cfg.TRANSFORMATION.CHANNELS,
+                *self.cfg.TRANSFORMATION.SHAPE,
+            ),
+            col_names=[
+                &#34;input_size&#34;,
+                &#34;output_size&#34;,
+                &#34;num_params&#34;,
+                &#34;kernel_size&#34;,
+                &#34;mult_adds&#34;,
+            ],
+            depth=3,
+            mode=&#34;train&#34;,
+            verbose=0,
+        )
+        self.logger.info(str(self.model_summary))
+
+
+    # ----------------------------------------------   DATAREADERS   ----------------------------------------------
+    def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
+        &#34;&#34;&#34;Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
+
+        The crawler class is added to the internal datareader instance through `apply()`. Then,
+        the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+        to crawl the dataset and yield batches.
+
+        Args:
+            crawler_class (Type[Crawler]): _description_
+        &#34;&#34;&#34;
+        self._crawlerClassQueue = crawler_class
+        self._crawlerArgsQueue = kwargs
+        self._crawlerClassQueueFlag = True
+
+    def addCrawler(self, crawler_instance: Crawler):
+        &#34;&#34;&#34;Adds a crawler instance to the EdnaML `apply()` queue.
+
+        Args:
+            crawler_instance (Crawler): _description_
+        &#34;&#34;&#34;
+        self._crawlerInstanceQueue = crawler_instance
+        self._crawlerInstanceQueueFlag = True
+
+    
+
+    def buildDataloaders(self):
+        &#34;&#34;&#34;Sets up the datareader classes and builds the train and test dataloaders
+        &#34;&#34;&#34;
+        data_reader: Type[DataReader] = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;datareaders&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
+        data_reader_instance = data_reader()
+        # data_crawler is now data_reader.CRAWLER
+        self.logger.info(&#34;Reading data with DataReader %s&#34; % data_reader.name)
+        # Update the generator...if needed
+        if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
+            data_reader_instance.GENERATOR = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;generators&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
+
+        if self._crawlerClassQueueFlag:
+            data_reader_instance.CRAWLER = self._crawlerClassQueue
+            self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+
+        if self._crawlerInstanceQueueFlag:
+            self.crawler = self._crawlerInstanceQueue
+        else:
+            self.crawler = self._buildCrawlerInstance(data_reader=data_reader_instance)
+
+        self.buildTrainDataloader(data_reader_instance, self.crawler)
+        self.buildTestDataloader(data_reader_instance, self.crawler)
+
+    def _buildCrawlerInstance(self, data_reader: DataReader) -&gt; Crawler:
+        &#34;&#34;&#34;Builds a Crawler instance from the data_reader&#39;s provided crawler class in `data_reader.CRAWLER`
+
+        Args:
+            data_reader (DataReader): A DataReader class
+
+        Returns:
+            Crawler: A Crawler instanece for this experiment
+        &#34;&#34;&#34;
+        return data_reader.CRAWLER(
+            logger=self.logger, **self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS
+        )
+
+    def buildTrainDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+        &#34;&#34;&#34;Builds a train dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+        Args:
+            data_reader (DataReader): A datareader class
+            crawler_instance (Crawler): A crawler instance
+        &#34;&#34;&#34;
+        self.train_generator: ImageGenerator = data_reader.GENERATOR(
+            gpus=self.gpus,
+            i_shape=self.cfg.TRANSFORMATION.SHAPE,
+            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+            h_flip=self.cfg.TRANSFORMATION.H_FLIP,
+            t_crop=self.cfg.TRANSFORMATION.T_CROP,
+            rea=self.cfg.TRANSFORMATION.RANDOM_ERASE,
+            rea_value=self.cfg.TRANSFORMATION.RANDOM_ERASE_VALUE,
+            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+        )
+
+        self.train_generator.setup(
+            crawler_instance,
+            mode=&#34;train&#34;,
+            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+            workers=self.cfg.TRANSFORMATION.WORKERS,
+            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+        )
+        self.logger.info(&#34;Generated training data generator&#34;)
+        self.labelMetadata = self.train_generator.num_entities
+        self.logger.info(
+            &#34;Running classification model with classes: %s&#34;
+            % str(self.labelMetadata.metadata)
+        )
+
+    def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+        &#34;&#34;&#34;Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+        Args:
+            data_reader (DataReader): A datareader class
+            crawler_instance (Crawler): A crawler instance
+        &#34;&#34;&#34;
+        self.test_generator: ImageGenerator = data_reader.GENERATOR(
+            gpus=self.gpus,
+            i_shape=self.cfg.TRANSFORMATION.SHAPE,
+            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+            h_flip=0,
+            t_crop=False,
+            rea=False,
+            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+        )
+        self.test_generator.setup(
+            crawler_instance,
+            mode=&#34;test&#34;,
+            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+            workers=self.cfg.TRANSFORMATION.WORKERS,
+            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+        )
+        self.logger.info(&#34;Generated validation data/query generator&#34;)
+
+    def buildLogger(self, logger: logging.Logger = None) -&gt; logging.Logger:
+        &#34;&#34;&#34;Builds a new logger or adds the correct file and stream handlers to 
+        existing logger if it does not already have them. 
+
+        Args:
+            logger (logging.Logger, optional): A logger. Defaults to None.
+
+        Returns:
+            logging.Logger: A logger with file and stream handlers.
+        &#34;&#34;&#34;
+        loggerGiven = True
+        if logger is None:
+            logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
+            loggerGiven = False
+
+        logger_save_path = os.path.join(
+            self.saveMetadata.MODEL_SAVE_FOLDER, self.saveMetadata.LOGGER_SAVE_NAME
+        )
+        # Check for backup logger
+        if self.drive_backup:
+            backup_logger = os.path.join(
+                self.saveMetadata.CHECKPOINT_DIRECTORY,
+                self.saveMetadata.LOGGER_SAVE_NAME,
+            )
+            if os.path.exists(backup_logger):
+                print(
+                    &#34;Existing log file exists at network backup %s. Will attempt to copy to local directory %s.&#34;
+                    % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+                )
+                shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+        if os.path.exists(logger_save_path):
+            print(
+                &#34;Log file exists at %s. Will attempt to append there.&#34;
+                % logger_save_path
+            )
+
+        streamhandler = False
+        filehandler = False
+
+        if logger.hasHandlers():
+            for handler in logger.handlers():
+                if isinstance(handler, logging.StreamHandler):
+                    streamhandler = True
+                if isinstance(handler, logging.FileHandler):
+                    if handler.baseFilename == os.path.abspath(logger_save_path):
+                        filehandler = True
+
+        if not loggerGiven:
+            logger.setLevel(logging.DEBUG)
+
+        if not filehandler:
+            fh = logging.FileHandler(logger_save_path, mode=&#39;a&#39;, encoding=&#39;utf-8&#39;)
+            fh.setLevel(self.logLevels[self.verbose])
+            formatter = logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+
+        if not streamhandler:
+            cs = logging.StreamHandler()
+            cs.setLevel(self.logLevels[self.verbose])
+            cs.setFormatter(
+                logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+            )
+            logger.addHandler(cs)
+
+        return logger
+
+    def log(self, message: str, verbose: int = 3):
+        &#34;&#34;&#34;Logs a message. TODO needs to be fixed.
+
+        Args:
+            message (str): Message to log
+            verbose (int, optional): Logging verbosity. Defaults to 3.
+        &#34;&#34;&#34;
+        self.logger.log(self.logLevels[verbose], message)
+
+    def printConfiguration(self):
+        &#34;&#34;&#34;Prints the EdnaML configuration
+        &#34;&#34;&#34;
+        self.logger.info(&#34;*&#34; * 40)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;Using the following configuration:&#34;)
+        self.logger.info(self.cfg.export())
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;&#34;)
+        self.logger.info(&#34;*&#34; * 40)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ednaml.core.EdnaMLBase" href="index.html#ednaml.core.EdnaMLBase">EdnaMLBase</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.core.EdnaML.EdnaML.cfg"><code class="name">var <span class="ident">cfg</span> : <a title="ednaml.config.EdnaMLConfig.EdnaMLConfig" href="../config/EdnaMLConfig.html#ednaml.config.EdnaMLConfig.EdnaMLConfig">EdnaMLConfig</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.crawler"><code class="name">var <span class="ident">crawler</span> : <a title="ednaml.crawlers.Crawler" href="../crawlers/index.html#ednaml.crawlers.Crawler">Crawler</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.labelMetadata"><code class="name">var <span class="ident">labelMetadata</span> : <a title="ednaml.utils.LabelMetadata.LabelMetadata" href="../utils/LabelMetadata.html#ednaml.utils.LabelMetadata.LabelMetadata">LabelMetadata</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.logLevels"><code class="name">var <span class="ident">logLevels</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.loss_function_array"><code class="name">var <span class="ident">loss_function_array</span> : List[<a title="ednaml.loss.builders.LossBuilder" href="../loss/builders/index.html#ednaml.loss.builders.LossBuilder">LossBuilder</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.loss_optimizer_array"><code class="name">var <span class="ident">loss_optimizer_array</span> : List[torch.optim.optimizer.Optimizer]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.loss_scheduler"><code class="name">var <span class="ident">loss_scheduler</span> : List[torch.optim.lr_scheduler._LRScheduler]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.model"><code class="name">var <span class="ident">model</span> : <a title="ednaml.models.ModelAbstract.ModelAbstract" href="../models/ModelAbstract.html#ednaml.models.ModelAbstract.ModelAbstract">ModelAbstract</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.modelStatistics"><code class="name">var <span class="ident">modelStatistics</span> : torchinfo.model_statistics.ModelStatistics</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.optimizer"><code class="name">var <span class="ident">optimizer</span> : List[torch.optim.optimizer.Optimizer]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.previous_stop"><code class="name">var <span class="ident">previous_stop</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.scheduler"><code class="name">var <span class="ident">scheduler</span> : List[torch.optim.lr_scheduler._LRScheduler]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.test_generator"><code class="name">var <span class="ident">test_generator</span> : <a title="ednaml.generators.ImageGenerator" href="../generators/index.html#ednaml.generators.ImageGenerator">ImageGenerator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.train_generator"><code class="name">var <span class="ident">train_generator</span> : <a title="ednaml.generators.ImageGenerator" href="../generators/index.html#ednaml.generators.ImageGenerator">ImageGenerator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.trainer"><code class="name">var <span class="ident">trainer</span> : <a title="ednaml.trainer.BaseTrainer.BaseTrainer" href="../trainer/BaseTrainer.html#ednaml.trainer.BaseTrainer.BaseTrainer">BaseTrainer</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.core.EdnaML.EdnaML.addCrawler"><code class="name flex">
+<span>def <span class="ident">addCrawler</span></span>(<span>self, crawler_instance: <a title="ednaml.crawlers.Crawler" href="../crawlers/index.html#ednaml.crawlers.Crawler">Crawler</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a crawler instance to the EdnaML <code>apply()</code> queue.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>crawler_instance</code></strong> :&ensp;<code>Crawler</code></dt>
+<dd><em>description</em></dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addCrawler(self, crawler_instance: Crawler):
+    &#34;&#34;&#34;Adds a crawler instance to the EdnaML `apply()` queue.
+
+    Args:
+        crawler_instance (Crawler): _description_
+    &#34;&#34;&#34;
+    self._crawlerInstanceQueue = crawler_instance
+    self._crawlerInstanceQueueFlag = True</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.addCrawlerClass"><code class="name flex">
+<span>def <span class="ident">addCrawlerClass</span></span>(<span>self, crawler_class: Type[<a title="ednaml.crawlers.Crawler" href="../crawlers/index.html#ednaml.crawlers.Crawler">Crawler</a>], **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a crawler class to the EdnaML <code>apply()</code> queue. This will be applied to the configuration when calling <code>apply()</code></p>
+<p>The crawler class is added to the internal datareader instance through <code>apply()</code>. Then,
+the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+to crawl the dataset and yield batches.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>crawler_class</code></strong> :&ensp;<code>Type[Crawler]</code></dt>
+<dd><em>description</em></dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
+    &#34;&#34;&#34;Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
+
+    The crawler class is added to the internal datareader instance through `apply()`. Then,
+    the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+    to crawl the dataset and yield batches.
+
+    Args:
+        crawler_class (Type[Crawler]): _description_
+    &#34;&#34;&#34;
+    self._crawlerClassQueue = crawler_class
+    self._crawlerArgsQueue = kwargs
+    self._crawlerClassQueueFlag = True</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.apply"><code class="name flex">
+<span>def <span class="ident">apply</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies the internal configuration for EdnaML</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def apply(self):
+    &#34;&#34;&#34;Applies the internal configuration for EdnaML
+    &#34;&#34;&#34;
+    self.recordVars()
+    self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
+
+    self.buildDataloaders()
+
+    self.buildModel()
+    self.loadWeights()
+    self.getModelSummary()
+    self.buildOptimizer()
+    self.buildScheduler()
+
+    self.buildLossArray()
+    self.buildLossOptimizer()
+    self.buildLossScheduler()
+
+    self.buildTrainer()
+
+    self.resetQueues()</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildDataloaders"><code class="name flex">
+<span>def <span class="ident">buildDataloaders</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets up the datareader classes and builds the train and test dataloaders</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildDataloaders(self):
+    &#34;&#34;&#34;Sets up the datareader classes and builds the train and test dataloaders
+    &#34;&#34;&#34;
+    data_reader: Type[DataReader] = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;datareaders&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
+    data_reader_instance = data_reader()
+    # data_crawler is now data_reader.CRAWLER
+    self.logger.info(&#34;Reading data with DataReader %s&#34; % data_reader.name)
+    # Update the generator...if needed
+    if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
+        data_reader_instance.GENERATOR = locate_class(package=&#34;ednaml&#34;, subpackage=&#34;generators&#34;, classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
+
+    if self._crawlerClassQueueFlag:
+        data_reader_instance.CRAWLER = self._crawlerClassQueue
+        self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+
+    if self._crawlerInstanceQueueFlag:
+        self.crawler = self._crawlerInstanceQueue
+    else:
+        self.crawler = self._buildCrawlerInstance(data_reader=data_reader_instance)
+
+    self.buildTrainDataloader(data_reader_instance, self.crawler)
+    self.buildTestDataloader(data_reader_instance, self.crawler)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildLogger"><code class="name flex">
+<span>def <span class="ident">buildLogger</span></span>(<span>self, logger: logging.Logger = None) ‑> logging.Logger</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds a new logger or adds the correct file and stream handlers to
+existing logger if it does not already have them. </p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>logger</code></strong> :&ensp;<code>logging.Logger</code>, optional</dt>
+<dd>A logger. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>logging.Logger</code></dt>
+<dd>A logger with file and stream handlers.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildLogger(self, logger: logging.Logger = None) -&gt; logging.Logger:
+    &#34;&#34;&#34;Builds a new logger or adds the correct file and stream handlers to 
+    existing logger if it does not already have them. 
+
+    Args:
+        logger (logging.Logger, optional): A logger. Defaults to None.
+
+    Returns:
+        logging.Logger: A logger with file and stream handlers.
+    &#34;&#34;&#34;
+    loggerGiven = True
+    if logger is None:
+        logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
+        loggerGiven = False
+
+    logger_save_path = os.path.join(
+        self.saveMetadata.MODEL_SAVE_FOLDER, self.saveMetadata.LOGGER_SAVE_NAME
+    )
+    # Check for backup logger
+    if self.drive_backup:
+        backup_logger = os.path.join(
+            self.saveMetadata.CHECKPOINT_DIRECTORY,
+            self.saveMetadata.LOGGER_SAVE_NAME,
+        )
+        if os.path.exists(backup_logger):
+            print(
+                &#34;Existing log file exists at network backup %s. Will attempt to copy to local directory %s.&#34;
+                % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+            )
+            shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
+    if os.path.exists(logger_save_path):
+        print(
+            &#34;Log file exists at %s. Will attempt to append there.&#34;
+            % logger_save_path
+        )
+
+    streamhandler = False
+    filehandler = False
+
+    if logger.hasHandlers():
+        for handler in logger.handlers():
+            if isinstance(handler, logging.StreamHandler):
+                streamhandler = True
+            if isinstance(handler, logging.FileHandler):
+                if handler.baseFilename == os.path.abspath(logger_save_path):
+                    filehandler = True
+
+    if not loggerGiven:
+        logger.setLevel(logging.DEBUG)
+
+    if not filehandler:
+        fh = logging.FileHandler(logger_save_path, mode=&#39;a&#39;, encoding=&#39;utf-8&#39;)
+        fh.setLevel(self.logLevels[self.verbose])
+        formatter = logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    if not streamhandler:
+        cs = logging.StreamHandler()
+        cs.setLevel(self.logLevels[self.verbose])
+        cs.setFormatter(
+            logging.Formatter(&#34;%(asctime)s %(message)s&#34;, datefmt=&#34;%H:%M:%S&#34;)
+        )
+        logger.addHandler(cs)
+
+    return logger</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildLossArray"><code class="name flex">
+<span>def <span class="ident">buildLossArray</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the loss function array using the LOSS list in the provided configuration</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildLossArray(self):
+    &#34;&#34;&#34;Builds the loss function array using the LOSS list in the provided configuration
+    &#34;&#34;&#34;
+    self.loss_function_array = [
+        ClassificationLossBuilder(
+            loss_functions=loss_item.LOSSES,
+            loss_lambda=loss_item.LAMBDAS,
+            loss_kwargs=loss_item.KWARGS,
+            name=loss_item.NAME,  # get(&#34;NAME&#34;, None),
+            label=loss_item.LABEL,  # get(&#34;LABEL&#34;, None),
+            metadata=self.labelMetadata,
+            **{&#34;logger&#34;: self.logger}
+        )
+        for loss_item in self.cfg.LOSS
+    ]
+    self.logger.info(&#34;Built loss function&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildLossOptimizer"><code class="name flex">
+<span>def <span class="ident">buildLossOptimizer</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)</p>
+<p>self.loss_function_array contains a list of LossBuilders. Each LossBuilder
+is for a specific output. Here, we build an array of StandardLossOptimizers,
+one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer
+takes as input the same arguments as an Optimizer. However, the name parameter
+should be the name of the LossBuilder it is targeting.</p>
+<p>If there is no LOSS_OPTIMIZER section in the configuration, the EdnaML config creates a default
+LOSS_OPTIMIZER, whose parameters we will use.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildLossOptimizer(self):
+    &#34;&#34;&#34;Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)
+
+    self.loss_function_array contains a list of LossBuilders. Each LossBuilder 
+    is for a specific output. Here, we build an array of StandardLossOptimizers,
+    one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer 
+    takes as input the same arguments as an Optimizer. However, the name parameter
+    should be the name of the LossBuilder it is targeting.
+
+    If there is no LOSS_OPTIMIZER section in the configuration, the EdnaML config creates a default
+    LOSS_OPTIMIZER, whose parameters we will use.
+
+    &#34;&#34;&#34;
+    loss_optimizer_name_dict = {
+        loss_optim_item.OPTIMIZER_NAME: loss_optim_item
+        for loss_optim_item in self.cfg.LOSS_OPTIMIZER
+    }
+    initial_key = list(loss_optimizer_name_dict.keys())[0]
+    LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
+    for idx, loss_builder in enumerate(self.loss_function_array):
+        if loss_builder.loss_labelname in loss_optimizer_name_dict:
+            # Means we have an optimizer corresponding to this loss
+            lookup_key = loss_builder.loss_labelname
+        else:  # We will use the first optimizer (either default or otherwise, etc, for this)
+            lookup_key = initial_key
+        LOSS_OPT[idx] = StandardLossOptimizer(
+            name=loss_optimizer_name_dict[lookup_key].OPTIMIZER_NAME,
+            optimizer=loss_optimizer_name_dict[lookup_key].OPTIMIZER,
+            base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
+            lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
+            gpus=self.gpus,
+            weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
+            weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
+            opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
+        )
+
+    # Note: build returns None if there are no differentiable parameters
+    self.loss_optimizer_array = [
+        loss_opt.build(loss_builder=self.loss_function_array[idx])
+        for idx, loss_opt in enumerate(LOSS_OPT)
+    ]
+    self.logger.info(&#34;Built loss optimizer&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildLossScheduler"><code class="name flex">
+<span>def <span class="ident">buildLossScheduler</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildLossScheduler(self):
+    &#34;&#34;&#34;Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.
+    &#34;&#34;&#34;
+    loss_scheduler_name_dict = {
+        loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
+        for loss_schedule_item in self.cfg.LOSS_SCHEDULER
+    }
+    initial_key = list(loss_scheduler_name_dict.keys())[0]
+    self.loss_scheduler = [None] * len(self.loss_optimizer_array)
+
+    for idx, loss_optimizer in enumerate(self.loss_optimizer_array):
+        if (
+            loss_optimizer is not None
+        ):  # In case loss has differentiable parameters, so the optimizer is not None...we look for the loss name
+            if (
+                self.loss_function_array[idx].loss_labelname
+                in loss_scheduler_name_dict
+            ):
+                lookup_key = self.loss_function_array[idx].loss_labelname
+            else:
+                lookup_key = initial_key
+
+            try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+                loss_scheduler = importlib.import_module(
+                    loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                    package=&#34;torch.optim.lr_scheduler&#34;,
+                )
+            except (
+                ModuleNotFoundError,
+                AttributeError,
+            ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                loss_scheduler = importlib.import_module(
+                    loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                    package=&#34;ednaml.scheduler&#34;,
+                )
+            self.loss_scheduler[idx] = loss_scheduler(
+                loss_optimizer,
+                last_epoch=-1,
+                **loss_scheduler_name_dict[lookup_key].LR_KWARGS
+            )
+        self.logger.info(&#34;Built loss scheduler&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildModel"><code class="name flex">
+<span>def <span class="ident">buildModel</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildModel(self):
+    &#34;&#34;&#34;Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
+    &#34;&#34;&#34;
+    model_builder = locate_class(subpackage=&#34;models&#34;, classpackage=self.cfg.MODEL.BUILDER)
+    self.logger.info(
+        &#34;Loaded {} from {} to build model&#34;.format(self.cfg.MODEL.BUILDER, &#34;ednaml.models&#34;)
+    )
+
+    # model_kwargs = self._covert_model_kwargs()
+
+    # TODO!!!!!!!
+    self.model: ModelAbstract = model_builder(
+        arch=self.cfg.MODEL.MODEL_ARCH,
+        base=self.cfg.MODEL.MODEL_BASE,
+        weights=self.pretrained_weights,
+        metadata=self.labelMetadata,
+        normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
+        parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
+        **self.cfg.MODEL.MODEL_KWARGS
+    )
+    self.logger.info(
+        &#34;Finished instantiating model with {} architecture&#34;.format(
+            self.cfg.MODEL.MODEL_ARCH
+        )
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildOptimizer"><code class="name flex">
+<span>def <span class="ident">buildOptimizer</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the optimizer for the model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildOptimizer(self):
+    &#34;&#34;&#34;Builds the optimizer for the model
+    &#34;&#34;&#34;
+    optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage=&#34;optimizer&#34;, classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+    self.logger.info(
+        &#34;Loaded {} from {} to build Optimizer model&#34;.format(
+            self.cfg.EXECUTION.OPTIMIZER_BUILDER, &#34;ednaml.optimizer&#34;
+        )
+    )
+
+    # Optimizers are in a list...
+    OPT_array = [
+        optimizer_builder(
+            name=optimizer_item.OPTIMIZER_NAME,
+            optimizer=optimizer_item.OPTIMIZER,
+            base_lr=optimizer_item.BASE_LR,
+            lr_bias=optimizer_item.LR_BIAS_FACTOR,
+            weight_decay=optimizer_item.WEIGHT_DECAY,
+            weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
+            opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
+            gpus=self.gpus,
+        )
+        for optimizer_item in self.cfg.OPTIMIZER
+    ]
+    self.optimizer = [
+        OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+    ]  # TODO deal with singleton vs multiple optimizers...
+    self.logger.info(&#34;Built optimizer&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildScheduler"><code class="name flex">
+<span>def <span class="ident">buildScheduler</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the scheduler for the model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildScheduler(self):
+    &#34;&#34;&#34;Builds the scheduler for the model
+    &#34;&#34;&#34;
+    self.scheduler = [None] * len(self.cfg.SCHEDULER)
+    for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
+        try:  # We first check if scheduler is part of torch&#39;s provided schedulers.
+            scheduler = locate_class(package=&#34;torch.optim&#34;, subpackage=&#34;lr_scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+        except (
+            ModuleNotFoundError,
+            AttributeError,
+        ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+            scheduler = locate_class(subpackage=&#34;scheduler&#34;, classpackage=scheduler_item.LR_SCHEDULER)
+        self.scheduler[idx] = scheduler(
+            self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
+        )
+    self.logger.info(&#34;Built scheduler&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildTestDataloader"><code class="name flex">
+<span>def <span class="ident">buildTestDataloader</span></span>(<span>self, data_reader: <a title="ednaml.datareaders.DataReader" href="../datareaders/index.html#ednaml.datareaders.DataReader">DataReader</a>, crawler_instance: <a title="ednaml.crawlers.Crawler" href="../crawlers/index.html#ednaml.crawlers.Crawler">Crawler</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data_reader</code></strong> :&ensp;<code>DataReader</code></dt>
+<dd>A datareader class</dd>
+<dt><strong><code>crawler_instance</code></strong> :&ensp;<code>Crawler</code></dt>
+<dd>A crawler instance</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+    &#34;&#34;&#34;Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+    Args:
+        data_reader (DataReader): A datareader class
+        crawler_instance (Crawler): A crawler instance
+    &#34;&#34;&#34;
+    self.test_generator: ImageGenerator = data_reader.GENERATOR(
+        gpus=self.gpus,
+        i_shape=self.cfg.TRANSFORMATION.SHAPE,
+        normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+        normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+        normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+        h_flip=0,
+        t_crop=False,
+        rea=False,
+        **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+    )
+    self.test_generator.setup(
+        crawler_instance,
+        mode=&#34;test&#34;,
+        batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+        workers=self.cfg.TRANSFORMATION.WORKERS,
+        **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+    )
+    self.logger.info(&#34;Generated validation data/query generator&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildTrainDataloader"><code class="name flex">
+<span>def <span class="ident">buildTrainDataloader</span></span>(<span>self, data_reader: <a title="ednaml.datareaders.DataReader" href="../datareaders/index.html#ednaml.datareaders.DataReader">DataReader</a>, crawler_instance: <a title="ednaml.crawlers.Crawler" href="../crawlers/index.html#ednaml.crawlers.Crawler">Crawler</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds a train dataloader instance given the data_reader class and a crawler instance that has been initialized</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data_reader</code></strong> :&ensp;<code>DataReader</code></dt>
+<dd>A datareader class</dd>
+<dt><strong><code>crawler_instance</code></strong> :&ensp;<code>Crawler</code></dt>
+<dd>A crawler instance</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildTrainDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+    &#34;&#34;&#34;Builds a train dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+    Args:
+        data_reader (DataReader): A datareader class
+        crawler_instance (Crawler): A crawler instance
+    &#34;&#34;&#34;
+    self.train_generator: ImageGenerator = data_reader.GENERATOR(
+        gpus=self.gpus,
+        i_shape=self.cfg.TRANSFORMATION.SHAPE,
+        normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
+        normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
+        normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
+        h_flip=self.cfg.TRANSFORMATION.H_FLIP,
+        t_crop=self.cfg.TRANSFORMATION.T_CROP,
+        rea=self.cfg.TRANSFORMATION.RANDOM_ERASE,
+        rea_value=self.cfg.TRANSFORMATION.RANDOM_ERASE_VALUE,
+        **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+    )
+
+    self.train_generator.setup(
+        crawler_instance,
+        mode=&#34;train&#34;,
+        batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
+        workers=self.cfg.TRANSFORMATION.WORKERS,
+        **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+    )
+    self.logger.info(&#34;Generated training data generator&#34;)
+    self.labelMetadata = self.train_generator.num_entities
+    self.logger.info(
+        &#34;Running classification model with classes: %s&#34;
+        % str(self.labelMetadata.metadata)
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.buildTrainer"><code class="name flex">
+<span>def <span class="ident">buildTrainer</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the EdnaML trainer and sets it up</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def buildTrainer(self):
+    &#34;&#34;&#34;Builds the EdnaML trainer and sets it up
+    &#34;&#34;&#34;
+    ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage=&#34;trainer&#34;,classpackage=self.cfg.EXECUTION.TRAINER)
+    self.logger.info(
+        &#34;Loaded {} from {} to build Trainer&#34;.format(
+            self.cfg.EXECUTION.TRAINER, &#34;ednaml.trainer&#34;
+        )
+    )
+
+    self.trainer = ExecutionTrainer(
+        model=self.model,
+        loss_fn=self.loss_function_array,
+        optimizer=self.optimizer,
+        loss_optimizer=self.loss_optimizer_array,
+        scheduler=self.scheduler,
+        loss_scheduler=self.loss_scheduler,
+        train_loader=self.train_generator.dataloader,
+        test_loader=self.test_generator.dataloader,
+        epochs=self.epochs,
+        skipeval=self.skipeval,
+        logger=self.logger,
+        crawler=self.crawler,
+        config=self.cfg,
+        labels=self.labelMetadata,
+    )
+    self.trainer.setup(
+        step_verbose=self.step_verbose,
+        save_frequency=self.save_frequency,
+        test_frequency=self.test_frequency,
+        save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+        save_backup=self.drive_backup,
+        backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+        gpus=self.gpus,
+        fp16=self.fp16,
+        model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+        logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.downloadModelWeights"><code class="name flex">
+<span>def <span class="ident">downloadModelWeights</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Downloads model weights specified in the configuration if <code>weights</code> were not passed into EdnaML and if model weights are supported.</p>
+<p>TODO &ndash; do not throw error for no weights or missing base, if this is a new architecture to be trained from scratch</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Warning</code></dt>
+<dd>If there are no pre-downloaded weights, and the model architecture is unsupported</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def downloadModelWeights(self):
+    &#34;&#34;&#34;Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
+
+    TODO -- do not throw error for no weights or missing base, if this is a new architecture to be trained from scratch
+    Raises:
+        Warning: If there are no pre-downloaded weights, and the model architecture is unsupported
+    &#34;&#34;&#34;
+    if self.weights is not None:
+        self.logger.info(&#34;Not downloading weights. Weights path already provided.&#34;)
+
+    if self.mode == &#34;train&#34;:
+        self._download_weights_from_base(self.cfg.MODEL.MODEL_BASE)
+    else:
+        if self.weights is None:
+            warnings.warn(
+                &#34;Mode is `test` but weights is `None`. This will cause issues when EdnaML attempts to load weights&#34;
+            )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.eval"><code class="name flex">
+<span>def <span class="ident">eval</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def eval(self):
+    return self.trainer.evaluate()</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.getModelSummary"><code class="name flex">
+<span>def <span class="ident">getModelSummary</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the model summary using <code>torchinfo</code> and saves it as a ModelStatistics object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getModelSummary(self):
+    &#34;&#34;&#34;Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
+    &#34;&#34;&#34;
+    self.model.cuda()
+    self.model_summary = summary(
+        self.model,
+        input_size=(
+            self.cfg.TRANSFORMATION.BATCH_SIZE,
+            self.cfg.TRANSFORMATION.CHANNELS,
+            *self.cfg.TRANSFORMATION.SHAPE,
+        ),
+        col_names=[
+            &#34;input_size&#34;,
+            &#34;output_size&#34;,
+            &#34;num_params&#34;,
+            &#34;kernel_size&#34;,
+            &#34;mult_adds&#34;,
+        ],
+        depth=3,
+        mode=&#34;train&#34;,
+        verbose=0,
+    )
+    self.logger.info(str(self.model_summary))</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.getPreviousStop"><code class="name flex">
+<span>def <span class="ident">getPreviousStop</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getPreviousStop(self) -&gt; int:
+    &#34;&#34;&#34;Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
+    &#34;&#34;&#34;
+    if self.drive_backup:
+        fl_list = glob.glob(
+            os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, &#34;*.pth&#34;)
+        )
+    else:
+        fl_list = glob.glob(
+            os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, &#34;*.pth&#34;)
+        )
+    _re = re.compile(r&#34;.*epoch([0-9]+)\.pth&#34;)
+    previous_stop = [
+        int(item[1])
+        for item in [_re.search(item) for item in fl_list]
+        if item is not None
+    ]
+    if len(previous_stop) == 0:
+        self.logger.info(&#34;No previous stop detected. Will start from epoch 0&#34;)
+        return 0
+    else:
+        self.logger.info(
+            &#34;Previous stop detected. Will attempt to resume from epoch %i&#34;
+            % self.previous_stop
+        )
+        return max(previous_stop) + 1</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.loadWeights"><code class="name flex">
+<span>def <span class="ident">loadWeights</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>If in <code>test</code> mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
+Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadWeights(self):
+    &#34;&#34;&#34;If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
+    Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
+    &#34;&#34;&#34;
+    if self.mode == &#34;test&#34;:
+        self.model.load_state_dict(torch.load(self.weights))
+    else:
+        if self.weights is None:
+            self.logger.info(&#34;No saved model weights provided.&#34;)
+        else:
+            if (
+                self.weights != &#34;&#34;
+            ):  # Load weights if train and starting from a another model base...
+                self.logger.info(
+                    &#34;Commencing partial model load from {}&#34;.format(self.weights)
+                )
+                self.model.partial_load(self.weights)
+                self.logger.info(
+                    &#34;Completed partial model load from {}&#34;.format(self.weights)
+                )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.log"><code class="name flex">
+<span>def <span class="ident">log</span></span>(<span>self, message: str, verbose: int = 3)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Logs a message. TODO needs to be fixed.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>str</code></dt>
+<dd>Message to log</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Logging verbosity. Defaults to 3.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log(self, message: str, verbose: int = 3):
+    &#34;&#34;&#34;Logs a message. TODO needs to be fixed.
+
+    Args:
+        message (str): Message to log
+        verbose (int, optional): Logging verbosity. Defaults to 3.
+    &#34;&#34;&#34;
+    self.logger.log(self.logLevels[verbose], message)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.printConfiguration"><code class="name flex">
+<span>def <span class="ident">printConfiguration</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints the EdnaML configuration</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def printConfiguration(self):
+    &#34;&#34;&#34;Prints the EdnaML configuration
+    &#34;&#34;&#34;
+    self.logger.info(&#34;*&#34; * 40)
+    self.logger.info(&#34;&#34;)
+    self.logger.info(&#34;&#34;)
+    self.logger.info(&#34;Using the following configuration:&#34;)
+    self.logger.info(self.cfg.export())
+    self.logger.info(&#34;&#34;)
+    self.logger.info(&#34;&#34;)
+    self.logger.info(&#34;*&#34; * 40)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.recordVars"><code class="name flex">
+<span>def <span class="ident">recordVars</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
+of dataloading, model building, etc</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recordVars(self):
+    &#34;&#34;&#34;recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
+    of dataloading, model building, etc
+    &#34;&#34;&#34;
+    self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
+    self.previous_stop = 0
+    self.epochs = self.cfg.EXECUTION.EPOCHS
+    self.skipeval = self.cfg.EXECUTION.SKIPEVAL
+    self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
+    self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
+    self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
+    self.fp16 = self.cfg.EXECUTION.FP16
+    self.printConfiguration()
+    self.downloadModelWeights()</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.resetQueues"><code class="name flex">
+<span>def <span class="ident">resetQueues</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resets the <code>apply()</code> queue</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resetQueues(self):
+    &#34;&#34;&#34;Resets the `apply()` queue
+    &#34;&#34;&#34;
+    self._crawlerClassQueue = None
+    self._crawlerArgsQueue = None
+    self._crawlerClassQueueFlag = False
+
+    self._crawlerInstanceQueue = None
+    self._crawlerInstanceQueueFlag = False</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.setPreviousStop"><code class="name flex">
+<span>def <span class="ident">setPreviousStop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the previous stop</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setPreviousStop(self):
+    &#34;&#34;&#34;Sets the previous stop
+    &#34;&#34;&#34;
+    self.previous_stop = self.getPreviousStop()</code></pre>
+</details>
+</dd>
+<dt id="ednaml.core.EdnaML.EdnaML.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(self):
+    self.trainer.train(continue_epoch=self.previous_stop)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.core" href="index.html">ednaml.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.core.EdnaML.EdnaML" href="#ednaml.core.EdnaML.EdnaML">EdnaML</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.core.EdnaML.EdnaML.addCrawler" href="#ednaml.core.EdnaML.EdnaML.addCrawler">addCrawler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.addCrawlerClass" href="#ednaml.core.EdnaML.EdnaML.addCrawlerClass">addCrawlerClass</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.apply" href="#ednaml.core.EdnaML.EdnaML.apply">apply</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildDataloaders" href="#ednaml.core.EdnaML.EdnaML.buildDataloaders">buildDataloaders</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildLogger" href="#ednaml.core.EdnaML.EdnaML.buildLogger">buildLogger</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildLossArray" href="#ednaml.core.EdnaML.EdnaML.buildLossArray">buildLossArray</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildLossOptimizer" href="#ednaml.core.EdnaML.EdnaML.buildLossOptimizer">buildLossOptimizer</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildLossScheduler" href="#ednaml.core.EdnaML.EdnaML.buildLossScheduler">buildLossScheduler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildModel" href="#ednaml.core.EdnaML.EdnaML.buildModel">buildModel</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildOptimizer" href="#ednaml.core.EdnaML.EdnaML.buildOptimizer">buildOptimizer</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildScheduler" href="#ednaml.core.EdnaML.EdnaML.buildScheduler">buildScheduler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildTestDataloader" href="#ednaml.core.EdnaML.EdnaML.buildTestDataloader">buildTestDataloader</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildTrainDataloader" href="#ednaml.core.EdnaML.EdnaML.buildTrainDataloader">buildTrainDataloader</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.buildTrainer" href="#ednaml.core.EdnaML.EdnaML.buildTrainer">buildTrainer</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.cfg" href="#ednaml.core.EdnaML.EdnaML.cfg">cfg</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.crawler" href="#ednaml.core.EdnaML.EdnaML.crawler">crawler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.downloadModelWeights" href="#ednaml.core.EdnaML.EdnaML.downloadModelWeights">downloadModelWeights</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.eval" href="#ednaml.core.EdnaML.EdnaML.eval">eval</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.getModelSummary" href="#ednaml.core.EdnaML.EdnaML.getModelSummary">getModelSummary</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.getPreviousStop" href="#ednaml.core.EdnaML.EdnaML.getPreviousStop">getPreviousStop</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.labelMetadata" href="#ednaml.core.EdnaML.EdnaML.labelMetadata">labelMetadata</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.loadWeights" href="#ednaml.core.EdnaML.EdnaML.loadWeights">loadWeights</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.log" href="#ednaml.core.EdnaML.EdnaML.log">log</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.logLevels" href="#ednaml.core.EdnaML.EdnaML.logLevels">logLevels</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.loss_function_array" href="#ednaml.core.EdnaML.EdnaML.loss_function_array">loss_function_array</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.loss_optimizer_array" href="#ednaml.core.EdnaML.EdnaML.loss_optimizer_array">loss_optimizer_array</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.loss_scheduler" href="#ednaml.core.EdnaML.EdnaML.loss_scheduler">loss_scheduler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.model" href="#ednaml.core.EdnaML.EdnaML.model">model</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.modelStatistics" href="#ednaml.core.EdnaML.EdnaML.modelStatistics">modelStatistics</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.optimizer" href="#ednaml.core.EdnaML.EdnaML.optimizer">optimizer</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.previous_stop" href="#ednaml.core.EdnaML.EdnaML.previous_stop">previous_stop</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.printConfiguration" href="#ednaml.core.EdnaML.EdnaML.printConfiguration">printConfiguration</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.recordVars" href="#ednaml.core.EdnaML.EdnaML.recordVars">recordVars</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.resetQueues" href="#ednaml.core.EdnaML.EdnaML.resetQueues">resetQueues</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.scheduler" href="#ednaml.core.EdnaML.EdnaML.scheduler">scheduler</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.setPreviousStop" href="#ednaml.core.EdnaML.EdnaML.setPreviousStop">setPreviousStop</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.test_generator" href="#ednaml.core.EdnaML.EdnaML.test_generator">test_generator</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.train" href="#ednaml.core.EdnaML.EdnaML.train">train</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.train_generator" href="#ednaml.core.EdnaML.EdnaML.train_generator">train_generator</a></code></li>
+<li><code><a title="ednaml.core.EdnaML.EdnaML.trainer" href="#ednaml.core.EdnaML.EdnaML.trainer">trainer</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.config.ConfigDefaults API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.config.ConfigDefaults</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import Dict, List
+
+
+class ConfigDefaults:
+    OPTIMIZER_BUILDER: str
+    MODEL_SERVING: bool
+    EPOCHS: int
+    SKIPEVAL: bool
+    TEST_FREQUENCY: int
+    TRAINER: str
+    MODEL_VERSION: int
+    MODEL_CORE_NAME: str
+    MODEL_BACKBONE: str
+    MODEL_QUALIFIER: str
+    DRIVE_BACKUP: bool
+    SAVE_FREQUENCY: int
+    CHECKPOINT_DIRECTORY: str
+
+    SHAPE: List[int]
+    NORMALIZATION_MEAN: List[int]
+    NORMALIZATION_STD: List[int]
+    NORMALIZATION_SCALE: int
+    H_FLIP: float
+    T_CROP: bool
+    RANDOM_ERASE: bool
+    RANDOM_ERASE_VALUE: float
+    CHANNELS: int
+    BATCH_SIZE: int
+    WORKERS: int
+
+    BUILDER: str
+    MODEL_ARCH: str
+    MODEL_BASE: str
+    MODEL_NORMALIZATION: str
+    MODEL_KWARGS: Dict[str, str]
+    PARAMETER_GROUPS: List[str]
+
+    LOSSES: List[str]
+    LOSS_KWARGS: List[Dict[str, str]]
+    LAMBDAS: List[int]
+    LOSS_LABEL: str
+    LOSS_NAME: str
+
+    OPTIMIZER_NAME: str
+    OPTIMIZER_KWARGS: Dict[str, str]
+    BASE_LR: float
+    LR_BIAS_FACTOR: float
+    WEIGHT_DECAY: float
+    WEIGHT_BIAS_FACTOR: float
+    FP16: bool
+
+    SCHEDULER_NAME: str
+    LR_SCHEDULER: str
+    LR_KWARGS: Dict[str, str]
+
+    STEP_VERBOSE: int
+
+    def __init__(self, **kwargs):
+
+        self.OPTIMIZER_BUILDER = kwargs.get(
+            &#34;OPTIMIZER_BUILDER&#34;, &#34;ClassificationOptimizer&#34;
+        )
+        self.MODEL_SERVING = kwargs.get(&#34;MODEL_SERVING&#34;, False)
+        self.EPOCHS = kwargs.get(&#34;EPOCHS&#34;, 10)
+        self.SKIPEVAL = kwargs.get(&#34;SKIPEVAL&#34;, False)
+        self.TEST_FREQUENCY = kwargs.get(&#34;TEST_FREQUENCY&#34;, 5)
+        self.TRAINER = kwargs.get(&#34;TRAINER&#34;, &#34;ClassificationTrainer&#34;)
+
+        self.MODEL_VERSION = kwargs.get(&#34;MODEL_VERSION&#34;, &#34;v1&#34;)
+        self.MODEL_CORE_NAME = kwargs.get(&#34;MODEL_CORE_NAME&#34;, &#34;model&#34;)
+        self.MODEL_BACKBONE = kwargs.get(&#34;MODEL_BACKBONE&#34;, &#34;res18&#34;)
+        self.MODEL_QUALIFIER = kwargs.get(&#34;MODEL_QUALIFIER&#34;, &#34;all&#34;)
+        self.DRIVE_BACKUP = kwargs.get(&#34;DRIVE_BACKUP&#34;, False)
+        self.SAVE_FREQUENCY = kwargs.get(&#34;SAVE_FREQUENCY&#34;, 5)
+        self.CHECKPOINT_DIRECTORY = kwargs.get(&#34;CHECKPOINT_DIRECTORY&#34;, &#34;checkpoint&#34;)
+
+        self.SHAPE = kwargs.get(&#34;SHAPE&#34;, [100, 100])
+        self.NORMALIZATION_MEAN = kwargs.get(&#34;NORMALIZATION_MEAN&#34;, 0.5)
+        self.NORMALIZATION_STD = kwargs.get(&#34;NORMALIZATION_STD&#34;, 0.5)
+        self.NORMALIZATION_SCALE = kwargs.get(&#34;NORMALIZATION_SCALE&#34;, 255)
+        self.H_FLIP = kwargs.get(&#34;H_FLIP&#34;, 0)
+        self.T_CROP = kwargs.get(&#34;T_CROP&#34;, False)
+        self.RANDOM_ERASE = kwargs.get(&#34;RANDOM_ERASE&#34;, False)
+        self.RANDOM_ERASE_VALUE = kwargs.get(&#34;RANDOM_ERASE_VALUE&#34;, 0.5)
+        self.CHANNELS = kwargs.get(&#34;CHANNELS&#34;, 3)
+        self.BATCH_SIZE = kwargs.get(&#34;BATCH_SIZE&#34;, 32)
+        self.WORKERS = kwargs.get(&#34;WORKERS&#34;, 2)
+
+        self.BUILDER = kwargs.get(&#34;BUILDER&#34;, &#34;classification_model_builder&#34;)
+        self.MODEL_ARCH = kwargs.get(&#34;MODEL_ARCH&#34;, &#34;ClassificationResnet&#34;)
+        self.MODEL_BASE = kwargs.get(&#34;MODEL_BASE&#34;, &#34;resnet18&#34;)
+        self.MODEL_NORMALIZATION = kwargs.get(&#34;MODEL_NORMALIZATION&#34;, &#34;bn&#34;)
+        self.MODEL_KWARGS = kwargs.get(&#34;MODEL_KWARGS&#34;, {})
+        self.PARAMETER_GROUPS = kwargs.get(&#34;PARAMETER_GROUPS&#34;, [&#39;opt-1&#39;])
+
+        self.LOSSES = kwargs.get(&#34;LOSSES&#34;, [])
+        self.LOSS_KWARGS = kwargs.get(&#34;LOSS_KWARGS&#34;, [])
+        self.LAMBDAS = kwargs.get(&#34;LAMBDAS&#34;, [1.0])
+        self.LOSS_LABEL = kwargs.get(&#34;LOSS_LABEL&#34;, &#34;color&#34;)
+        self.LOSS_NAME = kwargs.get(&#34;LOSS_NAME&#34;, &#34;loss-1&#34;)
+
+        self.OPTIMIZER_NAME = kwargs.get(&#34;OPTIMIZER_NAME&#34;, &#34;opt-1&#34;)
+        self.OPTIMIZER = kwargs.get(&#34;OPTIMIZER&#34;, &#34;Adam&#34;)
+        self.OPTIMIZER_KWARGS = kwargs.get(&#34;OPTIMIZER_KWARGS&#34;, {})
+        self.BASE_LR = kwargs.get(&#34;BASE_LR&#34;, 0.001)
+        self.LR_BIAS_FACTOR = kwargs.get(&#34;LR_BIAS_FACTOR&#34;, 1.0)
+        self.WEIGHT_DECAY = kwargs.get(&#34;WEIGHT_DECAY&#34;, 0.0005)
+        self.WEIGHT_BIAS_FACTOR = kwargs.get(&#34;WEIGHT_BIAS_FACTOR&#34;, 0.0005)
+        self.FP16 = kwargs.get(&#34;FP16&#34;, False)
+
+        self.SCHEDULER_NAME = kwargs.get(&#34;SCHEDULER_NAME&#34;, &#34;opt-1&#34;)
+        self.LR_SCHEDULER = kwargs.get(&#34;LR_SCHEDULER&#34;, &#34;StepLR&#34;)
+        self.LR_KWARGS = kwargs.get(&#34;LR_KWARGS&#34;, {&#34;step_size&#34;: 20})
+
+        self.STEP_VERBOSE = kwargs.get(&#34;STEP_VERBOSE&#34;, 100)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults"><code class="flex name class">
+<span>class <span class="ident">ConfigDefaults</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ConfigDefaults:
+    OPTIMIZER_BUILDER: str
+    MODEL_SERVING: bool
+    EPOCHS: int
+    SKIPEVAL: bool
+    TEST_FREQUENCY: int
+    TRAINER: str
+    MODEL_VERSION: int
+    MODEL_CORE_NAME: str
+    MODEL_BACKBONE: str
+    MODEL_QUALIFIER: str
+    DRIVE_BACKUP: bool
+    SAVE_FREQUENCY: int
+    CHECKPOINT_DIRECTORY: str
+
+    SHAPE: List[int]
+    NORMALIZATION_MEAN: List[int]
+    NORMALIZATION_STD: List[int]
+    NORMALIZATION_SCALE: int
+    H_FLIP: float
+    T_CROP: bool
+    RANDOM_ERASE: bool
+    RANDOM_ERASE_VALUE: float
+    CHANNELS: int
+    BATCH_SIZE: int
+    WORKERS: int
+
+    BUILDER: str
+    MODEL_ARCH: str
+    MODEL_BASE: str
+    MODEL_NORMALIZATION: str
+    MODEL_KWARGS: Dict[str, str]
+    PARAMETER_GROUPS: List[str]
+
+    LOSSES: List[str]
+    LOSS_KWARGS: List[Dict[str, str]]
+    LAMBDAS: List[int]
+    LOSS_LABEL: str
+    LOSS_NAME: str
+
+    OPTIMIZER_NAME: str
+    OPTIMIZER_KWARGS: Dict[str, str]
+    BASE_LR: float
+    LR_BIAS_FACTOR: float
+    WEIGHT_DECAY: float
+    WEIGHT_BIAS_FACTOR: float
+    FP16: bool
+
+    SCHEDULER_NAME: str
+    LR_SCHEDULER: str
+    LR_KWARGS: Dict[str, str]
+
+    STEP_VERBOSE: int
+
+    def __init__(self, **kwargs):
+
+        self.OPTIMIZER_BUILDER = kwargs.get(
+            &#34;OPTIMIZER_BUILDER&#34;, &#34;ClassificationOptimizer&#34;
+        )
+        self.MODEL_SERVING = kwargs.get(&#34;MODEL_SERVING&#34;, False)
+        self.EPOCHS = kwargs.get(&#34;EPOCHS&#34;, 10)
+        self.SKIPEVAL = kwargs.get(&#34;SKIPEVAL&#34;, False)
+        self.TEST_FREQUENCY = kwargs.get(&#34;TEST_FREQUENCY&#34;, 5)
+        self.TRAINER = kwargs.get(&#34;TRAINER&#34;, &#34;ClassificationTrainer&#34;)
+
+        self.MODEL_VERSION = kwargs.get(&#34;MODEL_VERSION&#34;, &#34;v1&#34;)
+        self.MODEL_CORE_NAME = kwargs.get(&#34;MODEL_CORE_NAME&#34;, &#34;model&#34;)
+        self.MODEL_BACKBONE = kwargs.get(&#34;MODEL_BACKBONE&#34;, &#34;res18&#34;)
+        self.MODEL_QUALIFIER = kwargs.get(&#34;MODEL_QUALIFIER&#34;, &#34;all&#34;)
+        self.DRIVE_BACKUP = kwargs.get(&#34;DRIVE_BACKUP&#34;, False)
+        self.SAVE_FREQUENCY = kwargs.get(&#34;SAVE_FREQUENCY&#34;, 5)
+        self.CHECKPOINT_DIRECTORY = kwargs.get(&#34;CHECKPOINT_DIRECTORY&#34;, &#34;checkpoint&#34;)
+
+        self.SHAPE = kwargs.get(&#34;SHAPE&#34;, [100, 100])
+        self.NORMALIZATION_MEAN = kwargs.get(&#34;NORMALIZATION_MEAN&#34;, 0.5)
+        self.NORMALIZATION_STD = kwargs.get(&#34;NORMALIZATION_STD&#34;, 0.5)
+        self.NORMALIZATION_SCALE = kwargs.get(&#34;NORMALIZATION_SCALE&#34;, 255)
+        self.H_FLIP = kwargs.get(&#34;H_FLIP&#34;, 0)
+        self.T_CROP = kwargs.get(&#34;T_CROP&#34;, False)
+        self.RANDOM_ERASE = kwargs.get(&#34;RANDOM_ERASE&#34;, False)
+        self.RANDOM_ERASE_VALUE = kwargs.get(&#34;RANDOM_ERASE_VALUE&#34;, 0.5)
+        self.CHANNELS = kwargs.get(&#34;CHANNELS&#34;, 3)
+        self.BATCH_SIZE = kwargs.get(&#34;BATCH_SIZE&#34;, 32)
+        self.WORKERS = kwargs.get(&#34;WORKERS&#34;, 2)
+
+        self.BUILDER = kwargs.get(&#34;BUILDER&#34;, &#34;classification_model_builder&#34;)
+        self.MODEL_ARCH = kwargs.get(&#34;MODEL_ARCH&#34;, &#34;ClassificationResnet&#34;)
+        self.MODEL_BASE = kwargs.get(&#34;MODEL_BASE&#34;, &#34;resnet18&#34;)
+        self.MODEL_NORMALIZATION = kwargs.get(&#34;MODEL_NORMALIZATION&#34;, &#34;bn&#34;)
+        self.MODEL_KWARGS = kwargs.get(&#34;MODEL_KWARGS&#34;, {})
+        self.PARAMETER_GROUPS = kwargs.get(&#34;PARAMETER_GROUPS&#34;, [&#39;opt-1&#39;])
+
+        self.LOSSES = kwargs.get(&#34;LOSSES&#34;, [])
+        self.LOSS_KWARGS = kwargs.get(&#34;LOSS_KWARGS&#34;, [])
+        self.LAMBDAS = kwargs.get(&#34;LAMBDAS&#34;, [1.0])
+        self.LOSS_LABEL = kwargs.get(&#34;LOSS_LABEL&#34;, &#34;color&#34;)
+        self.LOSS_NAME = kwargs.get(&#34;LOSS_NAME&#34;, &#34;loss-1&#34;)
+
+        self.OPTIMIZER_NAME = kwargs.get(&#34;OPTIMIZER_NAME&#34;, &#34;opt-1&#34;)
+        self.OPTIMIZER = kwargs.get(&#34;OPTIMIZER&#34;, &#34;Adam&#34;)
+        self.OPTIMIZER_KWARGS = kwargs.get(&#34;OPTIMIZER_KWARGS&#34;, {})
+        self.BASE_LR = kwargs.get(&#34;BASE_LR&#34;, 0.001)
+        self.LR_BIAS_FACTOR = kwargs.get(&#34;LR_BIAS_FACTOR&#34;, 1.0)
+        self.WEIGHT_DECAY = kwargs.get(&#34;WEIGHT_DECAY&#34;, 0.0005)
+        self.WEIGHT_BIAS_FACTOR = kwargs.get(&#34;WEIGHT_BIAS_FACTOR&#34;, 0.0005)
+        self.FP16 = kwargs.get(&#34;FP16&#34;, False)
+
+        self.SCHEDULER_NAME = kwargs.get(&#34;SCHEDULER_NAME&#34;, &#34;opt-1&#34;)
+        self.LR_SCHEDULER = kwargs.get(&#34;LR_SCHEDULER&#34;, &#34;StepLR&#34;)
+        self.LR_KWARGS = kwargs.get(&#34;LR_KWARGS&#34;, {&#34;step_size&#34;: 20})
+
+        self.STEP_VERBOSE = kwargs.get(&#34;STEP_VERBOSE&#34;, 100)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.BASE_LR"><code class="name">var <span class="ident">BASE_LR</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.BATCH_SIZE"><code class="name">var <span class="ident">BATCH_SIZE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.BUILDER"><code class="name">var <span class="ident">BUILDER</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.CHANNELS"><code class="name">var <span class="ident">CHANNELS</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.CHECKPOINT_DIRECTORY"><code class="name">var <span class="ident">CHECKPOINT_DIRECTORY</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.DRIVE_BACKUP"><code class="name">var <span class="ident">DRIVE_BACKUP</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.EPOCHS"><code class="name">var <span class="ident">EPOCHS</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.FP16"><code class="name">var <span class="ident">FP16</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.H_FLIP"><code class="name">var <span class="ident">H_FLIP</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LAMBDAS"><code class="name">var <span class="ident">LAMBDAS</span> : List[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LOSSES"><code class="name">var <span class="ident">LOSSES</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_KWARGS"><code class="name">var <span class="ident">LOSS_KWARGS</span> : List[Dict[str, str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_LABEL"><code class="name">var <span class="ident">LOSS_LABEL</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_NAME"><code class="name">var <span class="ident">LOSS_NAME</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LR_BIAS_FACTOR"><code class="name">var <span class="ident">LR_BIAS_FACTOR</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LR_KWARGS"><code class="name">var <span class="ident">LR_KWARGS</span> : Dict[str, str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.LR_SCHEDULER"><code class="name">var <span class="ident">LR_SCHEDULER</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_ARCH"><code class="name">var <span class="ident">MODEL_ARCH</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BACKBONE"><code class="name">var <span class="ident">MODEL_BACKBONE</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BASE"><code class="name">var <span class="ident">MODEL_BASE</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_CORE_NAME"><code class="name">var <span class="ident">MODEL_CORE_NAME</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_KWARGS"><code class="name">var <span class="ident">MODEL_KWARGS</span> : Dict[str, str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_NORMALIZATION"><code class="name">var <span class="ident">MODEL_NORMALIZATION</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_QUALIFIER"><code class="name">var <span class="ident">MODEL_QUALIFIER</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_SERVING"><code class="name">var <span class="ident">MODEL_SERVING</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_VERSION"><code class="name">var <span class="ident">MODEL_VERSION</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_MEAN"><code class="name">var <span class="ident">NORMALIZATION_MEAN</span> : List[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_SCALE"><code class="name">var <span class="ident">NORMALIZATION_SCALE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_STD"><code class="name">var <span class="ident">NORMALIZATION_STD</span> : List[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_BUILDER"><code class="name">var <span class="ident">OPTIMIZER_BUILDER</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_KWARGS"><code class="name">var <span class="ident">OPTIMIZER_KWARGS</span> : Dict[str, str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_NAME"><code class="name">var <span class="ident">OPTIMIZER_NAME</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.PARAMETER_GROUPS"><code class="name">var <span class="ident">PARAMETER_GROUPS</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE"><code class="name">var <span class="ident">RANDOM_ERASE</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE_VALUE"><code class="name">var <span class="ident">RANDOM_ERASE_VALUE</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.SAVE_FREQUENCY"><code class="name">var <span class="ident">SAVE_FREQUENCY</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.SCHEDULER_NAME"><code class="name">var <span class="ident">SCHEDULER_NAME</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.SHAPE"><code class="name">var <span class="ident">SHAPE</span> : List[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.SKIPEVAL"><code class="name">var <span class="ident">SKIPEVAL</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.STEP_VERBOSE"><code class="name">var <span class="ident">STEP_VERBOSE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.TEST_FREQUENCY"><code class="name">var <span class="ident">TEST_FREQUENCY</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.TRAINER"><code class="name">var <span class="ident">TRAINER</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.T_CROP"><code class="name">var <span class="ident">T_CROP</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_BIAS_FACTOR"><code class="name">var <span class="ident">WEIGHT_BIAS_FACTOR</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_DECAY"><code class="name">var <span class="ident">WEIGHT_DECAY</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.config.ConfigDefaults.ConfigDefaults.WORKERS"><code class="name">var <span class="ident">WORKERS</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.config" href="index.html">ednaml.config</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults" href="#ednaml.config.ConfigDefaults.ConfigDefaults">ConfigDefaults</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.BASE_LR" href="#ednaml.config.ConfigDefaults.ConfigDefaults.BASE_LR">BASE_LR</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.BATCH_SIZE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.BATCH_SIZE">BATCH_SIZE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.BUILDER" href="#ednaml.config.ConfigDefaults.ConfigDefaults.BUILDER">BUILDER</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.CHANNELS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.CHANNELS">CHANNELS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.CHECKPOINT_DIRECTORY" href="#ednaml.config.ConfigDefaults.ConfigDefaults.CHECKPOINT_DIRECTORY">CHECKPOINT_DIRECTORY</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.DRIVE_BACKUP" href="#ednaml.config.ConfigDefaults.ConfigDefaults.DRIVE_BACKUP">DRIVE_BACKUP</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.EPOCHS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.EPOCHS">EPOCHS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.FP16" href="#ednaml.config.ConfigDefaults.ConfigDefaults.FP16">FP16</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.H_FLIP" href="#ednaml.config.ConfigDefaults.ConfigDefaults.H_FLIP">H_FLIP</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LAMBDAS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LAMBDAS">LAMBDAS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LOSSES" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LOSSES">LOSSES</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_KWARGS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_KWARGS">LOSS_KWARGS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_LABEL" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_LABEL">LOSS_LABEL</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_NAME" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LOSS_NAME">LOSS_NAME</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LR_BIAS_FACTOR" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LR_BIAS_FACTOR">LR_BIAS_FACTOR</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LR_KWARGS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LR_KWARGS">LR_KWARGS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.LR_SCHEDULER" href="#ednaml.config.ConfigDefaults.ConfigDefaults.LR_SCHEDULER">LR_SCHEDULER</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_ARCH" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_ARCH">MODEL_ARCH</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BACKBONE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BACKBONE">MODEL_BACKBONE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BASE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_BASE">MODEL_BASE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_CORE_NAME" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_CORE_NAME">MODEL_CORE_NAME</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_KWARGS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_KWARGS">MODEL_KWARGS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_NORMALIZATION" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_NORMALIZATION">MODEL_NORMALIZATION</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_QUALIFIER" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_QUALIFIER">MODEL_QUALIFIER</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_SERVING" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_SERVING">MODEL_SERVING</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_VERSION" href="#ednaml.config.ConfigDefaults.ConfigDefaults.MODEL_VERSION">MODEL_VERSION</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_MEAN" href="#ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_MEAN">NORMALIZATION_MEAN</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_SCALE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_SCALE">NORMALIZATION_SCALE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_STD" href="#ednaml.config.ConfigDefaults.ConfigDefaults.NORMALIZATION_STD">NORMALIZATION_STD</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_BUILDER" href="#ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_BUILDER">OPTIMIZER_BUILDER</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_KWARGS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_KWARGS">OPTIMIZER_KWARGS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_NAME" href="#ednaml.config.ConfigDefaults.ConfigDefaults.OPTIMIZER_NAME">OPTIMIZER_NAME</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.PARAMETER_GROUPS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.PARAMETER_GROUPS">PARAMETER_GROUPS</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE">RANDOM_ERASE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE_VALUE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.RANDOM_ERASE_VALUE">RANDOM_ERASE_VALUE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.SAVE_FREQUENCY" href="#ednaml.config.ConfigDefaults.ConfigDefaults.SAVE_FREQUENCY">SAVE_FREQUENCY</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.SCHEDULER_NAME" href="#ednaml.config.ConfigDefaults.ConfigDefaults.SCHEDULER_NAME">SCHEDULER_NAME</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.SHAPE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.SHAPE">SHAPE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.SKIPEVAL" href="#ednaml.config.ConfigDefaults.ConfigDefaults.SKIPEVAL">SKIPEVAL</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.STEP_VERBOSE" href="#ednaml.config.ConfigDefaults.ConfigDefaults.STEP_VERBOSE">STEP_VERBOSE</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.TEST_FREQUENCY" href="#ednaml.config.ConfigDefaults.ConfigDefaults.TEST_FREQUENCY">TEST_FREQUENCY</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.TRAINER" href="#ednaml.config.ConfigDefaults.ConfigDefaults.TRAINER">TRAINER</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.T_CROP" href="#ednaml.config.ConfigDefaults.ConfigDefaults.T_CROP">T_CROP</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_BIAS_FACTOR" href="#ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_BIAS_FACTOR">WEIGHT_BIAS_FACTOR</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_DECAY" href="#ednaml.config.ConfigDefaults.ConfigDefaults.WEIGHT_DECAY">WEIGHT_DECAY</a></code></li>
+<li><code><a title="ednaml.config.ConfigDefaults.ConfigDefaults.WORKERS" href="#ednaml.config.ConfigDefaults.ConfigDefaults.WORKERS">WORKERS</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.models.MultiBranchResnet API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.models.MultiBranchResnet</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import List
+from torch import nn
+from ednaml.backbones.multibranchresnet import multibranchresnet
+from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.utils import layers, locate_class
+import torch
+
+
+class MultiBranchResnet(ModelAbstract):
+    &#34;&#34;&#34;Multibranch Resnet model, that performs multiple classifications with different branches. Branches may be fused as well.
+
+    A MultiBranchResnet model is a base ResNet with multiple FC classification layers.
+
+    Args: (TODO)
+        base (str): The architecture base for resnet, i.e. resnet50, resnet18
+        weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
+        normalization (str, None): Can be None, where it is torch&#39;s normalization. Else create a normalization layer. Supports: [&#34;bn&#34;, &#34;l2&#34;, &#34;in&#34;, &#34;gn&#34;, &#34;ln&#34;]
+        metadata (Dict[str:int], None): FC dimensions for each classification, keyed by class names
+
+    Kwargs (MODEL_KWARGS):
+        - `number_branches`: This is the number of branches for the model
+        - `branches`: A list, each element is the i-th branch&#39;s metadata
+            - `name`: This is the name of this branch. This is used by model_builder to keep track of output names and labels. 
+            - `number_outputs`: This is the number of classification outputs for this branch
+            - `outputs`: A list, each element is the j-th output&#39;s metadata for this branch
+                - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below. 
+                - `name`: This is the name of this output. 
+                - `label`: This is the name of the label this output is tracking. &lt;span style=&#34;color:magenta; font-weight:bold&#34;&gt;THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`&lt;/span&gt; labels.
+        - `fuse`: **Bool**. Whether branch outputs are going to be fused
+        - `fuse_outputs`: List of output names (not branch names) that are fused
+        - `fuse_dimensions`: The dimensions of the fused output. If left blank, EdnaML will infer from `fuse_label`
+        - `fuse_label`: The label that tracks the fused output 
+        - `fuse_name`: The name for the fused output
+        - `shared_block`: Number of shared blocks for the resnet backbone before branching
+        - `soft_targets`: Whether to apply soft targets of the fused output to internal branches. The soft-target outputs will go in secondary outputs, as they are side outputs that are unused.
+        - `soft_target_branch`: List of branch names to apply for soft-target
+        - `soft_target_output_source`: The output that will be used as the soft-target. Can be a branch output ora fused output
+
+        
+        last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
+        attention (str, None): The attention module to use. Only supports [&#39;cbam&#39;, &#39;dbam&#39;]
+        input_attention (bool, false): Whether to include the IA module
+        secondary_attention (List[int], None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic blocks provided here in List.
+        part_attention (bool): Whether to use local attention
+
+    Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
+        zero_init_residual (bool, false): Whether the final layer uses zero initialization
+        top_only (bool, true): Whether to keep only the architecture base without imagenet fully-connected layers (1000 classes)
+        num_classes (int, 1000): Number of features in final imagenet FC layer
+        groups (int, 1): Used during resnet variants construction
+        width_per_group (int, 64): Used during resnet variants construction
+        replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
+        norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
+
+    Methods: 
+        forward: Process a batch
+
+    &#34;&#34;&#34;
+
+    model_name = &#34;MultiBranchResNet&#34;
+    model_arch = &#34;MultiBranchResNet&#34;
+    number_outputs = 1
+    output_names = [&#34;out0&#34;]
+    softmax_dimensions = [None]
+    output_labels = [&#34;color&#34;]
+    secondary_outputs = []
+    base: multibranchresnet
+    _internal_name_count = 0
+
+    model_labelorder: List[str] # order of label names in the outputs. 
+    model_nameorder: List[str]  # the names for each of the outputs
+    output_count: int   # Number of outputs in forward
+    feature_count: int # Number of features in forward
+
+    soft_targets: bool
+    soft_target_output_source: str
+    soft_target_outputs: nn.ModuleList
+
+    def __init__(
+        self, base=&#34;resnet50&#34;, weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
+    ):
+        &#34;&#34;&#34;We will inherit the base construction from ClassificationResNet, and modify the softmax head.
+
+        Args:
+            base (str, optional): _description_. Defaults to &#39;resnet50&#39;.
+            weights (_type_, optional): _description_. Defaults to None.
+            normalization (_type_, optional): _description_. Defaults to None.
+            metadata (_type_, optional): _description_. Defaults to None.
+        &#34;&#34;&#34;
+
+        super().__init__(
+            base=base,
+            weights=weights,
+            normalization=normalization,
+            metadata=metadata,
+            parameter_groups=parameter_groups,
+            **kwargs
+        )
+
+    def model_attributes_setup(self, **kwargs):
+
+        self.embedding_dimensions = kwargs.get(&#34;embedding_dimensions&#34;, None)
+        if self.normalization == &#34;&#34;:
+            self.normalization = None
+
+        # So, things we need
+        # num branches
+        #
+        branches = kwargs.get(&#34;branches&#34;)
+        self.number_branches = kwargs.get(&#34;number_branches&#34;, 3)
+        self.branches_meta = {branch[&#34;name&#34;]: branch for branch in branches}
+        self.branch_name_order = [branch[&#34;name&#34;] for branch in branches]
+
+        self.number_outputs = 0
+        self.output_name_order = (
+            []
+        )  # order of outputs, by their name. We can look up specific metadata in outputs_meta,, such as label it is tracking
+        self.outputs_meta = {}
+        for branch_name in self.branch_name_order:
+            nouts = self.branches_meta[branch_name][&#34;number_outputs&#34;]
+            self.number_outputs += nouts
+            out_dict = {
+                out[&#34;name&#34;]: out for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+            }
+            out_order = [
+                out[&#34;name&#34;] for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+            ]
+            self.output_name_order += out_order
+
+            self.outputs_meta = dict(self.outputs_meta, **out_dict)
+            self.branches_meta[branch_name][&#34;output_nameorder&#34;] = [
+                item for item in out_order
+            ]  # for list copy, instead of reference...this is the outputs for this branch
+        # Now we adjust the dimensions, i.e. fix them if they do not exist
+        for output in self.outputs_meta:
+            if &#34;dimensions&#34; in self.outputs_meta[output]:
+                if self.outputs_meta[output][&#34;dimensions&#34;] is None:
+                    self.outputs_meta[output][
+                        &#34;dimensions&#34;
+                    ] = self.metadata.getLabelDimensions(
+                        self.outputs_meta[output][&#34;label&#34;]
+                    )
+            else:
+                self.outputs_meta[output][
+                    &#34;dimensions&#34;
+                ] = self.metadata.getLabelDimensions(self.outputs_meta[output][&#34;label&#34;])
+
+        self.output_dimensions = []
+        self.output_label_order = []
+        for oname in self.output_name_order:
+            self.output_dimensions += [self.outputs_meta[oname][&#34;dimensions&#34;]]
+            self.output_label_order += [self.outputs_meta[oname][&#34;label&#34;]]
+
+        # Now we have self.output_name_order, which contains output-names in order of how they will be output
+        # Now we need to add the fused information
+        self.branch_fuse = kwargs.get(&#34;fuse&#34;, False)
+        self.branch_fuse_names = {item: 1 for item in kwargs.get(&#34;fuse_outputs&#34;, [])}
+        self.branch_fuse_idx = []
+        if self.branch_fuse:
+            self.branch_fuse_idx = [
+                idx
+                for idx, b_name in enumerate(self.branch_name_order)
+                if b_name in self.branch_fuse_names
+            ]
+        self.fuse_dimensions = kwargs.get(&#34;fuse_dimensions&#34;, None)
+        self.fuse_label = kwargs.get(&#34;fuse_label&#34;, None)
+        self.fuse_name = kwargs.get(&#34;fuse_name&#34;, &#34;fuse&#34;)
+        if self.fuse_dimensions is None:
+            self.fuse_dimensions = self.metadata.getLabelDimensions(self.fuse_label)
+
+        # need metadata for model_labelorder for the output
+        self.model_labelorder = [item for item in self.output_label_order]
+        self.model_nameorder = [item for item in self.output_name_order]
+        self.name_label_map = {name:label for name, label in zip(self.model_nameorder, self.model_labelorder)}
+
+        
+        
+        if self.branch_fuse:
+            self.model_labelorder += [self.fuse_label]
+            self.model_nameorder += [self.fuse_name]
+            self.name_label_map[self.fuse_name] = self.fuse_label
+
+        self.base = None
+        self.branches = {}
+        for bname in self.branch_name_order:
+            self.branches[bname] = {}
+            self.branches[bname][&#34;gap&#34;] = None
+            self.branches[bname][&#34;emb_linear&#34;] = None
+            self.branches[bname][&#34;feat_norm&#34;] = None
+            self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+                &#34;number_outputs&#34;
+            ]
+
+        self.output_count = self.number_outputs
+        self.feature_count = self.number_branches
+        if self.branch_fuse:
+            self.output_count += 1
+            self.feature_count += 1
+
+        self.soft_targets = kwargs.get(&#34;soft_targets&#34;, False)
+        if self.soft_targets:
+            self.soft_target_output_source = kwargs.get(&#34;soft_target_output_source&#34;)
+            self.soft_target_branch_names = kwargs.get(&#34;soft_target_branch&#34;)
+        
+            # here, ass the branch_names list to name_order. So for 2 fused branches, name order increased by size 2
+            self.model_nameorder += self.soft_target_branch_names
+            # For the labels, we will put in directly the label name of the soft fusion source..., so one label for each soft target branch name, where we look up in the name_label_map of the original soft source
+            self.model_labelorder += [self.name_label_map[self.soft_target_output_source] for _ in range(len(self.soft_target_branch_names))]   
+            self.soft_names = self.soft_target_branch_names
+            self.soft_names = {item:1 for item in self.soft_names}
+            self.output_count += len(self.soft_target_branch_names)
+        
+        self.branch_name_idx_map = {item:idx for idx,item in enumerate(self.branch_name_order)}
+
+        
+
+    def model_setup(self, **kwargs):
+        self.build_base(**kwargs)
+        self.build_normalization()
+        self.build_softmax()
+        self.build_fused()
+        self.build_softtargets()
+
+
+    def build_base(self, **kwargs):
+        &#34;&#34;&#34;Build the model base.
+
+        Builds the architecture base/core.
+        &#34;&#34;&#34;
+        _resnet = locate_class(subpackage=&#34;backbones&#34;, classpackage=self.model_base, classfile=&#34;multibranchresnet&#34;)
+        # Set up the resnet backbone
+        self.base = _resnet(last_stride=1, **kwargs)
+        if self.weights is not None:
+            self.base.load_param(self.weights)
+
+        if self.embedding_dimensions is None:
+            self.embedding_dimensions = 512 * self.base.block.expansion
+        self.fused_feat_dimensions = (
+            len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+        )
+
+        for bname in self.branch_name_order:
+            self.branches[bname][&#34;gap&#34;] = nn.AdaptiveAvgPool2d(1)
+            self.branches[bname][&#34;emb_linear&#34;] = torch.nn.Identity()
+
+            if self.embedding_dimensions != 512 * self.base.block.expansion:
+                self.branches[bname][&#34;emb_linear&#34;] = nn.Linear(
+                    self.base.block.expansion * 512,
+                    self.embedding_dimensions,
+                    bias=False,
+                )
+
+            self.branches[bname][&#34;feat_norm&#34;] = None
+            self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+                &#34;number_outputs&#34;
+            ]
+
+    def build_normalization(self):
+
+        norm_func = nn.Module
+        norm_args = {}
+        norm_div = 1
+        if self.normalization == &#34;bn&#34;:
+            norm_func = nn.BatchNorm1d
+            norm_args = {&#34;affine&#34;: True}
+        elif self.normalization == &#34;in&#34;:
+            norm_func = layers.FixedInstanceNorm1d
+            norm_args = {&#34;affine&#34;: True}
+        elif self.normalization == &#34;gn&#34;:
+            norm_div = 16
+            norm_func = nn.GroupNorm
+            norm_args = {&#34;num_channels&#34;: self.embedding_dimensions, &#34;affine&#34;: True}
+        elif self.normalization == &#34;ln&#34;:
+            norm_func = nn.LayerNorm
+            norm_args = {&#34;elementwise_affine&#34;: True}
+        elif self.normalization == &#34;l2&#34;:
+            norm_func = layers.L2Norm
+            norm_args = {&#34;scale&#34;: 1.0}
+        elif self.normalization is None or self.normalization == &#34;&#34;:
+            norm_func = torch.nn.Identity
+            norm_args = {}
+        else:
+            raise NotImplementedError()
+
+        self.fused_feat_norm = norm_func(
+            self.fused_feat_dimensions // norm_div, **norm_args
+        )
+        for bname in self.branch_name_order:
+            self.branches[bname][&#34;feat_norm&#34;] = norm_func(
+                self.embedding_dimensions // norm_div, **norm_args
+            )
+
+    def build_softmax(self):
+        # We will build the softmax layers...
+        # For this, we will go into the self.branches, and add the softmax there...
+        for bname in self.branch_name_order:
+            for idx, output_name in enumerate(
+                self.branches_meta[bname][&#34;output_nameorder&#34;]
+            ):
+                self.branches[bname][&#34;softmax&#34;][idx] = nn.Linear(
+                    self.embedding_dimensions,
+                    self.outputs_meta[output_name][&#34;dimensions&#34;],
+                    bias=False,
+                )
+                self.branches[bname][&#34;softmax&#34;][idx].apply(self.weights_init_softmax)
+            self.branches[bname][&#34;softmax&#34;] = nn.ModuleList(
+                self.branches[bname][&#34;softmax&#34;]
+            )
+
+    def build_fused(self):
+        for bname in self.branch_name_order:
+            self.branches[bname] = nn.ModuleDict(self.branches[bname])
+
+        self.branches = nn.ModuleDict(self.branches)
+        if self.branch_fuse:
+            self.fused_feat_dimensions = (
+                len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+            )
+            self.softmax_fused = nn.Linear(
+                self.fused_feat_dimensions, self.fuse_dimensions, bias=False
+            )
+            self.softmax_fused.apply(self.weights_init_softmax)
+
+
+    def build_softtargets(self):
+        if self.soft_targets:
+            soft_target_outputs = [None]*len(self.soft_target_branch_names)
+            for idx, _ in enumerate(self.soft_target_branch_names):
+                soft_target_outputs[idx] = nn.Linear(
+                    self.embedding_dimensions,
+                    self.metadata.getLabelDimensions(self.name_label_map[self.soft_target_output_source]),
+                    bias=False,
+                )
+                soft_target_outputs[idx].apply(self.weights_init_softmax)
+            self.soft_target_outputs = nn.ModuleList(soft_target_outputs)
+
+
+        soft_target_outputs
+
+    def _internal_name_counter(self):
+        out = &#34;out&#34; + str(self._internal_name_count)
+        self._internal_name_count += 1
+        return out
+
+    def base_forward(self, x):
+        features = self.base(x)  # features are a list
+
+        for idx, bname in enumerate(self.branch_name_order):
+            features[idx] = self.branches[bname][&#34;gap&#34;](features[idx])
+            features[idx] = features[idx].view(features[idx].shape[0], -1)
+            features[idx] = self.branches[bname][&#34;emb_linear&#34;](features[idx])
+
+        return features
+
+    def forward_impl(self, x, **kwargs):
+
+        features = self.base_forward(x)
+        fused_features = []
+        if self.branch_fuse:
+            fused_features += [
+                self.fused_feat_norm(
+                    torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=1)
+                )
+            ]
+
+        outputs = [None] * self.number_outputs
+        out_idx = 0
+        for b_idx, bname in enumerate(self.branch_name_order):
+            features[b_idx] = self.branches[bname][&#34;feat_norm&#34;](features[b_idx])
+            for o_idx, _ in enumerate(self.branches_meta[bname][&#34;output_nameorder&#34;]):
+                outputs[out_idx] = self.branches[bname][&#34;softmax&#34;][o_idx](
+                    features[b_idx]
+                )
+                out_idx += 1
+
+        fused_outs = []
+        if self.branch_fuse:
+            fused_outs += [self.softmax_fused(fused_features[0])]
+
+        # in forward_impl, we do for softtargetnames in self.soft-t-b-n, self.branches[softtargetnames].features --&gt; send to the thingamagig and add to outputs
+        soft_outs = []
+        for idx, softtargetnames in enumerate(self.soft_target_branch_names):
+            soft_outs[idx] = self.soft_target_outputs[idx](features[self.branch_name_idx_map[softtargetnames]])
+        return features + fused_features, outputs + fused_outs + soft_outs, []
+
+    def parameter_groups_setup(self, parameter_groups: List[str]):
+        self.parameter_groups[parameter_groups[0]] = self</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet"><code class="flex name class">
+<span>class <span class="ident">MultiBranchResnet</span></span>
+<span>(</span><span>base='resnet50', weights=None, normalization=None, metadata=None, parameter_groups: List[str] = None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Multibranch Resnet model, that performs multiple classifications with different branches. Branches may be fused as well.</p>
+<p>A MultiBranchResnet model is a base ResNet with multiple FC classification layers.</p>
+<p>Args: (TODO)
+base (str): The architecture base for resnet, i.e. resnet50, resnet18
+weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
+normalization (str, None): Can be None, where it is torch's normalization. Else create a normalization layer. Supports: ["bn", "l2", "in", "gn", "ln"]
+metadata (Dict[str:int], None): FC dimensions for each classification, keyed by class names</p>
+<p>Kwargs (MODEL_KWARGS):
+- <code>number_branches</code>: This is the number of branches for the model
+- <code>branches</code>: A list, each element is the i-th branch's metadata
+- <code>name</code>: This is the name of this branch. This is used by model_builder to keep track of output names and labels.
+- <code>number_outputs</code>: This is the number of classification outputs for this branch
+- <code>outputs</code>: A list, each element is the j-th output's metadata for this branch
+- <code>dimensions</code>: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the <code>LABEL</code> parameter below.
+- <code>name</code>: This is the name of this output.
+- <code>label</code>: This is the name of the label this output is tracking. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH <code>DATASET_ARGS.classificationclass</code></span> labels.
+- <code>fuse</code>: <strong>Bool</strong>. Whether branch outputs are going to be fused
+- <code>fuse_outputs</code>: List of output names (not branch names) that are fused
+- <code>fuse_dimensions</code>: The dimensions of the fused output. If left blank, EdnaML will infer from <code>fuse_label</code>
+- <code>fuse_label</code>: The label that tracks the fused output
+- <code>fuse_name</code>: The name for the fused output
+- <code>shared_block</code>: Number of shared blocks for the resnet backbone before branching
+- <code>soft_targets</code>: Whether to apply soft targets of the fused output to internal branches. The soft-target outputs will go in secondary outputs, as they are side outputs that are unused.
+- <code>soft_target_branch</code>: List of branch names to apply for soft-target
+- <code>soft_target_output_source</code>: The output that will be used as the soft-target. Can be a branch output ora fused output</p>
+<pre><code>last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
+attention (str, None): The attention module to use. Only supports ['cbam', 'dbam']
+input_attention (bool, false): Whether to include the IA module
+secondary_attention (List[int], None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic blocks provided here in List.
+part_attention (bool): Whether to use local attention
+</code></pre>
+<p>Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
+zero_init_residual (bool, false): Whether the final layer uses zero initialization
+top_only (bool, true): Whether to keep only the architecture base without imagenet fully-connected layers (1000 classes)
+num_classes (int, 1000): Number of features in final imagenet FC layer
+groups (int, 1): Used during resnet variants construction
+width_per_group (int, 64): Used during resnet variants construction
+replace_stride_with_dilation (bool, None): Well, replace stride with dilation&hellip;
+norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D</p>
+<p>Methods:
+forward: Process a batch</p>
+<p>We will inherit the base construction from ClassificationResNet, and modify the softmax head.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>base</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd><em>description</em>. Defaults to 'resnet50'.</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>_type_</code>, optional</dt>
+<dd><em>description</em>. Defaults to None.</dd>
+<dt><strong><code>normalization</code></strong> :&ensp;<code>_type_</code>, optional</dt>
+<dd><em>description</em>. Defaults to None.</dd>
+<dt><strong><code>metadata</code></strong> :&ensp;<code>_type_</code>, optional</dt>
+<dd><em>description</em>. Defaults to None.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MultiBranchResnet(ModelAbstract):
+    &#34;&#34;&#34;Multibranch Resnet model, that performs multiple classifications with different branches. Branches may be fused as well.
+
+    A MultiBranchResnet model is a base ResNet with multiple FC classification layers.
+
+    Args: (TODO)
+        base (str): The architecture base for resnet, i.e. resnet50, resnet18
+        weights (str, None): Path to weights file for the architecture base ONLY. If not provided, base initialized with random values.
+        normalization (str, None): Can be None, where it is torch&#39;s normalization. Else create a normalization layer. Supports: [&#34;bn&#34;, &#34;l2&#34;, &#34;in&#34;, &#34;gn&#34;, &#34;ln&#34;]
+        metadata (Dict[str:int], None): FC dimensions for each classification, keyed by class names
+
+    Kwargs (MODEL_KWARGS):
+        - `number_branches`: This is the number of branches for the model
+        - `branches`: A list, each element is the i-th branch&#39;s metadata
+            - `name`: This is the name of this branch. This is used by model_builder to keep track of output names and labels. 
+            - `number_outputs`: This is the number of classification outputs for this branch
+            - `outputs`: A list, each element is the j-th output&#39;s metadata for this branch
+                - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below. 
+                - `name`: This is the name of this output. 
+                - `label`: This is the name of the label this output is tracking. &lt;span style=&#34;color:magenta; font-weight:bold&#34;&gt;THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`&lt;/span&gt; labels.
+        - `fuse`: **Bool**. Whether branch outputs are going to be fused
+        - `fuse_outputs`: List of output names (not branch names) that are fused
+        - `fuse_dimensions`: The dimensions of the fused output. If left blank, EdnaML will infer from `fuse_label`
+        - `fuse_label`: The label that tracks the fused output 
+        - `fuse_name`: The name for the fused output
+        - `shared_block`: Number of shared blocks for the resnet backbone before branching
+        - `soft_targets`: Whether to apply soft targets of the fused output to internal branches. The soft-target outputs will go in secondary outputs, as they are side outputs that are unused.
+        - `soft_target_branch`: List of branch names to apply for soft-target
+        - `soft_target_output_source`: The output that will be used as the soft-target. Can be a branch output ora fused output
+
+        
+        last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
+        attention (str, None): The attention module to use. Only supports [&#39;cbam&#39;, &#39;dbam&#39;]
+        input_attention (bool, false): Whether to include the IA module
+        secondary_attention (List[int], None): Whether to modify CBAM to apply it to specific Resnet basic blocks. None means CBAM is applied to all. Otherwise, CBAM is applied only to the basic blocks provided here in List.
+        part_attention (bool): Whether to use local attention
+
+    Default Kwargs (DO NOT CHANGE OR ADD TO MODEL_KWARGS):
+        zero_init_residual (bool, false): Whether the final layer uses zero initialization
+        top_only (bool, true): Whether to keep only the architecture base without imagenet fully-connected layers (1000 classes)
+        num_classes (int, 1000): Number of features in final imagenet FC layer
+        groups (int, 1): Used during resnet variants construction
+        width_per_group (int, 64): Used during resnet variants construction
+        replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
+        norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
+
+    Methods: 
+        forward: Process a batch
+
+    &#34;&#34;&#34;
+
+    model_name = &#34;MultiBranchResNet&#34;
+    model_arch = &#34;MultiBranchResNet&#34;
+    number_outputs = 1
+    output_names = [&#34;out0&#34;]
+    softmax_dimensions = [None]
+    output_labels = [&#34;color&#34;]
+    secondary_outputs = []
+    base: multibranchresnet
+    _internal_name_count = 0
+
+    model_labelorder: List[str] # order of label names in the outputs. 
+    model_nameorder: List[str]  # the names for each of the outputs
+    output_count: int   # Number of outputs in forward
+    feature_count: int # Number of features in forward
+
+    soft_targets: bool
+    soft_target_output_source: str
+    soft_target_outputs: nn.ModuleList
+
+    def __init__(
+        self, base=&#34;resnet50&#34;, weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
+    ):
+        &#34;&#34;&#34;We will inherit the base construction from ClassificationResNet, and modify the softmax head.
+
+        Args:
+            base (str, optional): _description_. Defaults to &#39;resnet50&#39;.
+            weights (_type_, optional): _description_. Defaults to None.
+            normalization (_type_, optional): _description_. Defaults to None.
+            metadata (_type_, optional): _description_. Defaults to None.
+        &#34;&#34;&#34;
+
+        super().__init__(
+            base=base,
+            weights=weights,
+            normalization=normalization,
+            metadata=metadata,
+            parameter_groups=parameter_groups,
+            **kwargs
+        )
+
+    def model_attributes_setup(self, **kwargs):
+
+        self.embedding_dimensions = kwargs.get(&#34;embedding_dimensions&#34;, None)
+        if self.normalization == &#34;&#34;:
+            self.normalization = None
+
+        # So, things we need
+        # num branches
+        #
+        branches = kwargs.get(&#34;branches&#34;)
+        self.number_branches = kwargs.get(&#34;number_branches&#34;, 3)
+        self.branches_meta = {branch[&#34;name&#34;]: branch for branch in branches}
+        self.branch_name_order = [branch[&#34;name&#34;] for branch in branches]
+
+        self.number_outputs = 0
+        self.output_name_order = (
+            []
+        )  # order of outputs, by their name. We can look up specific metadata in outputs_meta,, such as label it is tracking
+        self.outputs_meta = {}
+        for branch_name in self.branch_name_order:
+            nouts = self.branches_meta[branch_name][&#34;number_outputs&#34;]
+            self.number_outputs += nouts
+            out_dict = {
+                out[&#34;name&#34;]: out for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+            }
+            out_order = [
+                out[&#34;name&#34;] for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+            ]
+            self.output_name_order += out_order
+
+            self.outputs_meta = dict(self.outputs_meta, **out_dict)
+            self.branches_meta[branch_name][&#34;output_nameorder&#34;] = [
+                item for item in out_order
+            ]  # for list copy, instead of reference...this is the outputs for this branch
+        # Now we adjust the dimensions, i.e. fix them if they do not exist
+        for output in self.outputs_meta:
+            if &#34;dimensions&#34; in self.outputs_meta[output]:
+                if self.outputs_meta[output][&#34;dimensions&#34;] is None:
+                    self.outputs_meta[output][
+                        &#34;dimensions&#34;
+                    ] = self.metadata.getLabelDimensions(
+                        self.outputs_meta[output][&#34;label&#34;]
+                    )
+            else:
+                self.outputs_meta[output][
+                    &#34;dimensions&#34;
+                ] = self.metadata.getLabelDimensions(self.outputs_meta[output][&#34;label&#34;])
+
+        self.output_dimensions = []
+        self.output_label_order = []
+        for oname in self.output_name_order:
+            self.output_dimensions += [self.outputs_meta[oname][&#34;dimensions&#34;]]
+            self.output_label_order += [self.outputs_meta[oname][&#34;label&#34;]]
+
+        # Now we have self.output_name_order, which contains output-names in order of how they will be output
+        # Now we need to add the fused information
+        self.branch_fuse = kwargs.get(&#34;fuse&#34;, False)
+        self.branch_fuse_names = {item: 1 for item in kwargs.get(&#34;fuse_outputs&#34;, [])}
+        self.branch_fuse_idx = []
+        if self.branch_fuse:
+            self.branch_fuse_idx = [
+                idx
+                for idx, b_name in enumerate(self.branch_name_order)
+                if b_name in self.branch_fuse_names
+            ]
+        self.fuse_dimensions = kwargs.get(&#34;fuse_dimensions&#34;, None)
+        self.fuse_label = kwargs.get(&#34;fuse_label&#34;, None)
+        self.fuse_name = kwargs.get(&#34;fuse_name&#34;, &#34;fuse&#34;)
+        if self.fuse_dimensions is None:
+            self.fuse_dimensions = self.metadata.getLabelDimensions(self.fuse_label)
+
+        # need metadata for model_labelorder for the output
+        self.model_labelorder = [item for item in self.output_label_order]
+        self.model_nameorder = [item for item in self.output_name_order]
+        self.name_label_map = {name:label for name, label in zip(self.model_nameorder, self.model_labelorder)}
+
+        
+        
+        if self.branch_fuse:
+            self.model_labelorder += [self.fuse_label]
+            self.model_nameorder += [self.fuse_name]
+            self.name_label_map[self.fuse_name] = self.fuse_label
+
+        self.base = None
+        self.branches = {}
+        for bname in self.branch_name_order:
+            self.branches[bname] = {}
+            self.branches[bname][&#34;gap&#34;] = None
+            self.branches[bname][&#34;emb_linear&#34;] = None
+            self.branches[bname][&#34;feat_norm&#34;] = None
+            self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+                &#34;number_outputs&#34;
+            ]
+
+        self.output_count = self.number_outputs
+        self.feature_count = self.number_branches
+        if self.branch_fuse:
+            self.output_count += 1
+            self.feature_count += 1
+
+        self.soft_targets = kwargs.get(&#34;soft_targets&#34;, False)
+        if self.soft_targets:
+            self.soft_target_output_source = kwargs.get(&#34;soft_target_output_source&#34;)
+            self.soft_target_branch_names = kwargs.get(&#34;soft_target_branch&#34;)
+        
+            # here, ass the branch_names list to name_order. So for 2 fused branches, name order increased by size 2
+            self.model_nameorder += self.soft_target_branch_names
+            # For the labels, we will put in directly the label name of the soft fusion source..., so one label for each soft target branch name, where we look up in the name_label_map of the original soft source
+            self.model_labelorder += [self.name_label_map[self.soft_target_output_source] for _ in range(len(self.soft_target_branch_names))]   
+            self.soft_names = self.soft_target_branch_names
+            self.soft_names = {item:1 for item in self.soft_names}
+            self.output_count += len(self.soft_target_branch_names)
+        
+        self.branch_name_idx_map = {item:idx for idx,item in enumerate(self.branch_name_order)}
+
+        
+
+    def model_setup(self, **kwargs):
+        self.build_base(**kwargs)
+        self.build_normalization()
+        self.build_softmax()
+        self.build_fused()
+        self.build_softtargets()
+
+
+    def build_base(self, **kwargs):
+        &#34;&#34;&#34;Build the model base.
+
+        Builds the architecture base/core.
+        &#34;&#34;&#34;
+        _resnet = locate_class(subpackage=&#34;backbones&#34;, classpackage=self.model_base, classfile=&#34;multibranchresnet&#34;)
+        # Set up the resnet backbone
+        self.base = _resnet(last_stride=1, **kwargs)
+        if self.weights is not None:
+            self.base.load_param(self.weights)
+
+        if self.embedding_dimensions is None:
+            self.embedding_dimensions = 512 * self.base.block.expansion
+        self.fused_feat_dimensions = (
+            len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+        )
+
+        for bname in self.branch_name_order:
+            self.branches[bname][&#34;gap&#34;] = nn.AdaptiveAvgPool2d(1)
+            self.branches[bname][&#34;emb_linear&#34;] = torch.nn.Identity()
+
+            if self.embedding_dimensions != 512 * self.base.block.expansion:
+                self.branches[bname][&#34;emb_linear&#34;] = nn.Linear(
+                    self.base.block.expansion * 512,
+                    self.embedding_dimensions,
+                    bias=False,
+                )
+
+            self.branches[bname][&#34;feat_norm&#34;] = None
+            self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+                &#34;number_outputs&#34;
+            ]
+
+    def build_normalization(self):
+
+        norm_func = nn.Module
+        norm_args = {}
+        norm_div = 1
+        if self.normalization == &#34;bn&#34;:
+            norm_func = nn.BatchNorm1d
+            norm_args = {&#34;affine&#34;: True}
+        elif self.normalization == &#34;in&#34;:
+            norm_func = layers.FixedInstanceNorm1d
+            norm_args = {&#34;affine&#34;: True}
+        elif self.normalization == &#34;gn&#34;:
+            norm_div = 16
+            norm_func = nn.GroupNorm
+            norm_args = {&#34;num_channels&#34;: self.embedding_dimensions, &#34;affine&#34;: True}
+        elif self.normalization == &#34;ln&#34;:
+            norm_func = nn.LayerNorm
+            norm_args = {&#34;elementwise_affine&#34;: True}
+        elif self.normalization == &#34;l2&#34;:
+            norm_func = layers.L2Norm
+            norm_args = {&#34;scale&#34;: 1.0}
+        elif self.normalization is None or self.normalization == &#34;&#34;:
+            norm_func = torch.nn.Identity
+            norm_args = {}
+        else:
+            raise NotImplementedError()
+
+        self.fused_feat_norm = norm_func(
+            self.fused_feat_dimensions // norm_div, **norm_args
+        )
+        for bname in self.branch_name_order:
+            self.branches[bname][&#34;feat_norm&#34;] = norm_func(
+                self.embedding_dimensions // norm_div, **norm_args
+            )
+
+    def build_softmax(self):
+        # We will build the softmax layers...
+        # For this, we will go into the self.branches, and add the softmax there...
+        for bname in self.branch_name_order:
+            for idx, output_name in enumerate(
+                self.branches_meta[bname][&#34;output_nameorder&#34;]
+            ):
+                self.branches[bname][&#34;softmax&#34;][idx] = nn.Linear(
+                    self.embedding_dimensions,
+                    self.outputs_meta[output_name][&#34;dimensions&#34;],
+                    bias=False,
+                )
+                self.branches[bname][&#34;softmax&#34;][idx].apply(self.weights_init_softmax)
+            self.branches[bname][&#34;softmax&#34;] = nn.ModuleList(
+                self.branches[bname][&#34;softmax&#34;]
+            )
+
+    def build_fused(self):
+        for bname in self.branch_name_order:
+            self.branches[bname] = nn.ModuleDict(self.branches[bname])
+
+        self.branches = nn.ModuleDict(self.branches)
+        if self.branch_fuse:
+            self.fused_feat_dimensions = (
+                len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+            )
+            self.softmax_fused = nn.Linear(
+                self.fused_feat_dimensions, self.fuse_dimensions, bias=False
+            )
+            self.softmax_fused.apply(self.weights_init_softmax)
+
+
+    def build_softtargets(self):
+        if self.soft_targets:
+            soft_target_outputs = [None]*len(self.soft_target_branch_names)
+            for idx, _ in enumerate(self.soft_target_branch_names):
+                soft_target_outputs[idx] = nn.Linear(
+                    self.embedding_dimensions,
+                    self.metadata.getLabelDimensions(self.name_label_map[self.soft_target_output_source]),
+                    bias=False,
+                )
+                soft_target_outputs[idx].apply(self.weights_init_softmax)
+            self.soft_target_outputs = nn.ModuleList(soft_target_outputs)
+
+
+        soft_target_outputs
+
+    def _internal_name_counter(self):
+        out = &#34;out&#34; + str(self._internal_name_count)
+        self._internal_name_count += 1
+        return out
+
+    def base_forward(self, x):
+        features = self.base(x)  # features are a list
+
+        for idx, bname in enumerate(self.branch_name_order):
+            features[idx] = self.branches[bname][&#34;gap&#34;](features[idx])
+            features[idx] = features[idx].view(features[idx].shape[0], -1)
+            features[idx] = self.branches[bname][&#34;emb_linear&#34;](features[idx])
+
+        return features
+
+    def forward_impl(self, x, **kwargs):
+
+        features = self.base_forward(x)
+        fused_features = []
+        if self.branch_fuse:
+            fused_features += [
+                self.fused_feat_norm(
+                    torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=1)
+                )
+            ]
+
+        outputs = [None] * self.number_outputs
+        out_idx = 0
+        for b_idx, bname in enumerate(self.branch_name_order):
+            features[b_idx] = self.branches[bname][&#34;feat_norm&#34;](features[b_idx])
+            for o_idx, _ in enumerate(self.branches_meta[bname][&#34;output_nameorder&#34;]):
+                outputs[out_idx] = self.branches[bname][&#34;softmax&#34;][o_idx](
+                    features[b_idx]
+                )
+                out_idx += 1
+
+        fused_outs = []
+        if self.branch_fuse:
+            fused_outs += [self.softmax_fused(fused_features[0])]
+
+        # in forward_impl, we do for softtargetnames in self.soft-t-b-n, self.branches[softtargetnames].features --&gt; send to the thingamagig and add to outputs
+        soft_outs = []
+        for idx, softtargetnames in enumerate(self.soft_target_branch_names):
+            soft_outs[idx] = self.soft_target_outputs[idx](features[self.branch_name_idx_map[softtargetnames]])
+        return features + fused_features, outputs + fused_outs + soft_outs, []
+
+    def parameter_groups_setup(self, parameter_groups: List[str]):
+        self.parameter_groups[parameter_groups[0]] = self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ednaml.models.ModelAbstract.ModelAbstract" href="ModelAbstract.html#ednaml.models.ModelAbstract.ModelAbstract">ModelAbstract</a></li>
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.base"><code class="name">var <span class="ident">base</span> : <a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="../backbones/multibranchresnet.html#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.feature_count"><code class="name">var <span class="ident">feature_count</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_arch"><code class="name">var <span class="ident">model_arch</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_labelorder"><code class="name">var <span class="ident">model_labelorder</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_name"><code class="name">var <span class="ident">model_name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_nameorder"><code class="name">var <span class="ident">model_nameorder</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.number_outputs"><code class="name">var <span class="ident">number_outputs</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_count"><code class="name">var <span class="ident">output_count</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_labels"><code class="name">var <span class="ident">output_labels</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_names"><code class="name">var <span class="ident">output_names</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.secondary_outputs"><code class="name">var <span class="ident">secondary_outputs</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_output_source"><code class="name">var <span class="ident">soft_target_output_source</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_outputs"><code class="name">var <span class="ident">soft_target_outputs</span> : torch.nn.modules.container.ModuleList</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_targets"><code class="name">var <span class="ident">soft_targets</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.softmax_dimensions"><code class="name">var <span class="ident">softmax_dimensions</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.base_forward"><code class="name flex">
+<span>def <span class="ident">base_forward</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def base_forward(self, x):
+    features = self.base(x)  # features are a list
+
+    for idx, bname in enumerate(self.branch_name_order):
+        features[idx] = self.branches[bname][&#34;gap&#34;](features[idx])
+        features[idx] = features[idx].view(features[idx].shape[0], -1)
+        features[idx] = self.branches[bname][&#34;emb_linear&#34;](features[idx])
+
+    return features</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_base"><code class="name flex">
+<span>def <span class="ident">build_base</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Build the model base.</p>
+<p>Builds the architecture base/core.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_base(self, **kwargs):
+    &#34;&#34;&#34;Build the model base.
+
+    Builds the architecture base/core.
+    &#34;&#34;&#34;
+    _resnet = locate_class(subpackage=&#34;backbones&#34;, classpackage=self.model_base, classfile=&#34;multibranchresnet&#34;)
+    # Set up the resnet backbone
+    self.base = _resnet(last_stride=1, **kwargs)
+    if self.weights is not None:
+        self.base.load_param(self.weights)
+
+    if self.embedding_dimensions is None:
+        self.embedding_dimensions = 512 * self.base.block.expansion
+    self.fused_feat_dimensions = (
+        len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+    )
+
+    for bname in self.branch_name_order:
+        self.branches[bname][&#34;gap&#34;] = nn.AdaptiveAvgPool2d(1)
+        self.branches[bname][&#34;emb_linear&#34;] = torch.nn.Identity()
+
+        if self.embedding_dimensions != 512 * self.base.block.expansion:
+            self.branches[bname][&#34;emb_linear&#34;] = nn.Linear(
+                self.base.block.expansion * 512,
+                self.embedding_dimensions,
+                bias=False,
+            )
+
+        self.branches[bname][&#34;feat_norm&#34;] = None
+        self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+            &#34;number_outputs&#34;
+        ]</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_fused"><code class="name flex">
+<span>def <span class="ident">build_fused</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_fused(self):
+    for bname in self.branch_name_order:
+        self.branches[bname] = nn.ModuleDict(self.branches[bname])
+
+    self.branches = nn.ModuleDict(self.branches)
+    if self.branch_fuse:
+        self.fused_feat_dimensions = (
+            len(self.branch_fuse_idx) * 512 * self.base.block.expansion
+        )
+        self.softmax_fused = nn.Linear(
+            self.fused_feat_dimensions, self.fuse_dimensions, bias=False
+        )
+        self.softmax_fused.apply(self.weights_init_softmax)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_normalization"><code class="name flex">
+<span>def <span class="ident">build_normalization</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_normalization(self):
+
+    norm_func = nn.Module
+    norm_args = {}
+    norm_div = 1
+    if self.normalization == &#34;bn&#34;:
+        norm_func = nn.BatchNorm1d
+        norm_args = {&#34;affine&#34;: True}
+    elif self.normalization == &#34;in&#34;:
+        norm_func = layers.FixedInstanceNorm1d
+        norm_args = {&#34;affine&#34;: True}
+    elif self.normalization == &#34;gn&#34;:
+        norm_div = 16
+        norm_func = nn.GroupNorm
+        norm_args = {&#34;num_channels&#34;: self.embedding_dimensions, &#34;affine&#34;: True}
+    elif self.normalization == &#34;ln&#34;:
+        norm_func = nn.LayerNorm
+        norm_args = {&#34;elementwise_affine&#34;: True}
+    elif self.normalization == &#34;l2&#34;:
+        norm_func = layers.L2Norm
+        norm_args = {&#34;scale&#34;: 1.0}
+    elif self.normalization is None or self.normalization == &#34;&#34;:
+        norm_func = torch.nn.Identity
+        norm_args = {}
+    else:
+        raise NotImplementedError()
+
+    self.fused_feat_norm = norm_func(
+        self.fused_feat_dimensions // norm_div, **norm_args
+    )
+    for bname in self.branch_name_order:
+        self.branches[bname][&#34;feat_norm&#34;] = norm_func(
+            self.embedding_dimensions // norm_div, **norm_args
+        )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softmax"><code class="name flex">
+<span>def <span class="ident">build_softmax</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_softmax(self):
+    # We will build the softmax layers...
+    # For this, we will go into the self.branches, and add the softmax there...
+    for bname in self.branch_name_order:
+        for idx, output_name in enumerate(
+            self.branches_meta[bname][&#34;output_nameorder&#34;]
+        ):
+            self.branches[bname][&#34;softmax&#34;][idx] = nn.Linear(
+                self.embedding_dimensions,
+                self.outputs_meta[output_name][&#34;dimensions&#34;],
+                bias=False,
+            )
+            self.branches[bname][&#34;softmax&#34;][idx].apply(self.weights_init_softmax)
+        self.branches[bname][&#34;softmax&#34;] = nn.ModuleList(
+            self.branches[bname][&#34;softmax&#34;]
+        )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softtargets"><code class="name flex">
+<span>def <span class="ident">build_softtargets</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_softtargets(self):
+    if self.soft_targets:
+        soft_target_outputs = [None]*len(self.soft_target_branch_names)
+        for idx, _ in enumerate(self.soft_target_branch_names):
+            soft_target_outputs[idx] = nn.Linear(
+                self.embedding_dimensions,
+                self.metadata.getLabelDimensions(self.name_label_map[self.soft_target_output_source]),
+                bias=False,
+            )
+            soft_target_outputs[idx].apply(self.weights_init_softmax)
+        self.soft_target_outputs = nn.ModuleList(soft_target_outputs)
+
+
+    soft_target_outputs</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.forward_impl"><code class="name flex">
+<span>def <span class="ident">forward_impl</span></span>(<span>self, x, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward_impl(self, x, **kwargs):
+
+    features = self.base_forward(x)
+    fused_features = []
+    if self.branch_fuse:
+        fused_features += [
+            self.fused_feat_norm(
+                torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=1)
+            )
+        ]
+
+    outputs = [None] * self.number_outputs
+    out_idx = 0
+    for b_idx, bname in enumerate(self.branch_name_order):
+        features[b_idx] = self.branches[bname][&#34;feat_norm&#34;](features[b_idx])
+        for o_idx, _ in enumerate(self.branches_meta[bname][&#34;output_nameorder&#34;]):
+            outputs[out_idx] = self.branches[bname][&#34;softmax&#34;][o_idx](
+                features[b_idx]
+            )
+            out_idx += 1
+
+    fused_outs = []
+    if self.branch_fuse:
+        fused_outs += [self.softmax_fused(fused_features[0])]
+
+    # in forward_impl, we do for softtargetnames in self.soft-t-b-n, self.branches[softtargetnames].features --&gt; send to the thingamagig and add to outputs
+    soft_outs = []
+    for idx, softtargetnames in enumerate(self.soft_target_branch_names):
+        soft_outs[idx] = self.soft_target_outputs[idx](features[self.branch_name_idx_map[softtargetnames]])
+    return features + fused_features, outputs + fused_outs + soft_outs, []</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_attributes_setup"><code class="name flex">
+<span>def <span class="ident">model_attributes_setup</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def model_attributes_setup(self, **kwargs):
+
+    self.embedding_dimensions = kwargs.get(&#34;embedding_dimensions&#34;, None)
+    if self.normalization == &#34;&#34;:
+        self.normalization = None
+
+    # So, things we need
+    # num branches
+    #
+    branches = kwargs.get(&#34;branches&#34;)
+    self.number_branches = kwargs.get(&#34;number_branches&#34;, 3)
+    self.branches_meta = {branch[&#34;name&#34;]: branch for branch in branches}
+    self.branch_name_order = [branch[&#34;name&#34;] for branch in branches]
+
+    self.number_outputs = 0
+    self.output_name_order = (
+        []
+    )  # order of outputs, by their name. We can look up specific metadata in outputs_meta,, such as label it is tracking
+    self.outputs_meta = {}
+    for branch_name in self.branch_name_order:
+        nouts = self.branches_meta[branch_name][&#34;number_outputs&#34;]
+        self.number_outputs += nouts
+        out_dict = {
+            out[&#34;name&#34;]: out for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+        }
+        out_order = [
+            out[&#34;name&#34;] for out in self.branches_meta[branch_name][&#34;outputs&#34;]
+        ]
+        self.output_name_order += out_order
+
+        self.outputs_meta = dict(self.outputs_meta, **out_dict)
+        self.branches_meta[branch_name][&#34;output_nameorder&#34;] = [
+            item for item in out_order
+        ]  # for list copy, instead of reference...this is the outputs for this branch
+    # Now we adjust the dimensions, i.e. fix them if they do not exist
+    for output in self.outputs_meta:
+        if &#34;dimensions&#34; in self.outputs_meta[output]:
+            if self.outputs_meta[output][&#34;dimensions&#34;] is None:
+                self.outputs_meta[output][
+                    &#34;dimensions&#34;
+                ] = self.metadata.getLabelDimensions(
+                    self.outputs_meta[output][&#34;label&#34;]
+                )
+        else:
+            self.outputs_meta[output][
+                &#34;dimensions&#34;
+            ] = self.metadata.getLabelDimensions(self.outputs_meta[output][&#34;label&#34;])
+
+    self.output_dimensions = []
+    self.output_label_order = []
+    for oname in self.output_name_order:
+        self.output_dimensions += [self.outputs_meta[oname][&#34;dimensions&#34;]]
+        self.output_label_order += [self.outputs_meta[oname][&#34;label&#34;]]
+
+    # Now we have self.output_name_order, which contains output-names in order of how they will be output
+    # Now we need to add the fused information
+    self.branch_fuse = kwargs.get(&#34;fuse&#34;, False)
+    self.branch_fuse_names = {item: 1 for item in kwargs.get(&#34;fuse_outputs&#34;, [])}
+    self.branch_fuse_idx = []
+    if self.branch_fuse:
+        self.branch_fuse_idx = [
+            idx
+            for idx, b_name in enumerate(self.branch_name_order)
+            if b_name in self.branch_fuse_names
+        ]
+    self.fuse_dimensions = kwargs.get(&#34;fuse_dimensions&#34;, None)
+    self.fuse_label = kwargs.get(&#34;fuse_label&#34;, None)
+    self.fuse_name = kwargs.get(&#34;fuse_name&#34;, &#34;fuse&#34;)
+    if self.fuse_dimensions is None:
+        self.fuse_dimensions = self.metadata.getLabelDimensions(self.fuse_label)
+
+    # need metadata for model_labelorder for the output
+    self.model_labelorder = [item for item in self.output_label_order]
+    self.model_nameorder = [item for item in self.output_name_order]
+    self.name_label_map = {name:label for name, label in zip(self.model_nameorder, self.model_labelorder)}
+
+    
+    
+    if self.branch_fuse:
+        self.model_labelorder += [self.fuse_label]
+        self.model_nameorder += [self.fuse_name]
+        self.name_label_map[self.fuse_name] = self.fuse_label
+
+    self.base = None
+    self.branches = {}
+    for bname in self.branch_name_order:
+        self.branches[bname] = {}
+        self.branches[bname][&#34;gap&#34;] = None
+        self.branches[bname][&#34;emb_linear&#34;] = None
+        self.branches[bname][&#34;feat_norm&#34;] = None
+        self.branches[bname][&#34;softmax&#34;] = [None] * self.branches_meta[bname][
+            &#34;number_outputs&#34;
+        ]
+
+    self.output_count = self.number_outputs
+    self.feature_count = self.number_branches
+    if self.branch_fuse:
+        self.output_count += 1
+        self.feature_count += 1
+
+    self.soft_targets = kwargs.get(&#34;soft_targets&#34;, False)
+    if self.soft_targets:
+        self.soft_target_output_source = kwargs.get(&#34;soft_target_output_source&#34;)
+        self.soft_target_branch_names = kwargs.get(&#34;soft_target_branch&#34;)
+    
+        # here, ass the branch_names list to name_order. So for 2 fused branches, name order increased by size 2
+        self.model_nameorder += self.soft_target_branch_names
+        # For the labels, we will put in directly the label name of the soft fusion source..., so one label for each soft target branch name, where we look up in the name_label_map of the original soft source
+        self.model_labelorder += [self.name_label_map[self.soft_target_output_source] for _ in range(len(self.soft_target_branch_names))]   
+        self.soft_names = self.soft_target_branch_names
+        self.soft_names = {item:1 for item in self.soft_names}
+        self.output_count += len(self.soft_target_branch_names)
+    
+    self.branch_name_idx_map = {item:idx for idx,item in enumerate(self.branch_name_order)}</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_setup"><code class="name flex">
+<span>def <span class="ident">model_setup</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def model_setup(self, **kwargs):
+    self.build_base(**kwargs)
+    self.build_normalization()
+    self.build_softmax()
+    self.build_fused()
+    self.build_softtargets()</code></pre>
+</details>
+</dd>
+<dt id="ednaml.models.MultiBranchResnet.MultiBranchResnet.parameter_groups_setup"><code class="name flex">
+<span>def <span class="ident">parameter_groups_setup</span></span>(<span>self, parameter_groups: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parameter_groups_setup(self, parameter_groups: List[str]):
+    self.parameter_groups[parameter_groups[0]] = self</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ednaml.models.ModelAbstract.ModelAbstract" href="ModelAbstract.html#ednaml.models.ModelAbstract.ModelAbstract">ModelAbstract</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ednaml.models.ModelAbstract.ModelAbstract.forward" href="ModelAbstract.html#ednaml.models.ModelAbstract.ModelAbstract.forward">forward</a></code></li>
+<li><code><a title="ednaml.models.ModelAbstract.ModelAbstract.weights_init_softmax" href="ModelAbstract.html#ednaml.models.ModelAbstract.ModelAbstract.weights_init_softmax">weights_init_softmax</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.models" href="index.html">ednaml.models</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet">MultiBranchResnet</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.base" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.base">base</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.base_forward" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.base_forward">base_forward</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_base" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.build_base">build_base</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_fused" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.build_fused">build_fused</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_normalization" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.build_normalization">build_normalization</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softmax" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softmax">build_softmax</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softtargets" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.build_softtargets">build_softtargets</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.feature_count" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.feature_count">feature_count</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.forward_impl" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.forward_impl">forward_impl</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_arch" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_arch">model_arch</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_attributes_setup" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_attributes_setup">model_attributes_setup</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_labelorder" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_labelorder">model_labelorder</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_name" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_name">model_name</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_nameorder" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_nameorder">model_nameorder</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.model_setup" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.model_setup">model_setup</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.number_outputs" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.number_outputs">number_outputs</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_count" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.output_count">output_count</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_labels" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.output_labels">output_labels</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.output_names" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.output_names">output_names</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.parameter_groups_setup" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.parameter_groups_setup">parameter_groups_setup</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.secondary_outputs" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.secondary_outputs">secondary_outputs</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_output_source" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_output_source">soft_target_output_source</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_outputs" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_target_outputs">soft_target_outputs</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_targets" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.soft_targets">soft_targets</a></code></li>
+<li><code><a title="ednaml.models.MultiBranchResnet.MultiBranchResnet.softmax_dimensions" href="#ednaml.models.MultiBranchResnet.MultiBranchResnet.softmax_dimensions">softmax_dimensions</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
