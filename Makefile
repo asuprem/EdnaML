@@ -2,7 +2,7 @@ docs:
 	pdoc3 src/ednaml/  --force --html -o docs 
 
 build:
-	rm dist/*
+	rm -f dist/*
 	python3 -m build
 
 upload:
