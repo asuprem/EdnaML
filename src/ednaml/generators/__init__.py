@@ -162,5 +162,5 @@ from ednaml.generators.ClassificationGenerator import ClassificationGenerator
 from ednaml.generators.CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator
 from ednaml.generators.CoLabelDeployGenerator import CoLabelDeployGenerator
 from ednaml.generators.MultiClassificationGenerator import MultiClassificationGenerator
-
+from ednaml.generators.TorchvisionGeneratorWrapper import TorchvisionGeneratorWrapper
 KnowledgeIntegratedGenerator = CoLabelIntegratedDatasetGenerator
