@@ -15,13 +15,12 @@ Tuple is of the form:
 
 """
 import os
-import re
-import glob
-from typing import Dict
 from scipy.io import loadmat
 
+from ednaml.crawlers import Crawler
 
-class CoLabelCompCarsCrawler:
+
+class CoLabelCompCarsCrawler(Crawler):
     """Data crawler for CompCars Data dataset (NOT for sv-data)
     """
 

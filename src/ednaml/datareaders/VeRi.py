@@ -10,7 +10,7 @@ class VeRi(DataReader):
     name: str = "VeRi"
     CRAWLER = VeRiDataCrawler
     DATASET = ClassificationDataset
-    GENERATOR = ClassificationGenerator
+    GENERATOR = TorchvisionGeneratorWrapper
 
     def __init__(self):
         super().__init__()

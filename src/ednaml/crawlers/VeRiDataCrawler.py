@@ -4,8 +4,10 @@ import re
 import glob
 import xml.etree.ElementTree as ET
 
+from ednaml.crawlers import Crawler
 
-class VeRiDataCrawler:
+
+class VeRiDataCrawler(Crawler):
     """ Data crawler for the VeRi-776 dataset
 
     The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective Pid and Cid.

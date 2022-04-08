@@ -1,7 +1,9 @@
 import os
 
+from ednaml.crawlers import Crawler
 
-class VRICDataCrawler:
+
+class VRICDataCrawler(Crawler):
     """ Data crawler for the VRIC (Vehicle Re-identification in Context) dataset
 
     The VRIC crawls the VRIC data folder to populate training, query, and gallery sets with images and their respective PIDs and CIDs. It uses the provided list of training, query, and gallery images to populate the crawler metadata.

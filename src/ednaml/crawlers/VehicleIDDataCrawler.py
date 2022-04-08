@@ -2,11 +2,13 @@ from collections import defaultdict
 import os
 import random
 
+from ednaml.crawlers import Crawler
+
 # Tuple:
 # (imgpath, pid, cid, color, model)
 
 
-class VehicleIDDataCrawler:
+class VehicleIDDataCrawler(Crawler):
     def __init__(
         self,
         data_folder="VehicleID",

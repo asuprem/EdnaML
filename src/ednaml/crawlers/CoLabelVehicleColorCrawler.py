@@ -2,8 +2,10 @@ import os
 import glob
 from typing import Dict
 
+from ednaml.crawlers import Crawler
 
-class CoLabelVehicleColorCrawler:
+
+class CoLabelVehicleColorCrawler(Crawler):
     """Data crawler for VehicleColor dataset
 
     

@@ -122,7 +122,7 @@ class ImageGenerator:
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs
     ) -> TorchDataset:
-        """Given the daatacrawler with all the data, and the mode (could be 
+        """Given the datacrawler with all the data, and the mode (could be 
         any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as 
         as well the transform, return a TorchDataset
 

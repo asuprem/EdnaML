@@ -1,12 +1,13 @@
 import os
+from typing import Dict
 
 
 class Crawler:
     """The base crawler class. TODO
     """
-
-    def __init__():
-        raise NotImplementedError()
+    classes: Dict[str, int]
+    def __init__(self):
+        self.classes = {}
 
     def __verify(self, folder):
         if not os.path.exists(folder):
@@ -24,10 +25,6 @@ from ednaml.crawlers.VehicleIDDataCrawler import VehicleIDDataCrawler
 
 # Carzam crawlers
 from ednaml.crawlers.Cars196DataCrawler import Cars196DataCrawler
-
-# Other Crawlers
-from ednaml.crawlers.ClassedCrawler import ClassedCrawler
-
 
 # CoLabelCrawlers
 from ednaml.crawlers.CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler

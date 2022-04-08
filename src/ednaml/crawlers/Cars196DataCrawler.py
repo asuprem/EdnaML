@@ -1,8 +1,10 @@
 import os
 import random, math
 
+from ednaml.crawlers import Crawler
 
-class Cars196DataCrawler:
+
+class Cars196DataCrawler(Crawler):
     def __init__(
         self,
         data_folder="Cars196",

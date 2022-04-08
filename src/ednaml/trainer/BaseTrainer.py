@@ -95,6 +95,7 @@ class BaseTrainer:
         self.config = config
 
         self.buildMetadata(
+            # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
             crawler=crawler.classes, config=json.loads(config.export("json"))
         )
 

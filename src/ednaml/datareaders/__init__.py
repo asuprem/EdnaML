@@ -21,4 +21,5 @@ from ednaml.datareaders.VehicleColor import VehicleColor
 from ednaml.datareaders.CompCars import CompCars
 from ednaml.datareaders.VehicleID import VehicleID
 from ednaml.datareaders.VeRi import VeRi
+from ednaml.datareaders.TorchvisionDatareader import TorchvisionDatareader
 
