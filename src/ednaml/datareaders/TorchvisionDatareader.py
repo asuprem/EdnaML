@@ -4,10 +4,9 @@
 
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
+from ednaml.generators.TorchvisionGeneratorWrapper import TorchvisionGeneratorWrapper
 
 
 class TorchvisionDatareader(DataReader):
     name: str = "TorchvisionDatareader"
-    CRAWLER = Crawler
-    DATASET = None
-    GENERATOR = None
+    GENERATOR = TorchvisionGeneratorWrapper
