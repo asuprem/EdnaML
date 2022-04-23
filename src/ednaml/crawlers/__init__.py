@@ -27,7 +27,7 @@ from ednaml.crawlers.VehicleIDDataCrawler import VehicleIDDataCrawler
 from ednaml.crawlers.Cars196DataCrawler import Cars196DataCrawler
 
 # CoLabelCrawlers
-from ednaml.crawlers.CoLabelVehicleColorCrawler import CoLabelVehicleColorCrawler
+from ednaml.crawlers.VehicleColorCrawler import VehicleColorCrawler
 from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
 
 KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler

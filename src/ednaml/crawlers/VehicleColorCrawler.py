@@ -5,7 +5,7 @@ from typing import Dict
 from ednaml.crawlers import Crawler
 
 
-class CoLabelVehicleColorCrawler(Crawler):
+class VehicleColorCrawler(Crawler):
     """Data crawler for VehicleColor dataset
 
     
