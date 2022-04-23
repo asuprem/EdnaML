@@ -1,3 +1,4 @@
+from ednaml.generators import Generator
 from ednaml.utils.LabelMetadata import LabelMetadata
 from typing import List, Tuple, Union
 import torchvision.transforms as T
@@ -5,7 +6,7 @@ from torch.utils.data import Dataset as TorchDataset
 import ednaml.utils
 
 
-class ImageGenerator:
+class ImageGenerator(Generator):
     """Base class for image dataset generators
     """
 

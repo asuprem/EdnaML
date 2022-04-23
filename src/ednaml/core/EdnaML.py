@@ -90,6 +90,10 @@ class EdnaML(EdnaMLBase):
         self._crawlerInstanceQueue = None
         self._crawlerInstanceQueueFlag = False
 
+        self._generatorClassQueue = None
+        self._generatorArgsQueue = None
+        self._generatorClassQueueFlag = False
+
 
 
     def recordVars(self):
@@ -524,11 +528,25 @@ class EdnaML(EdnaMLBase):
         self._crawlerInstanceQueue = crawler_instance
         self._crawlerInstanceQueueFlag = True
 
+    def addGeneratorClass(self, generator_class:Type[TextGenerator], *kwargs):
+        """Adds a generator class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
+
+        The generator class is added to the internal datareader instance through `apply()`. Then,
+        the buildTrainDataloader() and buildTestDataloader() can take instances of this class
+        to crawl the dataset and yield batches.
+
+        Args:
+            generator_class (Type[TextGenerator]): _description_
+        """
+        self._generatorClassQueue = generator_class
+        self._generatorArgsQueue = kwargs
+        self._generatorClassQueueFlag = True
     
 
     def buildDataloaders(self):
         """Sets up the datareader classes and builds the train and test dataloaders
         """
+
         data_reader: Type[DataReader] = locate_class(package="ednaml", subpackage="datareaders", classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
         data_reader_instance = data_reader()
         # data_crawler is now data_reader.CRAWLER
@@ -582,7 +600,7 @@ class EdnaML(EdnaMLBase):
             **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
         )
 
-        self.train_generator.setup(
+        self.train_generator.build(
             crawler_instance,
             mode="train",
             batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
@@ -614,7 +632,7 @@ class EdnaML(EdnaMLBase):
             rea=False,
             **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
         )
-        self.test_generator.setup(
+        self.test_generator.build(
             crawler_instance,
             mode="test",
             batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
