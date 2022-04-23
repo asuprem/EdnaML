@@ -26,7 +26,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         self.torchvision_dataset_class = kwargs.get("tv_dataset")
         self.torchvision_dataset_args = kwargs.get("tv_args")
 
-    def setup(self, datacrawler, mode, batch_size, workers, **kwargs):
+    def build(self, datacrawler, mode, batch_size, workers, **kwargs):
         # We don't need the data crawler...
 
         dataset_class: VisionDataset = locate_class(package="torchvision", subpackage="datasets", classpackage=self.torchvision_dataset_class)

@@ -23,89 +23,17 @@ from torch.utils.data import Dataset as TorchDataset
 import ednaml.utils
 from ednaml.utils.LabelMetadata import LabelMetadata
 
-
-class ImageGenerator:
-    """Base class for image dataset generators
-    """
-
+class Generator:
     num_entities: LabelMetadata
 
-    def __init__(
-        self,
-        gpus: int,
-        i_shape: Union[List[int], Tuple[int, int]],
-        channels: int,
-        normalization_mean: float,
-        normalization_std: float,
-        normalization_scale: float,
-        **kwargs
-    ):
-        """Initializes the Generator and builds the data transformer
-
-        Args:
-            gpus (_type_): _description_
-            i_shape (_type_): _description_
-            normalization_mean (_type_): _description_
-            normalization_std (_type_): _description_
-            normalization_scale (_type_): _description_
+    def __init__(self):
+        """Initialize the generator
         """
-        self.gpus = gpus
-        self.transformer = T.Compose(
-            self.build_transforms(
-                i_shape,
-                channels,
-                normalization_mean,
-                normalization_std,
-                normalization_scale,
-                **kwargs
-            )
-        )
-
-    def build_transforms(
-        self,
-        i_shape: Union[List[int], Tuple[int, int]],
-        channels: int,
-        normalization_mean: float,
-        normalization_std: float,
-        normalization_scale: float,
-        **kwargs
-    ) -> List[object]:
-        """Builds the transforms for the images in dataset. This can be replaced for custom set of transforms
-
-        Args:
-            i_shape (Union[List[int,int],Tuple[int,int]]): _description_
-            normalization_mean (float): _description_
-            normalization_std (float): _description_
-            normalization_scale (float): _description_
-
-        Returns:
-            _type_: _description_
-        """
-        normalization_mean, normalization_std = ednaml.utils.extend_mean_arguments(
-            [normalization_mean, normalization_std], channels
-        )
-        transformer_primitive = []
-        transformer_primitive.append(T.Resize(size=i_shape))
-        if kwargs.get("h_flip") > 0:
-            transformer_primitive.append(T.RandomHorizontalFlip(p=kwargs.get("h_flip")))
-        if kwargs.get("t_crop"):
-            transformer_primitive.append(T.RandomCrop(size=i_shape))
-        transformer_primitive.append(T.ToTensor())
-        transformer_primitive.append(
-            T.Normalize(mean=normalization_mean, std=normalization_std)
-        )
-        if kwargs.get("rea"):
-            transformer_primitive.append(
-                T.RandomErasing(
-                    p=0.5, scale=(0.02, 0.4), value=kwargs.get("rea_value", 0)
-                )
-            )
-        return transformer_primitive
+        raise NotImplementedError()
 
     # NOTE removed instance parameter from here.,, is it needed???
-    def setup(self, datacrawler, mode, batch_size, workers, **kwargs):
+    def build(self, datacrawler, mode, batch_size, workers, **kwargs):
         """This should generate a TorchDataset and associated DataLoader to yield batches.
-        The actual steps are as follows:
 
         Raises:
             NotImplementedError: _description_
@@ -120,8 +48,7 @@ class ImageGenerator:
         self.num_entities = self.getNumEntities(datacrawler, mode, **kwargs)
 
     def buildDataset(
-        self, datacrawler, mode: str, transform: List[object], **kwargs
-    ) -> TorchDataset:
+        self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
         """Given the datacrawler with all the data, and the mode (could be 
         any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as 
         as well the transform, return a TorchDataset
@@ -148,7 +75,7 @@ class ImageGenerator:
         """
 
         raise NotImplementedError()
-
+    
     def getNumEntities(self, datacrawler, mode, **kwargs) -> LabelMetadata:
         """Return the number of classes in the overall label scheme
         Raises:
@@ -157,6 +84,9 @@ class ImageGenerator:
 
         raise NotImplementedError()
 
+
+from ednaml.generators.ImageGenerator import ImageGenerator
+from ednaml.generators.TextGenerator import TextGenerator
 
 from ednaml.generators.ClassificationGenerator import ClassificationGenerator
 from ednaml.generators.CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator

@@ -44,15 +44,7 @@ class MultiClassificationDataset(TorchDataset):
 class MultiClassificationGenerator(ImageGenerator):
     def __init__(
         self,
-        gpus,
-        i_shape=(208, 208),
-        channels=3,
-        normalization_mean=0.5,
-        normalization_std=0.5,
-        normalization_scale=1.0 / 255.0,
-        h_flip=0.5,
-        t_crop=True,
-        rea=True,
+        gpus = 1,
         **kwargs
     ):
         """ Data generator for training and testing. Works with the <>. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
@@ -71,15 +63,7 @@ class MultiClassificationGenerator(ImageGenerator):
         
         """
         super().__init__(
-            gpus,
-            i_shape=i_shape,
-            channels=channels,
-            normalization_mean=normalization_mean,
-            normalization_std=normalization_std,
-            normalization_scale=normalization_scale,
-            h_flip=h_flip,
-            t_crop=t_crop,
-            rea=rea,
+            gpus=gpus,
             **kwargs
         )
 
