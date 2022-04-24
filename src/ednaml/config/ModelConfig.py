@@ -1,9 +1,10 @@
 from typing import Dict, List
+from ednaml.config import BaseConfig
 
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class ModelConfig:
+class ModelConfig(BaseConfig):
     BUILDER: str
     MODEL_ARCH: str
     MODEL_BASE: str

@@ -1,7 +1,9 @@
 from typing import Dict, List
 
+from ednaml.config import BaseConfig
 
-class ConfigDefaults:
+
+class ConfigDefaults(BaseConfig):
     OPTIMIZER_BUILDER: str
     MODEL_SERVING: bool
     EPOCHS: int

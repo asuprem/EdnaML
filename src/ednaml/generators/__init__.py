@@ -16,7 +16,7 @@ List of supported generators:
     - KnowledgeIntegratedGenerator: 
 """
 
-from typing import Any, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
 
@@ -26,7 +26,12 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 class Generator:
     num_entities: LabelMetadata
 
-    def __init__(self):
+    def __init__(
+        self,
+        gpus: int,
+        transforms: Dict[str,Any],
+        **kwargs
+    ):
         """Initialize the generator
         """
         raise NotImplementedError()
@@ -89,8 +94,5 @@ from ednaml.generators.ImageGenerator import ImageGenerator
 from ednaml.generators.TextGenerator import TextGenerator
 
 from ednaml.generators.ClassificationGenerator import ClassificationGenerator
-from ednaml.generators.CoLabelIntegratedDatasetGenerator import CoLabelIntegratedDatasetGenerator
-from ednaml.generators.CoLabelDeployGenerator import CoLabelDeployGenerator
 from ednaml.generators.MultiClassificationGenerator import MultiClassificationGenerator
 from ednaml.generators.TorchvisionGeneratorWrapper import TorchvisionGeneratorWrapper
-KnowledgeIntegratedGenerator = CoLabelIntegratedDatasetGenerator

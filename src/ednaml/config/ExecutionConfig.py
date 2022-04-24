@@ -1,8 +1,9 @@
+from ednaml.config import BaseConfig
 from ednaml.config.ConfigDefaults import ConfigDefaults
 from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
 
 
-class ExecutionConfig:
+class ExecutionConfig(BaseConfig):
     OPTIMIZER_BUILDER: str
     MODEL_SERVING: bool
     EPOCHS: int

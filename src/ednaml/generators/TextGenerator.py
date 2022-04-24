@@ -16,7 +16,8 @@ class TextGenerator(Generator):
     num_entities: LabelMetadata
     def __init__(
         self,
-        gpus: int,
+        gpus,
+        transforms,
         **kwargs
     ):
         """Initializes the Generator and builds the data transformer

@@ -9,6 +9,7 @@ requires = [
         "torchvision>=0.11.*",
         "Pillow>=9.0.*",
         "tqdm>=4.63.*",
+        "sentencepiece>=0.1.96"
     ]
 
 

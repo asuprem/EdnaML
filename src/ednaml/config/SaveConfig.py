@@ -1,7 +1,8 @@
+from ednaml.config import BaseConfig
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class SaveConfig:
+class SaveConfig(BaseConfig):
     MODEL_VERSION: int
     MODEL_CORE_NAME: str
     MODEL_BACKBONE: str

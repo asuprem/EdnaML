@@ -7,7 +7,7 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.core import EdnaMLBase
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
-from ednaml.generators import ImageGenerator
+from ednaml.generators import Generator
 from ednaml.loss.builders import LossBuilder
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.optimizer import BaseOptimizer
@@ -42,8 +42,8 @@ class EdnaML(EdnaMLBase):
     previous_stop: int
     trainer: BaseTrainer
     crawler: Crawler
-    train_generator: ImageGenerator
-    test_generator: ImageGenerator
+    train_generator: Generator
+    test_generator: Generator
     cfg: EdnaMLConfig
 
     def __init__(
@@ -86,13 +86,16 @@ class EdnaML(EdnaMLBase):
         self._crawlerClassQueue = None
         self._crawlerArgsQueue = None
         self._crawlerClassQueueFlag = False
-
         self._crawlerInstanceQueue = None
         self._crawlerInstanceQueueFlag = False
 
         self._generatorClassQueue = None
         self._generatorArgsQueue = None
         self._generatorClassQueueFlag = False
+        self._trainGeneratorInstanceQueue = None
+        self._trainGeneratorInstanceQueueFlag = True
+        self._testGeneratorInstanceQueue = None
+        self._testGeneratorInstanceQueueFlag = True
 
 
 
@@ -486,9 +489,9 @@ class EdnaML(EdnaMLBase):
         self.model_summary = summary(
             self.model,
             input_size=(
-                self.cfg.TRANSFORMATION.BATCH_SIZE,
-                self.cfg.TRANSFORMATION.CHANNELS,
-                *self.cfg.TRANSFORMATION.SHAPE,
+                self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
+                self.cfg.TEST_TRANSFORMATION.CHANNELS,
+                *self.cfg.TEST_TRANSFORMATION.SHAPE,
             ),
             col_names=[
                 "input_size",
@@ -528,7 +531,7 @@ class EdnaML(EdnaMLBase):
         self._crawlerInstanceQueue = crawler_instance
         self._crawlerInstanceQueueFlag = True
 
-    def addGeneratorClass(self, generator_class:Type[TextGenerator], *kwargs):
+    def addGeneratorClass(self, generator_class:Type[Generator], **kwargs):
         """Adds a generator class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
 
         The generator class is added to the internal datareader instance through `apply()`. Then,
@@ -536,11 +539,29 @@ class EdnaML(EdnaMLBase):
         to crawl the dataset and yield batches.
 
         Args:
-            generator_class (Type[TextGenerator]): _description_
+            generator_class (Type[Generator]): _description_
         """
         self._generatorClassQueue = generator_class
         self._generatorArgsQueue = kwargs
         self._generatorClassQueueFlag = True
+
+    def addTrainGenerator(self, generator:Generator):
+        """Adds a generator instance to the EdnaML `apply()` queue.
+
+        Args:
+            generator_class (Type[Generator]): _description_
+        """
+        self._trainGeneratorInstanceQueue = generator
+        self._trainGeneratorInstanceQueueFlag = True
+
+    def addTestGenerator(self, generator:Generator):
+        """Adds a generator instance to the EdnaML `apply()` queue.
+
+        Args:
+            generator_class (Type[Generator]): _description_
+        """
+        self._testGeneratorInstanceQueue = generator
+        self._testGeneratorInstanceQueueFlag = True
     
 
     def buildDataloaders(self):
@@ -552,8 +573,12 @@ class EdnaML(EdnaMLBase):
         # data_crawler is now data_reader.CRAWLER
         self.logger.info("Reading data with DataReader %s" % data_reader.name)
         # Update the generator...if needed
-        if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
-            data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
+        if self._generatorClassQueueFlag:
+            data_reader_instance.GENERATOR = self._generatorClassQueue
+            self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = self._generatorArgsQueue
+        else:
+            if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
+                data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
 
         if self._crawlerClassQueueFlag:
             data_reader_instance.CRAWLER = self._crawlerClassQueue
@@ -587,26 +612,22 @@ class EdnaML(EdnaMLBase):
             data_reader (DataReader): A datareader class
             crawler_instance (Crawler): A crawler instance
         """
-        self.train_generator: ImageGenerator = data_reader.GENERATOR(
-            gpus=self.gpus,
-            i_shape=self.cfg.TRANSFORMATION.SHAPE,
-            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
-            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
-            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
-            h_flip=self.cfg.TRANSFORMATION.H_FLIP,
-            t_crop=self.cfg.TRANSFORMATION.T_CROP,
-            rea=self.cfg.TRANSFORMATION.RANDOM_ERASE,
-            rea_value=self.cfg.TRANSFORMATION.RANDOM_ERASE_VALUE,
-            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
-        )
+        if self._trainGeneratorInstanceQueueFlag:
+            self.train_generator: Generator = self._trainGeneratorInstanceQueue
+        else:
+            self.train_generator: Generator = data_reader.GENERATOR(
+                gpus=self.gpus,
+                transforms=self.cfg.TRAIN_TRANSFORMATION.getVars(),
+                **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+            )
 
-        self.train_generator.build(
-            crawler_instance,
-            mode="train",
-            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
-            workers=self.cfg.TRANSFORMATION.WORKERS,
-            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
-        )
+            self.train_generator.build(
+                crawler_instance,
+                mode="train",
+                batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                workers=self.cfg.TRAIN_TRANSFORMATION.WORKERS,
+                **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+            )
         self.logger.info("Generated training data generator")
         self.labelMetadata = self.train_generator.num_entities
         self.logger.info(
@@ -621,25 +642,22 @@ class EdnaML(EdnaMLBase):
             data_reader (DataReader): A datareader class
             crawler_instance (Crawler): A crawler instance
         """
-        self.test_generator: ImageGenerator = data_reader.GENERATOR(
-            gpus=self.gpus,
-            i_shape=self.cfg.TRANSFORMATION.SHAPE,
-            normalization_mean=self.cfg.TRANSFORMATION.NORMALIZATION_MEAN,
-            normalization_std=self.cfg.TRANSFORMATION.NORMALIZATION_STD,
-            normalization_scale=1.0 / self.cfg.TRANSFORMATION.NORMALIZATION_SCALE,
-            h_flip=0,
-            t_crop=False,
-            rea=False,
-            **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
-        )
-        self.test_generator.build(
-            crawler_instance,
-            mode="test",
-            batch_size=self.cfg.TRANSFORMATION.BATCH_SIZE,
-            workers=self.cfg.TRANSFORMATION.WORKERS,
-            **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
-        )
-        self.logger.info("Generated validation data/query generator")
+        if self._testGeneratorInstanceQueueFlag:
+            self.test_generator: Generator = self._testGeneratorInstanceQueue
+        else:
+            self.test_generator: Generator = data_reader.GENERATOR(
+                gpus=self.gpus,
+                transforms=self.cfg.TEST_TRANSFORMATION.getVars(),
+                **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+            )
+            self.test_generator.build(
+                crawler_instance,
+                mode="test",
+                batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
+                workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
+                **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+            )
+        self.logger.info("Generated test data/query generator")
 
     def buildLogger(self, logger: logging.Logger = None) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to 

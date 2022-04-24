@@ -3,6 +3,7 @@
 import json
 from typing import List
 import yaml
+from ednaml.config import BaseConfig
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
@@ -16,10 +17,11 @@ from ednaml.config.TransformationConfig import TransformationConfig
 from ednaml.config.ModelConfig import ModelConfig
 
 
-class EdnaMLConfig:
+class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
     SAVE: SaveConfig
-    TRANSFORMATION: TransformationConfig
+    TRAIN_TRANSFORMATION: TransformationConfig
+    TEST_TRANSFORMATION: TransformationConfig
     MODEL: ModelConfig
     LOSS: List[LossConfig]
     OPTIMIZER: List[OptimizerConfig]  # one optimizer for each set of model params
@@ -35,8 +37,11 @@ class EdnaMLConfig:
 
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
-        self.TRANSFORMATION = TransformationConfig(
-            ydict.get("TRANSFORMATION", {}), defaults
+        self.TRAIN_TRANSFORMATION = TransformationConfig(
+            ydict.get("TRANSFORMATION", {}).update(ydict.get("TRAIN_TRANSFORMATION", {})), defaults
+        )
+        self.TEST_TRANSFORMATION = TransformationConfig(
+            ydict.get("TRANSFORMATION", {}).update(ydict.get("TEST_TRANSFORMATION", {})), defaults
         )
         self.MODEL = ModelConfig(
             ydict.get("MODEL", {}), defaults
@@ -69,7 +74,7 @@ class EdnaMLConfig:
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
 
     def export(self, mode="yaml"):
-        dicts = json.dumps(self, default=config_serializer)
+        dicts = json.dumps(self, default=config_serializer) # or getvars()????
         dicta = json.loads(dicts)
         if mode == "yaml":
             return yaml.dump(dicta)

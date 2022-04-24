@@ -1,7 +1,9 @@
 from typing import Dict
 
+from ednaml.config import BaseConfig
 
-class ExecutionDatareaderConfig:
+
+class ExecutionDatareaderConfig(BaseConfig):
     DATAREADER: str
     CRAWLER_ARGS: Dict[str, str]
     DATASET_ARGS: Dict[str, str]

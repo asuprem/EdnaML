@@ -1,9 +1,10 @@
 from typing import Dict
+from ednaml.config import BaseConfig
 
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class OptimizerConfig:
+class OptimizerConfig(BaseConfig):
     OPTIMIZER_NAME: str
     OPTIMIZER: str
     OPTIMIZER_KWARGS: Dict[str, str]

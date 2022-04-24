@@ -1,9 +1,10 @@
 from typing import List
+from ednaml.config import BaseConfig
 
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class TransformationConfig:
+class TransformationConfig(BaseConfig):
     SHAPE: List[int]
     NORMALIZATION_MEAN: List[int]
     NORMALIZATION_STD: List[int]

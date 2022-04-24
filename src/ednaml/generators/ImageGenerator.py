@@ -15,6 +15,7 @@ class ImageGenerator(Generator):
     def __init__(
         self,
         gpus: int = 1,
+        transforms = {},
         **kwargs
     ):
         """Initializes the Generator and builds the data transformer
@@ -29,7 +30,7 @@ class ImageGenerator(Generator):
         self.gpus = gpus
         self.transformer = T.Compose(
             self.build_transforms(
-                **kwargs
+                **transforms
             )
         )
 

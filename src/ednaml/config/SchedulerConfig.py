@@ -1,10 +1,11 @@
 from sched import scheduler
 from typing import Dict
+from ednaml.config import BaseConfig
 
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class SchedulerConfig:
+class SchedulerConfig(BaseConfig):
     SCHEDULER_NAME: str
     LR_SCHEDULER: str
     LR_KWARGS: Dict[str, str]

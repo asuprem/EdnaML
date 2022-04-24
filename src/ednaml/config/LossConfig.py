@@ -1,9 +1,10 @@
 from typing import Dict, List
+from ednaml.config import BaseConfig
 
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
-class LossConfig:
+class LossConfig(BaseConfig):
     LOSSES: List[str]
     KWARGS: List[Dict[str, str]]
     LAMBDAS: List[int]
