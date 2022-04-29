@@ -5,6 +5,25 @@ import torch.nn.functional as F
 from torch.nn.modules.batchnorm import _BatchNorm
 
 
+
+class Conv1D(nn.Module):
+    def __init__(self, nf, nx):
+        """ Conv1D layer as defined by Radford et al. for OpenAI GPT (and also used in GPT-2)
+            Basically works like a Linear layer but the weights are transposed
+        """
+        super(Conv1D, self).__init__()
+        self.nf = nf
+        w = torch.empty(nx, nf)
+        nn.init.normal_(w, std=0.02)
+        self.weight = nn.Parameter(w)
+        self.bias = nn.Parameter(torch.zeros(nf))
+
+    def forward(self, x):
+        size_out = x.size()[:-1] + (self.nf,)
+        x = torch.addmm(self.bias, x.view(-1, x.size(-1)), self.weight)
+        x = x.view(*size_out)
+        return x
+
 class LambdaLayer(nn.Module):
     """ Torch lambda layer to act as an empty layer. It does not do anything """
 
