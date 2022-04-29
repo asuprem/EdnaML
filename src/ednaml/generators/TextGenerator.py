@@ -29,7 +29,7 @@ class TextGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        self.gpus = gpus
+        self.gpus = max(1,gpus)
         self.transformer = self.build_transforms(**kwargs)
 
     def build_transforms(
