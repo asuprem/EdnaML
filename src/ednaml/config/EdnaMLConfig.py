@@ -37,11 +37,12 @@ class EdnaMLConfig(BaseConfig):
 
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
+        
         self.TRAIN_TRANSFORMATION = TransformationConfig(
-            ydict.get("TRANSFORMATION", {}).update(ydict.get("TRAIN_TRANSFORMATION", {})), defaults
+            dict(ydict.get("TRANSFORMATION", {}), **ydict.get("TRAIN_TRANSFORMATION", {})), defaults
         )
         self.TEST_TRANSFORMATION = TransformationConfig(
-            ydict.get("TRANSFORMATION", {}).update(ydict.get("TEST_TRANSFORMATION", {})), defaults
+            dict(ydict.get("TRANSFORMATION", {}), **ydict.get("TEST_TRANSFORMATION", {})), defaults
         )
         self.MODEL = ModelConfig(
             ydict.get("MODEL", {}), defaults
