@@ -7,7 +7,7 @@ requires = [
         "torch>=1.10.*",
         "torchinfo>=1.6.5",
         "torchvision>=0.11.*",
-        "Pillow>=9.0.*",
+        "Pillow>=7.1.2",    #9.0.x, this is for colab...
         "tqdm>=4.63.*",
         "sentencepiece>=0.1.96"
     ]

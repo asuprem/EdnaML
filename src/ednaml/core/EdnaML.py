@@ -49,7 +49,7 @@ class EdnaML(EdnaMLBase):
 
     def __init__(
         self,
-        config: str = "config.yaml",
+        config: str = "",
         mode: str = "train",
         weights: str = None,
         logger: logging.Logger = None,

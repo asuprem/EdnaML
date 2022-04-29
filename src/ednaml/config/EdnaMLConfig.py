@@ -1,5 +1,5 @@
 # BaseConfig class to manage the input configurations. TODO
-
+import os
 import json
 from typing import List
 import yaml
@@ -32,8 +32,13 @@ class EdnaMLConfig(BaseConfig):
 
     def __init__(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()):
         ydict = {}
-        with open(config_path, "r") as cfile:
-            ydict = yaml.safe_load(cfile.read().strip())
+        
+        if len(config_path) > 0:
+            if not os.path.exists(config_path):
+                raise FileNotFoundError("No file found for config at : %s"%config_path)
+            else:
+                with open(config_path, "r") as cfile:
+                    ydict = yaml.safe_load(cfile.read().strip())
 
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
@@ -49,7 +54,7 @@ class EdnaMLConfig(BaseConfig):
         )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
         self.LOSS = [
             LossConfig(loss_item, defaults) for loss_item in ydict.get("LOSS", [])
-        ]  # No default LOSS itself
+        ]  # No default LOSS itself --> it will be empty...
 
         # Default optimizer is Adam
         self.OPTIMIZER = [
