@@ -1,9 +1,10 @@
 import importlib
 import os, shutil, logging, glob, re
-from typing import Dict, List, Type
+from typing import Callable, Dict, List, Type
 import warnings
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from ednaml.config.ModelConfig import ModelConfig
 from ednaml.core import EdnaMLBase
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
@@ -93,9 +94,17 @@ class EdnaML(EdnaMLBase):
         self._generatorArgsQueue = None
         self._generatorClassQueueFlag = False
         self._trainGeneratorInstanceQueue = None
-        self._trainGeneratorInstanceQueueFlag = True
+        self._trainGeneratorInstanceQueueFlag = False
         self._testGeneratorInstanceQueue = None
-        self._testGeneratorInstanceQueueFlag = True
+        self._testGeneratorInstanceQueueFlag = False
+
+
+        self._modelBuilderQueue = None
+        self._modelBuilderQueueFlag = False
+        self._modelConfigQueue = None
+        self._modelConfigQueueFlag = False
+        self._modelQueue = None
+        self._modelQueueFlag = False
 
 
 
@@ -438,28 +447,48 @@ class EdnaML(EdnaMLBase):
     def buildModel(self):
         """Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
         """
-        model_builder = locate_class(subpackage="models", classpackage=self.cfg.MODEL.BUILDER)
+        if self._modelBuilderQueueFlag:
+            model_builder = self._modelBuilderQueue
+        else:
+            model_builder = locate_class(subpackage="models", classpackage=self.cfg.MODEL.BUILDER)
         self.logger.info(
             "Loaded {} from {} to build model".format(self.cfg.MODEL.BUILDER, "ednaml.models")
         )
 
+        if self._modelConfigQueueFlag:
+            self.cfg.MODEL = self._modelConfigQueue
+
         # model_kwargs = self._covert_model_kwargs()
 
         # TODO!!!!!!!
-        self.model: ModelAbstract = model_builder(
-            arch=self.cfg.MODEL.MODEL_ARCH,
-            base=self.cfg.MODEL.MODEL_BASE,
-            weights=self.pretrained_weights,
-            metadata=self.labelMetadata,
-            normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
-            parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
-            **self.cfg.MODEL.MODEL_KWARGS
-        )
+        if self._modelQueueFlag:
+            self.model = self._modelQueue
+        else:
+            self.model: ModelAbstract = model_builder(
+                arch=self.cfg.MODEL.MODEL_ARCH,
+                base=self.cfg.MODEL.MODEL_BASE,
+                weights=self.pretrained_weights,
+                metadata=self.labelMetadata,
+                normalization=self.cfg.MODEL.MODEL_NORMALIZATION,
+                parameter_groups=self.cfg.MODEL.PARAMETER_GROUPS,
+                **self.cfg.MODEL.MODEL_KWARGS
+            )
         self.logger.info(
             "Finished instantiating model with {} architecture".format(
                 self.cfg.MODEL.MODEL_ARCH
             )
         )
+
+    def addModelBuilder(self, model_builder: Type[Callable], model_config: ModelConfig = None):
+        self._modelBuilderQueue = model_builder
+        self._modelBuilderQueueFlag = True
+        if model_config is not None:
+            self._modelConfigQueue = model_config
+            self._modelConfigQueueFlag = True
+
+    def addModel(self, model: ModelAbstract):
+        self._modelQueue = model
+        self._modelQueueFlag = True
 
     def loadWeights(self):
         """If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
