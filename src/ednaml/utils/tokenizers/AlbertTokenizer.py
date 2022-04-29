@@ -6,7 +6,7 @@ import sentencepiece
 class AlbertFullTokenizer(object):
   """Runs end-to-end tokenziation."""
 
-  def __init__(self, vocab_file, do_lower_case=True, spm_model_file=None):
+  def __init__(self, vocab_file, do_lower_case=True, spm_model_file=None, **kwargs):
     self.vocab = None
     self.sp_model = None
     if spm_model_file:
@@ -51,7 +51,7 @@ class AlbertFullTokenizer(object):
 class AlbertBasicTokenizer(object):
   """Runs basic tokenization (punctuation splitting, lower casing, etc.)."""
 
-  def __init__(self, do_lower_case=True):
+  def __init__(self, do_lower_case=True, **kwargs):
     """Constructs a BasicTokenizer.
     Args:
       do_lower_case: Whether to lower case the input.
@@ -167,7 +167,7 @@ class AlbertWordpieceTokenizer(object):
       self.unk_token = unk_token
       self.max_input_chars_per_word = max_input_chars_per_word
 
-    def tokenize(self, text):
+    def tokenize(self, text, **kwargs):
       """Tokenizes a piece of text into its word pieces.
       This uses a greedy longest-match-first algorithm to perform tokenization
       using the given vocabulary.
