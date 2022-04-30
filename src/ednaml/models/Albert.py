@@ -65,7 +65,7 @@ class AlbertConfig(AlbertPreTrainedConfig):
                  initializer_range=0.02,
                  layer_norm_eps=1e-12,
                  **kwargs):
-        super(AlbertConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if isinstance(vocab_size_or_config_json_file, str):
             with open(vocab_size_or_config_json_file, "r", encoding='utf-8') as reader:
                 json_config = json.loads(reader.read())
@@ -95,7 +95,7 @@ class AlbertEmbeddings(nn.Module):
     """Construct the embeddings from word, position and token_type embeddings.
     """
     def __init__(self, config):
-        super(AlbertEmbeddings, self).__init__()
+        super().__init__()
         self.word_embeddings = nn.Embedding(config.vocab_size, config.embedding_size, padding_idx=0)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.embedding_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.embedding_size)
@@ -120,7 +120,7 @@ class AlbertEmbeddings(nn.Module):
 
 class AlbertSelfAttention(nn.Module):
     def __init__(self, config):
-        super(AlbertSelfAttention, self).__init__()
+        super().__init__()
         if config.hidden_size % config.num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
@@ -176,7 +176,7 @@ class AlbertSelfAttention(nn.Module):
 
 class AlbertSelfOutput(nn.Module):
     def __init__(self, config):
-        super(AlbertSelfOutput, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
     def forward(self, hidden_states, input_tensor):
@@ -186,7 +186,7 @@ class AlbertSelfOutput(nn.Module):
 
 class AlbertAttention(nn.Module):
     def __init__(self, config):
-        super(AlbertAttention, self).__init__()
+        super().__init__()
         self.self = AlbertSelfAttention(config)
         self.output = AlbertSelfOutput(config)
         self.pruned_heads = set()
@@ -222,7 +222,7 @@ class AlbertAttention(nn.Module):
 
 class AlbertOutput(nn.Module):
     def __init__(self, config):
-        super(AlbertOutput, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
@@ -233,7 +233,7 @@ class AlbertOutput(nn.Module):
 
 class AlbertIntermediate(nn.Module):
     def __init__(self, config):
-        super(AlbertIntermediate, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
         self.output = AlbertOutput(config)
         if isinstance(config.hidden_act, str):
@@ -254,7 +254,7 @@ class AlbertIntermediate(nn.Module):
 
 class AlbertFFN(nn.Module):
     def __init__(self, config):
-        super(AlbertFFN, self).__init__()
+        super().__init__()
         self.intermediate = AlbertIntermediate(config)
 
     def forward(self, attention_output):
@@ -263,7 +263,7 @@ class AlbertFFN(nn.Module):
 
 class AlbertLayer(nn.Module):
     def __init__(self, config):
-        super(AlbertLayer, self).__init__()
+        super().__init__()
         self.attention = AlbertAttention(config)
         self.ffn = AlbertFFN(config)
         self.LayerNorm = torch.nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
@@ -279,7 +279,7 @@ class AlbertLayer(nn.Module):
 
 class AlbertGroup(nn.Module):
     def __init__(self, config):
-        super(AlbertGroup, self).__init__()
+        super().__init__()
         self.inner_group_num = config.inner_group_num
         self.inner_group = nn.ModuleList([AlbertLayer(config) for _ in range(config.inner_group_num)])
 
@@ -296,7 +296,7 @@ class AlbertGroup(nn.Module):
 
 class AlbertTransformer(nn.Module):
     def __init__(self, config):
-        super(AlbertTransformer, self).__init__()
+        super().__init__()
         self.output_attentions = config.output_attentions
         self.output_hidden_states = config.output_hidden_states
         self.num_hidden_layers = config.num_hidden_layers
@@ -326,7 +326,7 @@ class AlbertTransformer(nn.Module):
 
 class AlbertEncoder(nn.Module):
     def __init__(self, config):
-        super(AlbertEncoder, self).__init__()
+        super().__init__()
         self.hidden_size = config.hidden_size
         self.embedding_size = config.embedding_size
         self.embedding_hidden_mapping_in = nn.Linear(self.embedding_size, self.hidden_size)
@@ -342,7 +342,7 @@ class AlbertEncoder(nn.Module):
 
 class AlbertPooler(nn.Module):
     def __init__(self, config):
-        super(AlbertPooler, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
@@ -356,7 +356,7 @@ class AlbertPooler(nn.Module):
 
 class AlbertPredictionHeadTransform(nn.Module):
     def __init__(self, config):
-        super(AlbertPredictionHeadTransform, self).__init__()
+        super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.embedding_size)
         if isinstance(config.hidden_act, str):
             if config.hidden_act == "gelu":
@@ -377,7 +377,7 @@ class AlbertPredictionHeadTransform(nn.Module):
 
 class AlbertLMPredictionHead(nn.Module):
     def __init__(self, config):
-        super(AlbertLMPredictionHead, self).__init__()
+        super().__init__()
         self.transform = AlbertPredictionHeadTransform(config)
         # The output weights are the same as the input embeddings, but there is
         # an output-only bias for each token.
@@ -391,7 +391,7 @@ class AlbertLMPredictionHead(nn.Module):
 
 class AlbertOnlyMLMHead(nn.Module):
     def __init__(self, config):
-        super(AlbertOnlyMLMHead, self).__init__()
+        super().__init__()
         self.predictions = AlbertLMPredictionHead(config)
 
     def forward(self, sequence_output):
@@ -400,7 +400,7 @@ class AlbertOnlyMLMHead(nn.Module):
 
 class AlbertOnlyNSPHead(nn.Module):
     def __init__(self, config):
-        super(AlbertOnlyNSPHead, self).__init__()
+        super().__init__()
         self.seq_relationship = nn.Linear(config.hidden_size, 2)
 
     def forward(self, pooled_output):
@@ -409,7 +409,7 @@ class AlbertOnlyNSPHead(nn.Module):
 
 class AlbertPreTrainingHeads(nn.Module):
     def __init__(self, config):
-        super(AlbertPreTrainingHeads, self).__init__()
+        super().__init__()
         self.predictions = AlbertLMPredictionHead(config)
         self.seq_relationship = nn.Linear(config.hidden_size, 2)
 
@@ -519,7 +519,7 @@ class AlbertModel(AlbertPreTrainedModel):
     """
     # We need to follow config, to see what is used in each...
     def __init__(self, config):
-        super(AlbertModel, self).__init__(config)
+        super().__init__(config)
 
         self.embeddings = AlbertEmbeddings(config)
         self.encoder = AlbertEncoder(config)
@@ -628,7 +628,7 @@ class AlbertForPreTraining(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForPreTraining, self).__init__(config)
+        super().__init__(config)
         self.bert = AlbertModel(config)
         self.cls = AlbertPreTrainingHeads(config)
 
@@ -694,7 +694,7 @@ class AlbertForMaskedLM(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForMaskedLM, self).__init__(config)
+        super().__init__(config)
 
         self.bert = AlbertModel(config)
         self.cls = AlbertOnlyMLMHead(config)
@@ -759,7 +759,7 @@ class AlbertForNextSentencePrediction(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForNextSentencePrediction, self).__init__(config)
+        super().__init__(config)
 
         self.bert = AlbertModel(config)
         self.cls = AlbertOnlyNSPHead(config)
@@ -819,7 +819,7 @@ class AlbertForSequenceClassification(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForSequenceClassification, self).__init__(config)
+        super().__init__(config)
         self.num_labels = config.num_labels
 
         self.bert = AlbertModel(config)
@@ -890,7 +890,7 @@ class AlbertForMultipleChoice(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForMultipleChoice, self).__init__(config)
+        super().__init__(config)
 
         self.bert = AlbertModel(config)
         self.dropout = nn.Dropout(0.1 if config.hidden_dropout_prob == 0 else config.hidden_dropout_prob)
@@ -955,7 +955,7 @@ class AlbertForTokenClassification(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForTokenClassification, self).__init__(config)
+        super().__init__(config)
         self.num_labels = config.num_labels
 
         self.bert = AlbertModel(config)
@@ -1032,7 +1032,7 @@ class AlbertForQuestionAnswering(AlbertPreTrainedModel):
     """
 
     def __init__(self, config):
-        super(AlbertForQuestionAnswering, self).__init__(config)
+        super().__init__(config)
         self.num_labels = config.num_labels
 
         self.bert = AlbertModel(config)
