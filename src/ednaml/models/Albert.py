@@ -421,7 +421,7 @@ class AlbertPreTrainingHeads(nn.Module):
 class AlbertPreTrainedModel(PreTrainedAlbertModel):
     """ An abstract class to handle weights initialization and
         a simple interface for dowloading and loading pretrained models.
-    """
+    """ 
     config_class = AlbertConfig
     pretrained_model_archive_map = ALBERT_PRETRAINED_MODEL_ARCHIVE_MAP
     load_tf_weights = load_tf_weights_in_albert

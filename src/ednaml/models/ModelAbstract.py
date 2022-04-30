@@ -46,7 +46,7 @@ class ModelAbstract(nn.Module):
         raise NotImplementedError()
 
     def parameter_groups_setup(self, parameter_groups: List[str]):
-        raise NotImplementedError()
+        self.parameter_groups[parameter_groups[0]] = self
 
     def weights_init_kaiming(self, m):
         classname = m.__class__.__name__

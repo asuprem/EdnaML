@@ -144,11 +144,12 @@ class PreTrainedAlbertModel(nn.Module):
 
         base_model._prune_heads(heads_to_prune)
 
-    """
+    
     def save_pretrained(self, save_directory):
+        """
         Save a model and its configuration file to a directory, so that it
             can be re-loaded using the `:func:`~pytorch_transformers.PreTrainedModel.from_pretrained`` class method.
-        
+        """
         import os
         assert os.path.isdir(save_directory), "Saving path should be a directory where the model and configuration can be saved"
 
@@ -166,6 +167,7 @@ class PreTrainedAlbertModel(nn.Module):
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
+        """
         Instantiate a pretrained pytorch model from a pre-trained model configuration.
         The model is set in evaluation mode by default using ``model.eval()`` (Dropout modules are deactivated)
         To train the model, you should first set it back in training mode with ``model.train()``
@@ -211,7 +213,7 @@ class PreTrainedAlbertModel(nn.Module):
             config = BertConfig.from_json_file('./tf_model/my_tf_model_config.json')
             model = BertModel.from_pretrained('./tf_model/my_tf_checkpoint.ckpt.index', from_tf=True, config=config)
        
-       
+        """
         config = kwargs.pop('config', None)
         state_dict = kwargs.pop('state_dict', None)
         cache_dir = kwargs.pop('cache_dir', None)
@@ -341,4 +343,4 @@ class PreTrainedAlbertModel(nn.Module):
             return model, loading_info
 
         return model
-    """
+
