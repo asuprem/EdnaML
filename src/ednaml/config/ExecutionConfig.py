@@ -28,3 +28,4 @@ class ExecutionConfig(BaseConfig):
         self.DATAREADER = ExecutionDatareaderConfig(
             execution_dict.get("DATAREADER", {})
         )
+        self.TRAINER_ARGS = execution_dict.get("TRAINER_ARGS", defaults.TRAINER_ARGS)

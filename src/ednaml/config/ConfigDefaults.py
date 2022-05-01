@@ -10,6 +10,7 @@ class ConfigDefaults(BaseConfig):
     SKIPEVAL: bool
     TEST_FREQUENCY: int
     TRAINER: str
+    TRAINER_ARGS: Dict[str,str]
     MODEL_VERSION: int
     MODEL_CORE_NAME: str
     MODEL_BACKBONE: str
@@ -66,7 +67,11 @@ class ConfigDefaults(BaseConfig):
         self.EPOCHS = kwargs.get("EPOCHS", 10)
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
         self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
-        self.TRAINER = kwargs.get("TRAINER", "ClassificationTrainer")
+        self.TRAINER = kwargs.get("TRAINER", "BaseTrainer")
+        self.TRAINER = kwargs.get("TRAINER_ARGS", {
+            "accumulation_steps": 1,
+
+        })
 
         self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
         self.MODEL_CORE_NAME = kwargs.get("MODEL_CORE_NAME", "model")

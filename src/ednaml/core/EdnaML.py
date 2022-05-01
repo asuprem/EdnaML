@@ -239,6 +239,7 @@ class EdnaML(EdnaMLBase):
             crawler=self.crawler,
             config=self.cfg,
             labels=self.labelMetadata,
+            **self.cfg.EXECUTION.TRAINER_ARGS
         )
         self.trainer.setup(
             step_verbose=self.step_verbose,

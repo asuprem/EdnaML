@@ -99,6 +99,10 @@ class BaseTrainer:
             crawler=crawler.classes, config=json.loads(config.export("json"))
         )
 
+
+        self.accumulation_steps = kwargs.get("accumulation_steps")
+        self.accumulation_count = 0
+
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
@@ -316,20 +320,35 @@ class BaseTrainer:
     def epoch_step(self, epoch):
         """Trains model for an epoch.
         """
+        self.zeroGrad()        
+        self.evaluateFlag = False
+        self.saveFlag = False
         for batch in self.train_loader:
             if self.global_batch == 0:
                 self.printOptimizerLearningRates()
             
             self.model.train()
-            self.zeroGradOptimizers()
-            self.zeroGradLossOptimizers()
+            
+            loss:torch.Tensor = self.step(batch)
+            loss = loss / self.accumulation_steps
+            loss.backward()
+            self.accumulation_count +=1
 
-            self.step(batch)
+            if self.accumulation_count % self.accumulation_steps == 0:
+                self.updateGradients()
+                self.accumulation_count = 0
+                if self.evaluateFlag:
+                    self.evaluate()
+                    self.evaluateFlag = False
+                if self.saveFlag:
+                    self.save()
+                    self.saveFlag = False
+
             
             self.global_batch+=1
-
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
+
 
         self.global_batch = 0
         self.stepSchedulers()
@@ -340,12 +359,29 @@ class BaseTrainer:
         )
 
         if self.global_epoch % self.test_frequency == 0:
-            self.logger.info("Evaluating model at test-frequency")
-            self.evaluate()
+            self.logger.info("Evaluating model at test-frequency, but gradients still need accumulation. Will save after accumulation.")
+            self.evaluateFlag = True
+            
         if self.global_epoch % self.save_frequency == 0:
-            self.logger.info("Saving model at save-frequency")
-            self.save()
+            self.logger.info("Saving model at save-frequency, but gradients still need accumulation. Will save after accumulation.")
+            self.saveFlag = True
         self.global_epoch += 1
+    
+    def step(self, batch) -> torch.Tensor:
+        # compute the loss, and return it
+        raise NotImplementedError()
+
+    def updateGradients(self):
+        self.stepOptimizers()
+        self.stepLossOptimizers()
+        self.zeroGrad()
+
+
+
+    def zeroGrad(self):
+        self.zeroGradOptimizers()
+        self.zeroGradLossOptimizers()
+
 
     def printStepInformation(self):
         loss_avg = 0.0
