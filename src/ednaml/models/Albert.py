@@ -427,6 +427,10 @@ class AlbertPreTrainedModel(PreTrainedAlbertModel):
     load_tf_weights = load_tf_weights_in_albert
     base_model_prefix = "bert"
 
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        
     def _init_weights(self, module):
         """ Initialize the weights """
         if isinstance(module, (nn.Linear, nn.Embedding)):

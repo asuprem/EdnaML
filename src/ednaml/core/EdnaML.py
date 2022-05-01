@@ -4,6 +4,7 @@ from typing import Callable, Dict, List, Type
 import warnings
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from ednaml.config.LossConfig import LossConfig
 from ednaml.config.ModelConfig import ModelConfig
 from ednaml.core import EdnaMLBase
 from ednaml.crawlers import Crawler
@@ -105,6 +106,13 @@ class EdnaML(EdnaMLBase):
         self._modelConfigQueueFlag = False
         self._modelQueue = None
         self._modelQueueFlag = False
+
+        self._optimizerQueue = []
+        self._optimizerNameQueue = []
+        self._optimizerQueueFlag = False
+
+        self._lossBuilderQueue = []
+        self._lossBuilderQueueFlag = False
 
 
 
@@ -266,33 +274,44 @@ class EdnaML(EdnaMLBase):
             )
             return max(previous_stop) + 1
 
+    def addOptimizer(self, optimizer:torch.optim.Optimizer, parameter_group="opt-1"):
+        self._optimizerQueue.append(optimizer)
+        self._optimizerNameQueue.append(parameter_group)
+        self._optimizerQueueFlag = True
+
+
+
     def buildOptimizer(self):
         """Builds the optimizer for the model
         """
-        optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
-        self.logger.info(
-            "Loaded {} from {} to build Optimizer model".format(
-                self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
-            )
-        )
 
-        # Optimizers are in a list...
-        OPT_array = [
-            optimizer_builder(
-                name=optimizer_item.OPTIMIZER_NAME,
-                optimizer=optimizer_item.OPTIMIZER,
-                base_lr=optimizer_item.BASE_LR,
-                lr_bias=optimizer_item.LR_BIAS_FACTOR,
-                weight_decay=optimizer_item.WEIGHT_DECAY,
-                weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
-                opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
-                gpus=self.gpus,
+        if self._optimizerQueueFlag:
+            self.optimizer = [item for item in self._optimizerQueue]
+        else:
+            optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+            self.logger.info(
+                "Loaded {} from {} to build Optimizer model".format(
+                    self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
+                )
             )
-            for optimizer_item in self.cfg.OPTIMIZER
-        ]
-        self.optimizer = [
-            OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
-        ]  # TODO deal with singleton vs multiple optimizers...
+
+            # Optimizers are in a list...
+            OPT_array = [
+                optimizer_builder(
+                    name=optimizer_item.OPTIMIZER_NAME,
+                    optimizer=optimizer_item.OPTIMIZER,
+                    base_lr=optimizer_item.BASE_LR,
+                    lr_bias=optimizer_item.LR_BIAS_FACTOR,
+                    weight_decay=optimizer_item.WEIGHT_DECAY,
+                    weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
+                    opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
+                    gpus=self.gpus,
+                )
+                for optimizer_item in self.cfg.OPTIMIZER
+            ]
+            self.optimizer = [
+                OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+            ]  # TODO make this a dictionary???
         self.logger.info("Built optimizer")
 
     def buildScheduler(self):
@@ -312,6 +331,19 @@ class EdnaML(EdnaMLBase):
             )
         self.logger.info("Built scheduler")
 
+    def addLossBuilder(self, loss_list, loss_lambdas, loss_kwargs, loss_name, loss_label):
+        self._lossBuilderQueue.append(
+            LossConfig({
+                "LOSSES": loss_list,
+                "LAMBDAS": loss_lambdas,
+                "KWARGS": loss_kwargs,
+                "LABEL": loss_label,
+                "NAME": loss_name}
+            )
+        )
+        self._lossBuilderQueueFlag = True
+
+
     def buildLossArray(self):
         """Builds the loss function array using the LOSS list in the provided configuration
         """
@@ -327,6 +359,19 @@ class EdnaML(EdnaMLBase):
             )
             for loss_item in self.cfg.LOSS
         ]
+        if self._lossBuilderQueueFlag:
+            self.loss_function_array+=[
+                ClassificationLossBuilder(
+                    loss_functions=loss_item.LOSSES,
+                    loss_lambda=loss_item.LAMBDAS,
+                    loss_kwargs=loss_item.KWARGS,
+                    name=loss_item.NAME,  # get("NAME", None),
+                    label=loss_item.LABEL,  # get("LABEL", None),
+                    metadata=self.labelMetadata,
+                    **{"logger": self.logger}
+                )
+                for loss_item in self._lossBuilderQueue
+            ]
         self.logger.info("Built loss function")
 
     def buildLossOptimizer(self):

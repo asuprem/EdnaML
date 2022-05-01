@@ -1,5 +1,7 @@
 from torch import nn
 
+from ednaml.utils import locate_class
+
 
 class Loss(nn.Module):
     def __init__(self, lossname=None, metadata=None, **kwargs):
@@ -7,6 +9,18 @@ class Loss(nn.Module):
 
     def forward(self):
         raise NotImplementedError()
+
+
+class TorchLoss(Loss):
+    def __init__(self, lossname=None, metadata=None, **kwargs):
+        super().__init__()
+        self.lossclass = kwargs.get("loss_class")
+        self.losskwargs = kwargs.get("loss_kwargs")
+        lossclass = locate_class(package="torch", subpackage="nn", classpackage=self.lossclass)
+        self.lossfn = lossclass(**self.losskwargs)
+
+    def forward(self, logits, labels):
+        return self.lossfn(logits, labels)
 
 
 from ednaml.loss.CenterLoss import CenterLoss

@@ -68,7 +68,7 @@ class ConfigDefaults(BaseConfig):
         self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
         self.TRAINER = kwargs.get("TRAINER", "ClassificationTrainer")
 
-        self.MODEL_VERSION = kwargs.get("MODEL_VERSION", "v1")
+        self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
         self.MODEL_CORE_NAME = kwargs.get("MODEL_CORE_NAME", "model")
         self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "res18")
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")

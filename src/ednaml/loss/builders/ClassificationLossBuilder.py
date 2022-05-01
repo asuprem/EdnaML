@@ -1,6 +1,6 @@
 from ednaml.loss.builders import LossBuilder
 
-from ednaml.loss import SoftmaxLogitsLoss
+from ednaml.loss import SoftmaxLogitsLoss, TorchLoss
 from ednaml.loss import SoftmaxLabelSmooth
 
 
@@ -11,4 +11,7 @@ class ClassificationLossBuilder(LossBuilder):
     LOSS_PARAMS["SoftmaxLogitsLoss"]["args"] = ["logits", "labels"]
     LOSS_PARAMS["SoftmaxLabelSmooth"] = {}
     LOSS_PARAMS["SoftmaxLabelSmooth"]["fn"] = SoftmaxLabelSmooth
+    LOSS_PARAMS["SoftmaxLabelSmooth"]["args"] = ["logits", "labels"]
+    LOSS_PARAMS["SoftmaxLabelSmooth"] = {}
+    LOSS_PARAMS["SoftmaxLabelSmooth"]["fn"] = TorchLoss
     LOSS_PARAMS["SoftmaxLabelSmooth"]["args"] = ["logits", "labels"]

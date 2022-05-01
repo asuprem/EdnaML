@@ -12,7 +12,7 @@ class ExecutionDatareaderConfig(BaseConfig):
     DATALOADER_ARGS: Dict[str, str]
 
     def __init__(self, datareader_dict):
-        self.DATAREADER = datareader_dict.get("DATAREADER")
+        self.DATAREADER = datareader_dict.get("DATAREADER", "DataReader")
         self.CRAWLER_ARGS = datareader_dict.get("CRAWLER_ARGS", {})
         self.DATASET_ARGS = datareader_dict.get("DATASET_ARGS", {})
         self.GENERATOR = datareader_dict.get("GENERATOR", "ClassificationGenerator")
