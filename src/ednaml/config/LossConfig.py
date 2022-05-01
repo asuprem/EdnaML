@@ -11,7 +11,7 @@ class LossConfig(BaseConfig):
     LABEL: str
     NAME: str
 
-    def __init__(self, loss_dict, defaults: ConfigDefaults):
+    def __init__(self, loss_dict, defaults: ConfigDefaults = ConfigDefaults()):
         self.LOSSES = loss_dict.get("LOSSES", defaults.LOSSES)
         self.KWARGS = loss_dict.get("KWARGS", defaults.LOSS_KWARGS)
         self.LAMBDAS = loss_dict.get("LAMBDAS", defaults.LAMBDAS)

@@ -111,8 +111,11 @@ class EdnaML(EdnaMLBase):
         self._optimizerNameQueue = []
         self._optimizerQueueFlag = False
 
-        self._lossBuilderQueue = []
-        self._lossBuilderQueueFlag = False
+        self.resetLossBuilderQueue()
+
+
+        self._trainerClassQueue = None
+        self._trainerClassQueueFlag = False
 
 
 
@@ -203,16 +206,23 @@ class EdnaML(EdnaMLBase):
 
     def eval(self):
         return self.trainer.evaluate()
+    
+    def addTrainer(self, trainerClass):
+        self._trainerClassQueue = trainerClass
+        self._trainerClassQueueFlag = True
 
     def buildTrainer(self):
         """Builds the EdnaML trainer and sets it up
         """
-        ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage="trainer",classpackage=self.cfg.EXECUTION.TRAINER)
-        self.logger.info(
-            "Loaded {} from {} to build Trainer".format(
-                self.cfg.EXECUTION.TRAINER, "ednaml.trainer"
+        if self._trainerClassQueueFlag:
+            ExecutionTrainer = self._trainerClassQueue
+        else:
+            ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage="trainer",classpackage=self.cfg.EXECUTION.TRAINER)
+            self.logger.info(
+                "Loaded {} from {} to build Trainer".format(
+                    self.cfg.EXECUTION.TRAINER, "ednaml.trainer"
+                )
             )
-        )
 
         self.trainer = ExecutionTrainer(
             model=self.model,
@@ -330,6 +340,10 @@ class EdnaML(EdnaMLBase):
                 self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
             )
         self.logger.info("Built scheduler")
+
+    def resetLossBuilderQueue(self):
+        self._lossBuilderQueue = []
+        self._lossBuilderQueueFlag = False
 
     def addLossBuilder(self, loss_list, loss_lambdas, loss_kwargs, loss_name, loss_label):
         self._lossBuilderQueue.append(
