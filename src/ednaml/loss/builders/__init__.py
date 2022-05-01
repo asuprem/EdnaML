@@ -81,7 +81,7 @@ class LossBuilder(nn.Module):
             # loss += self.loss_lambda[idx] * fn(kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][0]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][1]), kwargs.get(self.LOSS_PARAMS[self.loss_fn[idx]]['args'][2]))
             loss += self.loss_lambda[idx] * loss_fn(
                 *[
-                    kwargs.get(arg_name)
+                    kwargs.get(arg_name, None)
                     for arg_name in self.LOSS_PARAMS[self.loss_fn[idx]]["args"]
                 ]
             )
