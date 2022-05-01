@@ -19,8 +19,8 @@ class TorchLoss(Loss):
         lossclass = locate_class(package="torch", subpackage="nn", classpackage=self.lossclass)
         self.lossfn = lossclass(**self.losskwargs)
 
-    def forward(self, logits, labels):
-        return self.lossfn(logits, labels)
+    def forward(self, *inputs, **kwargs):
+        return self.lossfn(*inputs, **kwargs)
 
 
 from ednaml.loss.CenterLoss import CenterLoss
