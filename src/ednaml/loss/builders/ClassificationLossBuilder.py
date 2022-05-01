@@ -14,4 +14,4 @@ class ClassificationLossBuilder(LossBuilder):
     LOSS_PARAMS["SoftmaxLabelSmooth"]["args"] = ["logits", "labels"]
     LOSS_PARAMS["TorchLoss"] = {}
     LOSS_PARAMS["TorchLoss"]["fn"] = TorchLoss
-    LOSS_PARAMS["TorchLoss"]["args"] = ["logits", "labels"]
+    LOSS_PARAMS["TorchLoss"]["args"] = ["input", "target"]
