@@ -19,7 +19,7 @@ class TorchLoss(Loss):
         lossclass = locate_class(package="torch", subpackage="nn", classpackage=self.lossclass)
         self.lossfn = lossclass(**self.losskwargs)
 
-    def forward(self, input, target, **kwargs):
+    def forward(self, input, target, **kwargs): # TODO this is hacky. need to generalize, or find a better way to represent the torch loss with its arguments...
         return self.lossfn(input, target, **kwargs)
 
 
