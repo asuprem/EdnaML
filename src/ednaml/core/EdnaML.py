@@ -570,17 +570,19 @@ class EdnaML(EdnaMLBase):
                         "Completed partial model load from {}".format(self.weights)
                     )
 
-    def getModelSummary(self):
+    def getModelSummary(self, input_size=None):
         """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
         """
         self.model.cuda()
-        self.model_summary = summary(
-            self.model,
-            input_size=(
+        if input_size is None:
+            input_size = (
                 self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
                 self.cfg.TEST_TRANSFORMATION.CHANNELS,
                 *self.cfg.TEST_TRANSFORMATION.SHAPE,
-            ),
+            )
+        self.model_summary = summary(
+            self.model,
+            input_size=input_size,
             col_names=[
                 "input_size",
                 "output_size",

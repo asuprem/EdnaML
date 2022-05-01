@@ -46,7 +46,7 @@ class ModelAbstract(nn.Module):
         raise NotImplementedError()
 
     def parameter_groups_setup(self, parameter_groups: List[str]):
-        self.parameter_groups[parameter_groups[0]] = self
+        self.parameter_groups[parameter_groups[0]] = "self"
 
     def weights_init_kaiming(self, m):
         classname = m.__class__.__name__
@@ -112,4 +112,7 @@ class ModelAbstract(nn.Module):
         return self.model_arch
 
     def getParameterGroup(self, key:str)->nn.Module:
-        return self.parameter_groups[key]
+        if self.parameter_groups[key] == "self":    #avoid recursion bug, I think?
+            return self
+        else:
+            return self.parameter_groups[key]
