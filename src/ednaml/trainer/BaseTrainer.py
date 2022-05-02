@@ -308,6 +308,9 @@ class BaseTrainer:
             self.logger.info("Skipping initial evaluation.")
 
         self.logger.info("Starting training from %i" % continue_epoch)
+        self.zeroGrad()        
+        self.evaluateFlag = False
+        self.saveFlag = False
         for epoch in range(self.epochs):
             if epoch >= continue_epoch:
                 self.epoch_step(epoch)
@@ -322,9 +325,6 @@ class BaseTrainer:
     def epoch_step(self, epoch):
         """Trains model for an epoch.
         """
-        self.zeroGrad()        
-        self.evaluateFlag = False
-        self.saveFlag = False
         for batch in self.train_loader:
             if self.global_batch == 0:
                 self.printOptimizerLearningRates()
