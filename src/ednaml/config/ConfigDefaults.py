@@ -68,9 +68,8 @@ class ConfigDefaults(BaseConfig):
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
         self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
         self.TRAINER = kwargs.get("TRAINER", "BaseTrainer")
-        self.TRAINER = kwargs.get("TRAINER_ARGS", {
+        self.TRAINER_ARGS = kwargs.get("TRAINER_ARGS", {
             "accumulation_steps": 1,
-
         })
 
         self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
