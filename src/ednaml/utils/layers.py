@@ -4,22 +4,22 @@ import torch.nn.init
 import torch.nn.functional as F
 from torch.nn.modules.batchnorm import _BatchNorm
 
+from ednaml.utils.functional import gradient_reversal_functional
 
-class GradientReversalLayer(torch.autograd.Function):
-    """
-    Implement the gradient reversal layer for the convenience of domain adaptation neural network.
-    The forward part is the identity function while the backward part is the negative function.
-    """
+#https://github.com/janfreyberg/pytorch-revgrad/
+class GradientReversalLayer(nn.Module):
+    def __init__(self, alpha=1., *args, **kwargs):
+        """
+        A gradient reversal layer.
+        This layer has no parameters, and simply reverses the gradient
+        in the backward pass.
+        """
+        super().__init__(*args, **kwargs)
 
-    def __init__(self, glambda=1):
-        self.glambda = glambda
-    def forward(self, inputs):
-        return inputs.view_as(inputs)
+        self._alpha = torch.tensor(alpha, requires_grad=False)
 
-    def backward(self, grad_output):
-        #grad_input = grad_output.clone()
-        #grad_input = -grad_input
-        return grad_output.neg() * self.glambda
+    def forward(self, input_):
+        return gradient_reversal_functional(input_, self._alpha)
 
 def gradient_reversal_function(x, glambda=1.0):
     return GradientReversalLayer(glambda=glambda)(x)
