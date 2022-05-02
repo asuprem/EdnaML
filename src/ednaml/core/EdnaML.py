@@ -87,12 +87,14 @@ class EdnaML(EdnaMLBase):
         """
         self._crawlerClassQueue = None
         self._crawlerArgsQueue = None
+        self._crawlerArgsQueueFlag = False
         self._crawlerClassQueueFlag = False
         self._crawlerInstanceQueue = None
         self._crawlerInstanceQueueFlag = False
 
         self._generatorClassQueue = None
         self._generatorArgsQueue = None
+        self._generatorArgsQueueFlag = False
         self._generatorClassQueueFlag = False
         self._trainGeneratorInstanceQueue = None
         self._trainGeneratorInstanceQueueFlag = False
@@ -106,6 +108,10 @@ class EdnaML(EdnaMLBase):
         self._modelConfigQueueFlag = False
         self._modelQueue = None
         self._modelQueueFlag = False
+        self._modelClassQueue = None
+        self._modelClassQueueFlag = False
+        self._modelArgsQueue = None
+        self._modelArgsQueueFlag = False
 
         self._optimizerQueue = []
         self._optimizerNameQueue = []
@@ -116,6 +122,8 @@ class EdnaML(EdnaMLBase):
 
         self._trainerClassQueue = None
         self._trainerClassQueueFlag = False
+        self._trainerInstanceQueue = None
+        self._trainerInstanceQueueFlag = False
 
 
 
@@ -179,7 +187,7 @@ class EdnaML(EdnaMLBase):
                 % (model_base, str(model_weights.keys()))
             )
 
-    def apply(self):
+    def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML
         """
         self.recordVars()
@@ -189,7 +197,7 @@ class EdnaML(EdnaMLBase):
 
         self.buildModel()
         self.loadWeights()
-        self.getModelSummary()
+        self.getModelSummary(**kwargs)
         self.buildOptimizer()
         self.buildScheduler()
 
@@ -207,9 +215,13 @@ class EdnaML(EdnaMLBase):
     def eval(self):
         return self.trainer.evaluate()
     
-    def addTrainer(self, trainerClass):
+    def addTrainerClass(self, trainerClass: Type[BaseTrainer]):
         self._trainerClassQueue = trainerClass
         self._trainerClassQueueFlag = True
+    
+    def addTrainer(self, trainer: BaseTrainer):
+        self._trainerInstanceQueue = trainer
+        self._trainerInstanceQueueFlag = True
 
     def buildTrainer(self):
         """Builds the EdnaML trainer and sets it up
@@ -223,36 +235,39 @@ class EdnaML(EdnaMLBase):
                     self.cfg.EXECUTION.TRAINER, "ednaml.trainer"
                 )
             )
-
-        self.trainer = ExecutionTrainer(
-            model=self.model,
-            loss_fn=self.loss_function_array,
-            optimizer=self.optimizer,
-            loss_optimizer=self.loss_optimizer_array,
-            scheduler=self.scheduler,
-            loss_scheduler=self.loss_scheduler,
-            train_loader=self.train_generator.dataloader,
-            test_loader=self.test_generator.dataloader,
-            epochs=self.epochs,
-            skipeval=self.skipeval,
-            logger=self.logger,
-            crawler=self.crawler,
-            config=self.cfg,
-            labels=self.labelMetadata,
-            **self.cfg.EXECUTION.TRAINER_ARGS
-        )
-        self.trainer.setup(
-            step_verbose=self.step_verbose,
-            save_frequency=self.save_frequency,
-            test_frequency=self.test_frequency,
-            save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
-            save_backup=self.drive_backup,
-            backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
-            gpus=self.gpus,
-            fp16=self.fp16,
-            model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
-            logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
-        )
+        
+        if self._trainerInstanceQueueFlag:
+            self.trainer = self._trainerInstanceQueue
+        else:
+            self.trainer = ExecutionTrainer(
+                model=self.model,
+                loss_fn=self.loss_function_array,
+                optimizer=self.optimizer,
+                loss_optimizer=self.loss_optimizer_array,
+                scheduler=self.scheduler,
+                loss_scheduler=self.loss_scheduler,
+                train_loader=self.train_generator.dataloader,
+                test_loader=self.test_generator.dataloader,
+                epochs=self.epochs,
+                skipeval=self.skipeval,
+                logger=self.logger,
+                crawler=self.crawler,
+                config=self.cfg,
+                labels=self.labelMetadata,
+                **self.cfg.EXECUTION.TRAINER_ARGS
+            )
+            self.trainer.setup(
+                step_verbose=self.step_verbose,
+                save_frequency=self.save_frequency,
+                test_frequency=self.test_frequency,
+                save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+                save_backup=self.drive_backup,
+                backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+                gpus=self.gpus,
+                fp16=self.fp16,
+                model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+                logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+            )
 
     def setPreviousStop(self):
         """Sets the previous stop
@@ -524,8 +539,16 @@ class EdnaML(EdnaMLBase):
         if self._modelQueueFlag:
             self.model = self._modelQueue
         else:
+            if self._modelArgsQueueFlag:
+                self.cfg.MODEL.MODEL_KWARGS = self._modelArgsQueue
+            
+            if self._modelClassQueueFlag:
+                self.cfg.MODEL.MODEL_ARCH = self._modelClassQueue._get_name()
+                arch = self._modelClassQueue
+            else:
+                arch = self.cfg.MODEL.MODEL_ARCH
             self.model: ModelAbstract = model_builder(
-                arch=self.cfg.MODEL.MODEL_ARCH,
+                arch=arch,
                 base=self.cfg.MODEL.MODEL_BASE,
                 weights=self.pretrained_weights,
                 metadata=self.labelMetadata,
@@ -550,6 +573,13 @@ class EdnaML(EdnaMLBase):
         self._modelQueue = model
         self._modelQueueFlag = True
 
+    def addModelClass(self, model_class: Type[ModelAbstract], **kwargs):
+        self._modelClassQueue = model_class
+        self._modelClassQueueFlag = True
+        self._modelArgsQueue = kwargs
+        if len(self._modelArgsQueue) > 0:
+            self._modelArgsQueueFlag = True
+
     def loadWeights(self):
         """If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
         Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
@@ -570,8 +600,10 @@ class EdnaML(EdnaMLBase):
                     self.logger.info(
                         "Completed partial model load from {}".format(self.weights)
                     )
+                else:
+                    self.logger.info("In train mode, but no weights provided to load into model. This means either model will be initialized randomly, or weights loading occurs inside the model.")
 
-    def getModelSummary(self, input_size=None, dtypes=None):
+    def getModelSummary(self, input_size=None, dtypes=None, **kwargs):
         """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
         """
         self.model.cuda()
@@ -612,6 +644,8 @@ class EdnaML(EdnaMLBase):
         """
         self._crawlerClassQueue = crawler_class
         self._crawlerArgsQueue = kwargs
+        if len(self._crawlerArgsQueue) > 0:
+            self._crawlerArgsQueueFlag = True
         self._crawlerClassQueueFlag = True
 
     def addCrawler(self, crawler_instance: Crawler):
@@ -635,6 +669,8 @@ class EdnaML(EdnaMLBase):
         """
         self._generatorClassQueue = generator_class
         self._generatorArgsQueue = kwargs
+        if len(self._generatorArgsQueue) >0:
+            self._generatorArgsQueueFlag = True
         self._generatorClassQueueFlag = True
 
     def addTrainGenerator(self, generator:Generator):
@@ -667,14 +703,16 @@ class EdnaML(EdnaMLBase):
         # Update the generator...if needed
         if self._generatorClassQueueFlag:
             data_reader_instance.GENERATOR = self._generatorClassQueue
-            self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = self._generatorArgsQueue
+            if self._generatorArgsQueueFlag:
+                self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = self._generatorArgsQueue
         else:
             if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
                 data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
 
         if self._crawlerClassQueueFlag:
             data_reader_instance.CRAWLER = self._crawlerClassQueue
-            self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+            if self._crawlerArgsQueueFlag:
+                self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
 
         if self._crawlerInstanceQueueFlag:
             self.crawler = self._crawlerInstanceQueue

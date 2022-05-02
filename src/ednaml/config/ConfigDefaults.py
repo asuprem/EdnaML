@@ -74,7 +74,7 @@ class ConfigDefaults(BaseConfig):
 
         self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
         self.MODEL_CORE_NAME = kwargs.get("MODEL_CORE_NAME", "model")
-        self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "res18")
+        self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "")
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")
         self.DRIVE_BACKUP = kwargs.get("DRIVE_BACKUP", False)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
@@ -92,18 +92,18 @@ class ConfigDefaults(BaseConfig):
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)
         self.WORKERS = kwargs.get("WORKERS", 2)
 
-        self.BUILDER = kwargs.get("BUILDER", "classification_model_builder")
-        self.MODEL_ARCH = kwargs.get("MODEL_ARCH", "ClassificationResnet")
-        self.MODEL_BASE = kwargs.get("MODEL_BASE", "resnet18")
+        self.BUILDER = kwargs.get("BUILDER", "ednaml_model_builder")
+        self.MODEL_ARCH = kwargs.get("MODEL_ARCH", "ModelAbstract")
+        self.MODEL_BASE = kwargs.get("MODEL_BASE", "base")
         self.MODEL_NORMALIZATION = kwargs.get("MODEL_NORMALIZATION", "bn")
         self.MODEL_KWARGS = kwargs.get("MODEL_KWARGS", {})
         self.PARAMETER_GROUPS = kwargs.get("PARAMETER_GROUPS", ['opt-1'])
 
         self.LOSSES = kwargs.get("LOSSES", [])
         self.LOSS_KWARGS = kwargs.get("LOSS_KWARGS", [])
-        self.LAMBDAS = kwargs.get("LAMBDAS", [1.0])
-        self.LOSS_LABEL = kwargs.get("LOSS_LABEL", "color")
-        self.LOSS_NAME = kwargs.get("LOSS_NAME", "loss-1")
+        self.LAMBDAS = kwargs.get("LAMBDAS", [])
+        self.LOSS_LABEL = kwargs.get("LOSS_LABEL", "")
+        self.LOSS_NAME = kwargs.get("LOSS_NAME", "")
 
         self.OPTIMIZER_NAME = kwargs.get("OPTIMIZER_NAME", "opt-1")
         self.OPTIMIZER = kwargs.get("OPTIMIZER", "Adam")

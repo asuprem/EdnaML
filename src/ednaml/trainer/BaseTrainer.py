@@ -102,6 +102,8 @@ class BaseTrainer:
 
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
+        self.evaluateFlag = False
+        self.saveFlag = False
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
@@ -338,9 +340,11 @@ class BaseTrainer:
                 self.updateGradients()
                 self.accumulation_count = 0
                 if self.evaluateFlag:
+                    self.logger.info("Evaluating model at test-frequency")
                     self.evaluate()
                     self.evaluateFlag = False
                 if self.saveFlag:
+                    self.logger.info("Saving model at save-frequency")
                     self.save()
                     self.saveFlag = False
 
@@ -359,11 +363,11 @@ class BaseTrainer:
         )
 
         if self.global_epoch % self.test_frequency == 0:
-            self.logger.info("Evaluating model at test-frequency, but gradients still need accumulation. Will save after accumulation.")
+            self.logger.info("Model evaluation triggered, but gradients still need accumulation. Will evaluate after accumulation.")
             self.evaluateFlag = True
             
         if self.global_epoch % self.save_frequency == 0:
-            self.logger.info("Saving model at save-frequency, but gradients still need accumulation. Will save after accumulation.")
+            self.logger.info("Model save triggered, but gradients still need accumulation. Will save after accumulation.")
             self.saveFlag = True
         self.global_epoch += 1
     

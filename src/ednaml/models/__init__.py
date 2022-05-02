@@ -1,5 +1,27 @@
+from typing import Type, List
+from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils import locate_class
 from ednaml.utils.LabelMetadata import LabelMetadata
+
+def ednaml_model_builder(
+    arch:Type[ModelAbstract],
+    base: str,
+    weights: str=None,
+    normalization: str=None,
+    metadata: LabelMetadata = None,
+    parameter_groups:List[str]=None,
+    **kwargs
+):
+    if type(arch) is str:
+        arch = locate_class(subpackage="models", classpackage=arch, classfile=arch)
+
+    return arch(
+            base=base, 
+            weights=weights, 
+            metadata=metadata, 
+            normalization=normalization,
+            parameter_groups=parameter_groups,
+            **kwargs)
 
 
 def classification_model_builder(
