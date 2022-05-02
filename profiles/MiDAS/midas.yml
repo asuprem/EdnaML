@@ -34,7 +34,7 @@ TRANSFORMATION:
   BATCH_SIZE: 16
 
 MODEL:
-  BUILDER: model_builder
+  BUILDER: ednaml_model_builder
   MODEL_ARCH: MiDAS
   MODEL_BASE: Albert
   MODEL_KWARGS: 
