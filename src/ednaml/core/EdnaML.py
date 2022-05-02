@@ -296,7 +296,7 @@ class EdnaML(EdnaMLBase):
         else:
             self.logger.info(
                 "Previous stop detected. Will attempt to resume from epoch %i"
-                % self.previous_stop
+                % max(previous_stop)
             )
             return max(previous_stop) + 1
 
