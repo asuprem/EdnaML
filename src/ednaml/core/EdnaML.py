@@ -543,7 +543,7 @@ class EdnaML(EdnaMLBase):
                 self.cfg.MODEL.MODEL_KWARGS = self._modelArgsQueue
             
             if self._modelClassQueueFlag:
-                self.cfg.MODEL.MODEL_ARCH = self._modelClassQueue._get_name()
+                self.cfg.MODEL.MODEL_ARCH = self._modelClassQueue.__name__
                 arch = self._modelClassQueue
             else:
                 arch = self.cfg.MODEL.MODEL_ARCH
