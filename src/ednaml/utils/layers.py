@@ -5,6 +5,24 @@ import torch.nn.functional as F
 from torch.nn.modules.batchnorm import _BatchNorm
 
 
+class GradientReversalLayer(torch.autograd.Function):
+    """
+    Implement the gradient reversal layer for the convenience of domain adaptation neural network.
+    The forward part is the identity function while the backward part is the negative function.
+    """
+
+    def __init__(self, glambda=1):
+        self.glambda = glambda
+    def forward(self, inputs):
+        return inputs.view_as(inputs)
+
+    def backward(self, grad_output):
+        #grad_input = grad_output.clone()
+        #grad_input = -grad_input
+        return grad_output.neg() * self.glambda
+
+def gradient_reversal_function(x, glambda=1.0):
+    return GradientReversalLayer(glambda=glambda)(x)
 
 class Conv1D(nn.Module):
     def __init__(self, nf, nx):
