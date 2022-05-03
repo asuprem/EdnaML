@@ -405,6 +405,7 @@ class BaseTrainer:
         )
 
     def evaluate(self):
+        self.model.eval()
         logit_labels, true_labels, features = self.evaluate_impl()
         return logit_labels, true_labels, self.crawler.classes, features
 
@@ -453,7 +454,3 @@ class BaseTrainer:
                         lrs,
                     )
                 )
-
-
-
-

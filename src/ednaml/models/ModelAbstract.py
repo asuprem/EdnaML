@@ -3,7 +3,6 @@ import torch
 from typing import List, Dict
 from ednaml.utils.LabelMetadata import LabelMetadata
 
-
 class ModelAbstract(nn.Module):
     model_name = "ModelAbstract"
     model_arch = None
@@ -34,6 +33,7 @@ class ModelAbstract(nn.Module):
         self.weights = weights
         self.normalization = normalization
         self.parameter_groups = {}
+        self.inferencing = False
 
         self.model_attributes_setup(**kwargs)
         self.model_setup(**kwargs)
@@ -94,6 +94,8 @@ class ModelAbstract(nn.Module):
             self.state_dict()[_key].copy_(params[_key])
 
     def forward(self, x, **kwargs):
+        if self.training and self.inference:
+            raise ValueError("Cannot inference and train at the same time! Call deinference() first, before train()")
         feature_logits, features, secondary_outputs = self.forward_impl(x, **kwargs)
 
         return feature_logits, features, secondary_outputs
@@ -116,3 +118,20 @@ class ModelAbstract(nn.Module):
             return self
         else:
             return self.parameter_groups[key]
+
+    def inference(self):
+        self.eval()
+        self.inferencing = True
+    def deinference(self):
+        self.inferencing = False
+    """
+    def train(self, mode: bool = True):
+        self.inferencing = False
+        return super().train(mode)
+
+    def eval(self):
+        self.inferencing = False
+        return super().eval()
+    """
+    def convertForInference(self) -> "ModelAbstract":
+        raise NotImplementedError

@@ -45,13 +45,44 @@ class Conv1D(nn.Module):
 class LambdaLayer(nn.Module):
     """ Torch lambda layer to act as an empty layer. It does not do anything """
 
-    def __init__(self, lambd):
-        super(LambdaLayer, self).__init__()
-        self._lambda = lambd
+    def __init__(self):
+        super().__init__()
 
     def forward(self, x):
-        return self._lambda(x)
+        return x
 
+
+class ListIndexLayer(nn.Module):
+    """ Torch layer to return a single index from list. It does not do anything """
+
+    def __init__(self, idx):
+        super().__init__()
+        self.idx = idx
+
+    def forward(self, x):
+        return x[self.idx]
+
+class DictKeyLayer(nn.Module):
+    """ Torch lambda layer to return single key from dict. It does not do anything """
+
+    def __init__(self, key):
+        super().__init__()
+        self.key = key
+
+    def forward(self, x):
+        return x[self.key]
+
+class EmbeddingAverage(nn.Module):
+    """Averages embeddings on given dimension
+
+    Args:
+        nn (_type_): _description_
+    """
+    def __init__(self, dim=1) -> None:
+        super().__init__()
+        self.dim=dim
+    def forward(self, x):
+        return torch.mean(x,dim=self.dim)
 
 # https://github.com/amdegroot/ssd.pytorch/blob/master/layers/modules/l2norm.py
 class L2Norm(nn.Module):
