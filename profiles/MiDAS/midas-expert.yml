@@ -1,11 +1,15 @@
 EXECUTION:
   DATAREADER:
-    CRAWLER_ARGS: {data_folder: Data}
+    CRAWLER_ARGS: 
+      data_folder: Data
+      include: ["cmu_miscov19"]
     DATAREADER: DataReader
     DATASET_ARGS:
-      classificationclass: ['true', 'dataset']
+      classificationclass: ['fnews', 'dataset']
       maxlen: 512
       memcache: True
+      mlm_probability: 0.15
+      masking: False
     GENERATOR_ARGS: 
       do_lower_case: True
       spm_model_file: 30k-clean.model 
@@ -23,9 +27,9 @@ EXECUTION:
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: "midas_base"
+  MODEL_CORE_NAME: "midas_expert"
   MODEL_BACKBONE: "albert"
-  MODEL_QUALIFIER: "3domain"
+  MODEL_QUALIFIER: "cmu_miscov19"
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/MiDAS/Models/"
@@ -56,23 +60,16 @@ MODEL:
     num_decoders:  3
     domains: 3
     glambda: 1.0
+    pooling: pooled
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 
 LOSS: 
-  - LOSSES: ['TorchLoss']
-    KWARGS: 
-      - loss_class: CrossEntropyLoss
-        loss_kwargs:
-          ignore_index: -1
-    LAMBDAS: [1.0]
-    NAME: mask_lm
-    LABEL: mask_lm
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]
     LAMBDAS: [1.0]
-    LABEL: dataset
-    NAME: discriminator
+    LABEL: fnews
+    NAME: classification
 
 OPTIMIZER:
   - OPTIMIZER: AdamW

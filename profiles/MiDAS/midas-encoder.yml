@@ -5,30 +5,31 @@ EXECUTION:
       include: ["cmu_miscov19", "cov19_fn_title", "kagglefn_short", "cov_rumor"]
     DATAREADER: DataReader
     DATASET_ARGS:
-      classificationclass: ['true', 'dataset']
-      maxlen: 256
+      classificationclass: ['fnews', 'dataset']
+      maxlen: 512
       memcache: True
+      mlm_probability: 0.15
     GENERATOR_ARGS: 
       do_lower_case: True
       spm_model_file: 30k-clean.model 
       tokenizer: AlbertFullTokenizer
       vocab_file: 30k-clean.vocab
-  EPOCHS: 16
+  EPOCHS: 10
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
   SKIPEVAL: False
-  TEST_FREQUENCY: 3
+  TEST_FREQUENCY: 5
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
-    accumulation_steps: 8
+    accumulation_steps: 4
 
 SAVE:
-  MODEL_VERSION: 2
-  MODEL_CORE_NAME: "midas"
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "midas_encoder"
   MODEL_BACKBONE: "albert"
-  MODEL_QUALIFIER: "4domain"
-  DRIVE_BACKUP: True
+  MODEL_QUALIFIER: "3domain"
+  DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/MiDAS/Models/"
 
@@ -55,9 +56,10 @@ MODEL:
     type_vocab_size: 2
     initializer_range: 0.02
     layer_norm_eps: 1.0e-12
-    num_decoders:  4
-    domains: 4
+    num_decoders:  3
+    domains: 3
     glambda: 1.0
+    pooling: pooled
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 
@@ -78,7 +80,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 1.0e-4
+    BASE_LR: 5.0e-5
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6
@@ -87,7 +89,7 @@ OPTIMIZER:
     WEIGHT_DECAY: 0.0005
 
 SCHEDULER:
-- LR_KWARGS: {step_size: 10}
+- LR_KWARGS: {step_size: 20}
   LR_SCHEDULER: StepLR
   SCHEDULER_NAME: opt-1
 
