@@ -1,3 +1,6 @@
+import torch
+from torch import nn
+
 def load_tf_weights_in_albert(model, config, tf_checkpoint_path):
     """ Load tf checkpoints in a pytorch model.
     """
@@ -139,3 +142,34 @@ def prune_layer(layer, index, dim=None):
         return prune_conv1d_layer(layer, index, dim=1 if dim is None else dim)
     else:
         raise ValueError("Can't prune layer of class {}".format(layer.__class__))
+
+
+
+class AlbertEmbeddingAverage(nn.Module):
+    """Averages embeddings on given dimension
+
+    Args:
+        nn (_type_): _description_
+    """
+    def __init__(self) -> None:
+        super().__init__()
+    def forward(self, outputs):
+        return torch.mean(outputs[0],dim=1)
+
+class AlbertPooledOutput(nn.Module):
+    """ Torch layer to return a single index from list. It does not do anything """
+    def __init__(self):
+        super().__init__()
+    def forward(self, outputs):
+        return outputs[1]
+
+class AlbertRawCLSOutput(nn.Module):
+    """ Torch layer to return a single index from list. It does not do anything """
+    def __init__(self):
+        super().__init__()
+    def forward(self, outputs):
+        return outputs[0][:,0]
+        
+
+
+
