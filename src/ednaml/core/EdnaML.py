@@ -55,6 +55,7 @@ class EdnaML(EdnaMLBase):
         weights: str = None,
         logger: logging.Logger = None,
         verbose: int = 2,
+        **kwargs
     ):
         """Initializes the EdnaML object with the associated config, mode, weights, and verbosity. 
         Sets up the logger, as well as local logger save directory. 
@@ -78,8 +79,8 @@ class EdnaML(EdnaMLBase):
         self.saveMetadata = SaveMetadata(self.cfg)
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
-        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
-        self.logger = self.buildLogger(logger=logger)
+        self.logger = self.buildLogger(logger=logger, **kwargs)
+        self.previous_stop = 0
         self.resetQueues()
 
     def resetQueues(self):
@@ -131,16 +132,14 @@ class EdnaML(EdnaMLBase):
         """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
         of dataloading, model building, etc
         """
-        self.drive_backup = self.cfg.SAVE.DRIVE_BACKUP
-        self.previous_stop = 0
+        
         self.epochs = self.cfg.EXECUTION.EPOCHS
         self.skipeval = self.cfg.EXECUTION.SKIPEVAL
         self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
         self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
         self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
         self.fp16 = self.cfg.EXECUTION.FP16
-        self.printConfiguration()
-        self.downloadModelWeights()
+        
 
     def downloadModelWeights(self):
         """Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
@@ -190,7 +189,8 @@ class EdnaML(EdnaMLBase):
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML
         """
-        self.recordVars()
+        self.printConfiguration()
+        self.downloadModelWeights()
         self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
 
         self.buildDataloaders()
@@ -248,8 +248,8 @@ class EdnaML(EdnaMLBase):
                 loss_scheduler=self.loss_scheduler,
                 train_loader=self.train_generator.dataloader,
                 test_loader=self.test_generator.dataloader,
-                epochs=self.epochs,
-                skipeval=self.skipeval,
+                epochs=self.cfg.EXECUTION.EPOCHS,
+                skipeval=self.cfg.EXECUTION.SKIPEVAL,
                 logger=self.logger,
                 crawler=self.crawler,
                 config=self.cfg,
@@ -257,14 +257,14 @@ class EdnaML(EdnaMLBase):
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
             self.trainer.setup(
-                step_verbose=self.step_verbose,
-                save_frequency=self.save_frequency,
-                test_frequency=self.test_frequency,
+                step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
+                save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
+                test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
                 save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
-                save_backup=self.drive_backup,
+                save_backup=self.cfg.SAVE.DRIVE_BACKUP,
                 backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 gpus=self.gpus,
-                fp16=self.fp16,
+                fp16=self.cfg.EXECUTION.FP16,
                 model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
                 logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
@@ -276,7 +276,7 @@ class EdnaML(EdnaMLBase):
     def getPreviousStop(self) -> int:
         """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
         """
-        if self.drive_backup:
+        if self.cfg.SAVE.DRIVE_BACKUP:
             fl_list = glob.glob(
                 os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, "*.pth")
             )
@@ -789,7 +789,7 @@ class EdnaML(EdnaMLBase):
             )
         self.logger.info("Generated test data/query generator")
 
-    def buildLogger(self, logger: logging.Logger = None) -> logging.Logger:
+    def buildLogger(self, logger: logging.Logger = None, add_filehandler: bool = True, add_streamhandler: bool = True, **kwargs) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to 
         existing logger if it does not already have them. 
 
@@ -808,18 +808,18 @@ class EdnaML(EdnaMLBase):
             self.saveMetadata.MODEL_SAVE_FOLDER, self.saveMetadata.LOGGER_SAVE_NAME
         )
         # Check for backup logger
-        if self.drive_backup:
+        if self.cfg.SAVE.DRIVE_BACKUP:
             backup_logger = os.path.join(
                 self.saveMetadata.CHECKPOINT_DIRECTORY,
                 self.saveMetadata.LOGGER_SAVE_NAME,
             )
-            if os.path.exists(backup_logger):
+            if os.path.exists(backup_logger) and add_filehandler:
                 print(
                     "Existing log file exists at network backup %s. Will attempt to copy to local directory %s."
                     % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
                 )
                 shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
-        if os.path.exists(logger_save_path):
+        if os.path.exists(logger_save_path) and add_filehandler:
             print(
                 "Log file exists at %s. Will attempt to append there."
                 % logger_save_path
@@ -839,14 +839,14 @@ class EdnaML(EdnaMLBase):
         if not loggerGiven:
             logger.setLevel(logging.DEBUG)
 
-        if not filehandler:
+        if not filehandler and add_filehandler:
             fh = logging.FileHandler(logger_save_path, mode='a', encoding='utf-8')
             fh.setLevel(self.logLevels[self.verbose])
             formatter = logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
             fh.setFormatter(formatter)
             logger.addHandler(fh)
 
-        if not streamhandler:
+        if not streamhandler and add_streamhandler:
             cs = logging.StreamHandler()
             cs.setLevel(self.logLevels[self.verbose])
             cs.setFormatter(
@@ -876,3 +876,20 @@ class EdnaML(EdnaMLBase):
         self.logger.info("")
         self.logger.info("")
         self.logger.info("*" * 40)
+
+
+    def loadEpoch(self, epoch=0):
+        model_load = self.saveMetadata.MODEL_SAVE_NAME + "_epoch%i" % epoch + ".pth"
+        if self.cfg.SAVE.DRIVE_BACKUP:
+            self.logger.info(
+                "Loading model from drive backup."
+            )
+            model_load_path = os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, model_load)
+        else:
+            self.logger.info(
+                "Loading model from local backup."
+            )
+            model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
+
+        self.model.load_state_dict(torch.load(model_load_path))
+        self.logger.info("Finished loading model state_dict from %s" % model_load_path)

@@ -1,8 +1,9 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Type
 import os, builtins
 import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
+from ednaml.models.ModelAbstract import ModelAbstract
 
 
 def locate_class(package="ednaml",subpackage="core", classpackage="EdnaML", classfile=None, forceload=0):
@@ -231,3 +232,23 @@ model_weights = {
         "shufflenetv2-small.pth",
     ],
 }
+
+
+def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstract] = None, epoch: int=0):
+    """Generates a model using a configuration file, and loads a specific saved epoch
+
+    Args:
+        config_file (str): _description_
+        model_class (Type[ModelAbstract], optional): _description_. Defaults to None.
+        epoch (int, optional): _description_. Defaults to 0.
+
+    Returns:
+        _type_: _description_
+    """
+    from ednaml.core import EdnaML
+    eml = EdnaML(config=config_file, add_filehander=False)
+    if model_class is not None:
+        eml.addModelClass(model_class=model_class)
+    eml.buildModel()
+    eml.loadEpoch(epoch=epoch)
+    return eml.model

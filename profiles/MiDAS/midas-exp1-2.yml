@@ -24,7 +24,7 @@ EXECUTION:
     accumulation_steps: 8
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 2
   MODEL_CORE_NAME: "midas"
   MODEL_BACKBONE: "albert"
   MODEL_QUALIFIER: "4domain"
@@ -57,7 +57,7 @@ MODEL:
     layer_norm_eps: 1.0e-12
     num_decoders:  4
     domains: 4
-    glambda: 2.0
+    glambda: 1.0
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 
