@@ -222,7 +222,7 @@ class EdnaML(EdnaMLBase):
         self.resetQueues()
 
     def train(self):
-        self.trainer.train(continue_epoch=self.previous_stop)
+        self.trainer.train(continue_epoch=self.previous_stop+1) #
 
     def eval(self):
         return self.trainer.evaluate()
@@ -310,7 +310,7 @@ class EdnaML(EdnaMLBase):
                 "Previous stop detected. Will attempt to resume from epoch %i"
                 % max(previous_stop)
             )
-            return max(previous_stop) + 1
+            return max(previous_stop)
 
     def addOptimizer(self, optimizer:torch.optim.Optimizer, parameter_group="opt-1"):
         self._optimizerQueue.append(optimizer)
@@ -618,7 +618,7 @@ class EdnaML(EdnaMLBase):
         if self.mode == "test":
             if self.weights is None:
                 self.logger.info("No saved model weights provided. Inferring weights path.")
-                if self.load_epoch is not None and type(self.load_epoch is int):
+                if self.load_epoch is not None and type(self.load_epoch) is int:
                     self.weights = self.getModelWeightsFromEpoch(self.load_epoch)
                     self.logger.info("Using weights from provided epoch %i, at path %s."%(self.load_epoch, self.weights))
                 else:
@@ -832,7 +832,11 @@ class EdnaML(EdnaMLBase):
                 workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
                 **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
             )
+
+        if self.mode == "test":
+            self.labelMetadata = self.test_generator.num_entities
         self.logger.info("Generated test data/query generator")
+
 
     def buildLogger(self, logger: logging.Logger = None, add_filehandler: bool = True, add_streamhandler: bool = True, **kwargs) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to 
