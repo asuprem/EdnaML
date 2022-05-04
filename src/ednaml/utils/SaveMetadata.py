@@ -18,13 +18,13 @@ class SaveMetadata:
     LOGGER_SAVE_NAME: str
     CHECKPOINT_DIRECTORY: str
 
-    def __init__(self, cfg: EdnaMLConfig):
+    def __init__(self, cfg: EdnaMLConfig, **kwargs):
         (
             self.MODEL_SAVE_NAME,
             self.MODEL_SAVE_FOLDER,
             self.LOGGER_SAVE_NAME,
             self.CHECKPOINT_DIRECTORY,
-        ) = SaveMetadata.generate_save_names_from_config(cfg)
+        ) = SaveMetadata.generate_save_names_from_config(cfg, **kwargs)
 
         self.MODEL_VERSION = cfg.SAVE.MODEL_VERSION
         self.MODEL_CORE_NAME = cfg.SAVE.MODEL_CORE_NAME
@@ -33,7 +33,7 @@ class SaveMetadata:
         self.DRIVE_BACKUP = cfg.SAVE.DRIVE_BACKUP
 
     @staticmethod
-    def generate_save_names_from_config(cfg: EdnaMLConfig) -> Tuple[str]:
+    def generate_save_names_from_config(cfg: EdnaMLConfig, **kwargs) -> Tuple[str]:
 
         MODEL_SAVE_NAME = "%s-v%i" % (cfg.SAVE.MODEL_CORE_NAME, cfg.SAVE.MODEL_VERSION)
         MODEL_SAVE_FOLDER = "%s-v%i-%s-%s" % (
@@ -42,12 +42,15 @@ class SaveMetadata:
             cfg.SAVE.MODEL_BACKBONE,
             cfg.SAVE.MODEL_QUALIFIER,
         )
-        LOGGER_SAVE_NAME = "%s-v%i-%s-%s-logger.log" % (
-            cfg.SAVE.MODEL_CORE_NAME,
-            cfg.SAVE.MODEL_VERSION,
-            cfg.SAVE.MODEL_BACKBONE,
-            cfg.SAVE.MODEL_QUALIFIER,
-        )
+        if kwargs.get("logger_save_name", None) is not None:
+            LOGGER_SAVE_NAME = kwargs.get("logger_save_name")
+        else:
+            LOGGER_SAVE_NAME = "%s-v%i-%s-%s-logger.log" % (
+                cfg.SAVE.MODEL_CORE_NAME,
+                cfg.SAVE.MODEL_VERSION,
+                cfg.SAVE.MODEL_BACKBONE,
+                cfg.SAVE.MODEL_QUALIFIER,
+            )
         if cfg.SAVE.DRIVE_BACKUP:
             CHECKPOINT_DIRECTORY = os.path.join(
                 cfg.SAVE.CHECKPOINT_DIRECTORY, MODEL_SAVE_FOLDER

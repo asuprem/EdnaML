@@ -16,28 +16,43 @@ List of supported generators:
     - KnowledgeIntegratedGenerator: 
 """
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List
 import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
-
-import ednaml.utils
+from torch.utils.data import DataLoader as TorchDataLoader
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 class Generator:
     num_entities: LabelMetadata
+    dataloader: TorchDataLoader
+    dataset: TorchDataset
+    gpus: int
+    mode: str
+    training_mode: bool
 
     def __init__(
         self,
-        gpus: int,
-        transforms: Dict[str,Any],
+        gpus: int = 1,
+        transforms: Dict[str,Any] = {},
+        mode: str = "train",
         **kwargs
     ):
         """Initialize the generator
         """
-        raise NotImplementedError()
+        self.gpus=max(1,gpus)
+        self.dataloader = None
+        self.transforms = transforms
+        self.mode = mode
+        self.training_mode = self.isTrainingMode()
+        self.transformer = self.build_transforms(self.transforms, self.mode, **kwargs)
 
-    # NOTE removed instance parameter from here.,, is it needed???
-    def build(self, datacrawler, mode, batch_size, workers, **kwargs):
+    def build_transforms(self, transforms: Dict[str,Any], mode, **kwargs):
+        return None
+
+    def isTrainingMode(self):
+        return self.mode == "train"
+
+    def build(self, datacrawler, batch_size, workers, **kwargs):
         """This should generate a TorchDataset and associated DataLoader to yield batches.
 
         Raises:
@@ -46,11 +61,11 @@ class Generator:
 
         self.workers = workers * self.gpus
 
-        self.dataset = self.buildDataset(datacrawler, mode, self.transformer, **kwargs)
+        self.dataset = self.buildDataset(datacrawler, self.mode, self.transformer, **kwargs)
         self.dataloader = self.buildDataLoader(
-            self.dataset, mode, batch_size=batch_size, **kwargs
+            self.dataset, self.mode, batch_size=batch_size, **kwargs
         )
-        self.num_entities = self.getNumEntities(datacrawler, mode, **kwargs)
+        self.num_entities = self.getNumEntities(datacrawler, self.mode, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
@@ -66,7 +81,7 @@ class Generator:
         Raises:
             NotImplementedError: _description_
         """
-        raise NotImplementedError()
+        return None
 
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         """Given a Torch Dataset, build a TorchDataloader to return a tensor, possibly with a collate function
@@ -79,7 +94,7 @@ class Generator:
             NotImplementedError: _description_
         """
 
-        raise NotImplementedError()
+        return None
     
     def getNumEntities(self, datacrawler, mode, **kwargs) -> LabelMetadata:
         """Return the number of classes in the overall label scheme
@@ -87,7 +102,7 @@ class Generator:
             NotImplementedError: _description_
         """
 
-        raise NotImplementedError()
+        return None
 
 
 from ednaml.generators.ImageGenerator import ImageGenerator

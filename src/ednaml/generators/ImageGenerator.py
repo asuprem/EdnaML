@@ -10,12 +10,11 @@ class ImageGenerator(Generator):
     """Base class for image dataset generators
     """
 
-    num_entities: LabelMetadata
-
     def __init__(
         self,
         gpus: int = 1,
         transforms = {},
+        mode: str = "train",
         **kwargs
     ):
         """Initializes the Generator and builds the data transformer
@@ -27,14 +26,16 @@ class ImageGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        self.gpus = gpus
-        self.transformer = T.Compose(
-            self.build_transforms(
+        super().__init__(gpus=gpus, transforms=transforms,mode=mode,**kwargs)
+
+    def build_transforms(self, transforms, mode, **kwargs):
+        return T.Compose(
+            self._build_transforms(
                 **transforms
             )
         )
-
-    def build_transforms(
+    
+    def _build_transforms(
         self,
         i_shape: Union[List[int], Tuple[int, int]],
         channels: int,
@@ -74,23 +75,6 @@ class ImageGenerator(Generator):
                 )
             )
         return transformer_primitive
-
-    # NOTE removed instance parameter from here.,, is it needed???
-    def build(self, datacrawler, mode, batch_size, workers, **kwargs):
-        """This should generate a TorchDataset and associated DataLoader to yield batches.
-        The actual steps are as follows:
-
-        Raises:
-            NotImplementedError: _description_
-        """
-
-        self.workers = workers * self.gpus
-
-        self.dataset = self.buildDataset(datacrawler, mode, self.transformer, **kwargs)
-        self.dataloader = self.buildDataLoader(
-            self.dataset, mode, batch_size=batch_size, **kwargs
-        )
-        self.num_entities = self.getNumEntities(datacrawler, mode, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs

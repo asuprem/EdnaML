@@ -66,6 +66,14 @@ class EdnaML(EdnaMLBase):
             weights (str, optional): The path to the weights file. Defaults to None.
             logger (logging.Logger, optional): A logger. If no logger is provided, EdnaML will construct its own. Defaults to None.
             verbose (int, optional): Logging verbosity. Defaults to 2.
+
+        Kwargs:
+            load_epoch: If you want EdnaML to load a model from a specific saved epoch. The path construction will be inferred from the config file
+            add_filehandler: If you want logger to write to log file
+            add_streamhandler: If you want logger to write to stdout
+            logger_save_name: If you want logger name to be something other than default constructed name from config
+            test_only: Under this condition, if in test mode, only model and dataloaders will be created. Optimizers, schedulers will be empty.
+
         """
 
         self.config = config
@@ -76,11 +84,15 @@ class EdnaML(EdnaMLBase):
         self.gpus = torch.cuda.device_count()
 
         self.cfg = EdnaMLConfig(config)
-        self.saveMetadata = SaveMetadata(self.cfg)
+        self.saveMetadata = SaveMetadata(self.cfg, **kwargs)    # <-- for changing the logger name...
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
         self.logger = self.buildLogger(logger=logger, **kwargs)
         self.previous_stop = 0
+        self.load_epoch = kwargs.get("load_epoch", None)
+        self.test_only = kwargs.get("test_only", False)
+        if self.test_only and self.mode == "train":
+            raise ValueError("Cannot have `test_only` and be in training mode. Switch to `test` mode.")
         self.resetQueues()
 
     def resetQueues(self):
@@ -191,7 +203,7 @@ class EdnaML(EdnaMLBase):
         """
         self.printConfiguration()
         self.downloadModelWeights()
-        self.setPreviousStop()  # TODO -- load weights for previous stop outside of trainer...
+        self.setPreviousStop()
 
         self.buildDataloaders()
 
@@ -310,52 +322,59 @@ class EdnaML(EdnaMLBase):
     def buildOptimizer(self):
         """Builds the optimizer for the model
         """
-
-        if self._optimizerQueueFlag:
-            self.optimizer = [item for item in self._optimizerQueue]
+        if self.test_only:
+            self.optimizer = []
+            self.logger.info("Skipping optimizer building step in `test_only` mode")
         else:
-            optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
-            self.logger.info(
-                "Loaded {} from {} to build Optimizer model".format(
-                    self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
+            if self._optimizerQueueFlag:
+                self.optimizer = [item for item in self._optimizerQueue]
+            else:
+                optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+                self.logger.info(
+                    "Loaded {} from {} to build Optimizer model".format(
+                        self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
+                    )
                 )
-            )
 
-            # Optimizers are in a list...
-            OPT_array = [
-                optimizer_builder(
-                    name=optimizer_item.OPTIMIZER_NAME,
-                    optimizer=optimizer_item.OPTIMIZER,
-                    base_lr=optimizer_item.BASE_LR,
-                    lr_bias=optimizer_item.LR_BIAS_FACTOR,
-                    weight_decay=optimizer_item.WEIGHT_DECAY,
-                    weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
-                    opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
-                    gpus=self.gpus,
-                )
-                for optimizer_item in self.cfg.OPTIMIZER
-            ]
-            self.optimizer = [
-                OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
-            ]  # TODO make this a dictionary???
-        self.logger.info("Built optimizer")
+                # Optimizers are in a list...
+                OPT_array = [
+                    optimizer_builder(
+                        name=optimizer_item.OPTIMIZER_NAME,
+                        optimizer=optimizer_item.OPTIMIZER,
+                        base_lr=optimizer_item.BASE_LR,
+                        lr_bias=optimizer_item.LR_BIAS_FACTOR,
+                        weight_decay=optimizer_item.WEIGHT_DECAY,
+                        weight_bias=optimizer_item.WEIGHT_BIAS_FACTOR,
+                        opt_kwargs=optimizer_item.OPTIMIZER_KWARGS,
+                        gpus=self.gpus,
+                    )
+                    for optimizer_item in self.cfg.OPTIMIZER
+                ]
+                self.optimizer = [
+                    OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+                ]  # TODO make this a dictionary???
+            self.logger.info("Built optimizer")
 
     def buildScheduler(self):
         """Builds the scheduler for the model
         """
-        self.scheduler = [None] * len(self.cfg.SCHEDULER)
-        for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
-            try:  # We first check if scheduler is part of torch's provided schedulers.
-                scheduler = locate_class(package="torch.optim", subpackage="lr_scheduler", classpackage=scheduler_item.LR_SCHEDULER)
-            except (
-                ModuleNotFoundError,
-                AttributeError,
-            ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
-                scheduler = locate_class(subpackage="scheduler", classpackage=scheduler_item.LR_SCHEDULER)
-            self.scheduler[idx] = scheduler(
-                self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
-            )
-        self.logger.info("Built scheduler")
+        if self.test_only:
+            self.scheduler = []
+            self.logger.info("Skipping scheduler building step in `test_only` mode")
+        else:
+            self.scheduler = [None] * len(self.cfg.SCHEDULER)
+            for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
+                try:  # We first check if scheduler is part of torch's provided schedulers.
+                    scheduler = locate_class(package="torch.optim", subpackage="lr_scheduler", classpackage=scheduler_item.LR_SCHEDULER)
+                except (
+                    ModuleNotFoundError,
+                    AttributeError,
+                ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                    scheduler = locate_class(subpackage="scheduler", classpackage=scheduler_item.LR_SCHEDULER)
+                self.scheduler[idx] = scheduler(
+                    self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
+                )
+            self.logger.info("Built scheduler")
 
     def resetLossBuilderQueue(self):
         self._lossBuilderQueue = []
@@ -377,20 +396,11 @@ class EdnaML(EdnaMLBase):
     def buildLossArray(self):
         """Builds the loss function array using the LOSS list in the provided configuration
         """
-        self.loss_function_array = [
-            ClassificationLossBuilder(
-                loss_functions=loss_item.LOSSES,
-                loss_lambda=loss_item.LAMBDAS,
-                loss_kwargs=loss_item.KWARGS,
-                name=loss_item.NAME,  # get("NAME", None),
-                label=loss_item.LABEL,  # get("LABEL", None),
-                metadata=self.labelMetadata,
-                **{"logger": self.logger}
-            )
-            for loss_item in self.cfg.LOSS
-        ]
-        if self._lossBuilderQueueFlag:
-            self.loss_function_array+=[
+        if self.test_only:
+            self.loss_function_array = []
+            self.logger.info("Skipping loss function array building step in `test_only` mode")
+        else:
+            self.loss_function_array = [
                 ClassificationLossBuilder(
                     loss_functions=loss_item.LOSSES,
                     loss_lambda=loss_item.LAMBDAS,
@@ -400,9 +410,22 @@ class EdnaML(EdnaMLBase):
                     metadata=self.labelMetadata,
                     **{"logger": self.logger}
                 )
-                for loss_item in self._lossBuilderQueue
+                for loss_item in self.cfg.LOSS
             ]
-        self.logger.info("Built loss function")
+            if self._lossBuilderQueueFlag:
+                self.loss_function_array+=[
+                    ClassificationLossBuilder(
+                        loss_functions=loss_item.LOSSES,
+                        loss_lambda=loss_item.LAMBDAS,
+                        loss_kwargs=loss_item.KWARGS,
+                        name=loss_item.NAME,  # get("NAME", None),
+                        label=loss_item.LABEL,  # get("LABEL", None),
+                        metadata=self.labelMetadata,
+                        **{"logger": self.logger}
+                    )
+                    for loss_item in self._lossBuilderQueue
+                ]
+            self.logger.info("Built loss function")
 
     def buildLossOptimizer(self):
         """Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)
@@ -417,77 +440,85 @@ class EdnaML(EdnaMLBase):
         LOSS_OPTIMIZER, whose parameters we will use.
 
         """
-        loss_optimizer_name_dict = {
-            loss_optim_item.OPTIMIZER_NAME: loss_optim_item
-            for loss_optim_item in self.cfg.LOSS_OPTIMIZER
-        }
-        initial_key = list(loss_optimizer_name_dict.keys())[0]
-        LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
-        for idx, loss_builder in enumerate(self.loss_function_array):
-            if loss_builder.loss_labelname in loss_optimizer_name_dict:
-                # Means we have an optimizer corresponding to this loss
-                lookup_key = loss_builder.loss_labelname
-            else:  # We will use the first optimizer (either default or otherwise, etc, for this)
-                lookup_key = initial_key
-            LOSS_OPT[idx] = StandardLossOptimizer(
-                name=loss_optimizer_name_dict[lookup_key].OPTIMIZER_NAME,
-                optimizer=loss_optimizer_name_dict[lookup_key].OPTIMIZER,
-                base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
-                lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
-                gpus=self.gpus,
-                weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
-                weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
-                opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
-            )
+        if self.test_only:
+            self.loss_optimizer_array = []
+            self.logger.info("Skipping loss-scheduler building step in `test_only` mode")
+        else:
+            loss_optimizer_name_dict = {
+                loss_optim_item.OPTIMIZER_NAME: loss_optim_item
+                for loss_optim_item in self.cfg.LOSS_OPTIMIZER
+            }
+            initial_key = list(loss_optimizer_name_dict.keys())[0]
+            LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
+            for idx, loss_builder in enumerate(self.loss_function_array):
+                if loss_builder.loss_labelname in loss_optimizer_name_dict:
+                    # Means we have an optimizer corresponding to this loss
+                    lookup_key = loss_builder.loss_labelname
+                else:  # We will use the first optimizer (either default or otherwise, etc, for this)
+                    lookup_key = initial_key
+                LOSS_OPT[idx] = StandardLossOptimizer(
+                    name=loss_optimizer_name_dict[lookup_key].OPTIMIZER_NAME,
+                    optimizer=loss_optimizer_name_dict[lookup_key].OPTIMIZER,
+                    base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
+                    lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
+                    gpus=self.gpus,
+                    weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
+                    weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
+                    opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
+                )
 
-        # Note: build returns None if there are no differentiable parameters
-        self.loss_optimizer_array = [
-            loss_opt.build(loss_builder=self.loss_function_array[idx])
-            for idx, loss_opt in enumerate(LOSS_OPT)
-        ]
-        self.logger.info("Built loss optimizer")
+            # Note: build returns None if there are no differentiable parameters
+            self.loss_optimizer_array = [
+                loss_opt.build(loss_builder=self.loss_function_array[idx])
+                for idx, loss_opt in enumerate(LOSS_OPT)
+            ]
+            self.logger.info("Built loss optimizer")
 
     def buildLossScheduler(self):
         """Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.
         """
-        loss_scheduler_name_dict = {
-            loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
-            for loss_schedule_item in self.cfg.LOSS_SCHEDULER
-        }
-        initial_key = list(loss_scheduler_name_dict.keys())[0]
-        self.loss_scheduler = [None] * len(self.loss_optimizer_array)
+        if self.test_only:
+            self.loss_scheduler = []
+            self.logger.info("Skipping loss-scheduler building step in `test_only` mode")
+        else:
+            loss_scheduler_name_dict = {
+                loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
+                for loss_schedule_item in self.cfg.LOSS_SCHEDULER
+            }
+            initial_key = list(loss_scheduler_name_dict.keys())[0]
+            self.loss_scheduler = [None] * len(self.loss_optimizer_array)
 
-        for idx, loss_optimizer in enumerate(self.loss_optimizer_array):
-            if (
-                loss_optimizer is not None
-            ):  # In case loss has differentiable parameters, so the optimizer is not None...we look for the loss name
+            for idx, loss_optimizer in enumerate(self.loss_optimizer_array):
                 if (
-                    self.loss_function_array[idx].loss_labelname
-                    in loss_scheduler_name_dict
-                ):
-                    lookup_key = self.loss_function_array[idx].loss_labelname
-                else:
-                    lookup_key = initial_key
+                    loss_optimizer is not None
+                ):  # In case loss has differentiable parameters, so the optimizer is not None...we look for the loss name
+                    if (
+                        self.loss_function_array[idx].loss_labelname
+                        in loss_scheduler_name_dict
+                    ):
+                        lookup_key = self.loss_function_array[idx].loss_labelname
+                    else:
+                        lookup_key = initial_key
 
-                try:  # We first check if scheduler is part of torch's provided schedulers.
-                    loss_scheduler = importlib.import_module(
-                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
-                        package="torch.optim.lr_scheduler",
+                    try:  # We first check if scheduler is part of torch's provided schedulers.
+                        loss_scheduler = importlib.import_module(
+                            loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                            package="torch.optim.lr_scheduler",
+                        )
+                    except (
+                        ModuleNotFoundError,
+                        AttributeError,
+                    ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
+                        loss_scheduler = importlib.import_module(
+                            loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
+                            package="ednaml.scheduler",
+                        )
+                    self.loss_scheduler[idx] = loss_scheduler(
+                        loss_optimizer,
+                        last_epoch=-1,
+                        **loss_scheduler_name_dict[lookup_key].LR_KWARGS
                     )
-                except (
-                    ModuleNotFoundError,
-                    AttributeError,
-                ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
-                    loss_scheduler = importlib.import_module(
-                        loss_scheduler_name_dict[lookup_key].LR_SCHEDULER,
-                        package="ednaml.scheduler",
-                    )
-                self.loss_scheduler[idx] = loss_scheduler(
-                    loss_optimizer,
-                    last_epoch=-1,
-                    **loss_scheduler_name_dict[lookup_key].LR_KWARGS
-                )
-            self.logger.info("Built loss scheduler")
+                self.logger.info("Built loss scheduler")
 
     def _setModelTestMode(self):
         """Sets model to test mode if EdnaML is in testing mode
@@ -585,6 +616,14 @@ class EdnaML(EdnaMLBase):
         Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
         """
         if self.mode == "test":
+            if self.weights is None:
+                self.logger.info("No saved model weights provided. Inferring weights path.")
+                if self.load_epoch is not None and type(self.load_epoch is int):
+                    self.weights = self.getModelWeightsFromEpoch(self.load_epoch)
+                    self.logger.info("Using weights from provided epoch %i, at path %s."%(self.load_epoch, self.weights))
+                else:
+                    self.weights = self.getModelWeightsFromEpoch(self.previous_stop)
+                    self.logger.info("Using weights from last saved epoch %i, at path %s."%(self.previous_stop, self.weights))
             self.model.load_state_dict(torch.load(self.weights))
         else:
             if self.weights is None:
@@ -745,25 +784,31 @@ class EdnaML(EdnaMLBase):
         if self._trainGeneratorInstanceQueueFlag:
             self.train_generator: Generator = self._trainGeneratorInstanceQueue
         else:
-            self.train_generator: Generator = data_reader.GENERATOR(
-                gpus=self.gpus,
-                transforms=self.cfg.TRAIN_TRANSFORMATION.getVars(),
-                **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
-            )
+            if self.mode != "test":
+                self.train_generator: Generator = data_reader.GENERATOR(
+                    gpus=self.gpus,
+                    transforms=self.cfg.TRAIN_TRANSFORMATION.getVars(),
+                    mode = "train",
+                    **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+                )
 
-            self.train_generator.build(
-                crawler_instance,
-                mode="train",
-                batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
-                workers=self.cfg.TRAIN_TRANSFORMATION.WORKERS,
-                **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+                self.train_generator.build(
+                    crawler_instance,
+                    batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                    workers=self.cfg.TRAIN_TRANSFORMATION.WORKERS,
+                    **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+                )
+            else:
+                self.train_generator = Generator()
+        if self.mode != "test":
+            self.logger.info("Generated training data generator with %i trainnig data points"%len(self.train_generator.dataloader))
+            self.labelMetadata = self.train_generator.num_entities
+            self.logger.info(
+                "Running classification model with classes: %s"
+                % str(self.labelMetadata.metadata)
             )
-        self.logger.info("Generated training data generator")
-        self.labelMetadata = self.train_generator.num_entities
-        self.logger.info(
-            "Running classification model with classes: %s"
-            % str(self.labelMetadata.metadata)
-        )
+        else:
+            self.logger.info("Skipped generating training data, because EdnaML is in test mode.")
 
     def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
         """Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
@@ -778,11 +823,11 @@ class EdnaML(EdnaMLBase):
             self.test_generator: Generator = data_reader.GENERATOR(
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION.getVars(),
+                mode = "test",
                 **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build(
                 crawler_instance,
-                mode="test",
                 batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
                 workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
                 **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
@@ -877,8 +922,8 @@ class EdnaML(EdnaMLBase):
         self.logger.info("")
         self.logger.info("*" * 40)
 
-
-    def loadEpoch(self, epoch=0):
+    
+    def getModelWeightsFromEpoch(self, epoch=0):
         model_load = self.saveMetadata.MODEL_SAVE_NAME + "_epoch%i" % epoch + ".pth"
         if self.cfg.SAVE.DRIVE_BACKUP:
             self.logger.info(
@@ -889,7 +934,13 @@ class EdnaML(EdnaMLBase):
             self.logger.info(
                 "Loading model from local backup."
             )
-            model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
+        model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
+        return model_load_path
 
+    def setModelWeightsFromEpoch(self, epoch=0):
+        self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
+
+    def loadEpoch(self, epoch=0):
+        model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         self.model.load_state_dict(torch.load(model_load_path))
         self.logger.info("Finished loading model state_dict from %s" % model_load_path)

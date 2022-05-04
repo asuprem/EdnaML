@@ -13,11 +13,12 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 class TextGenerator(Generator):
     """Base class for text generators
     """
-    num_entities: LabelMetadata
+
     def __init__(
         self,
-        gpus,
-        transforms,
+        gpus: int = 1,
+        transforms = {},
+        mode: str = "train",
         **kwargs
     ):
         """Initializes the Generator and builds the data transformer
@@ -29,25 +30,7 @@ class TextGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        self.gpus = max(1,gpus)
-        self.transformer = self.build_transforms(**kwargs)
-
-    def build_transforms(
-        self,
-        **kwargs
-    ) -> List[object]:
-        """Builds the transforms for the images in dataset. This can be replaced for custom set of transforms
-
-        Args:
-            i_shape (Union[List[int,int],Tuple[int,int]]): _description_
-            normalization_mean (float): _description_
-            normalization_std (float): _description_
-            normalization_scale (float): _description_
-
-        Returns:
-            _type_: _description_
-        """
-        pass
+        super().__init__(gpus=gpus, transforms=transforms,mode=mode,**kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs

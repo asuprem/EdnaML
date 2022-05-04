@@ -317,6 +317,15 @@ class BaseTrainer:
             else:
                 self.global_epoch = epoch + 1
 
+        if self.evaluateFlag:
+            self.logger.info("Evaluating model at test-frequency")
+            self.evaluate()
+            self.evaluateFlag = False
+        if self.saveFlag:
+            self.logger.info("Saving model at save-frequency")
+            self.save()
+            self.saveFlag = False
+
     def initial_evaluate(self):
         """Evaluation of model before we start training
         """
