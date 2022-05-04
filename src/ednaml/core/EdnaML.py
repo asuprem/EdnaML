@@ -88,7 +88,7 @@ class EdnaML(EdnaMLBase):
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
         self.logger = self.buildLogger(logger=logger, **kwargs)
-        self.previous_stop = 0
+        self.previous_stop = -1
         self.load_epoch = kwargs.get("load_epoch", None)
         self.test_only = kwargs.get("test_only", False)
         if self.test_only and self.mode == "train":
@@ -304,7 +304,7 @@ class EdnaML(EdnaMLBase):
         ]
         if len(previous_stop) == 0:
             self.logger.info("No previous stop detected. Will start from epoch 0")
-            return 0
+            return -1
         else:
             self.logger.info(
                 "Previous stop detected. Will attempt to resume from epoch %i"
@@ -622,8 +622,11 @@ class EdnaML(EdnaMLBase):
                     self.weights = self.getModelWeightsFromEpoch(self.load_epoch)
                     self.logger.info("Using weights from provided epoch %i, at path %s."%(self.load_epoch, self.weights))
                 else:
-                    self.weights = self.getModelWeightsFromEpoch(self.previous_stop)
-                    self.logger.info("Using weights from last saved epoch %i, at path %s."%(self.previous_stop, self.weights))
+                    if self.previous_stop<0:
+                        self.logger.info("No previous stop exists. Not loading weights.")
+                    else:
+                        self.weights = self.getModelWeightsFromEpoch(self.previous_stop)
+                        self.logger.info("Using weights from last saved epoch %i, at path %s."%(self.previous_stop, self.weights))
             self.model.load_state_dict(torch.load(self.weights))
         else:
             if self.weights is None:
