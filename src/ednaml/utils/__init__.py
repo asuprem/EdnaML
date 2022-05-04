@@ -3,8 +3,6 @@ import os, builtins
 import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
-from ednaml.models.ModelAbstract import ModelAbstract
-
 
 def locate_class(package="ednaml",subpackage="core", classpackage="EdnaML", classfile=None, forceload=0):
     """Locate an object by name or dotted path, importing as necessary."""
@@ -233,7 +231,7 @@ model_weights = {
     ],
 }
 
-
+from ednaml.models.ModelAbstract import ModelAbstract
 def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstract] = None, epoch: int=0):
     """Generates a model using a configuration file, and loads a specific saved epoch
 

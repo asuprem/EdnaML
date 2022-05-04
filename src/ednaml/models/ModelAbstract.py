@@ -94,7 +94,7 @@ class ModelAbstract(nn.Module):
             self.state_dict()[_key].copy_(params[_key])
 
     def forward(self, x, **kwargs):
-        if self.training and self.inference:
+        if self.training and self.inferencing:
             raise ValueError("Cannot inference and train at the same time! Call deinference() first, before train()")
         feature_logits, features, secondary_outputs = self.forward_impl(x, **kwargs)
 
