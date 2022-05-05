@@ -804,7 +804,7 @@ class EdnaML(EdnaMLBase):
             else:
                 self.train_generator = Generator()
         if self.mode != "test":
-            self.logger.info("Generated training data generator with %i trainnig data points"%len(self.train_generator.dataloader))
+            self.logger.info("Generated training data generator with %i trainnig data points"%len(self.train_generator.dataset))
             self.labelMetadata = self.train_generator.num_entities
             self.logger.info(
                 "Running classification model with classes: %s"

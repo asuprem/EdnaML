@@ -150,11 +150,13 @@ class BaseTrainer:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def save(self):
+    def save(self, save_epoch: int = None):
+        if save_epoch is None:
+            save_epoch = self.global_epoch
         self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = self.model_save_name + "_epoch%i" % self.global_epoch + ".pth"
+        MODEL_SAVE = self.model_save_name + "_epoch%i" % save_epoch + ".pth"
         TRAINING_SAVE = (
-            self.model_save_name + "_epoch%i" % self.global_epoch + "_training.pth"
+            self.model_save_name + "_epoch%i" % save_epoch + "_training.pth"
         )
 
         save_dict = {}
@@ -318,12 +320,12 @@ class BaseTrainer:
                 self.global_epoch = epoch + 1
 
         if self.evaluateFlag:
-            self.logger.info("Evaluating model at test-frequency")
+            self.logger.info("Final: Evaluating model at test-frequency")
             self.evaluate()
             self.evaluateFlag = False
         if self.saveFlag:
-            self.logger.info("Saving model at save-frequency")
-            self.save()
+            self.logger.info("Final: Saving model at save-frequency")
+            self.save(self.global_epoch - 1)
             self.saveFlag = False
 
     def initial_evaluate(self):
@@ -354,7 +356,7 @@ class BaseTrainer:
                     self.evaluateFlag = False
                 if self.saveFlag:
                     self.logger.info("Saving model at save-frequency")
-                    self.save()
+                    self.save(self.global_epoch - 1)
                     self.saveFlag = False
 
             
@@ -372,12 +374,18 @@ class BaseTrainer:
         )
 
         if self.global_epoch % self.test_frequency == 0:
-            self.logger.info("Model evaluation triggered, but gradients still need accumulation. Will evaluate after accumulation.")
-            self.evaluateFlag = True
+            if self.accumulation_steps > 0:
+                self.logger.info("Model evaluation triggered, but gradients still need accumulation. Will evaluate after accumulation.")
+                self.evaluateFlag = True
+            else:
+                self.evaluate()
             
         if self.global_epoch % self.save_frequency == 0:
-            self.logger.info("Model save triggered, but gradients still need accumulation. Will save after accumulation.")
-            self.saveFlag = True
+            if self.accumulation_steps > 0:
+                self.logger.info("Model save triggered, but gradients still need accumulation. Will save after accumulation.")
+                self.saveFlag = True
+            else:
+                self.save()
         self.global_epoch += 1
     
     def step(self, batch) -> torch.Tensor:
@@ -419,7 +427,7 @@ class BaseTrainer:
         return logit_labels, true_labels, self.crawler.classes, features
 
     def evaluate_impl(self):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
     def zeroGradOptimizers(self):
