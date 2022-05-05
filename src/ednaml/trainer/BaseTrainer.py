@@ -311,7 +311,7 @@ class BaseTrainer:
         self.zeroGrad()        
         self.evaluateFlag = False
         self.saveFlag = False
-        for epoch in range(self.epochs):
+        for epoch in range(self.epochs+1):
             if epoch >= continue_epoch:
                 self.epoch_step(epoch)
             else:
