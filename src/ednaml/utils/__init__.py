@@ -233,7 +233,7 @@ model_weights = {
 
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
-def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstract] = None, epoch: int=0, custom_metadata: LabelMetadata = None):
+def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstract] = None, epoch: int=0, custom_metadata: LabelMetadata = None, add_filehandler: bool = False, add_streamhandler: bool = True):
     """Generates a model using a configuration file, and loads a specific saved epoch
 
     Args:
@@ -245,7 +245,7 @@ def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstra
         _type_: _description_
     """
     from ednaml.core import EdnaML
-    eml = EdnaML(config=config_file, mode="test", test_only = True, add_filehander=False)
+    eml = EdnaML(config=config_file, mode="test", test_only = True, add_filehandler=add_filehandler, add_streamhandler = add_streamhandler)
     eml.labelMetadata = custom_metadata # TODO this needs to be fixed with the actual label metadata...or tell users to not infer things :|
     if model_class is not None:
         eml.addModelClass(model_class=model_class)

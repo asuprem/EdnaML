@@ -941,7 +941,7 @@ class EdnaML(EdnaMLBase):
             self.logger.info(
                 "Loading model from local backup."
             )
-        model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
+            model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
         return model_load_path
 
     def setModelWeightsFromEpoch(self, epoch=0):
