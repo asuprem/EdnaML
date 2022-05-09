@@ -942,12 +942,17 @@ class EdnaML(EdnaMLBase):
                 "Loading model from local backup."
             )
             model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
-        return model_load_path
+        if os.path.exists(model_load_path):
+            return model_load_path
+        return None
 
     def setModelWeightsFromEpoch(self, epoch=0):
         self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
 
     def loadEpoch(self, epoch=0):
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
-        self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info("Finished loading model state_dict from %s" % model_load_path)
+        if model_load_path is not None:
+            self.model.load_state_dict(torch.load(model_load_path))
+            self.logger.info("Finished loading model state_dict from %s" % model_load_path)
+        else:
+            self.logger.info("No saved weights provided.")
