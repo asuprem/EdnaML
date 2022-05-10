@@ -1055,7 +1055,9 @@ class EdnaML(EdnaMLBase):
         return None
 
     def setModelWeightsFromEpoch(self, epoch=0):
-        """Sets the internal model weights path using the provided epoch value. If there is no corresponding weights path to this epoch value, then sets the weights path to `None`
+        """Sets the internal model weights path using the provided epoch value.
+        If there is no corresponding weights path to this epoch value, then
+        sets the weights path to `None`
 
         Args:
             epoch (int, optional): The weights saved at this epoch. Defaults to 0.
@@ -1063,12 +1065,17 @@ class EdnaML(EdnaMLBase):
         self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
 
     def loadEpoch(self, epoch=0):
-        """Loads weights saved at a specific epoch into the current stored model in `self.model`. If no weights are saved for that epoch, logs this and does nothing.
+        """Loads weights saved at a specific epoch into the current stored model
+        in `self.model`. If no weights are saved for that epoch, logs this and
+        does nothing.
 
-        For the provided epoch, `loadEpoch` will check local save directory as well as backup save directory for file matching model name constructor from `self.saveMetadata`
+        For the provided epoch, `loadEpoch` will check local save directory as
+        well as backup save directory for file matching model name constructor
+        from `self.saveMetadata`
 
         Args:
-            epoch (int, optional): The epoch to load. If None, then will not do anything. If weights corresponding to this epoch do not exist, will not do anything. Defaults to 0.
+            epoch (int, optional): The epoch to load. If None, then will not do anything.
+                If weights corresponding to this epoch do not exist, will not do anything. Defaults to 0.
         """
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
