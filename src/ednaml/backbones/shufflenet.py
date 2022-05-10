@@ -10,10 +10,14 @@ class SELayer(nn.Module):
             # if the input is (N, C, H, W)
             self.SE_opr = nn.Sequential(
                 nn.AdaptiveAvgPool2d(1),
-                nn.Conv2d(inplanes, inplanes // 4, kernel_size=1, stride=1, bias=False),
+                nn.Conv2d(
+                    inplanes, inplanes // 4, kernel_size=1, stride=1, bias=False
+                ),
                 nn.BatchNorm2d(inplanes // 4),
                 nn.ReLU(inplace=True),
-                nn.Conv2d(inplanes // 4, inplanes, kernel_size=1, stride=1, bias=False),
+                nn.Conv2d(
+                    inplanes // 4, inplanes, kernel_size=1, stride=1, bias=False
+                ),
             )
         else:
             # if the input is (N, C)
@@ -97,7 +101,9 @@ class Shufflenet(nn.Module):
             branch_proj = nn.ModuleList(
                 [
                     # dw
-                    nn.Conv2d(inp, inp, ksize, stride, pad, groups=inp, bias=False),
+                    nn.Conv2d(
+                        inp, inp, ksize, stride, pad, groups=inp, bias=False
+                    ),
                     nn.BatchNorm2d(inp),
                     # pw-linear
                     nn.Conv2d(inp, inp, 1, 1, 0, bias=False),
@@ -124,7 +130,9 @@ class Shufflenet(nn.Module):
 
 
 class Shuffle_Xception(nn.Module):
-    def __init__(self, inp, oup, base_mid_channels, *, stride, activation, useSE):
+    def __init__(
+        self, inp, oup, base_mid_channels, *, stride, activation, useSE
+    ):
         super(Shuffle_Xception, self).__init__()
 
         assert stride in [1, 2]
@@ -158,7 +166,9 @@ class Shuffle_Xception(nn.Module):
                 ),
                 nn.BatchNorm2d(base_mid_channels),
                 # pw
-                nn.Conv2d(base_mid_channels, base_mid_channels, 1, 1, 0, bias=False),
+                nn.Conv2d(
+                    base_mid_channels, base_mid_channels, 1, 1, 0, bias=False
+                ),
                 nn.BatchNorm2d(base_mid_channels),
                 None,
                 # dw
@@ -363,7 +373,9 @@ class ShuffleNetV2_Plus(nn.Module):
             self.ia_attention = None
 
         if part_attention:
-            self.p_sa = DenseAttention(36)  # MAGIC...use from architecture array
+            self.p_sa = DenseAttention(
+                36
+            )  # MAGIC...use from architecture array
             self.p_ca = ChannelAttention(36)
             self.p_relu = nn.ReLU(inplace=True)
         else:
@@ -435,7 +447,8 @@ class ShuffleNetV2_Plus(nn.Module):
                 # All 'i' in params have "module." in front of their layer names. [7:] gets rid of it for our models...
                 if (
                     i[7:] not in self.state_dict()
-                    or params["state_dict"][i].shape != self.state_dict()[i[7:]].shape
+                    or params["state_dict"][i].shape
+                    != self.state_dict()[i[7:]].shape
                 ):
                     continue
                 self.state_dict()[i[7:]].copy_(params["state_dict"][i])
@@ -459,6 +472,5 @@ def _shufflenetv2_plus(model_size="Small", **kwargs):
 
 
 def shufflenetv2_small(**kwargs):
-    """ShuffleNetv2-Small model from https://github.com/megvii-model/ShuffleNet-Series/
-    """
+    """ShuffleNetv2-Small model from https://github.com/megvii-model/ShuffleNet-Series/"""
     return _shufflenetv2_plus(model_size="Small", **kwargs)

@@ -36,8 +36,14 @@ class MTMCDataCrawler:
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
-        self.metadata["train"], self.metadata["test"], self.metadata["query"] = (
+    def crawl(
+        self,
+    ):
+        (
+            self.metadata["train"],
+            self.metadata["test"],
+            self.metadata["query"],
+        ) = (
             {},
             {},
             {},
@@ -101,5 +107,7 @@ class MTMCDataCrawler:
                 pid_labeler += 1
             if cid not in cid_tracker:
                 cid_tracker[cid] = cid - 1
-            crawler.append((img, pid_tracker[pid], cid - 1))  # cids start at 1 in data
+            crawler.append(
+                (img, pid_tracker[pid], cid - 1)
+            )  # cids start at 1 in data
         return crawler, len(pid_tracker), len(cid_tracker), len(crawler)

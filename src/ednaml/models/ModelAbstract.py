@@ -3,6 +3,7 @@ import torch
 from typing import List, Dict
 from ednaml.utils.LabelMetadata import LabelMetadata
 
+
 class ModelAbstract(nn.Module):
     model_name = "ModelAbstract"
     model_arch = None
@@ -15,16 +16,15 @@ class ModelAbstract(nn.Module):
     weights: str
     normalization: str
     metadata: LabelMetadata
-    parameter_groups: Dict[str,nn.Module]
-
+    parameter_groups: Dict[str, nn.Module]
 
     def __init__(
         self,
         base=None,
         weights=None,
         metadata: LabelMetadata = None,
-        normalization: str=None,
-        parameter_groups: List[str]=None,
+        normalization: str = None,
+        parameter_groups: List[str] = None,
         **kwargs
     ):
         super().__init__()
@@ -76,7 +76,7 @@ class ModelAbstract(nn.Module):
                 nn.init.constant_(m.bias, 0.0)
 
     def weights_init_softmax(self, m):
-        """ Initialize linear weights to standard normal. Mean 0. Standard Deviation 0.001 """
+        """Initialize linear weights to standard normal. Mean 0. Standard Deviation 0.001"""
         classname = m.__class__.__name__
         if classname.find("Linear") != -1:
             nn.init.normal_(m.weight, std=0.001)
@@ -95,8 +95,13 @@ class ModelAbstract(nn.Module):
 
     def forward(self, x, **kwargs):
         if self.training and self.inferencing:
-            raise ValueError("Cannot inference and train at the same time! Call deinference() first, before train()")
-        feature_logits, features, secondary_outputs = self.forward_impl(x, **kwargs)
+            raise ValueError(
+                "Cannot inference and train at the same time! Call"
+                " deinference() first, before train()"
+            )
+        feature_logits, features, secondary_outputs = self.forward_impl(
+            x, **kwargs
+        )
 
         return feature_logits, features, secondary_outputs
 
@@ -113,8 +118,10 @@ class ModelAbstract(nn.Module):
     def getModelArch(self):
         return self.model_arch
 
-    def getParameterGroup(self, key:str)->nn.Module:
-        if self.parameter_groups[key] == "self":    #avoid recursion bug, I think?
+    def getParameterGroup(self, key: str) -> nn.Module:
+        if (
+            self.parameter_groups[key] == "self"
+        ):  # avoid recursion bug, I think?
             return self
         else:
             return self.parameter_groups[key]
@@ -122,8 +129,10 @@ class ModelAbstract(nn.Module):
     def inference(self):
         self.eval()
         self.inferencing = True
+
     def deinference(self):
         self.inferencing = False
+
     """
     def train(self, mode: bool = True):
         self.inferencing = False
@@ -133,5 +142,6 @@ class ModelAbstract(nn.Module):
         self.inferencing = False
         return super().eval()
     """
+
     def convertForInference(self) -> "ModelAbstract":
         raise NotImplementedError

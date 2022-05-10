@@ -49,17 +49,23 @@ class VehicleIDDataCrawler(Crawler):
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
+    def crawl(
+        self,
+    ):
 
         self.colordict = defaultdict(lambda: -1)
-        with open(os.path.join(self.attribute_folder, "color_attr.txt"), "r") as cfile:
+        with open(
+            os.path.join(self.attribute_folder, "color_attr.txt"), "r"
+        ) as cfile:
             for line in cfile:
                 line = line.strip().split(" ")
                 self.colordict[int(line[0])] = int(
                     line[1]
                 )  # colordict[vehicleid]=colorid
         self.modeldict = defaultdict(lambda: -1)
-        with open(os.path.join(self.attribute_folder, "model_attr.txt"), "r") as cfile:
+        with open(
+            os.path.join(self.attribute_folder, "model_attr.txt"), "r"
+        ) as cfile:
             for line in cfile:
                 line = line.strip().split(" ")
                 self.modeldict[int(line[0])] = int(
@@ -70,7 +76,11 @@ class VehicleIDDataCrawler(Crawler):
         self.classes["color"] = 7
         self.classes["model"] = 250
 
-        self.metadata["train"], self.metadata["gallery"], self.metadata["query"] = (
+        (
+            self.metadata["train"],
+            self.metadata["gallery"],
+            self.metadata["query"],
+        ) = (
             {},
             {},
             {},
@@ -86,8 +96,12 @@ class VehicleIDDataCrawler(Crawler):
         # self.metadata["test"]["crawl"] = [self.metadata["train"]["crawl"].pop(random.randrange(len(self.metadata["train"]["crawl"]))) for _ in range(int(len(self.metadata["train"]["crawl"])*0.1))]
         random.shuffle(self.metadata["train"]["crawl"])
         nshuffle = int(len(self.metadata["train"]["crawl"]) * 0.1)
-        self.metadata["test"]["crawl"] = self.metadata["train"]["crawl"][:nshuffle]
-        self.metadata["train"]["crawl"] = self.metadata["train"]["crawl"][nshuffle:]
+        self.metadata["test"]["crawl"] = self.metadata["train"]["crawl"][
+            :nshuffle
+        ]
+        self.metadata["train"]["crawl"] = self.metadata["train"]["crawl"][
+            nshuffle:
+        ]
         self.metadata["train"]["imgs"] = len(self.metadata["train"]["crawl"])
         self.metadata["test"]["imgs"] = len(self.metadata["test"]["crawl"])
 
@@ -141,7 +155,13 @@ class VehicleIDDataCrawler(Crawler):
                 # pids.append(pid)
                 cids.append(cid)
                 crawler.append(
-                    (img_path, pids[pid], cid, self.colordict[pid], self.modeldict[pid])
+                    (
+                        img_path,
+                        pids[pid],
+                        cid,
+                        self.colordict[pid],
+                        self.modeldict[pid],
+                    )
                 )
         return crawler, len(set(pids.keys())), len(set(cids)), len(crawler)
 
@@ -164,26 +184,46 @@ class VehicleIDDataCrawler(Crawler):
                 crawler.append((img_path, pids[pid], cid))
 
         pid_in_gallery = {}
-        self.metadata["gallery"]["crawl"], self.metadata["query"]["crawl"] = [], []
+        self.metadata["gallery"]["crawl"], self.metadata["query"]["crawl"] = (
+            [],
+            [],
+        )
 
         for crawled_img in crawler:
             img_path, pid, cid = crawled_img
             # check if pid already captured. If so add to query. Else add to gallery (based on paper) (variable pid_in_gallery should be pid_in)gallery
             if pid in pid_in_gallery:
                 self.metadata["query"]["crawl"].append(
-                    (img_path, pid, cid, self.colordict[pid], self.modeldict[pid])
+                    (
+                        img_path,
+                        pid,
+                        cid,
+                        self.colordict[pid],
+                        self.modeldict[pid],
+                    )
                 )
             else:
                 pid_in_gallery[pid] = 1
                 self.metadata["gallery"]["crawl"].append(
-                    (img_path, pid, cid, self.colordict[pid], self.modeldict[pid])
+                    (
+                        img_path,
+                        pid,
+                        cid,
+                        self.colordict[pid],
+                        self.modeldict[pid],
+                    )
                 )
 
         self.metadata["gallery"]["pids"], self.metadata["gallery"]["cids"] = (
             len(pids),
             1,
         )
-        self.metadata["query"]["pids"], self.metadata["query"]["cids"] = len(pids), 1
+        self.metadata["query"]["pids"], self.metadata["query"]["cids"] = (
+            len(pids),
+            1,
+        )
 
-        self.metadata["gallery"]["imgs"] = len(self.metadata["gallery"]["crawl"])
+        self.metadata["gallery"]["imgs"] = len(
+            self.metadata["gallery"]["crawl"]
+        )
         self.metadata["query"]["imgs"] = len(self.metadata["query"]["crawl"])

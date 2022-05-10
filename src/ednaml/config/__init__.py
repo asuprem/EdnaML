@@ -1,6 +1,7 @@
 from abc import ABC
 import json, copy
 
+
 class BaseConfig(ABC):
     def getVars(self):
         return vars(self)
@@ -21,6 +22,6 @@ class BaseConfig(ABC):
         return json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n"
 
     def to_json_file(self, json_file_path):
-        """ Save this instance to a json file."""
-        with open(json_file_path, "w", encoding='utf-8') as writer:
+        """Save this instance to a json file."""
+        with open(json_file_path, "w", encoding="utf-8") as writer:
             writer.write(self.to_json_string())

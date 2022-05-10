@@ -6,15 +6,15 @@ from ednaml.loss import Loss
 class TripletLoss(Loss):
     """Standard triplet loss
 
-  Calculates the triplet loss of a mini-batch.
+    Calculates the triplet loss of a mini-batch.
 
-  Args (kwargs only):
-      margin (float, 0.3): Margin constraint to use in triplet loss. If not provided,
-      mine (str): Mining method. Default 'hard'. Supports ['hard', 'all']. 
+    Args (kwargs only):
+        margin (float, 0.3): Margin constraint to use in triplet loss. If not provided,
+        mine (str): Mining method. Default 'hard'. Supports ['hard', 'all'].
 
-  Methods: 
-      __call__: Returns loss given features and labels.
-  """
+    Methods:
+        __call__: Returns loss given features and labels.
+    """
 
     def __init__(self, **kwargs):
         super(TripletLoss, self).__init__()
@@ -30,30 +30,32 @@ class TripletLoss(Loss):
             raise NotImplementedError()
 
     def forward(self, features, labels):
-        """ Returns the triplet loss with either batch hard mining or batch all mining.
-    Args:
-        features: features matrix with shape (batch_size, emb_dim)
-        labels: ground truth labels with shape (batch_size)
-    """
+        """Returns the triplet loss with either batch hard mining or batch all mining.
+        Args:
+            features: features matrix with shape (batch_size, emb_dim)
+            labels: ground truth labels with shape (batch_size)
+        """
 
         return self.loss_fn(features, labels, self.margin)
 
-    def hard_mining(self, features, labels, margin, squared=False, device="cuda"):
+    def hard_mining(
+        self, features, labels, margin, squared=False, device="cuda"
+    ):
         """Build the triplet loss over a batch of features.
 
-    For each anchor, we get the hardest positive and hardest negative to form a triplet.
-    
-    Args:
-        labels: labels of the batch, of size (batch_size,)
-        features: tensor of shape (batch_size, embed_dim)
-        margin: margin for triplet loss
-        squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
-                 If false, output is the pairwise euclidean distance matrix.
-    
-    Returns:
-        triplet_loss: scalar tensor containing the triplet loss
-        
-    """
+        For each anchor, we get the hardest positive and hardest negative to form a triplet.
+
+        Args:
+            labels: labels of the batch, of size (batch_size,)
+            features: tensor of shape (batch_size, embed_dim)
+            margin: margin for triplet loss
+            squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
+                     If false, output is the pairwise euclidean distance matrix.
+
+        Returns:
+            triplet_loss: scalar tensor containing the triplet loss
+
+        """
         # Get the pairwise distance matrix
         pairwise_dist = self._pairwise_distances(features, squared=squared)
 
@@ -71,7 +73,9 @@ class TripletLoss(Loss):
 
         # For each anchor, get the hardest negative
         # First, we need to get a mask for every valid negative (they should have different labels)
-        mask_anchor_negative = self._get_anchor_negative_triplet_mask(labels).float()
+        mask_anchor_negative = self._get_anchor_negative_triplet_mask(
+            labels
+        ).float()
 
         # We add the maximum value in each row to the invalid negatives (label(a) == label(n))
         max_anchor_negative_dist, _ = pairwise_dist.max(1, keepdim=True)
@@ -92,19 +96,19 @@ class TripletLoss(Loss):
     def all_mining(self, features, labels, margin, squared=False):
         """Build the triplet loss over a batch of features.
 
-    We generate all the valid triplets and average the loss over the positive ones.
-    
-    Args:
-        labels: labels of the batch, of size (batch_size,)
-        features: tensor of shape (batch_size, embed_dim)
-        margin: margin for triplet loss
-        squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
-                 If false, output is the pairwise euclidean distance matrix.
+        We generate all the valid triplets and average the loss over the positive ones.
 
-    Returns:
-        triplet_loss: scalar tensor containing the triplet loss
+        Args:
+            labels: labels of the batch, of size (batch_size,)
+            features: tensor of shape (batch_size, embed_dim)
+            margin: margin for triplet loss
+            squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
+                     If false, output is the pairwise euclidean distance matrix.
 
-    """
+        Returns:
+            triplet_loss: scalar tensor containing the triplet loss
+
+        """
         # Get the pairwise distance matrix
         pairwise_dist = self._pairwise_distances(features, squared=squared)
 
@@ -141,13 +145,13 @@ class TripletLoss(Loss):
 
     def _pairwise_distances(self, features, squared=False):
         """Compute the 2D matrix of distances between all the features.
-    Args:
-        features: tensor of shape (batch_size, embed_dim)
-        squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
-                  If false, output is the pairwise euclidean distance matrix.
-    Returns:
-        pairwise_distances: tensor of shape (batch_size, batch_size)
-    """
+        Args:
+            features: tensor of shape (batch_size, embed_dim)
+            squared: Boolean. If true, output is the pairwise squared euclidean distance matrix.
+                      If false, output is the pairwise euclidean distance matrix.
+        Returns:
+            pairwise_distances: tensor of shape (batch_size, batch_size)
+        """
         dot_product = torch.matmul(features, features.t())
 
         # Get squared L2 norm for each features. We can just take the diagonal of `dot_product`.
@@ -159,7 +163,9 @@ class TripletLoss(Loss):
         # ||a - b||^2 = ||a||^2  - 2 <a, b> + ||b||^2
         # shape (batch_size, batch_size)
         distances = (
-            square_norm.unsqueeze(0) - 2.0 * dot_product + square_norm.unsqueeze(1)
+            square_norm.unsqueeze(0)
+            - 2.0 * dot_product
+            + square_norm.unsqueeze(1)
         )
 
         # Because of computation errors, some distances might be negative so we put everything >= 0.0
@@ -177,12 +183,12 @@ class TripletLoss(Loss):
 
     def _get_triplet_mask(self, labels):
         """Return a 3D mask where mask[a, p, n] is True iff the triplet (a, p, n) is valid.
-    A triplet (i, j, k) is valid if:
-        - i, j, k are distinct
-        - labels[i] == labels[j] and labels[i] != labels[k]
-    Args:
-        labels: tf.int32 `Tensor` with shape [batch_size]
-    """
+        A triplet (i, j, k) is valid if:
+            - i, j, k are distinct
+            - labels[i] == labels[j] and labels[i] != labels[k]
+        Args:
+            labels: tf.int32 `Tensor` with shape [batch_size]
+        """
         # Check that i, j and k are distinct
         indices_equal = torch.eye(labels.size(0)).bool()
         indices_not_equal = ~indices_equal
@@ -202,11 +208,11 @@ class TripletLoss(Loss):
 
     def _get_anchor_positive_triplet_mask(self, labels, device):
         """Return a 2D mask where mask[a, p] is True iff a and p are distinct and have same label.
-    Args:
-        labels: tf.int32 `Tensor` with shape [batch_size]
-    Returns:
-        mask: tf.bool `Tensor` with shape [batch_size, batch_size]
-    """
+        Args:
+            labels: tf.int32 `Tensor` with shape [batch_size]
+        Returns:
+            mask: tf.bool `Tensor` with shape [batch_size, batch_size]
+        """
         # Check that i and j are distinct
         indices_equal = torch.eye(labels.size(0)).bool().to(device)
         indices_not_equal = ~indices_equal
@@ -218,11 +224,11 @@ class TripletLoss(Loss):
 
     def _get_anchor_negative_triplet_mask(self, labels):
         """Return a 2D mask where mask[a, n] is True iff a and n have distinct labels.
-    Args:
-        labels: tf.int32 `Tensor` with shape [batch_size]
-    Returns:
-        mask: tf.bool `Tensor` with shape [batch_size, batch_size]
-    """
+        Args:
+            labels: tf.int32 `Tensor` with shape [batch_size]
+        Returns:
+            mask: tf.bool `Tensor` with shape [batch_size, batch_size]
+        """
         # Check if labels[i] != labels[k]
         # Uses broadcasting where the 1st argument has shape (1, batch_size) and the 2nd (batch_size, 1)
 

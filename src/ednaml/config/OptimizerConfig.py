@@ -25,7 +25,9 @@ class OptimizerConfig(BaseConfig):
         self.LR_BIAS_FACTOR = optimizer_dict.get(
             "LR_BIAS_FACTOR", defaults.LR_BIAS_FACTOR
         )
-        self.WEIGHT_DECAY = optimizer_dict.get("WEIGHT_DECAY", defaults.WEIGHT_DECAY)
+        self.WEIGHT_DECAY = optimizer_dict.get(
+            "WEIGHT_DECAY", defaults.WEIGHT_DECAY
+        )
         self.WEIGHT_BIAS_FACTOR = optimizer_dict.get(
             "WEIGHT_BIAS_FACTOR", defaults.WEIGHT_BIAS_FACTOR
         )

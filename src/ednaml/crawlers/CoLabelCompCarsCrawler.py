@@ -21,8 +21,7 @@ from ednaml.crawlers import Crawler
 
 
 class CoLabelCompCarsCrawler(Crawler):
-    """Data crawler for CompCars Data dataset (NOT for sv-data)
-    """
+    """Data crawler for CompCars Data dataset (NOT for sv-data)"""
 
     makeidx = 0
     modelidx = 1
@@ -53,7 +52,9 @@ class CoLabelCompCarsCrawler(Crawler):
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
+    def crawl(
+        self,
+    ):
         # self.classes = {}   #self.__getclasses(self.train_folder) # This is a map from human-readable class to numbers (i.e. the ids in the dataset...)
 
         # for each label we have, we label the self.matadata["train'}["classes"]["label"] = num-entities...
@@ -89,7 +90,10 @@ class CoLabelCompCarsCrawler(Crawler):
         # attributes file --> (model_id maximum_speed displacement door_number seat_number type)
         model_id_type_dict = {}
         with open(
-            os.path.join(os.path.join(self.data_folder, "misc"), "attributes.txt"), "r"
+            os.path.join(
+                os.path.join(self.data_folder, "misc"), "attributes.txt"
+            ),
+            "r",
         ) as attr_file:
             attr_file.readline()
             for line in attr_file:
@@ -105,12 +109,14 @@ class CoLabelCompCarsCrawler(Crawler):
             self.metadata["val"],
             self.metadata["full"],
         ) = ({}, {}, {}, {})
-        self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(
-            class_folder, self.train_file, model_id_type_dict
-        )
-        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(
-            class_folder, self.test_file, model_id_type_dict
-        )
+        (
+            self.metadata["train"]["crawl"],
+            self.metadata["train"]["imgs"],
+        ) = self.__crawl(class_folder, self.train_file, model_id_type_dict)
+        (
+            self.metadata["test"]["crawl"],
+            self.metadata["test"]["imgs"],
+        ) = self.__crawl(class_folder, self.test_file, model_id_type_dict)
         self.metadata["val"]["crawl"], self.metadata["val"]["imgs"] = [], 0
         # full is usually handled in generator
         self.metadata["full"]["crawl"], self.metadata["full"]["imgs"] = [], 0
@@ -121,19 +127,34 @@ class CoLabelCompCarsCrawler(Crawler):
         self.existingmakes = {
             original: remapped
             for remapped, original in enumerate(
-                set([item[self.makeidx] for item in self.metadata["train"]["crawl"]])
+                set(
+                    [
+                        item[self.makeidx]
+                        for item in self.metadata["train"]["crawl"]
+                    ]
+                )
             )
         }
         self.existingmodels = {
             original: remapped
             for remapped, original in enumerate(
-                set([item[self.modelidx] for item in self.metadata["train"]["crawl"]])
+                set(
+                    [
+                        item[self.modelidx]
+                        for item in self.metadata["train"]["crawl"]
+                    ]
+                )
             )
         }
         self.existingyears = {
             original: remapped
             for remapped, original in enumerate(
-                set([item[self.yearidx] for item in self.metadata["train"]["crawl"]])
+                set(
+                    [
+                        item[self.yearidx]
+                        for item in self.metadata["train"]["crawl"]
+                    ]
+                )
             )
         }
 

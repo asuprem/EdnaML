@@ -4,17 +4,26 @@ import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
 
-def locate_class(package="ednaml",subpackage="core", classpackage="EdnaML", classfile=None, forceload=0):
+
+def locate_class(
+    package="ednaml",
+    subpackage="core",
+    classpackage="EdnaML",
+    classfile=None,
+    forceload=0,
+):
     """Locate an object by name or dotted path, importing as necessary."""
     if classfile is None:
-        parts = package.split(".")+[subpackage, classpackage]
+        parts = package.split(".") + [subpackage, classpackage]
     else:
-        parts = package.split(".")+ [subpackage, classfile, classpackage]
+        parts = package.split(".") + [subpackage, classfile, classpackage]
     module, n = None, 0
     while n < len(parts):
-        nextmodule = safeimport('.'.join(parts[:n+1]), forceload)
-        if nextmodule: module, n = nextmodule, n + 1
-        else: break
+        nextmodule = safeimport(".".join(parts[: n + 1]), forceload)
+        if nextmodule:
+            module, n = nextmodule, n + 1
+        else:
+            break
     if module:
         object = module
     else:
@@ -46,7 +55,7 @@ def safeimport(path, forceload=0, cache={}):
                 # Also remove any submodules because they won't appear
                 # in the newly loaded module's namespace if they're already
                 # in sys.modules.
-                subs = [m for m in sys.modules if m.startswith(path + '.')]
+                subs = [m for m in sys.modules if m.startswith(path + ".")]
                 for key in [path] + subs:
                     # Prevent garbage collection.
                     cache[key] = sys.modules[key]
@@ -67,19 +76,24 @@ def safeimport(path, forceload=0, cache={}):
         else:
             # Some other error occurred during the importing process.
             raise ErrorDuringImport(path, sys.exc_info())
-    for part in path.split('.')[1:]:
-        try: module = getattr(module, part)
-        except AttributeError: return None
+    for part in path.split(".")[1:]:
+        try:
+            module = getattr(module, part)
+        except AttributeError:
+            return None
     return module
+
 
 def extend_mean_arguments(
     params_to_fix: List[str] = [0.5, 0.5], channels=3
 ) -> Tuple[List[float]]:
     return tuple([[item] * channels for item in params_to_fix])
 
+
 def config_serializer(obj):
     return obj.__dict__
-    
+
+
 def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger = logging.getLogger(MODEL_SAVE_FOLDER)
     if logger.hasHandlers():
@@ -99,7 +113,9 @@ def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     cs = logging.StreamHandler()
     cs.setLevel(logging.DEBUG)
     cs.setFormatter(
-        logging.Formatter("%(asctime)s-%(msecs)d %(message)s", datefmt="%H:%M:%S")
+        logging.Formatter(
+            "%(asctime)s-%(msecs)d %(message)s", datefmt="%H:%M:%S"
+        )
     )
     logger.addHandler(cs)
     return logger
@@ -124,12 +140,19 @@ def generate_save_names(cfg):
     )
     if cfg.get("SAVE.DRIVE_BACKUP"):
         CHECKPOINT_DIRECTORY = (
-            cfg.get("SAVE.CHECKPOINT_DIRECTORY", "./drive/My Drive/Vehicles/Models/")
+            cfg.get(
+                "SAVE.CHECKPOINT_DIRECTORY", "./drive/My Drive/Vehicles/Models/"
+            )
             + MODEL_SAVE_FOLDER
         )
     else:
         CHECKPOINT_DIRECTORY = ""
-    return MODEL_SAVE_NAME, MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME, CHECKPOINT_DIRECTORY
+    return (
+        MODEL_SAVE_NAME,
+        MODEL_SAVE_FOLDER,
+        LOGGER_SAVE_NAME,
+        CHECKPOINT_DIRECTORY,
+    )
 
 
 def fix_generator_arguments(
@@ -155,9 +178,9 @@ def fix_generator_arguments(
             type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is int
             or type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is float
         ):
-            NORMALIZATION_STD = [cfg.get("TRANSFORMATION.NORMALIZATION_STD")] * cfg.get(
-                "TRANSFORMATION.CHANNELS"
-            )
+            NORMALIZATION_STD = [
+                cfg.get("TRANSFORMATION.NORMALIZATION_STD")
+            ] * cfg.get("TRANSFORMATION.CHANNELS")
         if (
             type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is int
             or type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is float
@@ -233,7 +256,16 @@ model_weights = {
 
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
-def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstract] = None, epoch: int=0, custom_metadata: LabelMetadata = None, add_filehandler: bool = False, add_streamhandler: bool = True):
+
+
+def build_model_and_load_weights(
+    config_file: str,
+    model_class: Type[ModelAbstract] = None,
+    epoch: int = 0,
+    custom_metadata: LabelMetadata = None,
+    add_filehandler: bool = False,
+    add_streamhandler: bool = True,
+):
     """Generates a model using a configuration file, and loads a specific saved epoch
 
     Args:
@@ -245,8 +277,15 @@ def build_model_and_load_weights(config_file: str, model_class: Type[ModelAbstra
         _type_: _description_
     """
     from ednaml.core import EdnaML
-    eml = EdnaML(config=config_file, mode="test", test_only = True, add_filehandler=add_filehandler, add_streamhandler = add_streamhandler)
-    eml.labelMetadata = custom_metadata # TODO this needs to be fixed with the actual label metadata...or tell users to not infer things :|
+
+    eml = EdnaML(
+        config=config_file,
+        mode="test",
+        test_only=True,
+        add_filehandler=add_filehandler,
+        add_streamhandler=add_streamhandler,
+    )
+    eml.labelMetadata = custom_metadata  # TODO this needs to be fixed with the actual label metadata...or tell users to not infer things :|
     if model_class is not None:
         eml.addModelClass(model_class=model_class)
     eml.buildModel()

@@ -21,11 +21,11 @@ from ednaml.utils.blocks import ResnetInput, ResnetBasicBlock, ResnetBottleneck
 
 
 class multibranchresnet(nn.Module):
-    """`multibranchresnet` creates a resnet with specified branches. 
-    
-    `multibranchresnet` creates subbranches contained all or part of resnet. 
-    Branching occurs at a specified resnet block, after which the remaining 
-    blocks occur on their own branches with no weight sharing. The branched 
+    """`multibranchresnet` creates a resnet with specified branches.
+
+    `multibranchresnet` creates subbranches contained all or part of resnet.
+    Branching occurs at a specified resnet block, after which the remaining
+    blocks occur on their own branches with no weight sharing. The branched
     model also has an option for branch fusing, to concatenate features.
 
     Attributes:
@@ -34,7 +34,7 @@ class multibranchresnet(nn.Module):
         input_attention (bool): Whether model uses input attention at the first resnet block
         ia_attention (bool): Whether the model uses input attention at the first layer
         part_attention (bool): Whether the model uses local/part attention at the first resnet block
-        secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int). 
+        secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int).
         shared_block_count (int): Number of resnet blocks with weight sharing. Maximum value 4
         num_branches (int): Number of branches after weight-shared blocks
         pytorch_weights_paths (Dict[str,int]): Strings corresponding to official imagenet resnet weights from pytorch
@@ -121,9 +121,8 @@ class multibranchresnet(nn.Module):
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
             raise ValueError(
-                "replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}".format(
-                    replace_stride_with_dilation
-                )
+                "replace_stride_with_dilation should be `None` or a 3-element"
+                " tuple. Got {}".format(replace_stride_with_dilation)
             )
         self.groups = groups
         self.base_width = width_per_group
@@ -137,7 +136,9 @@ class multibranchresnet(nn.Module):
 
         # Make sure ia and input_attention do not conflict
         if self.ia_attention is not None and self.input_attention is not None:
-            raise ValueError("Cannot have both ia_attention and input_attention.")
+            raise ValueError(
+                "Cannot have both ia_attention and input_attention."
+            )
         if self.part_attention is not None and (
             self.attention is not None and self.secondary_attention is None
         ):
@@ -156,7 +157,8 @@ class multibranchresnet(nn.Module):
             )
         if self.shared_block_count == 4:
             raise ValueError(
-                "`shared_block_count` value is %i. This is a non-branching model."
+                "`shared_block_count` value is %i. This is a non-branching"
+                " model."
                 % self.shared_block_count
             )
 
@@ -349,33 +351,48 @@ class multibranchresnet(nn.Module):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
             # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
             full_layer_list = [
-                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
+                item
+                for item in param_dict
+                if ("layer" + str(layer_idx + 1) in item)
             ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for layer_name in full_layer_list:
                 # First, get the raw layer info, then append sharedblock to it...
-                local_param_name = self._build_local_layer_param_from_pytorch_name(
-                    layer_name, layer_idx
+                local_param_name = (
+                    self._build_local_layer_param_from_pytorch_name(
+                        layer_name, layer_idx
+                    )
                 )
-                self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+                self.state_dict()[local_param_name].copy_(
+                    param_dict[layer_name]
+                )
 
         # Now, we need to load branch params...
         for layer_idx in range(self.shared_block_count, 4):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
             # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
             full_layer_list = [
-                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
+                item
+                for item in param_dict
+                if ("layer" + str(layer_idx + 1) in item)
             ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for branch_idx in range(self.num_branches):
                 for layer_name in full_layer_list:
                     # First, get the raw layer info, then append sharedblock to it...
-                    local_param_name = self._build_branch_layer_param_from_pytorch_name(
-                        layer_name, layer_idx, branch_idx, self.shared_block_count
+                    local_param_name = (
+                        self._build_branch_layer_param_from_pytorch_name(
+                            layer_name,
+                            layer_idx,
+                            branch_idx,
+                            self.shared_block_count,
+                        )
                     )
-                    self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+                    self.state_dict()[local_param_name].copy_(
+                        param_dict[layer_name]
+                    )
 
     def _build_local_layer_param_from_pytorch_name(
         self, paramname: str, layeridx: int
@@ -479,7 +496,12 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet18", ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs
+        "resnet18",
+        ResnetBasicBlock,
+        [2, 2, 2, 2],
+        pretrained,
+        progress,
+        **kwargs
     )
 
 
@@ -491,7 +513,12 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet34", ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs
+        "resnet34",
+        ResnetBasicBlock,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
     )
 
 
@@ -503,7 +530,12 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet50", ResnetBottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+        "resnet50",
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
     )
 
 
@@ -515,7 +547,12 @@ def resnet101(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet101", ResnetBottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+        "resnet101",
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
     )
 
 
@@ -527,7 +564,12 @@ def resnet152(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet152", ResnetBottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
+        "resnet152",
+        ResnetBottleneck,
+        [3, 8, 36, 3],
+        pretrained,
+        progress,
+        **kwargs
     )
 
 

@@ -5,10 +5,10 @@ from ednaml.loss import Loss
 
 class CenterLoss(Loss):
     """Center loss.
-    
+
     Reference:
     Wen et al. A Discriminative Feature Learning Approach for Deep Face Recognition. ECCV 2016.
-    
+
     Args:
         num_classes (int): number of classes.
         feat_dim (int): feature dimension.
@@ -19,7 +19,9 @@ class CenterLoss(Loss):
 
         self.num_classes = num_classes
         self.feat_dim = feat_dim
-        self.centers = nn.Parameter(torch.randn(self.num_classes, self.feat_dim).cuda())
+        self.centers = nn.Parameter(
+            torch.randn(self.num_classes, self.feat_dim).cuda()
+        )
 
     def forward(self, features, labels):
         """

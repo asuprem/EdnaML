@@ -27,8 +27,14 @@ class CUB200_2011DataCrawler:
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
-        self.metadata["train"], self.metadata["test"], self.metadata["query"] = (
+    def crawl(
+        self,
+    ):
+        (
+            self.metadata["train"],
+            self.metadata["test"],
+            self.metadata["query"],
+        ) = (
             {},
             {},
             {},

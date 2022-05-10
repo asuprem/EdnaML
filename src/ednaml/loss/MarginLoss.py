@@ -10,9 +10,9 @@ class MarginLoss(Loss):
 
     Args (kwargs only):
         margin (float): Margin constraint to use in triplet liming. If not provided, loss uses torch.nn.SoftMarginLoss. Else uses nn.SoftMarginLoss.
-        mine (str): Mining method. Default 'hard'. Supports ['hard', 'all']. 
+        mine (str): Mining method. Default 'hard'. Supports ['hard', 'all'].
 
-    Methods: 
+    Methods:
         __call__: Returns loss given features and labels.
     """
 
@@ -39,10 +39,10 @@ class MarginLoss(Loss):
 
     def forward(self, features, labels):
         """
-    Args:
-        features: features matrix with shape (batch_size, feat_dim)
-        labels: ground truth labels with shape (batch_size)
-    """
+        Args:
+            features: features matrix with shape (batch_size, feat_dim)
+            labels: ground truth labels with shape (batch_size)
+        """
         distances = self.euclidean_dist(features, features)
         distances_pos, distances_neg = self.mine(distances, labels)
         y = distances_neg.new().resize_as_(distances_neg).fill_(1)
@@ -69,10 +69,14 @@ class MarginLoss(Loss):
 
         # `dist_ap` means distance(anchor, positive)
         # both `dist_ap` and `relative_p_inds` with shape [N, 1]
-        dist_ap, _ = torch.max(distances[pos].contiguous().view(N, -1), 1, keepdim=True)
+        dist_ap, _ = torch.max(
+            distances[pos].contiguous().view(N, -1), 1, keepdim=True
+        )
         # `dist_an` means distance(anchor, negative)
         # both `dist_an` and `relative_n_inds` with shape [N, 1]
-        dist_an, _ = torch.min(distances[neg].contiguous().view(N, -1), 1, keepdim=True)
+        dist_an, _ = torch.min(
+            distances[neg].contiguous().view(N, -1), 1, keepdim=True
+        )
         # shape [N]
         dist_ap = dist_ap.squeeze(1)
         dist_an = dist_an.squeeze(1)

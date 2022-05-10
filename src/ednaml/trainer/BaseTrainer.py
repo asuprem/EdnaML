@@ -13,11 +13,13 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 
 class BaseTrainer:
     model: ModelAbstract
-    loss_fn: Dict[str, ednaml.loss.builders.LossBuilder]  # output-name: lossBuilder
-    optimizer: Dict[str, torch.optim.Optimizer]  
-    loss_optimizer = Dict[str, List[torch.optim.Optimizer]] 
-    scheduler: Dict[str, torch.optim.lr_scheduler._LRScheduler]  
-    loss_scheduler: Dict[str, List[torch.optim.lr_scheduler._LRScheduler]] 
+    loss_fn: Dict[
+        str, ednaml.loss.builders.LossBuilder
+    ]  # output-name: lossBuilder
+    optimizer: Dict[str, torch.optim.Optimizer]
+    loss_optimizer = Dict[str, List[torch.optim.Optimizer]]
+    scheduler: Dict[str, torch.optim.lr_scheduler._LRScheduler]
+    loss_scheduler: Dict[str, List[torch.optim.lr_scheduler._LRScheduler]]
 
     skipeval: bool
     train_loader: DataLoader
@@ -28,7 +30,7 @@ class BaseTrainer:
     global_batch: int
     global_epoch: int
     num_losses: int
-    losses: Dict[str, List[int]] 
+    losses: Dict[str, List[int]]
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
@@ -55,7 +57,8 @@ class BaseTrainer:
         self.model = model
         self.parameter_groups = list(self.model.parameter_groups.keys())
         self.loss_fn_order = {
-            idx: lossbuilder.loss_labelname for idx, lossbuilder in enumerate(loss_fn)
+            idx: lossbuilder.loss_labelname
+            for idx, lossbuilder in enumerate(loss_fn)
         }
         self.loss_fn = {
             lossbuilder.loss_labelname: lossbuilder for lossbuilder in loss_fn
@@ -77,8 +80,14 @@ class BaseTrainer:
                 for idx in range(self.num_losses)
             }
 
-        self.optimizer = {self.parameter_groups[idx]:optimizer_item for idx, optimizer_item in enumerate(optimizer)}
-        self.scheduler = {self.parameter_groups[idx]:scheduler_item for idx, scheduler_item in enumerate(scheduler)}
+        self.optimizer = {
+            self.parameter_groups[idx]: optimizer_item
+            for idx, optimizer_item in enumerate(optimizer)
+        }
+        self.scheduler = {
+            self.parameter_groups[idx]: scheduler_item
+            for idx, scheduler_item in enumerate(scheduler)
+        }
         self.skipeval = skipeval
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -96,9 +105,9 @@ class BaseTrainer:
 
         self.buildMetadata(
             # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
-            crawler=crawler.classes, config=json.loads(config.export("json"))
+            crawler=crawler.classes,
+            config=json.loads(config.export("json")),
         )
-
 
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
@@ -161,13 +170,16 @@ class BaseTrainer:
 
         save_dict = {}
         save_dict["optimizer"] = {
-            pgn:self.optimizer[pgn].state_dict() for pgn in self.parameter_groups
+            pgn: self.optimizer[pgn].state_dict()
+            for pgn in self.parameter_groups
         }
         save_dict["scheduler"] = {
-            pgn:self.scheduler[pgn].state_dict() for pgn in self.parameter_groups
+            pgn: self.scheduler[pgn].state_dict()
+            for pgn in self.parameter_groups
         }
         save_dict["loss_fn"] = {
-            lossname: self.loss_fn[lossname].state_dict() for lossname in self.loss_fn
+            lossname: self.loss_fn[lossname].state_dict()
+            for lossname in self.loss_fn
         }
         save_dict["loss_optimizer"] = {
             lossname: (
@@ -190,16 +202,19 @@ class BaseTrainer:
         # save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
 
         torch.save(
-            self.model.state_dict(), os.path.join(self.save_directory, MODEL_SAVE)
+            self.model.state_dict(),
+            os.path.join(self.save_directory, MODEL_SAVE),
         )
         torch.save(save_dict, os.path.join(self.save_directory, TRAINING_SAVE))
 
         if self.save_backup:
             shutil.copy2(
-                os.path.join(self.save_directory, MODEL_SAVE), self.backup_directory
+                os.path.join(self.save_directory, MODEL_SAVE),
+                self.backup_directory,
             )
             shutil.copy2(
-                os.path.join(self.save_directory, TRAINING_SAVE), self.backup_directory
+                os.path.join(self.save_directory, TRAINING_SAVE),
+                self.backup_directory,
             )
 
             self.logger.info(
@@ -219,34 +234,38 @@ class BaseTrainer:
             % (load_epoch + 1, load_epoch)
         )
         model_load = self.model_save_name + "_epoch%i" % load_epoch + ".pth"
-        training_load = self.model_save_name + "_epoch%i" % load_epoch + "_training.pth"
+        training_load = (
+            self.model_save_name + "_epoch%i" % load_epoch + "_training.pth"
+        )
 
         if self.save_backup:
             self.logger.info(
                 "Loading model, optimizer, and scheduler from drive backup."
             )
             model_load_path = os.path.join(self.backup_directory, model_load)
-            training_load_path = os.path.join(self.backup_directory, training_load)
+            training_load_path = os.path.join(
+                self.backup_directory, training_load
+            )
 
         else:
             self.logger.info(
                 "Loading model, optimizer, and scheduler from local backup."
             )
             model_load_path = os.path.join(self.save_directory, model_load)
-            training_load_path = os.path.join(self.save_directory, training_load)
+            training_load_path = os.path.join(
+                self.save_directory, training_load
+            )
 
         self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info("Finished loading model state_dict from %s" % model_load_path)
+        self.logger.info(
+            "Finished loading model state_dict from %s" % model_load_path
+        )
 
         checkpoint = torch.load(training_load_path)
         for pgn in self.parameter_groups:
-            self.optimizer[pgn].load_state_dict(
-                checkpoint["optimizer"][pgn]
-            )
+            self.optimizer[pgn].load_state_dict(checkpoint["optimizer"][pgn])
 
-            self.scheduler[pgn].load_state_dict(
-                checkpoint["scheduler"][pgn]
-            )
+            self.scheduler[pgn].load_state_dict(checkpoint["scheduler"][pgn])
         self.logger.info(
             "Finished loading optimizer state_dict from %s" % training_load_path
         )
@@ -255,7 +274,9 @@ class BaseTrainer:
         )
 
         for lossname in self.loss_fn:
-            self.loss_fn[lossname].load_state_dict(checkpoint["loss_fn"][lossname])
+            self.loss_fn[lossname].load_state_dict(
+                checkpoint["loss_fn"][lossname]
+            )
             if self.loss_optimizer[lossname] is not None:
                 self.loss_optimizer[lossname].load_state_dict(
                     checkpoint["loss_optimizer"][lossname]
@@ -310,10 +331,10 @@ class BaseTrainer:
             self.logger.info("Skipping initial evaluation.")
 
         self.logger.info("Starting training from %i" % continue_epoch)
-        self.zeroGrad()        
+        self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
-        for epoch in range(self.epochs+1):
+        for epoch in range(self.epochs + 1):
             if epoch >= continue_epoch:
                 self.epoch_step(epoch)
             else:
@@ -329,23 +350,21 @@ class BaseTrainer:
             self.saveFlag = False
 
     def initial_evaluate(self):
-        """Evaluation of model before we start training
-        """
+        """Evaluation of model before we start training"""
         self.evaluate()
 
     def epoch_step(self, epoch):
-        """Trains model for an epoch.
-        """
+        """Trains model for an epoch."""
         for batch in self.train_loader:
             if self.global_batch == 0:
                 self.printOptimizerLearningRates()
-            
+
             self.model.train()
-            
-            loss:torch.Tensor = self.step(batch)
+
+            loss: torch.Tensor = self.step(batch)
             loss = loss / self.accumulation_steps
             loss.backward()
-            self.accumulation_count +=1
+            self.accumulation_count += 1
 
             if self.accumulation_count % self.accumulation_steps == 0:
                 self.updateGradients()
@@ -359,35 +378,41 @@ class BaseTrainer:
                     self.save(self.global_epoch - 1)
                     self.saveFlag = False
 
-            
-            self.global_batch+=1
+            self.global_batch += 1
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
-
 
         self.global_batch = 0
         self.stepSchedulers()
         self.stepLossSchedulers()
 
         self.logger.info(
-            "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
+            "{0} Completed epoch {1} {2}".format(
+                "*" * 10, self.global_epoch, "*" * 10
+            )
         )
 
         if self.global_epoch % self.test_frequency == 0:
             if self.accumulation_steps > 0:
-                self.logger.info("Model evaluation triggered, but gradients still need accumulation. Will evaluate after accumulation.")
+                self.logger.info(
+                    "Model evaluation triggered, but gradients still need"
+                    " accumulation. Will evaluate after accumulation."
+                )
                 self.evaluateFlag = True
             else:
                 self.evaluate()
-            
+
         if self.global_epoch % self.save_frequency == 0:
             if self.accumulation_steps > 0:
-                self.logger.info("Model save triggered, but gradients still need accumulation. Will save after accumulation.")
+                self.logger.info(
+                    "Model save triggered, but gradients still need"
+                    " accumulation. Will save after accumulation."
+                )
                 self.saveFlag = True
             else:
                 self.save()
         self.global_epoch += 1
-    
+
     def step(self, batch) -> torch.Tensor:
         # compute the loss, and return it
         raise NotImplementedError()
@@ -397,12 +422,9 @@ class BaseTrainer:
         self.stepLossOptimizers()
         self.zeroGrad()
 
-
-
     def zeroGrad(self):
         self.zeroGradOptimizers()
         self.zeroGradLossOptimizers()
-
 
     def printStepInformation(self):
         loss_avg = 0.0
@@ -428,7 +450,6 @@ class BaseTrainer:
 
     def evaluate_impl(self):
         raise NotImplementedError()
-
 
     def zeroGradOptimizers(self):
         for optim in self.optimizer:
@@ -464,10 +485,11 @@ class BaseTrainer:
             lrs = self.scheduler[param_group_name].get_last_lr()
             lrs = sum(lrs) / float(len(lrs))
             self.logger.info(
-                    "Parameter Group `{0}`: Starting epoch {1} with {2} steps and learning rate {3:2.5E}".format(
-                        param_group_name,
-                        self.global_epoch,
-                        len(self.train_loader) - (len(self.train_loader) % 10),
-                        lrs,
-                    )
+                "Parameter Group `{0}`: Starting epoch {1} with {2} steps and"
+                " learning rate {3:2.5E}".format(
+                    param_group_name,
+                    self.global_epoch,
+                    len(self.train_loader) - (len(self.train_loader) % 10),
+                    lrs,
                 )
+            )

@@ -1,13 +1,11 @@
-
-
-
-
 from typing import List, Tuple, Union
 from ednaml.generators import ImageGenerator
 from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 from ednaml.utils import locate_class
 from torchvision.datasets import VisionDataset
+
+
 class TorchvisionGeneratorWrapper(ImageGenerator):
     """Generator for a TorchVision dataset.
 
@@ -15,9 +13,25 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         ImageGenerator (_type_): _description_
     """
 
-
-    def __init__(self, gpus: int, i_shape: Union[List[int], Tuple[int, int]], channels: int, normalization_mean: float, normalization_std: float, normalization_scale: float, **kwargs):
-        super().__init__(gpus, i_shape, channels, normalization_mean, normalization_std, normalization_scale, **kwargs)
+    def __init__(
+        self,
+        gpus: int,
+        i_shape: Union[List[int], Tuple[int, int]],
+        channels: int,
+        normalization_mean: float,
+        normalization_std: float,
+        normalization_scale: float,
+        **kwargs
+    ):
+        super().__init__(
+            gpus,
+            i_shape,
+            channels,
+            normalization_mean,
+            normalization_std,
+            normalization_scale,
+            **kwargs
+        )
 
         """
         So we will have arguments inside the kwargs that set up the dataloader object
@@ -29,8 +43,12 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
     def build(self, datacrawler, mode, batch_size, workers, **kwargs):
         # We don't need the data crawler...
 
-        dataset_class: VisionDataset = locate_class(package="torchvision", subpackage="datasets", classpackage=self.torchvision_dataset_class)
-        # We probably need something here to adjust the arguments for each dataset class, because of differences in arguments... 
+        dataset_class: VisionDataset = locate_class(
+            package="torchvision",
+            subpackage="datasets",
+            classpackage=self.torchvision_dataset_class,
+        )
+        # We probably need something here to adjust the arguments for each dataset class, because of differences in arguments...
 
         # dataset API is not unified, see discussions below
         # https://github.com/pytorch/vision/issues/1067
@@ -38,20 +56,26 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         if self.torchvision_dataset_class in ["CIFAR10", "MNIST", "USPS"]:
             # These have a train argument...
             self.dataset = dataset_class(
-                                            root=self.torchvision_dataset_args.get("root"),
-                                            train=(mode=="train"),
-                                            transform=self.transformer,
-                                            target_transform = None,
-                                            **self.torchvision_dataset_args
-                                            )
-        elif self.torchvision_dataset_class in ["CelebA", "SVHN", "STL10", "ImageNet", "Cityscapes"]:
+                root=self.torchvision_dataset_args.get("root"),
+                train=(mode == "train"),
+                transform=self.transformer,
+                target_transform=None,
+                **self.torchvision_dataset_args
+            )
+        elif self.torchvision_dataset_class in [
+            "CelebA",
+            "SVHN",
+            "STL10",
+            "ImageNet",
+            "Cityscapes",
+        ]:
             if self.torchvision_dataset_class == "ImageNet":
-                mode= mode if mode=="train" else "val"
+                mode = mode if mode == "train" else "val"
             self.dataset = dataset_class(
-                root = self.torchvision_dataset_args.get("root"),
+                root=self.torchvision_dataset_args.get("root"),
                 split=mode,
                 transform=self.transformer,
-                target_transform = None,
+                target_transform=None,
                 **self.torchvision_dataset_args
             )
         else:
@@ -62,5 +86,9 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         )
 
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
-        return TorchDataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=self.workers)
-
+        return TorchDataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=self.workers,
+        )

@@ -3,9 +3,10 @@ from typing import Dict
 
 
 class Crawler:
-    """The base crawler class. TODO
-    """
+    """The base crawler class. TODO"""
+
     classes: Dict[str, int]
+
     def __init__(self):
         self.classes = {}
 
@@ -28,7 +29,9 @@ from ednaml.crawlers.Cars196DataCrawler import Cars196DataCrawler
 
 # CoLabelCrawlers
 from ednaml.crawlers.VehicleColorCrawler import VehicleColorCrawler
-from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import CoLabelIntegratedDatasetCrawler
+from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import (
+    CoLabelIntegratedDatasetCrawler,
+)
 
 KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
 

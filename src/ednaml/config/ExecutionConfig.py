@@ -16,7 +16,9 @@ class ExecutionConfig(BaseConfig):
         self.OPTIMIZER_BUILDER = execution_dict.get(
             "OPTIMIZER_BUILDER", defaults.OPTIMIZER_BUILDER
         )
-        self.MODEL_SERVING = execution_dict.get("MODEL_SERVING", defaults.MODEL_SERVING)
+        self.MODEL_SERVING = execution_dict.get(
+            "MODEL_SERVING", defaults.MODEL_SERVING
+        )
         self.EPOCHS = execution_dict.get("EPOCHS", defaults.EPOCHS)
         self.SKIPEVAL = execution_dict.get("SKIPEVAL", defaults.SKIPEVAL)
         self.TEST_FREQUENCY = execution_dict.get(
@@ -28,4 +30,6 @@ class ExecutionConfig(BaseConfig):
         self.DATAREADER = ExecutionDatareaderConfig(
             execution_dict.get("DATAREADER", {})
         )
-        self.TRAINER_ARGS = execution_dict.get("TRAINER_ARGS", defaults.TRAINER_ARGS)
+        self.TRAINER_ARGS = execution_dict.get(
+            "TRAINER_ARGS", defaults.TRAINER_ARGS
+        )

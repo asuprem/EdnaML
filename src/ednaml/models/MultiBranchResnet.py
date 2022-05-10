@@ -20,23 +20,23 @@ class MultiBranchResnet(ModelAbstract):
     Kwargs (MODEL_KWARGS):
         - `number_branches`: This is the number of branches for the model
         - `branches`: A list, each element is the i-th branch's metadata
-            - `name`: This is the name of this branch. This is used by model_builder to keep track of output names and labels. 
+            - `name`: This is the name of this branch. This is used by model_builder to keep track of output names and labels.
             - `number_outputs`: This is the number of classification outputs for this branch
             - `outputs`: A list, each element is the j-th output's metadata for this branch
-                - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below. 
-                - `name`: This is the name of this output. 
+                - `dimensions`: This is the number of classes for this output. This can be left blank if you want EdnaML to infer the size from the `LABEL` parameter below.
+                - `name`: This is the name of this output.
                 - `label`: This is the name of the label this output is tracking. <span style="color:magenta; font-weight:bold">THIS SHOULD CORRESPOND EXACTLY WITH `DATASET_ARGS.classificationclass`</span> labels.
         - `fuse`: **Bool**. Whether branch outputs are going to be fused
         - `fuse_outputs`: List of output names (not branch names) that are fused
         - `fuse_dimensions`: The dimensions of the fused output. If left blank, EdnaML will infer from `fuse_label`
-        - `fuse_label`: The label that tracks the fused output 
+        - `fuse_label`: The label that tracks the fused output
         - `fuse_name`: The name for the fused output
         - `shared_block`: Number of shared blocks for the resnet backbone before branching
         - `soft_targets`: Whether to apply soft targets of the fused output to internal branches. The soft-target outputs will go in secondary outputs, as they are side outputs that are unused.
         - `soft_target_branch`: List of branch names to apply for soft-target
         - `soft_target_output_source`: The output that will be used as the soft-target. Can be a branch output ora fused output
 
-        
+
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
         attention (str, None): The attention module to use. Only supports ['cbam', 'dbam']
         input_attention (bool, false): Whether to include the IA module
@@ -52,7 +52,7 @@ class MultiBranchResnet(ModelAbstract):
         replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
         norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
 
-    Methods: 
+    Methods:
         forward: Process a batch
 
     """
@@ -67,17 +67,23 @@ class MultiBranchResnet(ModelAbstract):
     base: multibranchresnet
     _internal_name_count = 0
 
-    model_labelorder: List[str] # order of label names in the outputs. 
+    model_labelorder: List[str]  # order of label names in the outputs.
     model_nameorder: List[str]  # the names for each of the outputs
-    output_count: int   # Number of outputs in forward
-    feature_count: int # Number of features in forward
+    output_count: int  # Number of outputs in forward
+    feature_count: int  # Number of features in forward
 
     soft_targets: bool
     soft_target_output_source: str
     soft_target_outputs: nn.ModuleList
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
+        self,
+        base="resnet50",
+        weights=None,
+        normalization=None,
+        metadata=None,
+        parameter_groups: List[str] = None,
+        **kwargs
     ):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
@@ -120,10 +126,12 @@ class MultiBranchResnet(ModelAbstract):
             nouts = self.branches_meta[branch_name]["number_outputs"]
             self.number_outputs += nouts
             out_dict = {
-                out["name"]: out for out in self.branches_meta[branch_name]["outputs"]
+                out["name"]: out
+                for out in self.branches_meta[branch_name]["outputs"]
             }
             out_order = [
-                out["name"] for out in self.branches_meta[branch_name]["outputs"]
+                out["name"]
+                for out in self.branches_meta[branch_name]["outputs"]
             ]
             self.output_name_order += out_order
 
@@ -143,7 +151,9 @@ class MultiBranchResnet(ModelAbstract):
             else:
                 self.outputs_meta[output][
                     "dimensions"
-                ] = self.metadata.getLabelDimensions(self.outputs_meta[output]["label"])
+                ] = self.metadata.getLabelDimensions(
+                    self.outputs_meta[output]["label"]
+                )
 
         self.output_dimensions = []
         self.output_label_order = []
@@ -154,7 +164,9 @@ class MultiBranchResnet(ModelAbstract):
         # Now we have self.output_name_order, which contains output-names in order of how they will be output
         # Now we need to add the fused information
         self.branch_fuse = kwargs.get("fuse", False)
-        self.branch_fuse_names = {item: 1 for item in kwargs.get("fuse_outputs", [])}
+        self.branch_fuse_names = {
+            item: 1 for item in kwargs.get("fuse_outputs", [])
+        }
         self.branch_fuse_idx = []
         if self.branch_fuse:
             self.branch_fuse_idx = [
@@ -166,15 +178,18 @@ class MultiBranchResnet(ModelAbstract):
         self.fuse_label = kwargs.get("fuse_label", None)
         self.fuse_name = kwargs.get("fuse_name", "fuse")
         if self.fuse_dimensions is None:
-            self.fuse_dimensions = self.metadata.getLabelDimensions(self.fuse_label)
+            self.fuse_dimensions = self.metadata.getLabelDimensions(
+                self.fuse_label
+            )
 
         # need metadata for model_labelorder for the output
         self.model_labelorder = [item for item in self.output_label_order]
         self.model_nameorder = [item for item in self.output_name_order]
-        self.name_label_map = {name:label for name, label in zip(self.model_nameorder, self.model_labelorder)}
+        self.name_label_map = {
+            name: label
+            for name, label in zip(self.model_nameorder, self.model_labelorder)
+        }
 
-        
-        
         if self.branch_fuse:
             self.model_labelorder += [self.fuse_label]
             self.model_nameorder += [self.fuse_name]
@@ -187,9 +202,9 @@ class MultiBranchResnet(ModelAbstract):
             self.branches[bname]["gap"] = None
             self.branches[bname]["emb_linear"] = None
             self.branches[bname]["feat_norm"] = None
-            self.branches[bname]["softmax"] = [None] * self.branches_meta[bname][
-                "number_outputs"
-            ]
+            self.branches[bname]["softmax"] = [None] * self.branches_meta[
+                bname
+            ]["number_outputs"]
 
         self.output_count = self.number_outputs
         self.feature_count = self.number_branches
@@ -199,20 +214,25 @@ class MultiBranchResnet(ModelAbstract):
 
         self.soft_targets = kwargs.get("soft_targets", False)
         if self.soft_targets:
-            self.soft_target_output_source = kwargs.get("soft_target_output_source")
+            self.soft_target_output_source = kwargs.get(
+                "soft_target_output_source"
+            )
             self.soft_target_branch_names = kwargs.get("soft_target_branch")
-        
+
             # here, ass the branch_names list to name_order. So for 2 fused branches, name order increased by size 2
             self.model_nameorder += self.soft_target_branch_names
             # For the labels, we will put in directly the label name of the soft fusion source..., so one label for each soft target branch name, where we look up in the name_label_map of the original soft source
-            self.model_labelorder += [self.name_label_map[self.soft_target_output_source] for _ in range(len(self.soft_target_branch_names))]   
+            self.model_labelorder += [
+                self.name_label_map[self.soft_target_output_source]
+                for _ in range(len(self.soft_target_branch_names))
+            ]
             self.soft_names = self.soft_target_branch_names
-            self.soft_names = {item:1 for item in self.soft_names}
+            self.soft_names = {item: 1 for item in self.soft_names}
             self.output_count += len(self.soft_target_branch_names)
-        
-        self.branch_name_idx_map = {item:idx for idx,item in enumerate(self.branch_name_order)}
 
-        
+        self.branch_name_idx_map = {
+            item: idx for idx, item in enumerate(self.branch_name_order)
+        }
 
     def model_setup(self, **kwargs):
         self.build_base(**kwargs)
@@ -221,13 +241,16 @@ class MultiBranchResnet(ModelAbstract):
         self.build_fused()
         self.build_softtargets()
 
-
     def build_base(self, **kwargs):
         """Build the model base.
 
         Builds the architecture base/core.
         """
-        _resnet = locate_class(subpackage="backbones", classpackage=self.model_base, classfile="multibranchresnet")
+        _resnet = locate_class(
+            subpackage="backbones",
+            classpackage=self.model_base,
+            classfile="multibranchresnet",
+        )
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
@@ -251,9 +274,9 @@ class MultiBranchResnet(ModelAbstract):
                 )
 
             self.branches[bname]["feat_norm"] = None
-            self.branches[bname]["softmax"] = [None] * self.branches_meta[bname][
-                "number_outputs"
-            ]
+            self.branches[bname]["softmax"] = [None] * self.branches_meta[
+                bname
+            ]["number_outputs"]
 
     def build_normalization(self):
 
@@ -269,7 +292,10 @@ class MultiBranchResnet(ModelAbstract):
         elif self.normalization == "gn":
             norm_div = 16
             norm_func = nn.GroupNorm
-            norm_args = {"num_channels": self.embedding_dimensions, "affine": True}
+            norm_args = {
+                "num_channels": self.embedding_dimensions,
+                "affine": True,
+            }
         elif self.normalization == "ln":
             norm_func = nn.LayerNorm
             norm_args = {"elementwise_affine": True}
@@ -302,7 +328,9 @@ class MultiBranchResnet(ModelAbstract):
                     self.outputs_meta[output_name]["dimensions"],
                     bias=False,
                 )
-                self.branches[bname]["softmax"][idx].apply(self.weights_init_softmax)
+                self.branches[bname]["softmax"][idx].apply(
+                    self.weights_init_softmax
+                )
             self.branches[bname]["softmax"] = nn.ModuleList(
                 self.branches[bname]["softmax"]
             )
@@ -321,19 +349,19 @@ class MultiBranchResnet(ModelAbstract):
             )
             self.softmax_fused.apply(self.weights_init_softmax)
 
-
     def build_softtargets(self):
         if self.soft_targets:
-            soft_target_outputs = [None]*len(self.soft_target_branch_names)
+            soft_target_outputs = [None] * len(self.soft_target_branch_names)
             for idx, _ in enumerate(self.soft_target_branch_names):
                 soft_target_outputs[idx] = nn.Linear(
                     self.embedding_dimensions,
-                    self.metadata.getLabelDimensions(self.name_label_map[self.soft_target_output_source]),
+                    self.metadata.getLabelDimensions(
+                        self.name_label_map[self.soft_target_output_source]
+                    ),
                     bias=False,
                 )
                 soft_target_outputs[idx].apply(self.weights_init_softmax)
             self.soft_target_outputs = nn.ModuleList(soft_target_outputs)
-
 
         soft_target_outputs
 
@@ -359,7 +387,9 @@ class MultiBranchResnet(ModelAbstract):
         if self.branch_fuse:
             fused_features += [
                 self.fused_feat_norm(
-                    torch.cat([features[idx] for idx in self.branch_fuse_idx], dim=1)
+                    torch.cat(
+                        [features[idx] for idx in self.branch_fuse_idx], dim=1
+                    )
                 )
             ]
 
@@ -367,7 +397,9 @@ class MultiBranchResnet(ModelAbstract):
         out_idx = 0
         for b_idx, bname in enumerate(self.branch_name_order):
             features[b_idx] = self.branches[bname]["feat_norm"](features[b_idx])
-            for o_idx, _ in enumerate(self.branches_meta[bname]["output_nameorder"]):
+            for o_idx, _ in enumerate(
+                self.branches_meta[bname]["output_nameorder"]
+            ):
                 outputs[out_idx] = self.branches[bname]["softmax"][o_idx](
                     features[b_idx]
                 )
@@ -380,7 +412,9 @@ class MultiBranchResnet(ModelAbstract):
         # in forward_impl, we do for softtargetnames in self.soft-t-b-n, self.branches[softtargetnames].features --> send to the thingamagig and add to outputs
         soft_outs = []
         for idx, softtargetnames in enumerate(self.soft_target_branch_names):
-            soft_outs[idx] = self.soft_target_outputs[idx](features[self.branch_name_idx_map[softtargetnames]])
+            soft_outs[idx] = self.soft_target_outputs[idx](
+                features[self.branch_name_idx_map[softtargetnames]]
+            )
         return features + fused_features, outputs + fused_outs + soft_outs, []
 
     def parameter_groups_setup(self, parameter_groups: List[str]):

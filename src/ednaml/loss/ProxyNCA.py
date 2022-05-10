@@ -15,7 +15,7 @@ class ProxyNCA(Loss):
         smoothing (float, 0.3): Smoothing constant. Default 0.0
         normalization (float, 3.0): Normalization constant. Default 0.0
 
-    Methods: 
+    Methods:
         __call__: Returns loss given features and labels.
 
     """

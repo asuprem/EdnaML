@@ -1,5 +1,3 @@
-
-
 from typing import Any, List, Tuple, Union
 import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
@@ -9,17 +7,11 @@ import ednaml.utils
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 
-
 class TextGenerator(Generator):
-    """Base class for text generators
-    """
+    """Base class for text generators"""
 
     def __init__(
-        self,
-        gpus: int = 1,
-        transforms = {},
-        mode: str = "train",
-        **kwargs
+        self, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
         """Initializes the Generator and builds the data transformer
 
@@ -30,13 +22,13 @@ class TextGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        super().__init__(gpus=gpus, transforms=transforms,mode=mode,**kwargs)
+        super().__init__(gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs
     ) -> TorchDataset:
-        """Given the datacrawler with all the data, and the mode (could be 
-        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as 
+        """Given the datacrawler with all the data, and the mode (could be
+        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as
         as well the transform, return a TorchDataset
 
         Args:

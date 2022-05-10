@@ -12,7 +12,7 @@ class SoftmaxLabelSmooth(Loss):
         softmax_dimensions (int): Dimension of the softmax layer. Used for the smoothing constant scaling.
         eps (float): Smothing constant. Default 0.1
 
-    Methods: 
+    Methods:
         __call__: Returns loss given logits and labels.
 
     """

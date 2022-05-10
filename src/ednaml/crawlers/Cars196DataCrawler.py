@@ -37,14 +37,21 @@ class Cars196DataCrawler(Crawler):
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
-        self.metadata["train"], self.metadata["test"], self.metadata["query"] = (
+    def crawl(
+        self,
+    ):
+        (
+            self.metadata["train"],
+            self.metadata["test"],
+            self.metadata["query"],
+        ) = (
             {},
             {},
             {},
         )
         self.__crawl(
-            os.path.join(self.data_folder, "cars_train_annos.mat"), self.train_folder
+            os.path.join(self.data_folder, "cars_train_annos.mat"),
+            self.train_folder,
         )
 
         self.logger.info(

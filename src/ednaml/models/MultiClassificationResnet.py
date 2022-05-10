@@ -18,8 +18,8 @@ class MultiClassificationResnet(ClassificationResnet):
         number_outputs (int): Number of different FC layers connected to the feature layer of the backbone.
         softmax_dimensions (List[int]): Classes of each FC layer, in order. Optional. If not provided, `MultiClassificationResnet` will use `output_classnames` and `metadata` to infer dimension size
         output_classnames (List[str]): The name for each output, in order. These should be the same as the label names for the multiple classes.
-        labelnames (List[str]): The order of labels provided by the crawler. This is used during model training, where crawler ground truth labels must be matched to model outputs. 
-        
+        labelnames (List[str]): The order of labels provided by the crawler. This is used during model training, where crawler ground truth labels must be matched to model outputs.
+
         last_stride (int, 1): The final stride parameter for the architecture core. Should be one of 1 or 2.
         attention (str, None): The attention module to use. Only supports ['cbam', 'dbam']
         input_attention (bool, false): Whether to include the IA module
@@ -35,7 +35,7 @@ class MultiClassificationResnet(ClassificationResnet):
         replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
         norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
 
-    Methods: 
+    Methods:
         forward: Process a batch
 
     """
@@ -51,7 +51,13 @@ class MultiClassificationResnet(ClassificationResnet):
     _internal_name_count = 0
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
+        self,
+        base="resnet50",
+        weights=None,
+        normalization=None,
+        metadata=None,
+        parameter_groups: List[str] = None,
+        **kwargs
     ):
         """We will inherit the base construction from ClassificationResNet, and modify the softmax head.
 
@@ -101,7 +107,9 @@ class MultiClassificationResnet(ClassificationResnet):
         self.output_labels = [None] * self.number_outputs
 
         for idx, output_details in enumerate(outputs):
-            self.softmax_dimensions[idx] = output_details.get("dimensions", None)
+            self.softmax_dimensions[idx] = output_details.get(
+                "dimensions", None
+            )
             self.output_names[idx] = output_details.get(
                 "name", self._internal_name_counter()
             )
@@ -122,8 +130,7 @@ class MultiClassificationResnet(ClassificationResnet):
         return out
 
     def build_softmax(self, **kwargs):
-        """Build the softmax layers, using info either in self.softmax_dimensions or by combining metadata info of labelname->numclasses and the outputclassnames
-        """
+        """Build the softmax layers, using info either in self.softmax_dimensions or by combining metadata info of labelname->numclasses and the outputclassnames"""
         # NOTE, for re-id type models...multiclassification model will anyway yield the features with softmax outputs, so we don't have to worry about that...
         # For pure-reid model, probably best to use ClassificationResNet and modify to use no softmax...TODO this is a future step...
         tsoftmax = [None] * self.number_outputs

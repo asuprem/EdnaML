@@ -8,9 +8,13 @@ class InputAttention(nn.Module):
 
     def __init__(self, planes):
         super(InputAttention, self).__init__()
-        self.ia_conv1 = nn.Conv2d(planes, planes, kernel_size=3, padding=1, bias=False)
+        self.ia_conv1 = nn.Conv2d(
+            planes, planes, kernel_size=3, padding=1, bias=False
+        )
         self.ia_relu1 = nn.LeakyReLU()
-        self.ia_conv2 = nn.Conv2d(planes, planes, kernel_size=3, padding=1, bias=False)
+        self.ia_conv2 = nn.Conv2d(
+            planes, planes, kernel_size=3, padding=1, bias=False
+        )
         self.ia_sigmoid = nn.Sigmoid()
 
     def forward(self, x):

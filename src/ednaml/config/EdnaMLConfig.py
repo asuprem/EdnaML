@@ -24,36 +24,55 @@ class EdnaMLConfig(BaseConfig):
     TEST_TRANSFORMATION: TransformationConfig
     MODEL: ModelConfig
     LOSS: List[LossConfig]
-    OPTIMIZER: List[OptimizerConfig]  # one optimizer for each set of model params
+    OPTIMIZER: List[
+        OptimizerConfig
+    ]  # one optimizer for each set of model params
     SCHEDULER: List[SchedulerConfig]  # one scheduler for each optimizer
-    LOSS_OPTIMIZER: List[OptimizerConfig]  # one optimizer for each loss with params
-    LOSS_SCHEDULER: List[SchedulerConfig]  # one scheduler for each loss_optimizer
+    LOSS_OPTIMIZER: List[
+        OptimizerConfig
+    ]  # one optimizer for each loss with params
+    LOSS_SCHEDULER: List[
+        SchedulerConfig
+    ]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
 
-    def __init__(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()):
+    def __init__(
+        self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()
+    ):
         ydict = {}
-        
+
         if len(config_path) > 0:
             if not os.path.exists(config_path):
-                raise FileNotFoundError("No file found for config at : %s"%config_path)
+                raise FileNotFoundError(
+                    "No file found for config at : %s" % config_path
+                )
             else:
                 with open(config_path, "r") as cfile:
                     ydict = yaml.safe_load(cfile.read().strip())
 
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
-        
+
         self.TRAIN_TRANSFORMATION = TransformationConfig(
-            dict(ydict.get("TRANSFORMATION", {}), **ydict.get("TRAIN_TRANSFORMATION", {})), defaults
+            dict(
+                ydict.get("TRANSFORMATION", {}),
+                **ydict.get("TRAIN_TRANSFORMATION", {})
+            ),
+            defaults,
         )
         self.TEST_TRANSFORMATION = TransformationConfig(
-            dict(ydict.get("TRANSFORMATION", {}), **ydict.get("TEST_TRANSFORMATION", {})), defaults
+            dict(
+                ydict.get("TRANSFORMATION", {}),
+                **ydict.get("TEST_TRANSFORMATION", {})
+            ),
+            defaults,
         )
         self.MODEL = ModelConfig(
             ydict.get("MODEL", {}), defaults
         )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
         self.LOSS = [
-            LossConfig(loss_item, defaults) for loss_item in ydict.get("LOSS", [])
+            LossConfig(loss_item, defaults)
+            for loss_item in ydict.get("LOSS", [])
         ]  # No default LOSS itself --> it will be empty...
 
         # Default optimizer is Adam
@@ -80,7 +99,7 @@ class EdnaMLConfig(BaseConfig):
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
 
     def export(self, mode="yaml"):
-        dicts = json.dumps(self, default=config_serializer) # or getvars()????
+        dicts = json.dumps(self, default=config_serializer)  # or getvars()????
         dicta = json.loads(dicts)
         if mode == "yaml":
             return yaml.dump(dicta)

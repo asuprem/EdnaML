@@ -32,7 +32,12 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 
 
 class EdnaML(EdnaMLBase):
-    logLevels = {0: logging.NOTSET, 1: logging.ERROR, 2: logging.INFO, 3: logging.DEBUG}
+    logLevels = {
+        0: logging.NOTSET,
+        1: logging.ERROR,
+        2: logging.INFO,
+        3: logging.DEBUG,
+    }
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
     model: ModelAbstract
@@ -57,8 +62,8 @@ class EdnaML(EdnaMLBase):
         verbose: int = 2,
         **kwargs
     ):
-        """Initializes the EdnaML object with the associated config, mode, weights, and verbosity. 
-        Sets up the logger, as well as local logger save directory. 
+        """Initializes the EdnaML object with the associated config, mode, weights, and verbosity.
+        Sets up the logger, as well as local logger save directory.
 
         Args:
             config (str, optional): Path to the Edna config file. Defaults to "config.yaml".
@@ -84,7 +89,9 @@ class EdnaML(EdnaMLBase):
         self.gpus = torch.cuda.device_count()
 
         self.cfg = EdnaMLConfig(config)
-        self.saveMetadata = SaveMetadata(self.cfg, **kwargs)    # <-- for changing the logger name...
+        self.saveMetadata = SaveMetadata(
+            self.cfg, **kwargs
+        )  # <-- for changing the logger name...
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
 
         self.logger = self.buildLogger(logger=logger, **kwargs)
@@ -92,12 +99,14 @@ class EdnaML(EdnaMLBase):
         self.load_epoch = kwargs.get("load_epoch", None)
         self.test_only = kwargs.get("test_only", False)
         if self.test_only and self.mode == "train":
-            raise ValueError("Cannot have `test_only` and be in training mode. Switch to `test` mode.")
+            raise ValueError(
+                "Cannot have `test_only` and be in training mode. Switch to"
+                " `test` mode."
+            )
         self.resetQueues()
 
     def resetQueues(self):
-        """Resets the `apply()` queue
-        """
+        """Resets the `apply()` queue"""
         self._crawlerClassQueue = None
         self._crawlerArgsQueue = None
         self._crawlerArgsQueueFlag = False
@@ -113,7 +122,6 @@ class EdnaML(EdnaMLBase):
         self._trainGeneratorInstanceQueueFlag = False
         self._testGeneratorInstanceQueue = None
         self._testGeneratorInstanceQueueFlag = False
-
 
         self._modelBuilderQueue = None
         self._modelBuilderQueueFlag = False
@@ -132,26 +140,22 @@ class EdnaML(EdnaMLBase):
 
         self.resetLossBuilderQueue()
 
-
         self._trainerClassQueue = None
         self._trainerClassQueueFlag = False
         self._trainerInstanceQueue = None
         self._trainerInstanceQueueFlag = False
 
-
-
     def recordVars(self):
         """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
         of dataloading, model building, etc
         """
-        
+
         self.epochs = self.cfg.EXECUTION.EPOCHS
         self.skipeval = self.cfg.EXECUTION.SKIPEVAL
         self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
         self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
         self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
         self.fp16 = self.cfg.EXECUTION.FP16
-        
 
     def downloadModelWeights(self):
         """Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
@@ -161,14 +165,17 @@ class EdnaML(EdnaMLBase):
             Warning: If there are no pre-downloaded weights, and the model architecture is unsupported
         """
         if self.weights is not None:
-            self.logger.info("Not downloading weights. Weights path already provided.")
+            self.logger.info(
+                "Not downloading weights. Weights path already provided."
+            )
 
         if self.mode == "train":
             self._download_weights_from_base(self.cfg.MODEL.MODEL_BASE)
         else:
             if self.weights is None:
                 warnings.warn(
-                    "Mode is `test` but weights is `None`. This will cause issues when EdnaML attempts to load weights"
+                    "Mode is `test` but weights is `None`. This will cause"
+                    " issues when EdnaML attempts to load weights"
                 )
 
     def _download_weights_from_base(self, model_base: str):
@@ -194,13 +201,13 @@ class EdnaML(EdnaMLBase):
             self.pretrained_weights = model_weights[model_base][1]
         else:
             warnings.warn(
-                "Model %s is not available. Please choose one of the following: %s if you want to load pretrained weights"
+                "Model %s is not available. Please choose one of the following:"
+                " %s if you want to load pretrained weights"
                 % (model_base, str(model_weights.keys()))
             )
 
     def apply(self, **kwargs):
-        """Applies the internal configuration for EdnaML
-        """
+        """Applies the internal configuration for EdnaML"""
         self.printConfiguration()
         self.downloadModelWeights()
         self.setPreviousStop()
@@ -222,32 +229,33 @@ class EdnaML(EdnaMLBase):
         self.resetQueues()
 
     def train(self):
-        self.trainer.train(continue_epoch=self.previous_stop+1) #
+        self.trainer.train(continue_epoch=self.previous_stop + 1)  #
 
     def eval(self):
         return self.trainer.evaluate()
-    
+
     def addTrainerClass(self, trainerClass: Type[BaseTrainer]):
         self._trainerClassQueue = trainerClass
         self._trainerClassQueueFlag = True
-    
+
     def addTrainer(self, trainer: BaseTrainer):
         self._trainerInstanceQueue = trainer
         self._trainerInstanceQueueFlag = True
 
     def buildTrainer(self):
-        """Builds the EdnaML trainer and sets it up
-        """
+        """Builds the EdnaML trainer and sets it up"""
         if self._trainerClassQueueFlag:
             ExecutionTrainer = self._trainerClassQueue
         else:
-            ExecutionTrainer: Type[BaseTrainer] = locate_class(subpackage="trainer",classpackage=self.cfg.EXECUTION.TRAINER)
+            ExecutionTrainer: Type[BaseTrainer] = locate_class(
+                subpackage="trainer", classpackage=self.cfg.EXECUTION.TRAINER
+            )
             self.logger.info(
                 "Loaded {} from {} to build Trainer".format(
                     self.cfg.EXECUTION.TRAINER, "ednaml.trainer"
                 )
             )
-        
+
         if self._trainerInstanceQueueFlag:
             self.trainer = self._trainerInstanceQueue
         else:
@@ -282,12 +290,11 @@ class EdnaML(EdnaMLBase):
             )
 
     def setPreviousStop(self):
-        """Sets the previous stop
-        """
+        """Sets the previous stop"""
         self.previous_stop = self.getPreviousStop()
+
     def getPreviousStop(self) -> int:
-        """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory. 
-        """
+        """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory."""
         if self.cfg.SAVE.DRIVE_BACKUP:
             fl_list = glob.glob(
                 os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, "*.pth")
@@ -303,7 +310,9 @@ class EdnaML(EdnaMLBase):
             if item is not None
         ]
         if len(previous_stop) == 0:
-            self.logger.info("No previous stop detected. Will start from epoch 0")
+            self.logger.info(
+                "No previous stop detected. Will start from epoch 0"
+            )
             return -1
         else:
             self.logger.info(
@@ -312,24 +321,28 @@ class EdnaML(EdnaMLBase):
             )
             return max(previous_stop)
 
-    def addOptimizer(self, optimizer:torch.optim.Optimizer, parameter_group="opt-1"):
+    def addOptimizer(
+        self, optimizer: torch.optim.Optimizer, parameter_group="opt-1"
+    ):
         self._optimizerQueue.append(optimizer)
         self._optimizerNameQueue.append(parameter_group)
         self._optimizerQueueFlag = True
 
-
-
     def buildOptimizer(self):
-        """Builds the optimizer for the model
-        """
+        """Builds the optimizer for the model"""
         if self.test_only:
             self.optimizer = []
-            self.logger.info("Skipping optimizer building step in `test_only` mode")
+            self.logger.info(
+                "Skipping optimizer building step in `test_only` mode"
+            )
         else:
             if self._optimizerQueueFlag:
                 self.optimizer = [item for item in self._optimizerQueue]
             else:
-                optimizer_builder: Type[BaseOptimizer] = locate_class(subpackage="optimizer", classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER)
+                optimizer_builder: Type[BaseOptimizer] = locate_class(
+                    subpackage="optimizer",
+                    classpackage=self.cfg.EXECUTION.OPTIMIZER_BUILDER,
+                )
                 self.logger.info(
                     "Loaded {} from {} to build Optimizer model".format(
                         self.cfg.EXECUTION.OPTIMIZER_BUILDER, "ednaml.optimizer"
@@ -351,28 +364,43 @@ class EdnaML(EdnaMLBase):
                     for optimizer_item in self.cfg.OPTIMIZER
                 ]
                 self.optimizer = [
-                    OPT.build(self.model.getParameterGroup(self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME)) for idx, OPT in enumerate(OPT_array)
+                    OPT.build(
+                        self.model.getParameterGroup(
+                            self.cfg.OPTIMIZER[idx].OPTIMIZER_NAME
+                        )
+                    )
+                    for idx, OPT in enumerate(OPT_array)
                 ]  # TODO make this a dictionary???
             self.logger.info("Built optimizer")
 
     def buildScheduler(self):
-        """Builds the scheduler for the model
-        """
+        """Builds the scheduler for the model"""
         if self.test_only:
             self.scheduler = []
-            self.logger.info("Skipping scheduler building step in `test_only` mode")
+            self.logger.info(
+                "Skipping scheduler building step in `test_only` mode"
+            )
         else:
             self.scheduler = [None] * len(self.cfg.SCHEDULER)
             for idx, scheduler_item in enumerate(self.cfg.SCHEDULER):
                 try:  # We first check if scheduler is part of torch's provided schedulers.
-                    scheduler = locate_class(package="torch.optim", subpackage="lr_scheduler", classpackage=scheduler_item.LR_SCHEDULER)
+                    scheduler = locate_class(
+                        package="torch.optim",
+                        subpackage="lr_scheduler",
+                        classpackage=scheduler_item.LR_SCHEDULER,
+                    )
                 except (
                     ModuleNotFoundError,
                     AttributeError,
                 ):  # If it fails, then we try to import from schedulers implemented in scheduler/ folder
-                    scheduler = locate_class(subpackage="scheduler", classpackage=scheduler_item.LR_SCHEDULER)
+                    scheduler = locate_class(
+                        subpackage="scheduler",
+                        classpackage=scheduler_item.LR_SCHEDULER,
+                    )
                 self.scheduler[idx] = scheduler(
-                    self.optimizer[idx], last_epoch=-1, **scheduler_item.LR_KWARGS
+                    self.optimizer[idx],
+                    last_epoch=-1,
+                    **scheduler_item.LR_KWARGS
                 )
             self.logger.info("Built scheduler")
 
@@ -380,25 +408,29 @@ class EdnaML(EdnaMLBase):
         self._lossBuilderQueue = []
         self._lossBuilderQueueFlag = False
 
-    def addLossBuilder(self, loss_list, loss_lambdas, loss_kwargs, loss_name, loss_label):
+    def addLossBuilder(
+        self, loss_list, loss_lambdas, loss_kwargs, loss_name, loss_label
+    ):
         self._lossBuilderQueue.append(
-            LossConfig({
-                "LOSSES": loss_list,
-                "LAMBDAS": loss_lambdas,
-                "KWARGS": loss_kwargs,
-                "LABEL": loss_label,
-                "NAME": loss_name}
+            LossConfig(
+                {
+                    "LOSSES": loss_list,
+                    "LAMBDAS": loss_lambdas,
+                    "KWARGS": loss_kwargs,
+                    "LABEL": loss_label,
+                    "NAME": loss_name,
+                }
             )
         )
         self._lossBuilderQueueFlag = True
 
-
     def buildLossArray(self):
-        """Builds the loss function array using the LOSS list in the provided configuration
-        """
+        """Builds the loss function array using the LOSS list in the provided configuration"""
         if self.test_only:
             self.loss_function_array = []
-            self.logger.info("Skipping loss function array building step in `test_only` mode")
+            self.logger.info(
+                "Skipping loss function array building step in `test_only` mode"
+            )
         else:
             self.loss_function_array = [
                 ClassificationLossBuilder(
@@ -413,7 +445,7 @@ class EdnaML(EdnaMLBase):
                 for loss_item in self.cfg.LOSS
             ]
             if self._lossBuilderQueueFlag:
-                self.loss_function_array+=[
+                self.loss_function_array += [
                     ClassificationLossBuilder(
                         loss_functions=loss_item.LOSSES,
                         loss_lambda=loss_item.LAMBDAS,
@@ -430,9 +462,9 @@ class EdnaML(EdnaMLBase):
     def buildLossOptimizer(self):
         """Builds the Optimizer for loss functions, if the loss functions have learnable parameters (e.g. proxyNCA loss)
 
-        self.loss_function_array contains a list of LossBuilders. Each LossBuilder 
+        self.loss_function_array contains a list of LossBuilders. Each LossBuilder
         is for a specific output. Here, we build an array of StandardLossOptimizers,
-        one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer 
+        one StandardLossOptimizer for each LossBuilder. Each StandardLossOptimizer
         takes as input the same arguments as an Optimizer. However, the name parameter
         should be the name of the LossBuilder it is targeting.
 
@@ -442,14 +474,18 @@ class EdnaML(EdnaMLBase):
         """
         if self.test_only:
             self.loss_optimizer_array = []
-            self.logger.info("Skipping loss-scheduler building step in `test_only` mode")
+            self.logger.info(
+                "Skipping loss-scheduler building step in `test_only` mode"
+            )
         else:
             loss_optimizer_name_dict = {
                 loss_optim_item.OPTIMIZER_NAME: loss_optim_item
                 for loss_optim_item in self.cfg.LOSS_OPTIMIZER
             }
             initial_key = list(loss_optimizer_name_dict.keys())[0]
-            LOSS_OPT: List[StandardLossOptimizer] = [None] * len(self.loss_function_array)
+            LOSS_OPT: List[StandardLossOptimizer] = [None] * len(
+                self.loss_function_array
+            )
             for idx, loss_builder in enumerate(self.loss_function_array):
                 if loss_builder.loss_labelname in loss_optimizer_name_dict:
                     # Means we have an optimizer corresponding to this loss
@@ -462,9 +498,15 @@ class EdnaML(EdnaMLBase):
                     base_lr=loss_optimizer_name_dict[lookup_key].BASE_LR,
                     lr_bias=loss_optimizer_name_dict[lookup_key].LR_BIAS_FACTOR,
                     gpus=self.gpus,
-                    weight_bias=loss_optimizer_name_dict[lookup_key].WEIGHT_BIAS_FACTOR,
-                    weight_decay=loss_optimizer_name_dict[lookup_key].WEIGHT_DECAY,
-                    opt_kwargs=loss_optimizer_name_dict[lookup_key].OPTIMIZER_KWARGS,
+                    weight_bias=loss_optimizer_name_dict[
+                        lookup_key
+                    ].WEIGHT_BIAS_FACTOR,
+                    weight_decay=loss_optimizer_name_dict[
+                        lookup_key
+                    ].WEIGHT_DECAY,
+                    opt_kwargs=loss_optimizer_name_dict[
+                        lookup_key
+                    ].OPTIMIZER_KWARGS,
                 )
 
             # Note: build returns None if there are no differentiable parameters
@@ -475,11 +517,12 @@ class EdnaML(EdnaMLBase):
             self.logger.info("Built loss optimizer")
 
     def buildLossScheduler(self):
-        """Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer.
-        """
+        """Builds the scheduler for the loss functions, if the functions have learnable parameters and corresponding optimizer."""
         if self.test_only:
             self.loss_scheduler = []
-            self.logger.info("Skipping loss-scheduler building step in `test_only` mode")
+            self.logger.info(
+                "Skipping loss-scheduler building step in `test_only` mode"
+            )
         else:
             loss_scheduler_name_dict = {
                 loss_schedule_item.SCHEDULER_NAME: loss_schedule_item
@@ -496,7 +539,9 @@ class EdnaML(EdnaMLBase):
                         self.loss_function_array[idx].loss_labelname
                         in loss_scheduler_name_dict
                     ):
-                        lookup_key = self.loss_function_array[idx].loss_labelname
+                        lookup_key = self.loss_function_array[
+                            idx
+                        ].loss_labelname
                     else:
                         lookup_key = initial_key
 
@@ -521,14 +566,12 @@ class EdnaML(EdnaMLBase):
                 self.logger.info("Built loss scheduler")
 
     def _setModelTestMode(self):
-        """Sets model to test mode if EdnaML is in testing mode
-        """
+        """Sets model to test mode if EdnaML is in testing mode"""
         if self.mode == "test":
             self.model.eval()
 
     def _setModelTrainMode(self):
-        """Sets the model to train mode if EdnaML is in training mode
-        """
+        """Sets the model to train mode if EdnaML is in training mode"""
         if self.mode == "train":
             self.model.train()
 
@@ -551,14 +594,17 @@ class EdnaML(EdnaMLBase):
         return model_kwargs_dict
 
     def buildModel(self):
-        """Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model.
-        """
+        """Builds an EdnaML model using the configuration. If there are pretrained weights, they are provided through the config to initialize the model."""
         if self._modelBuilderQueueFlag:
             model_builder = self._modelBuilderQueue
         else:
-            model_builder = locate_class(subpackage="models", classpackage=self.cfg.MODEL.BUILDER)
+            model_builder = locate_class(
+                subpackage="models", classpackage=self.cfg.MODEL.BUILDER
+            )
         self.logger.info(
-            "Loaded {} from {} to build model".format(self.cfg.MODEL.BUILDER, "ednaml.models")
+            "Loaded {} from {} to build model".format(
+                self.cfg.MODEL.BUILDER, "ednaml.models"
+            )
         )
 
         if self._modelConfigQueueFlag:
@@ -572,7 +618,7 @@ class EdnaML(EdnaMLBase):
         else:
             if self._modelArgsQueueFlag:
                 self.cfg.MODEL.MODEL_KWARGS = self._modelArgsQueue
-            
+
             if self._modelClassQueueFlag:
                 self.cfg.MODEL.MODEL_ARCH = self._modelClassQueue.__name__
                 arch = self._modelClassQueue
@@ -593,7 +639,9 @@ class EdnaML(EdnaMLBase):
             )
         )
 
-    def addModelBuilder(self, model_builder: Type[Callable], model_config: ModelConfig = None):
+    def addModelBuilder(
+        self, model_builder: Type[Callable], model_config: ModelConfig = None
+    ):
         self._modelBuilderQueue = model_builder
         self._modelBuilderQueueFlag = True
         if model_config is not None:
@@ -617,16 +665,30 @@ class EdnaML(EdnaMLBase):
         """
         if self.mode == "test":
             if self.weights is None:
-                self.logger.info("No saved model weights provided. Inferring weights path.")
+                self.logger.info(
+                    "No saved model weights provided. Inferring weights path."
+                )
                 if self.load_epoch is not None and type(self.load_epoch) is int:
-                    self.weights = self.getModelWeightsFromEpoch(self.load_epoch)
-                    self.logger.info("Using weights from provided epoch %i, at path %s."%(self.load_epoch, self.weights))
+                    self.weights = self.getModelWeightsFromEpoch(
+                        self.load_epoch
+                    )
+                    self.logger.info(
+                        "Using weights from provided epoch %i, at path %s."
+                        % (self.load_epoch, self.weights)
+                    )
                 else:
-                    if self.previous_stop<0:
-                        self.logger.info("No previous stop exists. Not loading weights.")
+                    if self.previous_stop < 0:
+                        self.logger.info(
+                            "No previous stop exists. Not loading weights."
+                        )
                     else:
-                        self.weights = self.getModelWeightsFromEpoch(self.previous_stop)
-                        self.logger.info("Using weights from last saved epoch %i, at path %s."%(self.previous_stop, self.weights))
+                        self.weights = self.getModelWeightsFromEpoch(
+                            self.previous_stop
+                        )
+                        self.logger.info(
+                            "Using weights from last saved epoch %i, at"
+                            " path %s." % (self.previous_stop, self.weights)
+                        )
             self.model.load_state_dict(torch.load(self.weights))
         else:
             if self.weights is None:
@@ -636,18 +698,25 @@ class EdnaML(EdnaMLBase):
                     self.weights != ""
                 ):  # Load weights if train and starting from a another model base...
                     self.logger.info(
-                        "Commencing partial model load from {}".format(self.weights)
+                        "Commencing partial model load from {}".format(
+                            self.weights
+                        )
                     )
                     self.model.partial_load(self.weights)
                     self.logger.info(
-                        "Completed partial model load from {}".format(self.weights)
+                        "Completed partial model load from {}".format(
+                            self.weights
+                        )
                     )
                 else:
-                    self.logger.info("In train mode, but no weights provided to load into model. This means either model will be initialized randomly, or weights loading occurs inside the model.")
+                    self.logger.info(
+                        "In train mode, but no weights provided to load into"
+                        " model. This means either model will be initialized"
+                        " randomly, or weights loading occurs inside the model."
+                    )
 
     def getModelSummary(self, input_size=None, dtypes=None, **kwargs):
-        """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object
-        """
+        """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object"""
         self.model.cuda()
         if input_size is None:
             input_size = (
@@ -668,10 +737,9 @@ class EdnaML(EdnaMLBase):
             depth=3,
             mode="train",
             verbose=0,
-            dtypes=dtypes
+            dtypes=dtypes,
         )
         self.logger.info(str(self.model_summary))
-
 
     # ----------------------------------------------   DATAREADERS   ----------------------------------------------
     def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
@@ -699,7 +767,7 @@ class EdnaML(EdnaMLBase):
         self._crawlerInstanceQueue = crawler_instance
         self._crawlerInstanceQueueFlag = True
 
-    def addGeneratorClass(self, generator_class:Type[Generator], **kwargs):
+    def addGeneratorClass(self, generator_class: Type[Generator], **kwargs):
         """Adds a generator class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
 
         The generator class is added to the internal datareader instance through `apply()`. Then,
@@ -711,11 +779,11 @@ class EdnaML(EdnaMLBase):
         """
         self._generatorClassQueue = generator_class
         self._generatorArgsQueue = kwargs
-        if len(self._generatorArgsQueue) >0:
+        if len(self._generatorArgsQueue) > 0:
             self._generatorArgsQueueFlag = True
         self._generatorClassQueueFlag = True
 
-    def addTrainGenerator(self, generator:Generator):
+    def addTrainGenerator(self, generator: Generator):
         """Adds a generator instance to the EdnaML `apply()` queue.
 
         Args:
@@ -724,7 +792,7 @@ class EdnaML(EdnaMLBase):
         self._trainGeneratorInstanceQueue = generator
         self._trainGeneratorInstanceQueueFlag = True
 
-    def addTestGenerator(self, generator:Generator):
+    def addTestGenerator(self, generator: Generator):
         """Adds a generator instance to the EdnaML `apply()` queue.
 
         Args:
@@ -732,13 +800,15 @@ class EdnaML(EdnaMLBase):
         """
         self._testGeneratorInstanceQueue = generator
         self._testGeneratorInstanceQueueFlag = True
-    
 
     def buildDataloaders(self):
-        """Sets up the datareader classes and builds the train and test dataloaders
-        """
+        """Sets up the datareader classes and builds the train and test dataloaders"""
 
-        data_reader: Type[DataReader] = locate_class(package="ednaml", subpackage="datareaders", classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER)
+        data_reader: Type[DataReader] = locate_class(
+            package="ednaml",
+            subpackage="datareaders",
+            classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER,
+        )
         data_reader_instance = data_reader()
         # data_crawler is now data_reader.CRAWLER
         self.logger.info("Reading data with DataReader %s" % data_reader.name)
@@ -746,20 +816,33 @@ class EdnaML(EdnaMLBase):
         if self._generatorClassQueueFlag:
             data_reader_instance.GENERATOR = self._generatorClassQueue
             if self._generatorArgsQueueFlag:
-                self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = self._generatorArgsQueue
+                self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = (
+                    self._generatorArgsQueue
+                )
         else:
-            if self.cfg.EXECUTION.DATAREADER.GENERATOR != data_reader_instance.GENERATOR.__name__:
-                data_reader_instance.GENERATOR = locate_class(package="ednaml", subpackage="generators", classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR)
+            if (
+                self.cfg.EXECUTION.DATAREADER.GENERATOR
+                != data_reader_instance.GENERATOR.__name__
+            ):
+                data_reader_instance.GENERATOR = locate_class(
+                    package="ednaml",
+                    subpackage="generators",
+                    classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR,
+                )
 
         if self._crawlerClassQueueFlag:
             data_reader_instance.CRAWLER = self._crawlerClassQueue
             if self._crawlerArgsQueueFlag:
-                self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = self._crawlerArgsQueue
+                self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = (
+                    self._crawlerArgsQueue
+                )
 
         if self._crawlerInstanceQueueFlag:
             self.crawler = self._crawlerInstanceQueue
         else:
-            self.crawler = self._buildCrawlerInstance(data_reader=data_reader_instance)
+            self.crawler = self._buildCrawlerInstance(
+                data_reader=data_reader_instance
+            )
 
         self.buildTrainDataloader(data_reader_instance, self.crawler)
         self.buildTestDataloader(data_reader_instance, self.crawler)
@@ -777,7 +860,9 @@ class EdnaML(EdnaMLBase):
             logger=self.logger, **self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS
         )
 
-    def buildTrainDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+    def buildTrainDataloader(
+        self, data_reader: DataReader, crawler_instance: Crawler
+    ):
         """Builds a train dataloader instance given the data_reader class and a crawler instance that has been initialized
 
         Args:
@@ -791,7 +876,7 @@ class EdnaML(EdnaMLBase):
                 self.train_generator: Generator = data_reader.GENERATOR(
                     gpus=self.gpus,
                     transforms=self.cfg.TRAIN_TRANSFORMATION.getVars(),
-                    mode = "train",
+                    mode="train",
                     **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
                 )
 
@@ -804,16 +889,24 @@ class EdnaML(EdnaMLBase):
             else:
                 self.train_generator = Generator()
         if self.mode != "test":
-            self.logger.info("Generated training data generator with %i trainnig data points"%len(self.train_generator.dataset))
+            self.logger.info(
+                "Generated training data generator with %i trainnig data points"
+                % len(self.train_generator.dataset)
+            )
             self.labelMetadata = self.train_generator.num_entities
             self.logger.info(
                 "Running classification model with classes: %s"
                 % str(self.labelMetadata.metadata)
             )
         else:
-            self.logger.info("Skipped generating training data, because EdnaML is in test mode.")
+            self.logger.info(
+                "Skipped generating training data, because EdnaML is in test"
+                " mode."
+            )
 
-    def buildTestDataloader(self, data_reader: DataReader, crawler_instance: Crawler):
+    def buildTestDataloader(
+        self, data_reader: DataReader, crawler_instance: Crawler
+    ):
         """Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
 
         Args:
@@ -826,7 +919,7 @@ class EdnaML(EdnaMLBase):
             self.test_generator: Generator = data_reader.GENERATOR(
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION.getVars(),
-                mode = "test",
+                mode="test",
                 **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build(
@@ -840,10 +933,15 @@ class EdnaML(EdnaMLBase):
             self.labelMetadata = self.test_generator.num_entities
         self.logger.info("Generated test data/query generator")
 
-
-    def buildLogger(self, logger: logging.Logger = None, add_filehandler: bool = True, add_streamhandler: bool = True, **kwargs) -> logging.Logger:
-        """Builds a new logger or adds the correct file and stream handlers to 
-        existing logger if it does not already have them. 
+    def buildLogger(
+        self,
+        logger: logging.Logger = None,
+        add_filehandler: bool = True,
+        add_streamhandler: bool = True,
+        **kwargs
+    ) -> logging.Logger:
+        """Builds a new logger or adds the correct file and stream handlers to
+        existing logger if it does not already have them.
 
         Args:
             logger (logging.Logger, optional): A logger.. Defaults to None.
@@ -852,14 +950,15 @@ class EdnaML(EdnaMLBase):
 
         Returns:
             logging.Logger: A logger with file and stream handlers.
-        """        
+        """
         loggerGiven = True
         if logger is None:
             logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
             loggerGiven = False
 
         logger_save_path = os.path.join(
-            self.saveMetadata.MODEL_SAVE_FOLDER, self.saveMetadata.LOGGER_SAVE_NAME
+            self.saveMetadata.MODEL_SAVE_FOLDER,
+            self.saveMetadata.LOGGER_SAVE_NAME,
         )
         # Check for backup logger
         if self.cfg.SAVE.DRIVE_BACKUP:
@@ -869,7 +968,8 @@ class EdnaML(EdnaMLBase):
             )
             if os.path.exists(backup_logger) and add_filehandler:
                 print(
-                    "Existing log file exists at network backup %s. Will attempt to copy to local directory %s."
+                    "Existing log file exists at network backup %s. Will"
+                    " attempt to copy to local directory %s."
                     % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
                 )
                 shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
@@ -887,16 +987,22 @@ class EdnaML(EdnaMLBase):
                 if isinstance(handler, logging.StreamHandler):
                     streamhandler = True
                 if isinstance(handler, logging.FileHandler):
-                    if handler.baseFilename == os.path.abspath(logger_save_path):
+                    if handler.baseFilename == os.path.abspath(
+                        logger_save_path
+                    ):
                         filehandler = True
 
         if not loggerGiven:
             logger.setLevel(logging.DEBUG)
 
         if not filehandler and add_filehandler:
-            fh = logging.FileHandler(logger_save_path, mode='a', encoding='utf-8')
+            fh = logging.FileHandler(
+                logger_save_path, mode="a", encoding="utf-8"
+            )
             fh.setLevel(self.logLevels[self.verbose])
-            formatter = logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
+            formatter = logging.Formatter(
+                "%(asctime)s %(message)s", datefmt="%H:%M:%S"
+            )
             fh.setFormatter(formatter)
             logger.addHandler(fh)
 
@@ -920,8 +1026,7 @@ class EdnaML(EdnaMLBase):
         self.logger.log(self.logLevels[verbose], message)
 
     def printConfiguration(self):
-        """Prints the EdnaML configuration
-        """
+        """Prints the EdnaML configuration"""
         self.logger.info("*" * 40)
         self.logger.info("")
         self.logger.info("")
@@ -931,19 +1036,20 @@ class EdnaML(EdnaMLBase):
         self.logger.info("")
         self.logger.info("*" * 40)
 
-    
     def getModelWeightsFromEpoch(self, epoch=0):
-        model_load = self.saveMetadata.MODEL_SAVE_NAME + "_epoch%i" % epoch + ".pth"
+        model_load = (
+            self.saveMetadata.MODEL_SAVE_NAME + "_epoch%i" % epoch + ".pth"
+        )
         if self.cfg.SAVE.DRIVE_BACKUP:
-            self.logger.info(
-                "Loading model from drive backup."
+            self.logger.info("Loading model from drive backup.")
+            model_load_path = os.path.join(
+                self.saveMetadata.CHECKPOINT_DIRECTORY, model_load
             )
-            model_load_path = os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, model_load)
         else:
-            self.logger.info(
-                "Loading model from local backup."
+            self.logger.info("Loading model from local backup.")
+            model_load_path = os.path.join(
+                self.saveMetadata.MODEL_SAVE_FOLDER, model_load
             )
-            model_load_path = os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, model_load)
         if os.path.exists(model_load_path):
             return model_load_path
         return None
@@ -967,6 +1073,8 @@ class EdnaML(EdnaMLBase):
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
             self.model.load_state_dict(torch.load(model_load_path))
-            self.logger.info("Finished loading model state_dict from %s" % model_load_path)
+            self.logger.info(
+                "Finished loading model state_dict from %s" % model_load_path
+            )
         else:
             self.logger.info("No saved weights provided.")

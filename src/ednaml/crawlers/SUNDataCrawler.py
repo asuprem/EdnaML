@@ -28,8 +28,14 @@ class SUNDataCrawler:
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
-        self.metadata["train"], self.metadata["test"], self.metadata["query"] = (
+    def crawl(
+        self,
+    ):
+        (
+            self.metadata["train"],
+            self.metadata["test"],
+            self.metadata["query"],
+        ) = (
             {},
             {},
             {},
@@ -124,7 +130,9 @@ class SUNDataCrawler:
             if directory_proposal == "":
                 directory_proposal = "_".join([] + [directory])
             else:
-                directory_proposal = "_".join([directory_proposal] + [directory])
+                directory_proposal = "_".join(
+                    [directory_proposal] + [directory]
+                )
             proposal = os.path.join(path_proposal, directory_proposal)
             if os.path.exists(proposal):
                 path_proposal = proposal

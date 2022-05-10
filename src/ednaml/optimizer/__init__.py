@@ -6,9 +6,7 @@ from ednaml.utils import locate_class
 
 
 class BaseOptimizer:
-    """ Base Optimizer Builder
-
-    """
+    """Base Optimizer Builder"""
 
     name: str = "optimizer1"
 
@@ -23,7 +21,7 @@ class BaseOptimizer:
         weight_bias,
         opt_kwargs,
     ):
-        """ Initializes the optimizer builder.
+        """Initializes the optimizer builder.
 
         Args:
         base_lr (float): Base learning rate for optimizer
@@ -46,7 +44,7 @@ class BaseOptimizer:
         self.kwargs = opt_kwargs
 
     def build(self, model: ModelAbstract) -> torch.optim.Optimizer:
-        """ Builds an optimizer.
+        """Builds an optimizer.
 
         Args:
         model (torch.nn.Module): A model
@@ -73,7 +71,7 @@ class BaseOptimizer:
                         "weight_decay": weight_decay,
                     }
                 ]
-        optimizer = locate_class("torch","optim",self.optimizer)
+        optimizer = locate_class("torch", "optim", self.optimizer)
         optimizer = optimizer(params, **self.kwargs)
         return optimizer
 

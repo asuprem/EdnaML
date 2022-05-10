@@ -22,6 +22,7 @@ from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 from ednaml.utils.LabelMetadata import LabelMetadata
 
+
 class Generator:
     num_entities: LabelMetadata
     dataloader: TorchDataLoader
@@ -33,20 +34,21 @@ class Generator:
     def __init__(
         self,
         gpus: int = 1,
-        transforms: Dict[str,Any] = {},
+        transforms: Dict[str, Any] = {},
         mode: str = "train",
         **kwargs
     ):
-        """Initialize the generator
-        """
-        self.gpus=max(1,gpus)
+        """Initialize the generator"""
+        self.gpus = max(1, gpus)
         self.dataloader = None
         self.transforms = transforms
         self.mode = mode
         self.training_mode = self.isTrainingMode()
-        self.transformer = self.build_transforms(self.transforms, self.mode, **kwargs)
+        self.transformer = self.build_transforms(
+            self.transforms, self.mode, **kwargs
+        )
 
-    def build_transforms(self, transforms: Dict[str,Any], mode, **kwargs):
+    def build_transforms(self, transforms: Dict[str, Any], mode, **kwargs):
         return None
 
     def isTrainingMode(self):
@@ -61,16 +63,21 @@ class Generator:
 
         self.workers = workers * self.gpus
 
-        self.dataset = self.buildDataset(datacrawler, self.mode, self.transformer, **kwargs)
+        self.dataset = self.buildDataset(
+            datacrawler, self.mode, self.transformer, **kwargs
+        )
         self.dataloader = self.buildDataLoader(
             self.dataset, self.mode, batch_size=batch_size, **kwargs
         )
-        self.num_entities = self.getNumEntities(datacrawler, self.mode, **kwargs)
+        self.num_entities = self.getNumEntities(
+            datacrawler, self.mode, **kwargs
+        )
 
     def buildDataset(
-        self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
-        """Given the datacrawler with all the data, and the mode (could be 
-        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as 
+        self, datacrawler, mode: str, transform: List[object], **kwargs
+    ) -> TorchDataset:
+        """Given the datacrawler with all the data, and the mode (could be
+        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as
         as well the transform, return a TorchDataset
 
         Args:
@@ -95,7 +102,7 @@ class Generator:
         """
 
         return None
-    
+
     def getNumEntities(self, datacrawler, mode, **kwargs) -> LabelMetadata:
         """Return the number of classes in the overall label scheme
         Raises:
@@ -109,5 +116,9 @@ from ednaml.generators.ImageGenerator import ImageGenerator
 from ednaml.generators.TextGenerator import TextGenerator
 
 from ednaml.generators.ClassificationGenerator import ClassificationGenerator
-from ednaml.generators.MultiClassificationGenerator import MultiClassificationGenerator
-from ednaml.generators.TorchvisionGeneratorWrapper import TorchvisionGeneratorWrapper
+from ednaml.generators.MultiClassificationGenerator import (
+    MultiClassificationGenerator,
+)
+from ednaml.generators.TorchvisionGeneratorWrapper import (
+    TorchvisionGeneratorWrapper,
+)

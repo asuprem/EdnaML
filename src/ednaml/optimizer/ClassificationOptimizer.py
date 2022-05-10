@@ -2,9 +2,7 @@ from ednaml.optimizer import BaseOptimizer
 
 
 class ClassificationOptimizer(BaseOptimizer):
-    """ Optimizer Builder for CoLabel experiments.
-
-    """
+    """Optimizer Builder for CoLabel experiments."""
 
     def __init__(
         self,
@@ -17,7 +15,7 @@ class ClassificationOptimizer(BaseOptimizer):
         weight_bias,
         opt_kwargs,
     ):
-        """ Initializes the optimizer builder.
+        """Initializes the optimizer builder.
 
         Args:
             base_lr (float): Base learning rate for optimizer

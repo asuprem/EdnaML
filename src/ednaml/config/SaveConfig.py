@@ -12,16 +12,22 @@ class SaveConfig(BaseConfig):
     CHECKPOINT_DIRECTORY: str
 
     def __init__(self, save_dict, defaults: ConfigDefaults):
-        self.MODEL_VERSION = save_dict.get("MODEL_VERSION", defaults.MODEL_VERSION)
+        self.MODEL_VERSION = save_dict.get(
+            "MODEL_VERSION", defaults.MODEL_VERSION
+        )
         self.MODEL_CORE_NAME = save_dict.get(
             "MODEL_CORE_NAME", defaults.MODEL_CORE_NAME
         )
-        self.MODEL_BACKBONE = save_dict.get("MODEL_BACKBONE", defaults.MODEL_BACKBONE)
+        self.MODEL_BACKBONE = save_dict.get(
+            "MODEL_BACKBONE", defaults.MODEL_BACKBONE
+        )
         self.MODEL_QUALIFIER = save_dict.get(
             "MODEL_QUALIFIER", defaults.MODEL_QUALIFIER
         )
         self.DRIVE_BACKUP = save_dict.get("DRIVE_BACKUP", defaults.DRIVE_BACKUP)
-        self.SAVE_FREQUENCY = save_dict.get("SAVE_FREQUENCY", defaults.SAVE_FREQUENCY)
+        self.SAVE_FREQUENCY = save_dict.get(
+            "SAVE_FREQUENCY", defaults.SAVE_FREQUENCY
+        )
         self.CHECKPOINT_DIRECTORY = save_dict.get(
             "CHECKPOINT_DIRECTORY", defaults.CHECKPOINT_DIRECTORY
         )

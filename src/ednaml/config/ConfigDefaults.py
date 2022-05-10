@@ -10,7 +10,7 @@ class ConfigDefaults(BaseConfig):
     SKIPEVAL: bool
     TEST_FREQUENCY: int
     TRAINER: str
-    TRAINER_ARGS: Dict[str,str]
+    TRAINER_ARGS: Dict[str, str]
     MODEL_VERSION: int
     MODEL_CORE_NAME: str
     MODEL_BACKBONE: str
@@ -68,9 +68,12 @@ class ConfigDefaults(BaseConfig):
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
         self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
         self.TRAINER = kwargs.get("TRAINER", "BaseTrainer")
-        self.TRAINER_ARGS = kwargs.get("TRAINER_ARGS", {
-            "accumulation_steps": 1,
-        })
+        self.TRAINER_ARGS = kwargs.get(
+            "TRAINER_ARGS",
+            {
+                "accumulation_steps": 1,
+            },
+        )
 
         self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
         self.MODEL_CORE_NAME = kwargs.get("MODEL_CORE_NAME", "model")
@@ -78,7 +81,9 @@ class ConfigDefaults(BaseConfig):
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")
         self.DRIVE_BACKUP = kwargs.get("DRIVE_BACKUP", False)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
-        self.CHECKPOINT_DIRECTORY = kwargs.get("CHECKPOINT_DIRECTORY", "checkpoint")
+        self.CHECKPOINT_DIRECTORY = kwargs.get(
+            "CHECKPOINT_DIRECTORY", "checkpoint"
+        )
 
         self.SHAPE = kwargs.get("SHAPE", [100, 100])
         self.NORMALIZATION_MEAN = kwargs.get("NORMALIZATION_MEAN", 0.5)
@@ -97,7 +102,7 @@ class ConfigDefaults(BaseConfig):
         self.MODEL_BASE = kwargs.get("MODEL_BASE", "base")
         self.MODEL_NORMALIZATION = kwargs.get("MODEL_NORMALIZATION", "bn")
         self.MODEL_KWARGS = kwargs.get("MODEL_KWARGS", {})
-        self.PARAMETER_GROUPS = kwargs.get("PARAMETER_GROUPS", ['opt-1'])
+        self.PARAMETER_GROUPS = kwargs.get("PARAMETER_GROUPS", ["opt-1"])
 
         self.LOSSES = kwargs.get("LOSSES", [])
         self.LOSS_KWARGS = kwargs.get("LOSS_KWARGS", [])

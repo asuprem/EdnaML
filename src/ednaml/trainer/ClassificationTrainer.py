@@ -117,15 +117,21 @@ class ClassificationTrainer(BaseTrainer):
         # for evaluation...
 
         logit_labels = torch.argmax(logits, dim=1)
-        accuracy = (logit_labels == labels).sum().float() / float(labels.size(0))
+        accuracy = (logit_labels == labels).sum().float() / float(
+            labels.size(0)
+        )
         micro_fscore = np.mean(f1_score(labels, logit_labels, average="micro"))
-        weighted_fscore = np.mean(f1_score(labels, logit_labels, average="weighted"))
+        weighted_fscore = np.mean(
+            f1_score(labels, logit_labels, average="weighted")
+        )
         self.logger.info("Accuracy: {:.3%}".format(accuracy))
         self.logger.info("Micro F-score: {:.3f}".format(micro_fscore))
         self.logger.info("Weighted F-score: {:.3f}".format(weighted_fscore))
         return logit_labels, labels, features
 
-    def saveMetadata(self,):
+    def saveMetadata(
+        self,
+    ):
         self.logger.info("Saving model metadata")
         jMetadata = json.dumps(self.metadata)
         metafile = "metadata.json"

@@ -145,12 +145,19 @@ class MultiClassificationTrainer(BaseTrainer):
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
         for idx, lossname in enumerate(self.loss_fn):
             accuracy[idx] = (
-                logit_labels[self.model_labelorder[self.loss_fn[lossname].loss_label]]
-                == labels[:, self.data_labelorder[self.loss_fn[lossname].loss_label]]
+                logit_labels[
+                    self.model_labelorder[self.loss_fn[lossname].loss_label]
+                ]
+                == labels[
+                    :, self.data_labelorder[self.loss_fn[lossname].loss_label]
+                ]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
                 f1_score(
-                    labels[:, self.data_labelorder[self.loss_fn[lossname].loss_label]],
+                    labels[
+                        :,
+                        self.data_labelorder[self.loss_fn[lossname].loss_label],
+                    ],
                     logit_labels[
                         self.model_labelorder[self.loss_fn[lossname].loss_label]
                     ],
@@ -159,7 +166,10 @@ class MultiClassificationTrainer(BaseTrainer):
             )
             weighted_fscore[idx] = np.mean(
                 f1_score(
-                    labels[:, self.data_labelorder[self.loss_fn[lossname].loss_label]],
+                    labels[
+                        :,
+                        self.data_labelorder[self.loss_fn[lossname].loss_label],
+                    ],
                     logit_labels[
                         self.model_labelorder[self.loss_fn[lossname].loss_label]
                     ],
@@ -167,13 +177,15 @@ class MultiClassificationTrainer(BaseTrainer):
                 )
             )
         self.logger.info(
-            "Metrics\t" + "\t".join(["%s" % lossname for lossname in self.loss_fn])
+            "Metrics\t"
+            + "\t".join(["%s" % lossname for lossname in self.loss_fn])
         )
         self.logger.info(
             "Accuracy\t"
             + "\t".join(
                 [
-                    "%s: %0.3f" % (self.labelMetadata.labels[idx], accuracy[idx].item())
+                    "%s: %0.3f"
+                    % (self.labelMetadata.labels[idx], accuracy[idx].item())
                     for idx in range(self.model.number_outputs)
                 ]
             )
@@ -193,14 +205,19 @@ class MultiClassificationTrainer(BaseTrainer):
             + "\t".join(
                 [
                     "%s: %0.3f"
-                    % (self.labelMetadata.labels[idx], weighted_fscore[idx].item())
+                    % (
+                        self.labelMetadata.labels[idx],
+                        weighted_fscore[idx].item(),
+                    )
                     for idx in range(self.model.number_outputs)
                 ]
             )
         )
         return logit_labels, labels, features
 
-    def saveMetadata(self,):
+    def saveMetadata(
+        self,
+    ):
         self.logger.info("Saving model metadata")
         jMetadata = json.dumps(self.metadata)
         metafile = "metadata.json"

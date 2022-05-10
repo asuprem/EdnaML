@@ -8,7 +8,9 @@ def pairwise_distance(a, squared=False, eps=1e-16):
     pairwise_distances_squared = torch.add(operand, operandT) - 2 * (
         torch.mm(a, torch.t(a))
     )
-    pairwise_distances_squared = torch.clamp(pairwise_distances_squared, min=0.0)
+    pairwise_distances_squared = torch.clamp(
+        pairwise_distances_squared, min=0.0
+    )
     error_mask = torch.le(pairwise_distances_squared, 0.0)
 
     if squared:
@@ -19,7 +21,9 @@ def pairwise_distance(a, squared=False, eps=1e-16):
         )
 
     # Undo conditionally adding 1e-16.
-    pairwise_distances = torch.mul(pairwise_distances, (error_mask == False).float())
+    pairwise_distances = torch.mul(
+        pairwise_distances, (error_mask == False).float()
+    )
 
     # Explicitly set diagonals to zero.
     mask_offdiagonals = 1 - torch.eye(

@@ -5,7 +5,7 @@ from ednaml.loss import Loss
 
 class ClusterLoss(Loss):
     def __init__(self, margin: float, instances: int, images_per_instance: int):
-        """ ClusterLoss from Cluster Loss for Person Re-Identification
+        """ClusterLoss from Cluster Loss for Person Re-Identification
 
         Args:
             margin (float): margin for cluster loss

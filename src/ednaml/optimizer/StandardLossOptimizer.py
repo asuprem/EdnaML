@@ -6,10 +6,10 @@ from ednaml.utils import locate_class
 
 
 class StandardLossOptimizer(BaseOptimizer):
-    """ Optimizer for Loss Functions
+    """Optimizer for Loss Functions
 
-    This sets up optimizer for the loss functions in a LossBuilder. Not applicable everywhere. Not used everywhere because most losses will have zero differentiable parametersif 
-    
+    This sets up optimizer for the loss functions in a LossBuilder. Not applicable everywhere. Not used everywhere because most losses will have zero differentiable parametersif
+
     However, it will be useful for losses like the ProxyNCA, which need to learn proxies during training.
 
     """
@@ -25,7 +25,7 @@ class StandardLossOptimizer(BaseOptimizer):
         weight_bias,
         opt_kwargs,
     ):
-        """ Initializes the optimizer builder.
+        """Initializes the optimizer builder.
 
         Args:
         base_lr (float): Base learning rate for optimizer
@@ -50,7 +50,7 @@ class StandardLossOptimizer(BaseOptimizer):
         )
 
     def build(self, loss_builder: LossBuilder) -> torch.optim.Optimizer:
-        """ Builds an optimizer.
+        """Builds an optimizer.
 
         Args:
         loss_builder (loss.builders.LossBuilder): A LossBuilder object
@@ -79,6 +79,6 @@ class StandardLossOptimizer(BaseOptimizer):
                 ]
         if len(params) == 0:
             return None
-        optimizer = locate_class("torch","optim",self.optimizer)
+        optimizer = locate_class("torch", "optim", self.optimizer)
         optimizer = optimizer(params, **self.kwargs)
         return optimizer

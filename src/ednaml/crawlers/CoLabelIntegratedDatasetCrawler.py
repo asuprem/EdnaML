@@ -2,8 +2,7 @@ import os
 
 
 class CoLabelIntegratedDatasetCrawler:
-    """Data crawler for CoLabel Integrated Data dataset
-    """
+    """Data crawler for CoLabel Integrated Data dataset"""
 
     def __init__(
         self,
@@ -34,7 +33,9 @@ class CoLabelIntegratedDatasetCrawler:
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
+    def crawl(
+        self,
+    ):
         # self.classes = {}   #self.__getclasses(self.train_folder) # This is a map from human-readable class to numbers (i.e. the ids in the dataset...)
 
         # for each label we have, we label the self.matadata["train'}["classes"]["label"] = num-entities...
@@ -58,13 +59,19 @@ class CoLabelIntegratedDatasetCrawler:
         split_folder = os.path.join(self.data_folder, "splits")
         class_folder = os.path.join(split_folder, "vmmr")
 
-        self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
-        self.metadata["train"]["crawl"], self.metadata["train"]["imgs"] = self.__crawl(
-            class_folder, "train.txt"
+        self.metadata["train"], self.metadata["test"], self.metadata["val"] = (
+            {},
+            {},
+            {},
         )
-        self.metadata["test"]["crawl"], self.metadata["test"]["imgs"] = self.__crawl(
-            class_folder, "test'txt"
-        )
+        (
+            self.metadata["train"]["crawl"],
+            self.metadata["train"]["imgs"],
+        ) = self.__crawl(class_folder, "train.txt")
+        (
+            self.metadata["test"]["crawl"],
+            self.metadata["test"]["imgs"],
+        ) = self.__crawl(class_folder, "test'txt")
         # self.metadata["val"]["crawl"], self.metadata["val"]["classes"], self.metadata["val"]["imgs"] = self.__crawl(self.val_folder)
 
         self.metadata["train"]["classes"] = {}

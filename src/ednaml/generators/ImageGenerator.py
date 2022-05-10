@@ -7,15 +7,10 @@ import ednaml.utils
 
 
 class ImageGenerator(Generator):
-    """Base class for image dataset generators
-    """
+    """Base class for image dataset generators"""
 
     def __init__(
-        self,
-        gpus: int = 1,
-        transforms = {},
-        mode: str = "train",
-        **kwargs
+        self, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
         """Initializes the Generator and builds the data transformer
 
@@ -26,15 +21,11 @@ class ImageGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        super().__init__(gpus=gpus, transforms=transforms,mode=mode,**kwargs)
+        super().__init__(gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
     def build_transforms(self, transforms, mode, **kwargs):
-        return T.Compose(
-            self._build_transforms(
-                **transforms
-            )
-        )
-    
+        return T.Compose(self._build_transforms(**transforms))
+
     def _build_transforms(
         self,
         i_shape: Union[List[int], Tuple[int, int]],
@@ -55,13 +46,18 @@ class ImageGenerator(Generator):
         Returns:
             _type_: _description_
         """
-        normalization_mean, normalization_std = ednaml.utils.extend_mean_arguments(
+        (
+            normalization_mean,
+            normalization_std,
+        ) = ednaml.utils.extend_mean_arguments(
             [normalization_mean, normalization_std], channels
         )
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
         if kwargs.get("h_flip") > 0:
-            transformer_primitive.append(T.RandomHorizontalFlip(p=kwargs.get("h_flip")))
+            transformer_primitive.append(
+                T.RandomHorizontalFlip(p=kwargs.get("h_flip"))
+            )
         if kwargs.get("t_crop"):
             transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())
@@ -79,8 +75,8 @@ class ImageGenerator(Generator):
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs
     ) -> TorchDataset:
-        """Given the datacrawler with all the data, and the mode (could be 
-        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as 
+        """Given the datacrawler with all the data, and the mode (could be
+        any user-defined mode such as 'train', 'test', 'zsl', 'gzsl', etc), as
         as well the transform, return a TorchDataset
 
         Args:

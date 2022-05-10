@@ -24,7 +24,9 @@ class LabelMetadata:
         self.totalLabels = len(label_dict)
 
         self.metadata = {
-            labelname: {"classes": label_dict[labelname]["classes"],}
+            labelname: {
+                "classes": label_dict[labelname]["classes"],
+            }
             for labelname in self.labels
         }
 

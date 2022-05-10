@@ -6,10 +6,7 @@ from ednaml.crawlers import Crawler
 
 
 class VehicleColorCrawler(Crawler):
-    """Data crawler for VehicleColor dataset
-
-    
-    """
+    """Data crawler for VehicleColor dataset"""
 
     def __init__(
         self,
@@ -45,7 +42,9 @@ class VehicleColorCrawler(Crawler):
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
+    def crawl(
+        self,
+    ):
 
         self.classes["color"] = self.__getclasses(self.train_folder)
         # Class fixings...
@@ -57,7 +56,9 @@ class VehicleColorCrawler(Crawler):
         adj = 4
         netvals = len(self.classes["color"]) - adj  # Should be 11
         adjustments = ["gold", "tan", "beige", "silver"]
-        originals = [item for item in self.classes["color"] if item not in adjustments]
+        originals = [
+            item for item in self.classes["color"] if item not in adjustments
+        ]
         for idx, original in enumerate(originals):
             # here, idx is the adjusted index...
             self.classes["color"][original] = idx
@@ -67,7 +68,11 @@ class VehicleColorCrawler(Crawler):
         self.classes["color"]["beige"] = self.classes["color"]["brown"]
         self.classes["color"]["silver"] = self.classes["color"]["grey"]
 
-        self.metadata["train"], self.metadata["test"], self.metadata["val"] = {}, {}, {}
+        self.metadata["train"], self.metadata["test"], self.metadata["val"] = (
+            {},
+            {},
+            {},
+        )
         (
             self.metadata["train"]["classes"],
             self.metadata["test"]["classes"],
@@ -98,7 +103,9 @@ class VehicleColorCrawler(Crawler):
     def __getclasses(self, folder) -> Dict:
         class_dir_list = glob.glob(folder + "/*")
         # NOTE might not work for windows :/
-        return {item.split("/")[-1]: idx for idx, item in enumerate(class_dir_list)}
+        return {
+            item.split("/")[-1]: idx for idx, item in enumerate(class_dir_list)
+        }
 
     def __crawl(self, folder, adj=0):
         crawler = []

@@ -4,8 +4,7 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 
 
 class SaveMetadata:
-    """Contains paths for saving EdnaML models, loggers, metadata, and training information
-    """
+    """Contains paths for saving EdnaML models, loggers, metadata, and training information"""
 
     MODEL_VERSION: str
     MODEL_CORE_NAME: str
@@ -33,9 +32,14 @@ class SaveMetadata:
         self.DRIVE_BACKUP = cfg.SAVE.DRIVE_BACKUP
 
     @staticmethod
-    def generate_save_names_from_config(cfg: EdnaMLConfig, **kwargs) -> Tuple[str]:
+    def generate_save_names_from_config(
+        cfg: EdnaMLConfig, **kwargs
+    ) -> Tuple[str]:
 
-        MODEL_SAVE_NAME = "%s-v%i" % (cfg.SAVE.MODEL_CORE_NAME, cfg.SAVE.MODEL_VERSION)
+        MODEL_SAVE_NAME = "%s-v%i" % (
+            cfg.SAVE.MODEL_CORE_NAME,
+            cfg.SAVE.MODEL_VERSION,
+        )
         MODEL_SAVE_FOLDER = "%s-v%i-%s-%s" % (
             cfg.SAVE.MODEL_CORE_NAME,
             cfg.SAVE.MODEL_VERSION,

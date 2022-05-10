@@ -14,5 +14,7 @@ class SchedulerConfig(BaseConfig):
         self.SCHEDULER_NAME = scheduler_dict.get(
             "SCHEDULER_NAME", defaults.SCHEDULER_NAME
         )
-        self.LR_SCHEDULER = scheduler_dict.get("LR_SCHEDULER", defaults.LR_SCHEDULER)
+        self.LR_SCHEDULER = scheduler_dict.get(
+            "LR_SCHEDULER", defaults.LR_SCHEDULER
+        )
         self.LR_KWARGS = scheduler_dict.get("LR_KWARGS", defaults.LR_KWARGS)

@@ -68,9 +68,10 @@ class MultiBranchTrainer(BaseTrainer):
         }
         self.model_name_label_map = {
             item[0]: item[1]
-            for item in zip(self.model.model_nameorder, self.model.model_labelorder)
+            for item in zip(
+                self.model.model_nameorder, self.model.model_labelorder
+            )
         }
-
 
     # Steps through a batch of data
     def step(self, batch):
@@ -106,7 +107,7 @@ class MultiBranchTrainer(BaseTrainer):
                 ]
             else:
                 akwargs["labels"] = batch_kwargs["labels"][
-                :, self.data_labelorder[self.model_name_label_map[lossname]]
+                    :, self.data_labelorder[self.model_name_label_map[lossname]]
                 ]  # ^ditto
             akwargs["epoch"] = batch_kwargs["epoch"]
             loss[lossname] = self.loss_fn[lossname](**akwargs)
@@ -169,33 +170,38 @@ class MultiBranchTrainer(BaseTrainer):
         for idx, lossname in enumerate(self.loss_fn):
             accuracy[idx] = (
                 logit_labels[self.model_nameorder[lossname]]
-                == labels[:, self.data_labelorder[self.model_name_label_map[lossname]]]
+                == labels[
+                    :, self.data_labelorder[self.model_name_label_map[lossname]]
+                ]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
                 f1_score(
                     labels[
-                        :, self.data_labelorder[self.model_name_label_map[lossname]]
+                        :,
+                        self.data_labelorder[
+                            self.model_name_label_map[lossname]
+                        ],
                     ],
-                    logit_labels[
-                        self.model_nameorder[lossname]
-                    ],
+                    logit_labels[self.model_nameorder[lossname]],
                     average="micro",
                 )
             )
             weighted_fscore[idx] = np.mean(
                 f1_score(
                     labels[
-                        :, self.data_labelorder[self.model_name_label_map[lossname]]
+                        :,
+                        self.data_labelorder[
+                            self.model_name_label_map[lossname]
+                        ],
                     ],
-                    logit_labels[
-                        self.model_nameorder[lossname]
-                    ],
+                    logit_labels[self.model_nameorder[lossname]],
                     average="weighted",
                 )
             )
 
         self.logger.info(
-            "Metrics\t" + "\t".join(["%s" % lossname for lossname in self.loss_fn])
+            "Metrics\t"
+            + "\t".join(["%s" % lossname for lossname in self.loss_fn])
         )
         self.logger.info(
             "Accuracy\t"
@@ -212,7 +218,10 @@ class MultiBranchTrainer(BaseTrainer):
             + "\t".join(
                 [
                     "%s: %0.3f"
-                    % (self.model.model_nameorder[idx], micro_fscore[idx].item())
+                    % (
+                        self.model.model_nameorder[idx],
+                        micro_fscore[idx].item(),
+                    )
                     for idx in range(self.model.output_count)
                 ]
             )
@@ -222,7 +231,10 @@ class MultiBranchTrainer(BaseTrainer):
             + "\t".join(
                 [
                     "%s: %0.3f"
-                    % (self.model.model_nameorder[idx], weighted_fscore[idx].item())
+                    % (
+                        self.model.model_nameorder[idx],
+                        weighted_fscore[idx].item(),
+                    )
                     for idx in range(self.model.output_count)
                 ]
             )
@@ -230,7 +242,9 @@ class MultiBranchTrainer(BaseTrainer):
 
         return logit_labels, labels, features
 
-    def saveMetadata(self,):
+    def saveMetadata(
+        self,
+    ):
         self.logger.info("Saving model metadata")
         jMetadata = json.dumps(self.metadata)
         metafile = "metadata.json"

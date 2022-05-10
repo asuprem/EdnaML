@@ -10,8 +10,8 @@ import torch
 class ClassificationResnet(ModelAbstract):
     """Basic CoLabel Resnet model.
 
-    A CoLabel model is a base ResNet, but during prediction, employs additional pieces such as 
-    an ensemble voter, a heuristic based on the prediction output probabilities, as well as (if desired), 
+    A CoLabel model is a base ResNet, but during prediction, employs additional pieces such as
+    an ensemble voter, a heuristic based on the prediction output probabilities, as well as (if desired),
     holistic nested side inputs.
 
     Args: (TODO)
@@ -37,7 +37,7 @@ class ClassificationResnet(ModelAbstract):
         replace_stride_with_dilation (bool, None): Well, replace stride with dilation...
         norm_layer (nn.Module, None): The normalization layer within resnet. Internally defaults to nn.BatchNorm2D
 
-    Methods: 
+    Methods:
         forward: Process a batch
 
     """
@@ -50,7 +50,13 @@ class ClassificationResnet(ModelAbstract):
     secondary_outputs = []
 
     def __init__(
-        self, base="resnet50", weights=None, normalization=None, metadata=None, parameter_groups: List[str]=None, **kwargs
+        self,
+        base="resnet50",
+        weights=None,
+        normalization=None,
+        metadata=None,
+        parameter_groups: List[str] = None,
+        **kwargs
     ):
         super().__init__(
             base=base,
@@ -90,7 +96,11 @@ class ClassificationResnet(ModelAbstract):
 
         Builds the architecture base/core.
         """
-        _resnet = locate_class(subpackage="backbones", classpackage=self.model_base, classfile="resnet")
+        _resnet = locate_class(
+            subpackage="backbones",
+            classpackage=self.model_base,
+            classfile="resnet",
+        )
         # Set up the resnet backbone
         self.base = _resnet(last_stride=1, **kwargs)
         if self.weights is not None:
@@ -103,7 +113,9 @@ class ClassificationResnet(ModelAbstract):
             self.embedding_dimensions = 512 * self.base.block.expansion
         if self.embedding_dimensions != 512 * self.base.block.expansion:
             self.emb_linear = nn.Linear(
-                self.base.block.expansion * 512, self.embedding_dimensions, bias=False
+                self.base.block.expansion * 512,
+                self.embedding_dimensions,
+                bias=False,
             )
 
     def build_normalization(self):
@@ -119,7 +131,9 @@ class ClassificationResnet(ModelAbstract):
             self.feat_norm.apply(self.weights_init_kaiming)
         elif self.normalization == "gn":
             self.feat_norm = nn.GroupNorm(
-                self.embedding_dimensions // 16, self.embedding_dimensions, affine=True
+                self.embedding_dimensions // 16,
+                self.embedding_dimensions,
+                affine=True,
             )
             self.feat_norm.bias.requires_grad_(False)
             self.feat_norm.apply(self.weights_init_kaiming)
@@ -139,7 +153,9 @@ class ClassificationResnet(ModelAbstract):
     def build_softmax(self, **kwargs):
         if self.softmax_dimensions[0] is not None:
             self.softmax = nn.Linear(
-                self.embedding_dimensions, self.softmax_dimensions[0], bias=False
+                self.embedding_dimensions,
+                self.softmax_dimensions[0],
+                bias=False,
             )
             self.softmax.apply(self.weights_init_softmax)
         else:

@@ -8,7 +8,7 @@ from ednaml.crawlers import Crawler
 
 
 class VeRiDataCrawler(Crawler):
-    """ Data crawler for the VeRi-776 dataset
+    """Data crawler for the VeRi-776 dataset
 
     The VeRiDataCrawler crawls the VeRi-776 folder to populate training, query, and gallery sets with images and their respective Pid and Cid.
 
@@ -17,7 +17,7 @@ class VeRiDataCrawler(Crawler):
       train_folder (str): Folder inside data_folder with training images. Default: "image_train"
       test_folder (str): Folder inside data_folder with testing/gallery images. Default: "image_test"
       query_folder (str): Folder inside data_folder with query images. Default: "image_query"
-    
+
     Kwargs:
       logger: Instance of Logging object
 
@@ -80,7 +80,9 @@ class VeRiDataCrawler(Crawler):
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
-    def crawl(self,):
+    def crawl(
+        self,
+    ):
         self.colordict = defaultdict(lambda: -1)
         self.typedict = defaultdict(lambda: -1)
         with open(self.trainlabel, "r") as rfile:
@@ -151,8 +153,12 @@ class VeRiDataCrawler(Crawler):
             self.metadata[meta]["classes"] = {}
             self.metadata[meta]["classes"]["color"] = 10
             self.metadata[meta]["classes"]["type"] = 9
-            self.metadata[meta]["classes"]["pid"] = self.metadata["train"]["pid"]
-            self.metadata[meta]["classes"]["cid"] = self.metadata["train"]["cid"]
+            self.metadata[meta]["classes"]["pid"] = self.metadata["train"][
+                "pid"
+            ]
+            self.metadata[meta]["classes"]["cid"] = self.metadata["train"][
+                "cid"
+            ]
 
         self.logger.info(
             "Train\tPID: {:6d}\tCID: {:6d}\tIMGS: {:8d}".format(
@@ -227,7 +233,9 @@ class VeRiDataCrawler(Crawler):
                 track_list = line.strip().split(" ")
                 track_index = track_list[0]
                 track_images = track_list[1:]
-                track_images = [os.path.join(folder, item) for item in track_images]
+                track_images = [
+                    os.path.join(folder, item) for item in track_images
+                ]
                 pid, cid = map(
                     int, _re.search(track_images[0]).groups()
                 )  # _re.search lol
@@ -250,7 +258,10 @@ class VeRiDataCrawler(Crawler):
                 # if len(crawler) == 1650:
                 for img in track_images:
                     track_dict[img] = track_idx
-                track_info[track_idx] = {"pid": pid_tracker[pid], "cid": cid - 1}
+                track_info[track_idx] = {
+                    "pid": pid_tracker[pid],
+                    "cid": cid - 1,
+                }
                 track_idx += 1
         return (
             crawler,

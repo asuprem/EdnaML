@@ -37,5 +37,7 @@ class TransformationConfig(BaseConfig):
             "RANDOM_ERASE_VALUE", defaults.RANDOM_ERASE_VALUE
         )
         self.CHANNELS = transformation_dict.get("CHANNELS", defaults.CHANNELS)
-        self.BATCH_SIZE = transformation_dict.get("BATCH_SIZE", defaults.BATCH_SIZE)
+        self.BATCH_SIZE = transformation_dict.get(
+            "BATCH_SIZE", defaults.BATCH_SIZE
+        )
         self.WORKERS = transformation_dict.get("WORKERS", defaults.WORKERS)

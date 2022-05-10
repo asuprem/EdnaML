@@ -17,4 +17,5 @@ class GradientReversalFunctional(torch.autograd.Function):
             grad_input = -grad_output * alpha_
         return grad_input, None
 
+
 gradient_reversal_functional = GradientReversalFunctional.apply

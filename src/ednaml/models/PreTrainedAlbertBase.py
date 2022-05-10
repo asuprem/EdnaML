@@ -7,25 +7,26 @@ from ednaml.utils.web import cached_path
 
 class AlbertPreTrainedConfig(BaseConfig):
     def __init__(self, **kwargs):
-        self.finetuning_task = kwargs.pop('finetuning_task', None)
-        self.num_labels = kwargs.pop('num_labels', 2)
-        self.output_attentions = kwargs.pop('output_attentions', False)
-        self.output_hidden_states = kwargs.pop('output_hidden_states', False)
-        self.torchscript = kwargs.pop('torchscript', False)
-        self.pruned_heads = kwargs.pop('pruned_heads', {})
+        self.finetuning_task = kwargs.pop("finetuning_task", None)
+        self.num_labels = kwargs.pop("num_labels", 2)
+        self.output_attentions = kwargs.pop("output_attentions", False)
+        self.output_hidden_states = kwargs.pop("output_hidden_states", False)
+        self.torchscript = kwargs.pop("torchscript", False)
+        self.pruned_heads = kwargs.pop("pruned_heads", {})
+
 
 class PreTrainedAlbertModel(nn.Module):
-    r""" Base class for all models.
-        :class:`~pytorch_transformers.PreTrainedModel` takes care of storing the configuration of the models and handles methods for loading/downloading/saving models
-        as well as a few methods commons to all models to (i) resize the input embeddings and (ii) prune heads in the self-attention heads.
-        Class attributes (overridden by derived classes):
-            - ``config_class``: a class derived from :class:`~pytorch_transformers.PretrainedConfig` to use as configuration class for this model architecture.
-            - ``pretrained_model_archive_map``: a python ``dict`` of with `short-cut-names` (string) as keys and `url` (string) of associated pretrained weights as values.
-            - ``load_tf_weights``: a python ``method`` for loading a TensorFlow checkpoint in a PyTorch model, taking as arguments:
-                - ``model``: an instance of the relevant subclass of :class:`~pytorch_transformers.PreTrainedModel`,
-                - ``config``: an instance of the relevant subclass of :class:`~pytorch_transformers.PretrainedConfig`,
-                - ``path``: a path (string) to the TensorFlow checkpoint.
-            - ``base_model_prefix``: a string indicating the attribute associated to the base model in derived classes of the same architecture adding modules on top of the base model.
+    r"""Base class for all models.
+    :class:`~pytorch_transformers.PreTrainedModel` takes care of storing the configuration of the models and handles methods for loading/downloading/saving models
+    as well as a few methods commons to all models to (i) resize the input embeddings and (ii) prune heads in the self-attention heads.
+    Class attributes (overridden by derived classes):
+        - ``config_class``: a class derived from :class:`~pytorch_transformers.PretrainedConfig` to use as configuration class for this model architecture.
+        - ``pretrained_model_archive_map``: a python ``dict`` of with `short-cut-names` (string) as keys and `url` (string) of associated pretrained weights as values.
+        - ``load_tf_weights``: a python ``method`` for loading a TensorFlow checkpoint in a PyTorch model, taking as arguments:
+            - ``model``: an instance of the relevant subclass of :class:`~pytorch_transformers.PreTrainedModel`,
+            - ``config``: an instance of the relevant subclass of :class:`~pytorch_transformers.PretrainedConfig`,
+            - ``path``: a path (string) to the TensorFlow checkpoint.
+        - ``base_model_prefix``: a string indicating the attribute associated to the base model in derived classes of the same architecture adding modules on top of the base model.
     """
     config_class = None
     pretrained_model_archive_map = {}
@@ -34,7 +35,7 @@ class PreTrainedAlbertModel(nn.Module):
 
     def __init__(self, *inputs, **kwargs):
         super().__init__()
-        #if not isinstance(config, PretrainedConfig):
+        # if not isinstance(config, PretrainedConfig):
         #    raise ValueError(
         #        "Parameter config in `{}(config)` should be an instance of class `PretrainedConfig`. "
         #        "To create a model from a pretrained model use "
@@ -45,7 +46,7 @@ class PreTrainedAlbertModel(nn.Module):
         self.config = AlbertPreTrainedConfig(**kwargs)
 
     def _get_resized_embeddings(self, old_embeddings, new_num_tokens=None):
-        """ Build a resized Embedding Module from a provided token Embedding Module.
+        """Build a resized Embedding Module from a provided token Embedding Module.
             Increasing the size will add newly initialized vectors at the end
             Reducing the size will remove vectors from the end
         Args:
@@ -73,39 +74,41 @@ class PreTrainedAlbertModel(nn.Module):
 
         # Copy word embeddings from the previous weights
         num_tokens_to_copy = min(old_num_tokens, new_num_tokens)
-        new_embeddings.weight.data[:num_tokens_to_copy, :] = old_embeddings.weight.data[:num_tokens_to_copy, :]
+        new_embeddings.weight.data[
+            :num_tokens_to_copy, :
+        ] = old_embeddings.weight.data[:num_tokens_to_copy, :]
 
         return new_embeddings
 
     def _tie_or_clone_weights(self, first_module, second_module):
-        """ Tie or clone module weights depending of weither we are using TorchScript or not
-        """
+        """Tie or clone module weights depending of weither we are using TorchScript or not"""
 
         if self.config.torchscript:
             first_module.weight = nn.Parameter(second_module.weight.clone())
         else:
             first_module.weight = second_module.weight
 
-
-        if hasattr(first_module, 'bias') and first_module.bias is not None:
+        if hasattr(first_module, "bias") and first_module.bias is not None:
             first_module.bias.data = torch.nn.functional.pad(
                 first_module.bias.data,
                 (0, first_module.weight.shape[0] - first_module.bias.shape[0]),
-                'constant',
-                0
+                "constant",
+                0,
             )
 
     def resize_token_embeddings(self, new_num_tokens=None):
-        """ Resize input token embeddings matrix of the model if new_num_tokens != config.vocab_size.
+        """Resize input token embeddings matrix of the model if new_num_tokens != config.vocab_size.
         Take care of tying weights embeddings afterwards if the model class has a `tie_weights()` method.
         Arguments:
             new_num_tokens: (`optional`) int:
-                New number of tokens in the embedding matrix. Increasing the size will add newly initialized vectors at the end. Reducing the size will remove vectors from the end. 
+                New number of tokens in the embedding matrix. Increasing the size will add newly initialized vectors at the end. Reducing the size will remove vectors from the end.
                 If not provided or None: does nothing and just returns a pointer to the input tokens ``torch.nn.Embeddings`` Module of the model.
         Return: ``torch.nn.Embeddings``
             Pointer to the input tokens Embeddings Module of the model
         """
-        base_model = getattr(self, self.base_model_prefix, self)  # get the base model if needed
+        base_model = getattr(
+            self, self.base_model_prefix, self
+        )  # get the base model if needed
         model_embeds = base_model._resize_token_embeddings(new_num_tokens)
         if new_num_tokens is None:
             return model_embeds
@@ -115,13 +118,13 @@ class PreTrainedAlbertModel(nn.Module):
         base_model.vocab_size = new_num_tokens
 
         # Tie weights again if needed
-        if hasattr(self, 'tie_weights'):
+        if hasattr(self, "tie_weights"):
             self.tie_weights()
 
         return model_embeds
 
     def init_weights(self):
-        """ Initialize and prunes weights if needed. """
+        """Initialize and prunes weights if needed."""
         # Initialize weights
         self.apply(self._init_weights)
 
@@ -130,31 +133,40 @@ class PreTrainedAlbertModel(nn.Module):
             self.prune_heads(self.config.pruned_heads)
 
     def prune_heads(self, heads_to_prune):
-        """ Prunes heads of the base model.
-            Arguments:
-                heads_to_prune: dict with keys being selected layer indices (`int`) and associated values being the list of heads to prune in said layer (list of `int`).
-                E.g. {1: [0, 2], 2: [2, 3]} will prune heads 0 and 2 on layer 1 and heads 2 and 3 on layer 2.
+        """Prunes heads of the base model.
+        Arguments:
+            heads_to_prune: dict with keys being selected layer indices (`int`) and associated values being the list of heads to prune in said layer (list of `int`).
+            E.g. {1: [0, 2], 2: [2, 3]} will prune heads 0 and 2 on layer 1 and heads 2 and 3 on layer 2.
         """
-        base_model = getattr(self, self.base_model_prefix, self)  # get the base model if needed
+        base_model = getattr(
+            self, self.base_model_prefix, self
+        )  # get the base model if needed
 
         # save new sets of pruned heads as union of previously stored pruned heads and newly pruned heads
         for layer, heads in heads_to_prune.items():
-            union_heads = set(self.config.pruned_heads.get(layer, [])) | set(heads)
-            self.config.pruned_heads[layer] = list(union_heads)  # Unfortunately we have to store it as list for JSON
+            union_heads = set(self.config.pruned_heads.get(layer, [])) | set(
+                heads
+            )
+            self.config.pruned_heads[layer] = list(
+                union_heads
+            )  # Unfortunately we have to store it as list for JSON
 
         base_model._prune_heads(heads_to_prune)
 
-    
     def save_pretrained(self, save_directory):
         """
         Save a model and its configuration file to a directory, so that it
             can be re-loaded using the `:func:`~pytorch_transformers.PreTrainedModel.from_pretrained`` class method.
         """
         import os
-        assert os.path.isdir(save_directory), "Saving path should be a directory where the model and configuration can be saved"
+
+        assert os.path.isdir(save_directory), (
+            "Saving path should be a directory where the model and"
+            " configuration can be saved"
+        )
 
         # Only save the model it-self if we are using distributed training
-        model_to_save = self.module if hasattr(self, 'module') else self
+        model_to_save = self.module if hasattr(self, "module") else self
 
         # Save configuration file
         model_to_save.config.save_pretrained(save_directory)
@@ -163,10 +175,11 @@ class PreTrainedAlbertModel(nn.Module):
         output_model_file = os.path.join(save_directory, "pytorch_model.bin")
 
         torch.save(model_to_save.state_dict(), output_model_file)
-    
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
+    def from_pretrained(
+        cls, pretrained_model_name_or_path, *model_args, **kwargs
+    ):
         """
         Instantiate a pretrained pytorch model from a pre-trained model configuration.
         The model is set in evaluation mode by default using ``model.eval()`` (Dropout modules are deactivated)
@@ -212,21 +225,23 @@ class PreTrainedAlbertModel(nn.Module):
             # Loading from a TF checkpoint file instead of a PyTorch model (slower)
             config = BertConfig.from_json_file('./tf_model/my_tf_model_config.json')
             model = BertModel.from_pretrained('./tf_model/my_tf_checkpoint.ckpt.index', from_tf=True, config=config)
-       
+
         """
-        config = kwargs.pop('config', None)
-        state_dict = kwargs.pop('state_dict', None)
-        cache_dir = kwargs.pop('cache_dir', None)
-        from_tf = kwargs.pop('from_tf', False)
-        force_download = kwargs.pop('force_download', False)
-        proxies = kwargs.pop('proxies', None)
-        output_loading_info = kwargs.pop('output_loading_info', False)
+        config = kwargs.pop("config", None)
+        state_dict = kwargs.pop("state_dict", None)
+        cache_dir = kwargs.pop("cache_dir", None)
+        from_tf = kwargs.pop("from_tf", False)
+        force_download = kwargs.pop("force_download", False)
+        proxies = kwargs.pop("proxies", None)
+        output_loading_info = kwargs.pop("output_loading_info", False)
 
         # Load config
         if config is None:
             config, model_kwargs = cls.config_class.from_pretrained(
-                pretrained_model_name_or_path, *model_args,
-                cache_dir=cache_dir, return_unused_kwargs=True,
+                pretrained_model_name_or_path,
+                *model_args,
+                cache_dir=cache_dir,
+                return_unused_kwargs=True,
                 force_download=force_download,
                 **kwargs
             )
@@ -235,13 +250,19 @@ class PreTrainedAlbertModel(nn.Module):
 
         # Load model
         if pretrained_model_name_or_path in cls.pretrained_model_archive_map:
-            archive_file = cls.pretrained_model_archive_map[pretrained_model_name_or_path]
+            archive_file = cls.pretrained_model_archive_map[
+                pretrained_model_name_or_path
+            ]
         elif os.path.isdir(pretrained_model_name_or_path):
             if from_tf:
                 # Directly load from a TensorFlow checkpoint
-                archive_file = os.path.join(pretrained_model_name_or_path, "model.ckpt" + ".index")
+                archive_file = os.path.join(
+                    pretrained_model_name_or_path, "model.ckpt" + ".index"
+                )
             else:
-                archive_file = os.path.join(pretrained_model_name_or_path, "pytorch_model.bin")
+                archive_file = os.path.join(
+                    pretrained_model_name_or_path, "pytorch_model.bin"
+                )
         else:
             if from_tf:
                 # Directly load from a TensorFlow checkpoint
@@ -250,45 +271,61 @@ class PreTrainedAlbertModel(nn.Module):
                 archive_file = pretrained_model_name_or_path
         # redirect to the cache, if necessary
         try:
-            resolved_archive_file = cached_path(archive_file, cache_dir=cache_dir, force_download=force_download, proxies=proxies)
+            resolved_archive_file = cached_path(
+                archive_file,
+                cache_dir=cache_dir,
+                force_download=force_download,
+                proxies=proxies,
+            )
         except EnvironmentError as e:
-            if pretrained_model_name_or_path in cls.pretrained_model_archive_map:
+            if (
+                pretrained_model_name_or_path
+                in cls.pretrained_model_archive_map
+            ):
                 print(
-                    "Couldn't reach server at '{}' to download pretrained weights.".format(
-                        archive_file))
+                    "Couldn't reach server at '{}' to download pretrained"
+                    " weights.".format(archive_file)
+                )
             else:
                 print(
-                    "Model name '{}' was not found in model name list ({}). "
-                    "We assumed '{}' was a path or url but couldn't find any file "
-                    "associated to this path or url.".format(
+                    "Model name '{}' was not found in model name list ({}). We"
+                    " assumed '{}' was a path or url but couldn't find any file"
+                    " associated to this path or url.".format(
                         pretrained_model_name_or_path,
-                        ', '.join(cls.pretrained_model_archive_map.keys()),
-                        archive_file))
+                        ", ".join(cls.pretrained_model_archive_map.keys()),
+                        archive_file,
+                    )
+                )
             raise e
         if resolved_archive_file == archive_file:
             print("loading weights file {}".format(archive_file))
         else:
-            print("loading weights file {} from cache at {}".format(
-                archive_file, resolved_archive_file))
+            print(
+                "loading weights file {} from cache at {}".format(
+                    archive_file, resolved_archive_file
+                )
+            )
 
         # Instantiate model.
         model = cls(config, *model_args, **model_kwargs)
 
         if state_dict is None and not from_tf:
-            state_dict = torch.load(resolved_archive_file, map_location='cpu')
+            state_dict = torch.load(resolved_archive_file, map_location="cpu")
         if from_tf:
             # Directly load from a TensorFlow checkpoint
-            return cls.load_tf_weights(model, config, resolved_archive_file[:-6])  # Remove the '.index'
+            return cls.load_tf_weights(
+                model, config, resolved_archive_file[:-6]
+            )  # Remove the '.index'
 
         # Convert old format to new format if needed from a PyTorch state_dict
         old_keys = []
         new_keys = []
         for key in state_dict.keys():
             new_key = None
-            if 'gamma' in key:
-                new_key = key.replace('gamma', 'weight')
-            if 'beta' in key:
-                new_key = key.replace('beta', 'bias')
+            if "gamma" in key:
+                new_key = key.replace("gamma", "weight")
+            if "beta" in key:
+                new_key = key.replace("beta", "bias")
             if new_key:
                 old_keys.append(key)
                 new_keys.append(new_key)
@@ -300,47 +337,71 @@ class PreTrainedAlbertModel(nn.Module):
         unexpected_keys = []
         error_msgs = []
         # copy state_dict so _load_from_state_dict can modify it
-        metadata = getattr(state_dict, '_metadata', None)
+        metadata = getattr(state_dict, "_metadata", None)
         state_dict = state_dict.copy()
         if metadata is not None:
             state_dict._metadata = metadata
 
-        def load(module, prefix=''):
-            local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
+        def load(module, prefix=""):
+            local_metadata = (
+                {} if metadata is None else metadata.get(prefix[:-1], {})
+            )
             module._load_from_state_dict(
-                state_dict, prefix, local_metadata, True, missing_keys, unexpected_keys, error_msgs)
+                state_dict,
+                prefix,
+                local_metadata,
+                True,
+                missing_keys,
+                unexpected_keys,
+                error_msgs,
+            )
             for name, child in module._modules.items():
                 if child is not None:
-                    load(child, prefix + name + '.')
+                    load(child, prefix + name + ".")
 
         # Make sure we are able to load base models as well as derived models (with heads)
-        start_prefix = ''
+        start_prefix = ""
         model_to_load = model
-        if not hasattr(model, cls.base_model_prefix) and any(s.startswith(cls.base_model_prefix) for s in state_dict.keys()):
-            start_prefix = cls.base_model_prefix + '.'
-        if hasattr(model, cls.base_model_prefix) and not any(s.startswith(cls.base_model_prefix) for s in state_dict.keys()):
+        if not hasattr(model, cls.base_model_prefix) and any(
+            s.startswith(cls.base_model_prefix) for s in state_dict.keys()
+        ):
+            start_prefix = cls.base_model_prefix + "."
+        if hasattr(model, cls.base_model_prefix) and not any(
+            s.startswith(cls.base_model_prefix) for s in state_dict.keys()
+        ):
             model_to_load = getattr(model, cls.base_model_prefix)
 
         load(model_to_load, prefix=start_prefix)
         if len(missing_keys) > 0:
-            print("Weights of {} not initialized from pretrained model: {}".format(
-                model.__class__.__name__, missing_keys))
+            print(
+                "Weights of {} not initialized from pretrained model: {}"
+                .format(model.__class__.__name__, missing_keys)
+            )
         if len(unexpected_keys) > 0:
-            print("Weights from pretrained model not used in {}: {}".format(
-                model.__class__.__name__, unexpected_keys))
+            print(
+                "Weights from pretrained model not used in {}: {}".format(
+                    model.__class__.__name__, unexpected_keys
+                )
+            )
         if len(error_msgs) > 0:
-            raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
-                               model.__class__.__name__, "\n\t".join(error_msgs)))
+            raise RuntimeError(
+                "Error(s) in loading state_dict for {}:\n\t{}".format(
+                    model.__class__.__name__, "\n\t".join(error_msgs)
+                )
+            )
 
-        if hasattr(model, 'tie_weights'):
+        if hasattr(model, "tie_weights"):
             model.tie_weights()  # make sure word embedding weights are still tied
 
         # Set model in evaluation mode to desactivate DropOut modules by default
         model.eval()
 
         if output_loading_info:
-            loading_info = {"missing_keys": missing_keys, "unexpected_keys": unexpected_keys, "error_msgs": error_msgs}
+            loading_info = {
+                "missing_keys": missing_keys,
+                "unexpected_keys": unexpected_keys,
+                "error_msgs": error_msgs,
+            }
             return model, loading_info
 
         return model
-

@@ -15,6 +15,8 @@ class ExecutionDatareaderConfig(BaseConfig):
         self.DATAREADER = datareader_dict.get("DATAREADER", "DataReader")
         self.CRAWLER_ARGS = datareader_dict.get("CRAWLER_ARGS", {})
         self.DATASET_ARGS = datareader_dict.get("DATASET_ARGS", {})
-        self.GENERATOR = datareader_dict.get("GENERATOR", "ClassificationGenerator")
+        self.GENERATOR = datareader_dict.get(
+            "GENERATOR", "ClassificationGenerator"
+        )
         self.GENERATOR_ARGS = datareader_dict.get("GENERATOR_ARGS", {})
         self.DATALOADER_ARGS = datareader_dict.get("DATALOADER_ARGS", {})

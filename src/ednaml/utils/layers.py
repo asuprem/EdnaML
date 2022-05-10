@@ -6,9 +6,9 @@ from torch.nn.modules.batchnorm import _BatchNorm
 
 from ednaml.utils.functional import gradient_reversal_functional
 
-#https://github.com/janfreyberg/pytorch-revgrad/
+# https://github.com/janfreyberg/pytorch-revgrad/
 class GradientReversalLayer(nn.Module):
-    def __init__(self, alpha=1., *args, **kwargs):
+    def __init__(self, alpha=1.0, *args, **kwargs):
         """
         A gradient reversal layer.
         This layer has no parameters, and simply reverses the gradient
@@ -21,13 +21,15 @@ class GradientReversalLayer(nn.Module):
     def forward(self, input_):
         return gradient_reversal_functional(input_, self._alpha)
 
+
 def gradient_reversal_function(x, glambda=1.0):
     return GradientReversalLayer(glambda=glambda)(x)
 
+
 class Conv1D(nn.Module):
     def __init__(self, nf, nx):
-        """ Conv1D layer as defined by Radford et al. for OpenAI GPT (and also used in GPT-2)
-            Basically works like a Linear layer but the weights are transposed
+        """Conv1D layer as defined by Radford et al. for OpenAI GPT (and also used in GPT-2)
+        Basically works like a Linear layer but the weights are transposed
         """
         super(Conv1D, self).__init__()
         self.nf = nf
@@ -42,8 +44,9 @@ class Conv1D(nn.Module):
         x = x.view(*size_out)
         return x
 
+
 class LambdaLayer(nn.Module):
-    """ Torch lambda layer to act as an empty layer. It does not do anything """
+    """Torch lambda layer to act as an empty layer. It does not do anything"""
 
     def __init__(self):
         super().__init__()
@@ -53,7 +56,7 @@ class LambdaLayer(nn.Module):
 
 
 class ListIndexLayer(nn.Module):
-    """ Torch layer to return a single index from list. It does not do anything """
+    """Torch layer to return a single index from list. It does not do anything"""
 
     def __init__(self, idx):
         super().__init__()
@@ -62,8 +65,9 @@ class ListIndexLayer(nn.Module):
     def forward(self, x):
         return x[self.idx]
 
+
 class DictKeyLayer(nn.Module):
-    """ Torch lambda layer to return single key from dict. It does not do anything """
+    """Torch lambda layer to return single key from dict. It does not do anything"""
 
     def __init__(self, key):
         super().__init__()
@@ -72,17 +76,21 @@ class DictKeyLayer(nn.Module):
     def forward(self, x):
         return x[self.key]
 
+
 class EmbeddingAverage(nn.Module):
     """Averages embeddings on given dimension
 
     Args:
         nn (_type_): _description_
     """
+
     def __init__(self, dim=1) -> None:
         super().__init__()
-        self.dim=dim
+        self.dim = dim
+
     def forward(self, x):
-        return torch.mean(x,dim=self.dim)
+        return torch.mean(x, dim=self.dim)
+
 
 # https://github.com/amdegroot/ssd.pytorch/blob/master/layers/modules/l2norm.py
 class L2Norm(nn.Module):
@@ -183,7 +191,8 @@ def group_norm(
     """
     if not use_input_stats and (running_mean is None or running_var is None):
         raise ValueError(
-            "Expected running_mean and running_var to be not None when use_input_stats=False"
+            "Expected running_mean and running_var to be not None when"
+            " use_input_stats=False"
         )
 
     b, c = input.size(0), input.size(1)
@@ -267,7 +276,11 @@ class _GroupNorm(_BatchNorm):
         self.num_groups = num_groups
         self.track_running_stats = track_running_stats
         super(_GroupNorm, self).__init__(
-            int(num_features / num_groups), eps, momentum, affine, track_running_stats
+            int(num_features / num_groups),
+            eps,
+            momentum,
+            affine,
+            track_running_stats,
         )
 
     def _check_input_dim(self, input):
@@ -320,14 +333,18 @@ class GroupNorm2d(_GroupNorm):
 
     def _check_input_dim(self, input):
         if input.dim() != 4:
-            raise ValueError("expected 4D input (got {}D input)".format(input.dim()))
+            raise ValueError(
+                "expected 4D input (got {}D input)".format(input.dim())
+            )
 
 
 class GroupNorm3d(_GroupNorm):
     """
-        Assume the data format is (B, C, D, H, W)
+    Assume the data format is (B, C, D, H, W)
     """
 
     def _check_input_dim(self, input):
         if input.dim() != 5:
-            raise ValueError("expected 5D input (got {}D input)".format(input.dim()))
+            raise ValueError(
+                "expected 5D input (got {}D input)".format(input.dim())
+            )

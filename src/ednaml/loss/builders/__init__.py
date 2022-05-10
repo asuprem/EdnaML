@@ -25,7 +25,8 @@ class LossBuilder(nn.Module):
         self.loss_labelname = kwargs.get("name", None)
         if self.loss_labelname is None:
             warnings.warn(
-                "No name given for this loss, using label as name %s" % self.loss_label
+                "No name given for this loss, using label as name %s"
+                % self.loss_label
             )
             self.loss_labelname = self.loss_label
 
@@ -36,13 +37,13 @@ class LossBuilder(nn.Module):
         # Sanity check
         if fn_len != lambda_len:
             raise ValueError(
-                "Loss function list length is %i. Expected %i length loss_lambdas, got %i"
-                % (fn_len, fn_len, lambda_len)
+                "Loss function list length is %i. Expected %i length"
+                " loss_lambdas, got %i" % (fn_len, fn_len, lambda_len)
             )
         if fn_len != kwargs_len:
             raise ValueError(
-                "Loss function list length is %i. Expected %i length loss_kwargs, got %i"
-                % (fn_len, fn_len, kwargs_len)
+                "Loss function list length is %i. Expected %i length"
+                " loss_kwargs, got %i" % (fn_len, fn_len, kwargs_len)
             )
         # Add the loss functions with the correct features. Lambda is applied later
         for idx, loss_fn_name in enumerate(loss_functions):
@@ -54,7 +55,8 @@ class LossBuilder(nn.Module):
                 )
             )
             self.logger.info(
-                "Added {loss} with lambda = {lamb} and loss arguments {largs}".format(
+                "Added {loss} with lambda = {lamb} and loss arguments {largs}"
+                .format(
                     loss=loss_fn_name,
                     lamb=loss_lambda[idx],
                     largs=str(loss_kwargs[idx]),
@@ -69,7 +71,7 @@ class LossBuilder(nn.Module):
     def forward(self, **kwargs):
         """Call operator of the loss builder.
 
-        This returns the sum of each individual loss provided in the initialization, multiplied by their respective loss_lambdas. 
+        This returns the sum of each individual loss provided in the initialization, multiplied by their respective loss_lambdas.
         TODO update this + CarZam base model forward to deal with logits as well if necessary
 
         Args (kwargs only):
