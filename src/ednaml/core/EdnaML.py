@@ -846,11 +846,13 @@ class EdnaML(EdnaMLBase):
         existing logger if it does not already have them. 
 
         Args:
-            logger (logging.Logger, optional): A logger. Defaults to None.
+            logger (logging.Logger, optional): A logger.. Defaults to None.
+            add_filehandler (bool, optional): Whether to add a file handler to the logger. If False, no file is created or appended to. Defaults to True.
+            add_streamhandler (bool, optional): Whether to add a stream handler to the logger. If False, logger will not stream to stdout. Defaults to True.
 
         Returns:
             logging.Logger: A logger with file and stream handlers.
-        """
+        """        
         loggerGiven = True
         if logger is None:
             logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
@@ -947,9 +949,21 @@ class EdnaML(EdnaMLBase):
         return None
 
     def setModelWeightsFromEpoch(self, epoch=0):
+        """Sets the internal model weights path using the provided epoch value. If there is no corresponding weights path to this epoch value, then sets the weights path to `None`
+
+        Args:
+            epoch (int, optional): The weights saved at this epoch. Defaults to 0.
+        """
         self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
 
     def loadEpoch(self, epoch=0):
+        """Loads weights saved at a specific epoch into the current stored model in `self.model`. If no weights are saved for that epoch, logs this and does nothing.
+
+        For the provided epoch, `loadEpoch` will check local save directory as well as backup save directory for file matching model name constructor from `self.saveMetadata`
+
+        Args:
+            epoch (int, optional): The epoch to load. If None, then will not do anything. If weights corresponding to this epoch do not exist, will not do anything. Defaults to 0.
+        """
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
             self.model.load_state_dict(torch.load(model_load_path))
