@@ -22,7 +22,7 @@ EXECUTION:
   TEST_FREQUENCY: 3
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
-    accumulation_steps: 4
+    accumulation_steps: 8
 
 SAVE:
   MODEL_VERSION: 2
@@ -34,7 +34,7 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/MiDAS/Models/"
 
 TRANSFORMATION:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 8
 
 MODEL:
   BUILDER: ednaml_model_builder
@@ -80,7 +80,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 5.0e-5
+    BASE_LR: 1.0e-4
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6
