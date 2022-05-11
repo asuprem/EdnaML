@@ -26,7 +26,7 @@ EXECUTION:
     accumulation_steps: 8
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 2
   MODEL_CORE_NAME: "midas_encoder"
   MODEL_BACKBONE: "albert"
   MODEL_QUALIFIER: "single"
@@ -62,8 +62,8 @@ MODEL:
     glambda: 1.0
     pooling: pooled
     frozen_embedding: True
-    frozen_transformer: True
-    frozen_pooler: True
+    frozen_transformer: False
+    frozen_pooler: False
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 

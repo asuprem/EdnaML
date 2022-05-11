@@ -689,7 +689,8 @@ class EdnaML(EdnaMLBase):
                             "Using weights from last saved epoch %i, at"
                             " path %s." % (self.previous_stop, self.weights)
                         )
-            self.model.load_state_dict(torch.load(self.weights))
+            if self.weights is not None:    # we have this, because previous if-block might update weights path
+                self.model.load_state_dict(torch.load(self.weights))
         else:
             if self.weights is None:
                 self.logger.info("No saved model weights provided.")
