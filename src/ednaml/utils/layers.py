@@ -375,13 +375,16 @@ class KMeansProxy(nn.Module):
         samples_per_cluster = math.ceil(float(x.size(0))) / self.clusters
         assignment = list(range(0, self.clusters)) * int(samples_per_cluster)
         length_difference = len(assignment) - x.size(0)
-        assignment = assignment[:len(assignment)-length_difference]
+        if length_difference < 0:
+          assignment = assignment + assignment[length_difference:]
+        else:
+            assignment = assignment[:len(assignment)-length_difference]
         randomized_order = torch.randperm(len(assignment))
         randomized_assignment = torch.LongTensor(assignment)[randomized_order]
         
         batch_dim = 0
         
-        for i in range(self.k):
+        for i in range(self.clusters):
             self.proxies.data[i] += x[randomized_assignment == i].mean(batch_dim)
         
         return randomized_assignment
