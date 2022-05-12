@@ -397,7 +397,7 @@ class KMeansProxy(nn.Module):
     def forward(self, x):
         if self.training:
             self.fit(x)
-        return x, self.labels[self._assign(x)]
+        return x, self.proxies[self._assign(x)], self.labels[self._assign(x)]
 
     def transform(self, x):
         return self._assign(x)
