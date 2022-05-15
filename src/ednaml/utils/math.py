@@ -33,7 +33,7 @@ def pairwise_distance(a, squared=False, eps=1e-16):
     return pairwise_distances
 
 
-def o_metric(x_matrix, y_matrix):
+def o_metric(x_matrix, y_matrix, directional = False):
     """ Computes the point-proximity O metric from 
     "Analysing patterns of spatial and niche overlap among species at multiple resolutions", 
     by Marcel Cardillo and Dan Warren, published in Global Ecology and BioGeography, 2016.
@@ -44,26 +44,33 @@ def o_metric(x_matrix, y_matrix):
     this function computes the point-proximity O metric for the two datasets.
 
     """
-    import pdb
-    pdb.set_trace()
-    con_x = pairwise_distance(x_matrix)
-    con_y = pairwise_distance(y_matrix)
-    hetero = torch.cdist(x_matrix.unsqueeze(0), y_matrix.unsqueeze(0))
+    con_x = torch.cdist(x_matrix.unsqueeze(0), x_matrix.unsqueeze(0))[0]
+    if not directional:
+      con_y = torch.cdist(y_matrix.unsqueeze(0), y_matrix.unsqueeze(0))[0]
+    hetero = torch.cdist(x_matrix.unsqueeze(0), y_matrix.unsqueeze(0))[0]
 
-    con_x.fill_diagonal(torch.max(con_x))
-    con_y.fill_diagonal(torch.max(con_x))
+    con_x.fill_diagonal_(torch.max(con_x))
+    if not directional:
+      con_y.fill_diagonal_(torch.max(con_y))
 
-    con_x = torch.min(con_x, dim=1)
-    con_y = torch.min(con_y, dim=1)
+    con_x = torch.min(con_x, dim=1)[0]
+    if not directional:
+      con_y = torch.min(con_y, dim=1)[0]
 
-    hetero_x = torch.min(hetero, dim=1)
-    hetero_y = torch.min(hetero.T, dim=1)
+    hetero_x = torch.min(hetero, dim=1)[0]
+    if not directional:
+      hetero_y = torch.min(hetero.T, dim=1)[0]
 
     o_x = con_x / hetero_x
-    o_y = con_y / hetero_y
+    if not directional:
+      o_y = con_y / hetero_y
 
-    p_x = (o_x>1).shape[0] / o_x.shape[0]
-    p_y = (o_y>1).shape[0] / o_y.shape[0]
+    p_x = torch.sum((o_x>1).float()) / o_x.shape[0]
+    if not directional:
+      p_y = torch.sum((o_y>1).float()) / o_y.shape[0]
 
-    o_val = (p_x + p_y) / 2
+    if directional:
+      o_val = p_x
+    else:
+      o_val = (p_x + p_y) / 2
     return o_val
