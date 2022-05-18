@@ -60,7 +60,7 @@ MODEL:
     domains: 4
     glambda: 1.0
     pooling: average
-
+    l_discriminator: True
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 
