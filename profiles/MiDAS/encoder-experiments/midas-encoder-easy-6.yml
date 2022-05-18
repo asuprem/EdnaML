@@ -25,7 +25,7 @@ EXECUTION:
     accumulation_steps: 8
 
 SAVE:
-  MODEL_VERSION: 5
+  MODEL_VERSION: 6
   MODEL_CORE_NAME: "midas_encoder"
   MODEL_BACKBONE: "albert"
   MODEL_QUALIFIER: "easy_domain"
