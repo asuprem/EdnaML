@@ -73,12 +73,8 @@ class ClassificationTrainer(BaseTrainer):
         # else:
         #    loss.backward()
         lossbackward = sum(loss.values())
-        lossbackward.backward()
 
-        self.stepOptimizers()
-        self.stepLossOptimizers()
-
-        for idx, lossname in enumerate(self.loss_fn):
+        for _, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
 
         if batch_kwargs["logits"] is not None:
@@ -90,6 +86,8 @@ class ClassificationTrainer(BaseTrainer):
             self.softaccuracy.append(softmax_accuracy.cpu().item())
         else:
             self.softaccuracy.append(0)
+
+        return lossbackward
 
     def evaluate_impl(self):
         self.model.eval()
