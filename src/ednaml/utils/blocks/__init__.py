@@ -5,3 +5,4 @@ from ednaml.utils.blocks.SpatialAttention import SpatialAttention
 from ednaml.utils.blocks.ResnetBasicBlock import ResnetBasicBlock
 from ednaml.utils.blocks.ResnetBottleneck import ResnetBottleneck
 from ednaml.utils.blocks.ResnetInput import ResnetInput
+from ednaml.utils.blocks.KMeansProxy import KMeansProxy

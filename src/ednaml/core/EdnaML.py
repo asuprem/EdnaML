@@ -1099,3 +1099,7 @@ class EdnaML(EdnaMLBase):
             )
         else:
             self.logger.info("No saved weights provided.")
+
+    def deleteLocal(self):
+        import shutil
+        shutil.rmtree(self.saveMetadata.MODEL_SAVE_FOLDER)

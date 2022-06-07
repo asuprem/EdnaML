@@ -1,0 +1,63 @@
+EXECUTION:
+  MODEL_SERVING: None
+  EPOCHS: 25
+  TEST_FREQUENCY: 1
+  CRAWLER: VehicleIDDataCrawler
+  TRAINER: VehicleIDTrainer
+
+SAVE:
+  MODEL_VERSION: 5
+  MODEL_CORE_NAME: "vehicleid_final"
+  MODEL_BACKBONE: "res50"
+  MODEL_QUALIFIER: "all"
+  DRIVE_BACKUP: True
+  SAVE_FREQUENCY: 1 # Epoch
+
+DATASET:
+  ROOT_DATA_FOLDER: "Data/VehicleID"
+  TRAIN_FOLDER: "image"
+  TEST_FOLDER: ""
+  QUERY_FOLDER: ""
+  SHAPE: [250,250]
+
+TRANSFORMATION:
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0
+  T_CROP: False
+  RANDOM_ERASE: False
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 36
+  INSTANCES: 9
+  WORKERS: 8
+
+MODEL:
+  MODEL_BASE: 'resnet50'
+  MODEL_ARCH: 'Resnet'
+  EMB_DIM: 2048
+  SOFTMAX: 
+  MODEL_NORMALIZATION: 'gn'
+  MODEL_KWARGS: '{"attention":"cbam", "secondary_attention":4}'
+
+LOSS:
+  LOSSES: ['MarginLoss', 'CenterLoss']
+  LOSS_KWARGS: [{'margin':0.3, 'mine':'hard'}, {'num_classes':13164, 'feat_dim':2048}]
+  LOSS_LAMBDAS: [1.0, 0.0005]
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "AdamW"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.0001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'FineGrainedSteppedLR'
+  LR_KWARGS: '{"lr_ops":[[1,"+",1e-4], [2,"+",1e-4], [3,"+",1e-4], [4,"+",1e-4],  [5,"+",1e-4], [6,"+",1e-4], [7,"+",1e-4], [8,"+",1e-4], [9,"+",1e-4], [15,"*",0.6], [25,"*",0.6], [35,"*",0.6], [45,"*",0.6]]}'
+
+LOGGING:
+  STEP_VERBOSE: 200 # Batch

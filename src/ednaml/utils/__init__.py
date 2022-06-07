@@ -254,10 +254,9 @@ model_weights = {
     ],
 }
 
-from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
 
-
+from ednaml.models.ModelAbstract import ModelAbstract
 def build_model_and_load_weights(
     config_file: str,
     model_class: Type[ModelAbstract] = None,
