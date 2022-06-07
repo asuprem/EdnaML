@@ -88,7 +88,7 @@ class EdnaML(EdnaMLBase):
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
 
-        self.cfg = EdnaMLConfig(config)
+        self.cfg = EdnaMLConfig(config) ####### storing the config object
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
@@ -216,7 +216,7 @@ class EdnaML(EdnaMLBase):
 
         self.buildModel()
         self.loadWeights()
-        self.getModelSummary(**kwargs)
+        self.getModelSummary(**kwargs) 
         self.buildOptimizer()
         self.buildScheduler()
 
@@ -718,13 +718,18 @@ class EdnaML(EdnaMLBase):
 
     def getModelSummary(self, input_size=None, dtypes=None, **kwargs):
         """Gets the model summary using `torchinfo` and saves it as a ModelStatistics object"""
+        # add bookkeeping
+        # does config has input size? if it does use that, but prepend batch size .
+        # if it doesn't have it, use input size in arguments
         self.model.cuda()
+        # change below statement according to line 722
+        # default for input size is None/null
         if input_size is None:
             input_size = (
-                self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
-                self.cfg.TEST_TRANSFORMATION.CHANNELS,
-                *self.cfg.TEST_TRANSFORMATION.SHAPE,
-            )
+                self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
+            ) # INPUT SIZE SHOULD HAVE A VALUE
+        print("INPUT SIZE ==== ",input_size)
         self.model_summary = summary(
             self.model,
             input_size=input_size,
@@ -831,9 +836,9 @@ class EdnaML(EdnaMLBase):
                     classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR,
                 )
 
-        if self._crawlerClassQueueFlag:
+        if self._crawlerClassQueueFlag: #here it checkes whether class flag is set, if it is then replace the build in class with custom class
             data_reader_instance.CRAWLER = self._crawlerClassQueue
-            if self._crawlerArgsQueueFlag:
+            if self._crawlerArgsQueueFlag: #check args also
                 self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = (
                     self._crawlerArgsQueue
                 )
@@ -873,17 +878,25 @@ class EdnaML(EdnaMLBase):
         if self._trainGeneratorInstanceQueueFlag:
             self.train_generator: Generator = self._trainGeneratorInstanceQueue
         else:
+            #print("??????????????????????????????????????????????????????????????????????//",self.cfg.TRAIN_TRANSFORMATION.getVars())
+            #train_transform_values = self.cfg.TRAIN_TRANSFORMATION.getVars()
+            #values_for_transform = {}
+            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
+            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
+            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
+            #print("THIS IS A CHANGE!")
+            print(self.cfg.TRAIN_TRANSFORMATION)
             if self.mode != "test":
-                self.train_generator: Generator = data_reader.GENERATOR(
+                self.train_generator: Generator = data_reader.GENERATOR( ##imp -- initialize generator
                     gpus=self.gpus,
-                    transforms=self.cfg.TRAIN_TRANSFORMATION.getVars(),
+                    transforms=self.cfg.TRAIN_TRANSFORMATION,# train_transforms.args ## not imp.. all arguments are in args -- args is attribute which is storoing a dictionary
                     mode="train",
                     **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
                 )
 
-                self.train_generator.build(
-                    crawler_instance,
-                    batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                self.train_generator.build( ## imp -- calls build method inside generator class
+                    crawler_instance, 
+                    batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE, 
                     workers=self.cfg.TRAIN_TRANSFORMATION.WORKERS,
                     **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
                 )
@@ -923,7 +936,7 @@ class EdnaML(EdnaMLBase):
                 mode="test",
                 **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
             )
-            self.test_generator.build(
+            self.test_generator.build( 
                 crawler_instance,
                 batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
                 workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
