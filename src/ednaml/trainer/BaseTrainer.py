@@ -150,7 +150,7 @@ class BaseTrainer:
         if self.gpus != 1:
             raise NotImplementedError()
 
-        self.model.cuda()
+        self.model.cuda() # moves the model into GPU
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
@@ -359,9 +359,9 @@ class BaseTrainer:
             if self.global_batch == 0:
                 self.printOptimizerLearningRates()
 
-            self.model.train()
+            self.model.train() #train == we are tracking all numbers and computation graph
 
-            loss: torch.Tensor = self.step(batch)
+            loss: torch.Tensor = self.step(batch) #perform function and returns loss
             loss = loss / self.accumulation_steps
             loss.backward()
             self.accumulation_count += 1
@@ -415,6 +415,7 @@ class BaseTrainer:
 
     def step(self, batch) -> torch.Tensor:
         # compute the loss, and return it
+        # print("!!!!!!!!!! batch !!!!!!!!!!!!!!!",batch)
         raise NotImplementedError()
 
     def updateGradients(self):
@@ -434,9 +435,12 @@ class BaseTrainer:
                 / self.step_verbose
             )
         loss_avg /= self.num_losses
-        soft_avg = sum(self.softaccuracy[-100:]) / float(
-            len(self.softaccuracy[-100:])
-        )
+        if(len(self.softaccuracy[-100:]) > 0):
+            soft_avg = sum(self.softaccuracy[-100:]) / float(
+                len(self.softaccuracy[-100:]) 
+            )
+        else:
+            soft_avg= 0
         self.logger.info(
             "Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}".format(
                 self.global_epoch, self.global_batch, loss_avg, soft_avg

@@ -52,7 +52,7 @@ class ClassificationTrainer(BaseTrainer):
         self.softaccuracy = []
 
     # Steps through a batch of data
-    def step(self, batch):
+    def step(self, batch): # Sanjyot --- simplify this
         batch_kwargs = {}
         (
             img,
@@ -73,7 +73,9 @@ class ClassificationTrainer(BaseTrainer):
         # else:
         #    loss.backward()
         lossbackward = sum(loss.values())
-        lossbackward.backward()
+        #return lossbackward
+        return lossbackward
+        '''lossbackward.backward()
 
         self.stepOptimizers()
         self.stepLossOptimizers()
@@ -89,7 +91,7 @@ class ClassificationTrainer(BaseTrainer):
             )
             self.softaccuracy.append(softmax_accuracy.cpu().item())
         else:
-            self.softaccuracy.append(0)
+            self.softaccuracy.append(0)'''
 
     def evaluate_impl(self):
         self.model.eval()
