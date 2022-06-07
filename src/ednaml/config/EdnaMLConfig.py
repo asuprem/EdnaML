@@ -15,7 +15,7 @@ from ednaml.config.SaveConfig import SaveConfig
 from ednaml.config.SchedulerConfig import SchedulerConfig
 from ednaml.config.TransformationConfig import TransformationConfig
 from ednaml.config.ModelConfig import ModelConfig
-
+from ednaml.utils import merge_dictionary_on_key
 
 class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
@@ -39,7 +39,7 @@ class EdnaMLConfig(BaseConfig):
     def __init__(
         self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()
     ):
-        ydict = {}
+        ydict = {} 
 
         if len(config_path) > 0:
             if not os.path.exists(config_path):
@@ -48,25 +48,24 @@ class EdnaMLConfig(BaseConfig):
                 )
             else:
                 with open(config_path, "r") as cfile:
-                    ydict = yaml.safe_load(cfile.read().strip())
-
-        self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults)
+                    ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
+        self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults) #inside the exectution -- store execution object - -execution section
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
-
         self.TRAIN_TRANSFORMATION = TransformationConfig(
             dict(
-                ydict.get("TRANSFORMATION", {}),
-                **ydict.get("TRAIN_TRANSFORMATION", {})
+                merge_dictionary_on_key(ydict.get("TRANSFORMATION", {}), ydict.get("TRAIN_TRANSFORMATION", {}))
             ),
             defaults,
         )
+        #print("SELF.TRAIN_TRANSFORMATION ::::::::::::::::::: ",self.TRAIN_TRANSFORMATION)
         self.TEST_TRANSFORMATION = TransformationConfig(
             dict(
-                ydict.get("TRANSFORMATION", {}),
-                **ydict.get("TEST_TRANSFORMATION", {})
+                merge_dictionary_on_key(ydict.get("TRANSFORMATION", {}), ydict.get("TEST_TRANSFORMATION", {}))
             ),
             defaults,
         )
+        #print("SELF.TEST_TRANSFORMATION ::::::::::::::::::: ",self.TEST_TRANSFORMATION)
+
         self.MODEL = ModelConfig(
             ydict.get("MODEL", {}), defaults
         )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
