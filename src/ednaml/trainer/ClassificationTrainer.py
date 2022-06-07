@@ -73,12 +73,6 @@ class ClassificationTrainer(BaseTrainer):
         # else:
         #    loss.backward()
         lossbackward = sum(loss.values())
-<<<<<<< HEAD
-        #return lossbackward
-        return lossbackward
-        '''lossbackward.backward()
-=======
->>>>>>> 7ce5c650e0408cce79b705097a3cccc6bf62a08d
 
         for _, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
@@ -91,7 +85,7 @@ class ClassificationTrainer(BaseTrainer):
             )
             self.softaccuracy.append(softmax_accuracy.cpu().item())
         else:
-            self.softaccuracy.append(0)'''
+            self.softaccuracy.append(0)
 
         return lossbackward
 
