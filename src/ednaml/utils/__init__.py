@@ -294,3 +294,18 @@ def build_model_and_load_weights(
         epoch = eml.getPreviousStop()
     eml.loadEpoch(epoch=epoch)
     return eml.model
+
+
+def merge_dictionary_on_key(a, b, path=None): #make it more descriptive!!!
+    if path is None: path = []
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge_dictionary_on_key(a[key], b[key], path + [str(key)])
+            elif a[key] == b[key]:
+                a[key]
+            else:
+                a[key] = b[key]
+        else:
+            a[key] = b[key]
+    return a
