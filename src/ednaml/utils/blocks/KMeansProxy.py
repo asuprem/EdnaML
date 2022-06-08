@@ -1,4 +1,5 @@
 import math, torch
+from torch import nn
 class KMeansProxy(nn.Module):
 
     def __init__(self, proxy_factor, num_classes, embedding_dimensions):
