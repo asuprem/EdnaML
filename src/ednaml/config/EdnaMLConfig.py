@@ -15,7 +15,7 @@ from ednaml.config.SaveConfig import SaveConfig
 from ednaml.config.SchedulerConfig import SchedulerConfig
 from ednaml.config.TransformationConfig import TransformationConfig
 from ednaml.config.ModelConfig import ModelConfig
-from ednaml.utils import merge_dictionary_on_key
+from ednaml.utils import merge_dictionary_on_key_with_copy
 
 class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
@@ -53,14 +53,14 @@ class EdnaMLConfig(BaseConfig):
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
         self.TRAIN_TRANSFORMATION = TransformationConfig(
             dict(
-                merge_dictionary_on_key(ydict.get("TRANSFORMATION", {}), ydict.get("TRAIN_TRANSFORMATION", {}))
+                merge_dictionary_on_key_with_copy(ydict.get("TRANSFORMATION", {}), ydict.get("TRAIN_TRANSFORMATION", {}))
             ),
             defaults,
         )
         #print("SELF.TRAIN_TRANSFORMATION ::::::::::::::::::: ",self.TRAIN_TRANSFORMATION)
         self.TEST_TRANSFORMATION = TransformationConfig(
             dict(
-                merge_dictionary_on_key(ydict.get("TRANSFORMATION", {}), ydict.get("TEST_TRANSFORMATION", {}))
+                merge_dictionary_on_key_with_copy(ydict.get("TRANSFORMATION", {}), ydict.get("TEST_TRANSFORMATION", {}))
             ),
             defaults,
         )
