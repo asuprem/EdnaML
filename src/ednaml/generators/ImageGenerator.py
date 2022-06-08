@@ -24,20 +24,7 @@ class ImageGenerator(Generator):
         super().__init__(gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
     def build_transforms(self, transforms, mode, **kwargs):
-        if(type(transforms) is not dict): #we might not need this when we are passing args
-            transforms = transforms.__dict__ 
-
-        '''transforms2 = {}
-        transforms2['i_shape'] = transforms['shape'] ## use transforms.get instead of using ['SHAPE']
-        transforms2['channels'] = transforms['CHANNELS']
-        transforms2['normalization_mean'] = transforms['normalization_mean']
-        transforms2['normalization_std'] = transforms['normalization_std']
-        transforms2['normalization_scale'] = transforms['normalization_scale']
-        transforms2['h_flip'] = transforms['h_flip']
-        transforms2['t_crop'] = transforms['t_crop']'''
-        #return T.Compose(self._build_transforms(**transforms2))
-        print("TRANFORMS =========================== ,",transforms['ARGS'])
-        return T.Compose(self._build_transforms(**transforms['ARGS']))
+        return T.Compose(self._build_transforms(**transforms.ARGS))
         
 
     def _build_transforms(
