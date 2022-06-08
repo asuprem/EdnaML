@@ -16,7 +16,10 @@ EXECUTION:
       classificationclass: color
     GENERATOR_ARGS: {}      
     DATALOADER_ARGS: {}
-
+  TRAINER: ClassificationTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 4
+    
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "colabel_devel"
@@ -28,17 +31,25 @@ SAVE:
   
 
 TRANSFORMATION:
-  SHAPE: [100,100]
-  NORMALIZATION_MEAN: 0.5
-  NORMALIZATION_STD: 0.5
-  NORMALIZATION_SCALE: 255
-  H_FLIP: 0.0
-  T_CROP: False
-  RANDOM_ERASE: False
-  RANDOM_ERASE_VALUE: 0.5
-  CHANNELS: 3
   BATCH_SIZE: 32
   WORKERS: 2
+  ARGS:
+    i_shape: [100,100]
+    normalization_mean: 0.5
+    normalization_std: 0.5
+    normalization_scale: 0.5
+    random_erase: False
+    random_erase_value: 0.5
+    channels: 3
+
+TRAIN_TRANSFORMATION:
+  ARGS:
+    h_flip: 0.5
+    t_crop: True
+
+TEST_TRANSFORMATION:
+  ARGS:
+    h_flip: 0
 
 MODEL:
   BUILDER: classification_model_builder
