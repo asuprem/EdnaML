@@ -19,15 +19,7 @@ class ConfigDefaults(BaseConfig):
     SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
-    SHAPE: List[int]
-    NORMALIZATION_MEAN: List[int]
-    NORMALIZATION_STD: List[int]
-    NORMALIZATION_SCALE: int
-    H_FLIP: float
-    T_CROP: bool
-    RANDOM_ERASE: bool
-    RANDOM_ERASE_VALUE: float
-    CHANNELS: int
+    TRANSFORM_ARGS: Dict
     BATCH_SIZE: int
     WORKERS: int
 
@@ -85,15 +77,7 @@ class ConfigDefaults(BaseConfig):
             "CHECKPOINT_DIRECTORY", "checkpoint"
         )
 
-        self.SHAPE = kwargs.get("SHAPE", [100, 100])
-        self.NORMALIZATION_MEAN = kwargs.get("NORMALIZATION_MEAN", 0.5)
-        self.NORMALIZATION_STD = kwargs.get("NORMALIZATION_STD", 0.5)
-        self.NORMALIZATION_SCALE = kwargs.get("NORMALIZATION_SCALE", 255)
-        self.H_FLIP = kwargs.get("H_FLIP", 0)
-        self.T_CROP = kwargs.get("T_CROP", False)
-        self.RANDOM_ERASE = kwargs.get("RANDOM_ERASE", False)
-        self.RANDOM_ERASE_VALUE = kwargs.get("RANDOM_ERASE_VALUE", 0.5)
-        self.CHANNELS = kwargs.get("CHANNELS", 3)
+        self.TRANSFORM_ARGS = {}
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)
         self.WORKERS = kwargs.get("WORKERS", 2)
 
