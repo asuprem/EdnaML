@@ -295,7 +295,13 @@ def build_model_and_load_weights(
     return eml.model
 
 
+def merge_dictionary_on_key_with_copy(a, b, path=None):
+    from copy import deepcopy
+    return merge_dictionary_on_key(deepcopy(a), b)
+
+
 def merge_dictionary_on_key(a, b, path=None): #make it more descriptive!!!
+    # from https://stackoverflow.com/a/7205107/2601357
     if path is None: path = []
     for key in b:
         if key in a:
