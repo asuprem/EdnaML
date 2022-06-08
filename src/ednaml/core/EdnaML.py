@@ -1103,3 +1103,6 @@ class EdnaML(EdnaMLBase):
     def deleteLocal(self):
         import shutil
         shutil.rmtree(self.saveMetadata.MODEL_SAVE_FOLDER)
+
+    def setBackupToFalse(self):
+        self.cfg.SAVE.DRIVE_BACKUP = False
