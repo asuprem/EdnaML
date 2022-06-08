@@ -932,7 +932,7 @@ class EdnaML(EdnaMLBase):
         else:
             self.test_generator: Generator = data_reader.GENERATOR(
                 gpus=self.gpus,
-                transforms=self.cfg.TEST_TRANSFORMATION.getVars(),
+                transforms=self.cfg.TEST_TRANSFORMATION,
                 mode="test",
                 **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
             )
