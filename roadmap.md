@@ -1,5 +1,5 @@
 Roadmap
-
+- excel sheet for roadmap
 - post training hook; pre-training hook.
 - document transformation has 3 components: TRANSFORMATION --> TRAIN_TRANSFORMAITON / TEST_TRANSFORMATION
 - soft targets 🟢
