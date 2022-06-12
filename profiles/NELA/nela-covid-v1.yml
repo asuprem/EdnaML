@@ -3,7 +3,7 @@ EXECUTION:
     CRAWLER_ARGS: 
       data_folder: Data
       sub_folder: nela-covid-2020
-    DATAREADER: DataReader
+    DATAREADER: AlbertReader
     DATASET_ARGS:
       classificationclass: ['reliability']
       maxlen: 512
