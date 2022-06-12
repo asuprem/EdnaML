@@ -1,10 +1,10 @@
 from glob import glob
-from random import random
+import random
 import torch, os, shutil
 from torch.utils.data import TensorDataset
+from tqdm import tqdm
 class AlbertDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, mode, transform=None, **kwargs):
-        print("Setting up memcached dataset")
         self.dataset = dataset  # list of tuples (text, labels, labels)
 
         # Options
@@ -18,7 +18,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         self.shardpath = kwargs.get("shardpath", "datashard-artifacts")
         self.shardname = kwargs.get("shardname", "albert-shard") + "-"  #the dash
         self.base_shardpath = os.path.join(self.shardpath, self.shardname)
-        self.shards_exist = True
+        self.shards_exist = False
         if os.path.exists(self.base_shardpath + "0.pt"):
             if self.shard_replace:
                 print("Deleting existing shards")
@@ -44,8 +44,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         if self.shardcache:
             self.refresh_flag = self.shardsize
             # this shuffles the internal shard index, so that we get a random example, instead of in order
-            self.shard_internal_shuffle = [item for item in range(self.shardsize+1)]    #count started from 0
-            random.shuffle(self.shard_internal_shuffle)
+            self.shard_internal_shuffle = []
             # This shuffles the shard index, so that each epoch, we load shards in different orders. We will set this up after setting up shards...
             self.shard_shuffle = []
 
@@ -81,9 +80,14 @@ class AlbertDataset(torch.utils.data.Dataset):
             else:
                 self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))-1   # TODO Bug fix if files do not have consistent numbering
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
-            self.shard_shuffle = [item for item in range(self.shardsaveindex+1)]    # count started from 0
+            self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
             random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
+            if self.masking:
+                self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
+            self.current_shardsize = len(self.sharded_dataset)
+            self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
+            random.shuffle(self.shard_internal_shuffle)
 
 
 
@@ -91,7 +95,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         # get entry from already loaded shardcache. so idx is incremented one by one -- No shuffling in data loader.
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
         self.getcount += 1
-        if self.getcount > self.refresh_flag:   # we have exhausted examples in this shard
+        if self.getcount > self.current_shardsize:   # we have exhausted examples in this shard
             self.shard_load_index += 1                  # increment the shard index that we will load
             if self.shard_load_index > self.shardsaveindex: # we have processed all shards.
                 self.shard_load_index = 0
@@ -100,14 +104,18 @@ class AlbertDataset(torch.utils.data.Dataset):
 
             if self.masking:
                 self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
-        shardindex = idx % self.shardsize
+
+            self.current_shardsize = len(self.sharded_dataset)
+            self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
+            random.shuffle(self.shard_internal_shuffle)
+        shardindex = idx % self.current_shardsize
         return self.sharded_dataset[self.shard_internal_shuffle[shardindex]]
 
     def sharded_convert_to_features(self, dataset, tokenizer, maxlen):
         features = []
         shardsaveindex = 0
         self.input_length_cache = []
-
+        pbar = tqdm(total=len(dataset)/self.shardsize)+1
         for idx, sample in enumerate(dataset):
             tokens = self.tokenizer.tokenize(sample[0])
             if len(tokens) > maxlen - 2:
@@ -145,13 +153,30 @@ class AlbertDataset(torch.utils.data.Dataset):
                 all_token_type_ids = torch.tensor([f[2] for f in features], dtype=torch.long)
                 all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
                 all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
-                all_masklm = -1*torch.ones(self.all_input_ids.shape, dtype=torch.long)
+                all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
                 # SAVE HERE
                 self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
                         shard_index = shardsaveindex)
                 shardsaveindex += 1
                 features = []
+                pbar.update(1)
+        # final shard...
+        if len(features) > 0:
+            all_input_ids = torch.tensor([f[0] for f in features], dtype=torch.long)
+            all_attention_mask = torch.tensor([f[1] for f in features], dtype=torch.long)
+            all_token_type_ids = torch.tensor([f[2] for f in features], dtype=torch.long)
+            all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
+            all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
+            all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+
+            # SAVE HERE
+            self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
+                    shard_index = shardsaveindex)
+            shardsaveindex += 1
+            features = []
+            pbar.update(1)
+        pbar.close()
         return shardsaveindex
 
     def save_shard(self, shard: TensorDataset, shard_index: int):
