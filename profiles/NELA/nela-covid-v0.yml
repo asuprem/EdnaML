@@ -28,7 +28,7 @@ EXECUTION:
     accumulation_steps: 8
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 0
   MODEL_CORE_NAME: nela
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: covid20
