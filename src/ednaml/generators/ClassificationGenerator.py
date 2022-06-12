@@ -39,7 +39,7 @@ class ClassificationDataset(TorchDataset):
 
 
 class ClassificationGenerator(ImageGenerator):
-    def __init__(self, gpus=1, **kwargs):
+    def __init__(self, logger = None, gpus=1, **kwargs):
         """Data generator for training and testing. Works with the <>. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
         Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
@@ -55,7 +55,7 @@ class ClassificationGenerator(ImageGenerator):
             rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
 
         """
-        super().__init__(gpus=gpus, **kwargs)
+        super().__init__(logger, gpus=gpus, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs

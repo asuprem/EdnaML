@@ -15,6 +15,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
 
     def __init__(
         self,
+        logger, 
         gpus: int,
         i_shape: Union[List[int], Tuple[int, int]],
         channels: int,
@@ -23,7 +24,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         normalization_scale: float,
         **kwargs
     ):
-        super().__init__(
+        super().__init__(logger,
             gpus,
             i_shape,
             channels,

@@ -11,7 +11,7 @@ class TextGenerator(Generator):
     """Base class for text generators"""
 
     def __init__(
-        self, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
+        self, logger = None, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
         """Initializes the Generator and builds the data transformer
 
@@ -22,7 +22,7 @@ class TextGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        super().__init__(gpus=gpus, transforms=transforms, mode=mode, **kwargs)
+        super().__init__(logger, gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs

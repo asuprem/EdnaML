@@ -10,7 +10,7 @@ class ImageGenerator(Generator):
     """Base class for image dataset generators"""
 
     def __init__(
-        self, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
+        self, logger=None, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
         """Initializes the Generator and builds the data transformer
 
@@ -21,7 +21,7 @@ class ImageGenerator(Generator):
             normalization_std (_type_): _description_
             normalization_scale (_type_): _description_
         """
-        super().__init__(gpus=gpus, transforms=transforms, mode=mode, **kwargs)
+        super().__init__(logger, gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
     def build_transforms(self, transforms, mode, **kwargs):
         return T.Compose(self._build_transforms(**transforms.ARGS))

@@ -4,8 +4,9 @@ import torch, os, shutil
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
 class AlbertDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset, mode, transform=None, **kwargs):
+    def __init__(self, logger, dataset, mode, transform=None, **kwargs):
         self.dataset = dataset  # list of tuples (text, labels, labels)
+        self.logger = logger
         if kwargs.get("data_shuffle", True):
             random.shuffle(self.dataset)
 
@@ -24,7 +25,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         self.shards_exist = False
         if os.path.exists(self.base_shardpath + "0.pt"):
             if self.shard_replace:
-                print("Deleting existing shards")
+                self.logger.debug("Deleting existing shards")
                 shutil.rmtree(self.shardpath)
             else:
                 self.shards_exist = True
@@ -69,11 +70,11 @@ class AlbertDataset(torch.utils.data.Dataset):
 
         if self.cache or self.memcache:
         # The actual cache-ing
-            print("Started mem caching")
+            self.logger.debug("Started mem caching")
             self.input_length_cache = []
-            print("Converting to features")
+            self.logger.debug("Converting to features")
             self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)
-            print("Masking")
+            self.logger.debug("Masking")
             self.memcached_dataset = self.refresh_mask_ids()
 
         if self.shardcache:
@@ -99,6 +100,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
         self.getcount += 1
         if self.getcount == self.current_shardsize:   # we have exhausted examples in this shard
+            self.getcount = 0
             self.shard_load_index += 1                  # increment the shard index that we will load
             if self.shard_load_index == self.shardsaveindex: # we have processed all shards.
                 self.shard_load_index = 0
@@ -188,7 +190,7 @@ class AlbertDataset(torch.utils.data.Dataset):
 
     def load_shard(self, shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
-        print("Loading shard %s"%shard_save_path)
+        self.logger.debug("Loading shard %s"%shard_save_path)
         return torch.load(shard_save_path)
 
     def memget(self, idx):
@@ -199,7 +201,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         return self.memcached_dataset[idx]
 
     def refresh_mask_ids(self):
-        print("Refreshing mask ids")
+        self.logger.debug("Refreshing mask ids")
         if self.masking:
             self.mask_ids = self.build_mask_ids(self.input_length_cache)
             
@@ -316,7 +318,7 @@ class AlbertGenerator(TextGenerator):
   
   def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
     print("Building Dataset")
-    return AlbertDataset(crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
+    return AlbertDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
 
   def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
     print("Building Dataloader")

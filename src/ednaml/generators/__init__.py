@@ -16,6 +16,7 @@ List of supported generators:
     - KnowledgeIntegratedGenerator: 
 """
 
+from logging import Logger
 from typing import Any, Dict, List
 import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
@@ -33,12 +34,14 @@ class Generator:
 
     def __init__(
         self,
+        logger: Logger,
         gpus: int = 1,
         transforms: Dict[str, Any] = {},
         mode: str = "train",
         **kwargs
     ):
         """Initialize the generator"""
+        self.logger = logger
         self.gpus = max(1, gpus)
         self.dataloader = None
         self.transforms = transforms
