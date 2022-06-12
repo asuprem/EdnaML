@@ -816,10 +816,13 @@ class EdnaML(EdnaMLBase):
             classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER,
         )
         data_reader_instance = data_reader()
-        # data_crawler is now data_reader.CRAWLER
-        self.logger.info("Reading data with DataReader %s" % data_reader.name)
+        self.logger.info("Reading data with DataReader %s" % data_reader_instance.name)
+        self.logger.info("Default CRAWLER is %s"%data_reader_instance.CRAWLER)
+        self.logger.info("Default DATASET is %s"%data_reader_instance.DATASET)
+        self.logger.info("Default GENERATOR is %s"%data_reader_instance.GENERATOR)
         # Update the generator...if needed
         if self._generatorClassQueueFlag:
+            self.logger.info("Updating GENERATOR to queued class %s"%self._generatorClassQueue.__name__)
             data_reader_instance.GENERATOR = self._generatorClassQueue
             if self._generatorArgsQueueFlag:
                 self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = (
@@ -827,9 +830,9 @@ class EdnaML(EdnaMLBase):
                 )
         else:
             if (
-                self.cfg.EXECUTION.DATAREADER.GENERATOR
-                != data_reader_instance.GENERATOR.__name__
+                self.cfg.EXECUTION.DATAREADER.GENERATOR is not None
             ):
+                self.logger.info("Updating GENERATOR using config specification to %s"%self.cfg.EXECUTION.DATAREADER.GENERATOR)
                 data_reader_instance.GENERATOR = locate_class(
                     package="ednaml",
                     subpackage="generators",
@@ -837,6 +840,7 @@ class EdnaML(EdnaMLBase):
                 )
 
         if self._crawlerClassQueueFlag: #here it checkes whether class flag is set, if it is then replace the build in class with custom class
+            self.logger.info("Updating CRAWLER to %s"%self._crawlerClassQueue.__name__)
             data_reader_instance.CRAWLER = self._crawlerClassQueue
             if self._crawlerArgsQueueFlag: #check args also
                 self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = (
