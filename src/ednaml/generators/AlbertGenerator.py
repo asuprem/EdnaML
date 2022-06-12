@@ -6,6 +6,8 @@ from tqdm import tqdm
 class AlbertDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, mode, transform=None, **kwargs):
         self.dataset = dataset  # list of tuples (text, labels, labels)
+        if kwargs.get("data_shuffle", True):
+            random.shuffle(self.dataset)
 
         # Options
         self.cache = kwargs.get("cache", False)
@@ -95,9 +97,9 @@ class AlbertDataset(torch.utils.data.Dataset):
         # get entry from already loaded shardcache. so idx is incremented one by one -- No shuffling in data loader.
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
         self.getcount += 1
-        if self.getcount > self.current_shardsize:   # we have exhausted examples in this shard
+        if self.getcount == self.current_shardsize:   # we have exhausted examples in this shard
             self.shard_load_index += 1                  # increment the shard index that we will load
-            if self.shard_load_index > self.shardsaveindex: # we have processed all shards.
+            if self.shard_load_index == self.shardsaveindex: # we have processed all shards.
                 self.shard_load_index = 0
                 random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
@@ -115,7 +117,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         features = []
         shardsaveindex = 0
         self.input_length_cache = []
-        pbar = tqdm(total=len(dataset)/self.shardsize)+1
+        pbar = tqdm(total=int(len(dataset)/self.shardsize)+1)
         for idx, sample in enumerate(dataset):
             tokens = self.tokenizer.tokenize(sample[0])
             if len(tokens) > maxlen - 2:
