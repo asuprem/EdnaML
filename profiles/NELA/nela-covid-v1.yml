@@ -8,7 +8,7 @@ EXECUTION:
       classificationclass: ['reliability']
       maxlen: 512
       shardcache: True
-      shardsize: 5000
+      shardsize: 10000
       mlm_probability: 0.15
       masking: False
       shuffle: False
