@@ -32,7 +32,7 @@ SAVE:
   MODEL_CORE_NAME: nela
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: covid20
-  DRIVE_BACKUP: False
+  DRIVE_BACKUP: True
   SAVE_FREQUENCY: 1 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/NELA/Models/"
 
