@@ -37,7 +37,7 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/NELA/Models/"
 
 TRANSFORMATION:
-  BATCH_SIZE: 128
+  BATCH_SIZE: 64
 
 MODEL:
   BUILDER: ednaml_model_builder
