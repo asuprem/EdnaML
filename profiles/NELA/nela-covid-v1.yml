@@ -8,7 +8,7 @@ EXECUTION:
       classificationclass: ['reliability']
       maxlen: 512
       shardcache: True
-      shardsize: 10000
+      shardsize: 20000
       mlm_probability: 0.15
       masking: False
       shuffle: False
@@ -22,7 +22,7 @@ EXECUTION:
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
   SKIPEVAL: False
-  TEST_FREQUENCY: 3
+  TEST_FREQUENCY: 1
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
     accumulation_steps: 8
@@ -33,11 +33,11 @@ SAVE:
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: covid20
   DRIVE_BACKUP: True
-  SAVE_FREQUENCY: 5 # Epoch
+  SAVE_FREQUENCY: 1 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/NELA/Models/"
 
 TRANSFORMATION:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 256
 
 MODEL:
   BUILDER: ednaml_model_builder
@@ -81,7 +81,7 @@ OPTIMIZER:
     WEIGHT_DECAY: 0.0005
 
 SCHEDULER:
-- LR_KWARGS: {step_size: 20}
+- LR_KWARGS: {step_size: 3}
   LR_SCHEDULER: StepLR
   SCHEDULER_NAME: opt-1
 

@@ -18,6 +18,7 @@ class AlbertDataset(torch.utils.data.Dataset):
         self.shardsaveindex = 0
         self.shard_replace = kwargs.get("shard_replace", False)
         self.shardpath = kwargs.get("shardpath", "datashard-artifacts")
+        self.shardpath = mode+"-"+self.shardpath
         self.shardname = kwargs.get("shardname", "albert-shard") + "-"  #the dash
         self.base_shardpath = os.path.join(self.shardpath, self.shardname)
         self.shards_exist = False
@@ -187,6 +188,7 @@ class AlbertDataset(torch.utils.data.Dataset):
 
     def load_shard(self, shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
+        print("Loading shard %s"%shard_save_path)
         return torch.load(shard_save_path)
 
     def memget(self, idx):
