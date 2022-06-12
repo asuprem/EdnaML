@@ -1,4 +1,7 @@
 Roadmap
+- sharded training with pre-generated features for text ( and images...?)
+    - need a generic sharded base dataloader, maybe???
+    - basically, a class that loads data into memory, except now it can be sharded...?
 - need save details FIRST
     - when script with eml is run
     - during saving procedure
