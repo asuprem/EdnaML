@@ -1,3 +1,4 @@
+from typing import Type
 import torch
 from collections import OrderedDict
 
@@ -35,3 +36,42 @@ def rename_state_dict_keys(source, key_transformation, target=None):
         new_state_dict[new_key] = value
 
     torch.save(new_state_dict, target)
+
+from ednaml.utils.LabelMetadata import LabelMetadata
+from ednaml.models.ModelAbstract import ModelAbstract
+def build_model_and_load_weights(
+    config_file: str,
+    model_class: Type[ModelAbstract] = None,
+    epoch: int = 0,
+    custom_metadata: LabelMetadata = None,
+    add_filehandler: bool = False,
+    add_streamhandler: bool = True,
+):
+    """Generates a model using a configuration file, and loads a specific saved epoch
+
+    Args:
+        config_file (str): _description_
+        model_class (Type[ModelAbstract], optional): _description_. Defaults to None.
+        epoch (int, optional): _description_. Defaults to 0.
+
+    Returns:
+        _type_: _description_
+    """
+    from ednaml.core import EdnaML
+
+    eml = EdnaML(
+        config=config_file,
+        mode="test",
+        test_only=True,
+        add_filehandler=add_filehandler,
+        add_streamhandler=add_streamhandler,
+    )
+    eml.labelMetadata = custom_metadata  # TODO this needs to be fixed with the actual label metadata...or tell users to not infer things :|
+    if model_class is not None:
+        eml.addModelClass(model_class=model_class)
+    eml.buildModel()
+    if epoch is None:
+        # means we get the most recent epoch available...
+        epoch = eml.getPreviousStop()
+    eml.loadEpoch(epoch=epoch)
+    return eml.model
