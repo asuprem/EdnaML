@@ -1,7 +1,51 @@
 Roadmap
+- need save details FIRST
+    - when script with eml is run
+    - during saving procedure
+        - save the model, artifacts, AND the code file itself
+        - code-file will append run-id (some random string, possibly based on UNIX time???) to the end
+        - possibly integrate mlflow starting now????
+            - mlflow tracking means in config, we pass in a few arguments in a metrics section
+            - let's say accuracy...HOW????
+            - ok, how about this -- each trainer implements its own metrics set, and based on trainer parameters, can calculate any and all metrics
+            - custom metrics...how...
+                - potentially like this
+                - just like sklearn, to calculate metrics, we pass in the model output
+                - so metrics must follow a metrics format
+                - we need to create a BaseMetrics class, or alternatively, use TorchMetrics...
+                - we will need to go through some metrics to get an idea for abstract class that wraps around torch metrics
+                - 
+- meta learning optimizations
+- metrics tracking
+- live datasets
+- config query engine
+    - EdnaQuery???? or yaml query engine client and engine
+    - engine indexes existing configs
+    - for now, we won't "change" a config
+    - when new configs are added to directorty, engine will index them as well
+    - client used to search them
+    - mongo database and client???
+
+    - broad approach
+        - EdnaQuery
+        - point at folder or directory
+        - monitor notifies when files have changed or been added. Send file into AddQueue
+        - converter converts files into json
+        - then indexer pushes into mongo
+        - client connects to that mongo...ma
+        - maybe written as EdnaJob???? with an EdnaStreamer managing this????
+
+- data cleaning and management
+    - EdnaData module
+    - something like Dask wrapper?
+    - do data statistics? and transformations?
+    - realistic case:
+        - first apply EdnaData (operates on the SAME configuration?????) to transform raw data (with class balancing, transformations, etc)
+        - then EdnaML directly takes take and does not need to transform it at all...
+        - similar to data provenance????
 - excel sheet for roadmap
 - post training hook; pre-training hook.
-- document transformation has 3 components: TRANSFORMATION --> TRAIN_TRANSFORMAITON / TEST_TRANSFORMATION
+- document transformation has 3 components: TRANSFORMATION --> TRAIN_TRANSFORMAITON / TEST_TRANSFORMATION 🟢
 - soft targets 🟢
 - formalize crawler
 - concept drift embeddings
@@ -31,13 +75,13 @@ Roadmap
     - also, when user wants to put custom things in Edna, they can use the custom add functions (addOptimizer, etc). This will do lazy setup
     - Then, when user does apply, this will apply the lazy changes internally.
         - custom Crawler    🟢
-        - custom datareader
+        - custom datareader 🟢
         - custom generator 🟢
-        - custom model
-        - custom loss
-        - custom optimizer
-        - custom scheduler
-        - default datareader is just datareader (or MNIST)
+        - custom model 🟢
+        - custom loss 🟢
+        - custom optimizer 🟢
+        - custom scheduler 🟢
+        - default datareader is just datareader (or MNIST) 
         - default Model is SimpleConvModel...
         
 - better EdnaML functions -- internal vs conventional functions...
