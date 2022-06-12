@@ -88,7 +88,7 @@ class ClassificationGenerator(ImageGenerator):
             return TorchDataLoader(
                 dataset,
                 batch_size=batch_size * self.gpus,
-                shuffle=True,
+                shuffle=kwargs.get("shuffle", True),
                 num_workers=self.workers,
                 collate_fn=self.collate_simple,
             )
@@ -96,7 +96,7 @@ class ClassificationGenerator(ImageGenerator):
             return TorchDataLoader(
                 dataset,
                 batch_size=batch_size * self.gpus,
-                shuffle=True,
+                shuffle=kwargs.get("shuffle", True),
                 num_workers=self.workers,
                 collate_fn=self.collate_simple,
             )
@@ -104,7 +104,7 @@ class ClassificationGenerator(ImageGenerator):
             return TorchDataLoader(
                 dataset,
                 batch_size=batch_size * self.gpus,
-                shuffle=True,
+                shuffle=kwargs.get("shuffle", True),
                 num_workers=self.workers,
                 collate_fn=self.collate_simple,
             )

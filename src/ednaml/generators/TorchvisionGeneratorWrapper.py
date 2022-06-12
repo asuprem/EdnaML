@@ -89,6 +89,6 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         return TorchDataLoader(
             dataset,
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=kwargs.get("shuffle", True),
             num_workers=self.workers,
         )
