@@ -17,7 +17,7 @@ EXECUTION:
       spm_model_file: 30k-clean.model 
       tokenizer: AlbertFullTokenizer
       vocab_file: 30k-clean.vocab
-  EPOCHS: 15
+  EPOCHS: 5
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
