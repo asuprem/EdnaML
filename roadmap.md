@@ -2,6 +2,8 @@ Roadmap
 - sharded training with pre-generated features for text ( and images...?)
     - need a generic sharded base dataloader, maybe???
     - basically, a class that loads data into memory, except now it can be sharded...?
+    - memory mapping, and formalize transformation and pre-sharding...
+    - need connectors to data storage as ell. For now, we can just do file system, but eventually, s3, azureblob, etc
 - need save details FIRST
     - when script with eml is run
     - during saving procedure
@@ -101,39 +103,26 @@ Roadmap
 
 - EdnaML in test mode -- does not build train data loader...
 --------------------------------------------------------------------
-so, someone does the following???
-
-EdnaML() <-- empty, so no configuration is set up>
-This means working from scratch
-
-So, at minimum, they need a datareader (with its crawler, generator, etc), a model, a loss
-
-eml.addCrawler(crawlerinstance)
+so, someone does the following??? ✅
+EdnaML() <-- empty, so no configuration is set up> ✅
+This means working from scratch ✅
+So, at minimum, they need a datareader (with its crawler, generator, etc), a model, a loss ✅
+eml.addCrawler(crawlerinstance) ✅
 
 
 
 
 
 --------------------------------------------------------------------
-How to improve apply() function?
-
-First step in apply is verification of current configuration. What does that look like?
-
-
-
-
-addDataloader()
-addModel()/updateModel()
-addOptimizer/updateOptimizer()
-addScheduler()/updateScheduler()
-addLossArray()/updateLossArray()
-addLossOptimizer()/update
-add/update LossScheduler
-
-
-
---------------------------------------------------------------------
-
+How to improve apply() function? ✅
+First step in apply is verification of current configuration. What does that look like? ✅
+addDataloader() ✅
+addModel()/updateModel() ✅
+addOptimizer/updateOptimizer() ✅
+addScheduler()/updateScheduler() ✅
+addLossArray()/updateLossArray() ✅
+addLossOptimizer()/update ✅
+add/update LossScheduler ✅
 
 
 --------------------------------------------------------------------
@@ -359,20 +348,6 @@ CoDataset
 
 
 
-
-
-
-eml = EdnaML(path/to/config, weights_path)
-eml.addModelClass(model_class)
-eml.buildModel()
-eml.loadEpoch(epoch)
-    This will get the specific file, using save metadata, corresponding to epoch, see `load()` in BaseTrainer
-    then just to model.load_state_dict()
-
-
-functional:
-
-ednaml.build_model_and_load_weights(config_file, model_class=None, epoch=0)
 
 
 
