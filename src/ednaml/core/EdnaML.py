@@ -981,7 +981,7 @@ class EdnaML(EdnaMLBase):
             self.saveMetadata.LOGGER_SAVE_NAME,
         )
         # Check for backup logger
-        if self.cfg.SAVE.DRIVE_BACKUP:
+        if self.cfg.SAVE.LOG_BACKUP:
             backup_logger = os.path.join(
                 self.saveMetadata.CHECKPOINT_DIRECTORY,
                 self.saveMetadata.LOGGER_SAVE_NAME,

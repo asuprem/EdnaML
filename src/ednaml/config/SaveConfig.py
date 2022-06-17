@@ -8,6 +8,7 @@ class SaveConfig(BaseConfig):
     MODEL_BACKBONE: str
     MODEL_QUALIFIER: str
     DRIVE_BACKUP: bool
+    LOG_BACKUP: bool
     SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
@@ -25,6 +26,7 @@ class SaveConfig(BaseConfig):
             "MODEL_QUALIFIER", defaults.MODEL_QUALIFIER
         )
         self.DRIVE_BACKUP = save_dict.get("DRIVE_BACKUP", defaults.DRIVE_BACKUP)
+        self.LOG_BACKUP = save_dict.get("LOG_BACKUP", defaults.LOG_BACKUP)
         self.SAVE_FREQUENCY = save_dict.get(
             "SAVE_FREQUENCY", defaults.SAVE_FREQUENCY
         )

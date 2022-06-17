@@ -16,6 +16,7 @@ class ConfigDefaults(BaseConfig):
     MODEL_BACKBONE: str
     MODEL_QUALIFIER: str
     DRIVE_BACKUP: bool
+    LOG_BACKUP: bool
     SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
@@ -72,6 +73,7 @@ class ConfigDefaults(BaseConfig):
         self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "")
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")
         self.DRIVE_BACKUP = kwargs.get("DRIVE_BACKUP", False)
+        self.LOG_BACKUP = kwargs.get("LOG_BACKUP", True)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
         self.CHECKPOINT_DIRECTORY = kwargs.get(
             "CHECKPOINT_DIRECTORY", "checkpoint"

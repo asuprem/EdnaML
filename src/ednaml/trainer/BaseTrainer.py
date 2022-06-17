@@ -220,7 +220,8 @@ class BaseTrainer:
             self.logger.info(
                 "Performing drive backup of model, optimizer, and scheduler."
             )
-
+        
+        if self.config.SAVE.LOG_BACKUP:
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
             if os.path.exists(LOGGER_SAVE):
                 os.remove(LOGGER_SAVE)
@@ -302,6 +303,11 @@ class BaseTrainer:
         self.logger.info(
             "Models will be saved to local directory:\t%s" % self.save_directory
         )
+        if self.config.SAVE.LOG_BACKUP:
+            self.logger.info(
+                "Logs will be backed up to drive directory:\t%s"
+                % self.backup_directory
+            )
         if self.save_backup:
             self.logger.info(
                 "Models will be backed up to drive directory:\t%s"

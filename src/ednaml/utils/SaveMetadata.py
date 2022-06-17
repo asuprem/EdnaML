@@ -55,7 +55,7 @@ class SaveMetadata:
                 cfg.SAVE.MODEL_BACKBONE,
                 cfg.SAVE.MODEL_QUALIFIER,
             )
-        if cfg.SAVE.DRIVE_BACKUP:
+        if cfg.SAVE.DRIVE_BACKUP or cfg.SAVE.LOG_BACKUP:
             CHECKPOINT_DIRECTORY = os.path.join(
                 cfg.SAVE.CHECKPOINT_DIRECTORY, MODEL_SAVE_FOLDER
             )
