@@ -40,7 +40,7 @@ TRANSFORMATION:
 
 MODEL:
   BUILDER: ednaml_model_builder
-  MODEL_ARCH: NELA
+  MODEL_ARCH: Fakeddit
   MODEL_BASE: Albert
   MODEL_KWARGS: 
     vocab_size_or_config_json_file: 30000

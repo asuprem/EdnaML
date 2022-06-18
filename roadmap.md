@@ -21,7 +21,12 @@ Roadmap
                 - we will need to go through some metrics to get an idea for abstract class that wraps around torch metrics
                 - 
 - meta learning optimizations
+    - mosaic/compose
 - metrics tracking
+    - 
+- migrate the datasets in gcp, azure, aws
+    - $50 per year
+    - <  >
 - live datasets
 - config query engine
     - EdnaQuery???? or yaml query engine client and engine
