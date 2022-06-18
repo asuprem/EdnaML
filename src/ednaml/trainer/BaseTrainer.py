@@ -139,7 +139,7 @@ class BaseTrainer:
         self.model_save_name = model_save_name
         self.logger_file = logger_file
         self.save_backup = save_backup
-        if self.save_backup:
+        if self.save_backup or self.config.SAVE.LOG_BACKUP:
             self.backup_directory = backup_directory
             os.makedirs(self.backup_directory, exist_ok=True)
         os.makedirs(self.save_directory, exist_ok=True)
