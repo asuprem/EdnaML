@@ -94,13 +94,13 @@ class MultiClassificationTrainer(BaseTrainer):
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
         lossbackward = sum(loss.values())
-        lossbackward.backward()
+        #lossbackward.backward()
 
         # for idx in range(self.num_losses):
         #    loss[idx].backward()
 
-        self.stepOptimizers()
-        self.stepLossOptimizers()
+        #self.stepOptimizers()
+        #self.stepLossOptimizers()
 
         for idx, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
@@ -110,6 +110,7 @@ class MultiClassificationTrainer(BaseTrainer):
         # self.softaccuracy.append(softmax_accuracy.cpu().item())
         # else:
         self.softaccuracy.append(0)  # TODO fix this
+        return lossbackward
 
     def evaluate_impl(self):
         self.model.eval()

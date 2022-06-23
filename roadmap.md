@@ -1,4 +1,6 @@
 Roadmap
+- connector to Google Drive
+   - and other cloud solutions
 - sharded training with pre-generated features for text ( and images...?)
     - need a generic sharded base dataloader, maybe???
     - basically, a class that loads data into memory, except now it can be sharded...?
@@ -19,7 +21,7 @@ Roadmap
                 - so metrics must follow a metrics format
                 - we need to create a BaseMetrics class, or alternatively, use TorchMetrics...
                 - we will need to go through some metrics to get an idea for abstract class that wraps around torch metrics
-                - 
+
 - meta learning optimizations
     - mosaic/compose
 - metrics tracking
