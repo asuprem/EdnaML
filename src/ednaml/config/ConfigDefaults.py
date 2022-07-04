@@ -20,6 +20,9 @@ class ConfigDefaults(BaseConfig):
     SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
+    OUTPUT_ARGS: Dict[str,str]
+    DEPLOYMENT: str
+
     TRANSFORM_ARGS: Dict
     BATCH_SIZE: int
     WORKERS: int
@@ -78,6 +81,9 @@ class ConfigDefaults(BaseConfig):
         self.CHECKPOINT_DIRECTORY = kwargs.get(
             "CHECKPOINT_DIRECTORY", "checkpoint"
         )
+
+        self.OUTPUT_ARGS = {}
+        self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
 
         self.TRANSFORM_ARGS = {}
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)
