@@ -1,0 +1,88 @@
+EXECUTION:
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  MODEL_SERVING: None
+  EPOCHS: 11
+  SKIPEVAL: True
+  TEST_FREQUENCY: 5
+  DATAREADER: 
+    DATAREADER: VeRi
+    CRAWLER_ARGS:
+      data_folder: "Data/VeRi"
+    DATASET_ARGS: 
+      pathidx: 0
+      annotationidx: [3,4]
+      classificationclass: ['color','type']
+    GENERATOR: MultiClassificationGenerator
+    GENERATOR_ARGS: {}      
+    DATALOADER_ARGS: {}
+  TRAINER: MultiClassificationTrainer
+
+SAVE:
+  MODEL_VERSION: 2
+  MODEL_CORE_NAME: "multiclass-veri"
+  MODEL_BACKBONE: "res18"
+  MODEL_QUALIFIER: "color-type"
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+  
+
+TRANSFORMATION:
+  SHAPE: [200,200]
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0.5
+  T_CROP: True
+  RANDOM_ERASE: False
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 128
+  WORKERS: 2
+
+MODEL:
+  BUILDER: multiclassification_model_builder
+  MODEL_ARCH: 'MultiClassificationResnet'
+  MODEL_BASE: 'resnet18'
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS: 
+    number_outputs: 2
+    outputs:
+      - dimensions:
+        name: type
+        label: type
+      - dimensions:
+        name: out2
+        label: color
+    attention: 'cbam'
+
+COLABEL:
+  COMPRESSION: 5
+  ENSEMBLE: "majority"
+  CONFIDENCE: "decay"
+
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss', 'SoftmaxLabelSmooth']
+    KWARGS: [{}, {'eps':0.2}]
+    LAMBDAS: [1.0, 1.0]
+    LABEL: color
+  - LOSSES: ['SoftmaxLabelSmooth', 'SoftmaxLogitsLoss']
+    KWARGS: [{'eps':0.3}, {}]
+    LAMBDAS: [1.0, 2.0]
+    LABEL: type
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "Adam"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.0001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'StepLR'
+  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch

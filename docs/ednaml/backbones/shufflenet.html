@@ -1,0 +1,1516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.backbones.shufflenet API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.backbones.shufflenet</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import torch
+from torch import nn
+from ednaml.utils.blocks import ChannelAttention, DenseAttention, InputAttention
+
+
+class SELayer(nn.Module):
+    def __init__(self, inplanes, isTensor=True):
+        super(SELayer, self).__init__()
+        if isTensor:
+            # if the input is (N, C, H, W)
+            self.SE_opr = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Conv2d(inplanes, inplanes // 4, kernel_size=1, stride=1, bias=False),
+                nn.BatchNorm2d(inplanes // 4),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(inplanes // 4, inplanes, kernel_size=1, stride=1, bias=False),
+            )
+        else:
+            # if the input is (N, C)
+            self.SE_opr = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Linear(inplanes, inplanes // 4, bias=False),
+                nn.BatchNorm1d(inplanes // 4),
+                nn.ReLU(inplace=True),
+                nn.Linear(inplanes // 4, inplanes, bias=False),
+            )
+
+    def forward(self, x):
+        atten = self.SE_opr(x)
+        atten = torch.clamp(atten + 3, 0, 6) / 6
+        return x * atten
+
+
+class HS(nn.Module):
+    def __init__(self):
+        super(HS, self).__init__()
+
+    def forward(self, inputs):
+        clip = torch.clamp(inputs + 3, 0, 6) / 6
+        return inputs * clip
+
+
+class Shufflenet(nn.Module):
+    def __init__(
+        self, inp, oup, base_mid_channels, *, ksize, stride, activation, useSE
+    ):
+        super(Shufflenet, self).__init__()
+        self.stride = stride
+        assert stride in [1, 2]
+        assert ksize in [3, 5, 7]
+        assert base_mid_channels == oup // 2
+
+        self.base_mid_channel = base_mid_channels
+        self.ksize = ksize
+        pad = ksize // 2
+        self.pad = pad
+        self.inp = inp
+
+        outputs = oup - inp
+
+        branch_main = nn.ModuleList(
+            [
+                # pw
+                nn.Conv2d(inp, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    ksize,
+                    stride,
+                    pad,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw-linear
+                nn.Conv2d(base_mid_channels, outputs, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(outputs),
+                None,
+            ]
+        )
+        if activation == &#34;ReLU&#34;:
+            assert useSE == False
+            &#34;&#34;&#34;This model should not have SE with ReLU&#34;&#34;&#34;
+            branch_main[2] = nn.ReLU(inplace=True)
+            branch_main[-1] = nn.ReLU(inplace=True)
+        else:
+            branch_main[2] = HS()
+            branch_main[-1] = HS()
+            if useSE:
+                branch_main.append(SELayer(outputs))
+        self.branch_main = nn.Sequential(*branch_main)
+
+        if stride == 2:
+            branch_proj = nn.ModuleList(
+                [
+                    # dw
+                    nn.Conv2d(inp, inp, ksize, stride, pad, groups=inp, bias=False),
+                    nn.BatchNorm2d(inp),
+                    # pw-linear
+                    nn.Conv2d(inp, inp, 1, 1, 0, bias=False),
+                    nn.BatchNorm2d(inp),
+                    None,
+                ]
+            )
+            if activation == &#34;ReLU&#34;:
+                branch_proj[-1] = nn.ReLU(inplace=True)
+            else:
+                branch_proj[-1] = HS()
+            self.branch_proj = nn.Sequential(*branch_proj)
+        else:
+            self.branch_proj = None
+
+    def forward(self, old_x):
+        if self.stride == 1:
+            x_proj, x = channel_shuffle(old_x)
+            return torch.cat((x_proj, self.branch_main(x)), 1)
+        elif self.stride == 2:
+            x_proj = old_x
+            x = old_x
+            return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)
+
+
+class Shuffle_Xception(nn.Module):
+    def __init__(self, inp, oup, base_mid_channels, *, stride, activation, useSE):
+        super(Shuffle_Xception, self).__init__()
+
+        assert stride in [1, 2]
+        assert base_mid_channels == oup // 2
+
+        self.base_mid_channel = base_mid_channels
+        self.stride = stride
+        self.ksize = 3
+        self.pad = 1
+        self.inp = inp
+        outputs = oup - inp
+
+        branch_main = nn.ModuleList(
+            [
+                # dw
+                nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                nn.BatchNorm2d(inp),
+                # pw
+                nn.Conv2d(inp, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    3,
+                    stride,
+                    1,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw
+                nn.Conv2d(base_mid_channels, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    3,
+                    stride,
+                    1,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw
+                nn.Conv2d(base_mid_channels, outputs, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(outputs),
+                None,
+            ]
+        )
+
+        if activation == &#34;ReLU&#34;:
+            branch_main[4] = nn.ReLU(inplace=True)
+            branch_main[9] = nn.ReLU(inplace=True)
+            branch_main[14] = nn.ReLU(inplace=True)
+        else:
+            branch_main[4] = HS()
+            branch_main[9] = HS()
+            branch_main[14] = HS()
+        assert None not in branch_main
+
+        if useSE:
+            assert activation != &#34;ReLU&#34;
+            branch_main.append(SELayer(outputs))
+
+        self.branch_main = nn.Sequential(*branch_main)
+
+        if self.stride == 2:
+            branch_proj = nn.ModuleList(
+                [
+                    # dw
+                    nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                    nn.BatchNorm2d(inp),
+                    # pw-linear
+                    nn.Conv2d(inp, inp, 1, 1, 0, bias=False),
+                    nn.BatchNorm2d(inp),
+                    None,
+                ]
+            )
+            if activation == &#34;ReLU&#34;:
+                branch_proj[-1] = nn.ReLU(inplace=True)
+            else:
+                branch_proj[-1] = HS()
+            self.branch_proj = nn.Sequential(*branch_proj)
+
+    def forward(self, old_x):
+        if self.stride == 1:
+            x_proj, x = channel_shuffle(old_x)
+            return torch.cat((x_proj, self.branch_main(x)), 1)
+        elif self.stride == 2:
+            x_proj = old_x
+            x = old_x
+            return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)
+
+
+def channel_shuffle(x):
+    batchsize, num_channels, height, width = x.data.size()
+    assert num_channels % 4 == 0
+    x = x.reshape(batchsize * num_channels // 2, 2, height * width)
+    x = x.permute(1, 0, 2)
+    x = x.reshape(2, -1, num_channels // 2, height, width)
+    return x[0], x[1]
+
+
+class ShuffleNetV2_Plus(nn.Module):
+    def __init__(
+        self,
+        input_size=224,
+        architecture=None,
+        model_size=&#34;Large&#34;,
+        ia_attention=True,
+        part_attention=True,
+    ):
+        super(ShuffleNetV2_Plus, self).__init__()
+
+        assert input_size % 32 == 0
+        assert architecture is not None
+
+        self.stage_repeats = [4, 4, 8, 4]
+        if model_size == &#34;Large&#34;:
+            self.stage_out_channels = [-1, 16, 68, 168, 336, 672, 1280]
+        elif model_size == &#34;Medium&#34;:
+            self.stage_out_channels = [-1, 16, 48, 128, 256, 512, 1280]
+        elif model_size == &#34;Small&#34;:
+            self.stage_out_channels = [-1, 16, 36, 104, 208, 416, 1280]
+        else:
+            raise NotImplementedError
+
+        # building first layer
+        input_channel = self.stage_out_channels[1]
+        self.first_conv = nn.Sequential(
+            nn.Conv2d(3, input_channel, 3, 2, 1, bias=False),
+            nn.BatchNorm2d(input_channel),
+            HS(),
+        )
+
+        self.features = nn.ModuleList([])
+        archIndex = 0
+        for idxstage in range(len(self.stage_repeats)):
+            numrepeat = self.stage_repeats[idxstage]
+            output_channel = self.stage_out_channels[idxstage + 2]
+
+            activation = &#34;HS&#34; if idxstage &gt;= 1 else &#34;ReLU&#34;
+            useSE = &#34;True&#34; if idxstage &gt;= 2 else False
+
+            for i in range(numrepeat):
+                if i == 0:
+                    inp, outp, stride = input_channel, output_channel, 2
+                else:
+                    inp, outp, stride = input_channel // 2, output_channel, 1
+
+                blockIndex = architecture[archIndex]
+                archIndex += 1
+                if blockIndex == 0:
+                    # print(&#39;Shuffle3x3&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=3,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 1:
+                    # print(&#39;Shuffle5x5&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=5,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 2:
+                    # print(&#39;Shuffle7x7&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=7,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 3:
+                    # print(&#39;Xception&#39;)
+                    self.features.append(
+                        Shuffle_Xception(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                else:
+                    raise NotImplementedError
+                input_channel = output_channel
+        assert archIndex == len(architecture)
+        # self.features = nn.Sequential(*self.features)      # manually do it for attention....
+
+        self.conv_last = nn.Sequential(
+            nn.Conv2d(input_channel, 1280, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(1280),
+            HS(),
+        )
+        self.globalpool = nn.AvgPool2d(7)
+
+        &#34;&#34;&#34; Don&#39;t need these.
+        self.LastSE = SELayer(1280)
+        self.fc = nn.Sequential(
+            nn.Linear(1280, 1280, bias=False),
+            HS(),
+        )
+        self.dropout = nn.Dropout(0.2)
+        self.classifier = nn.Sequential(nn.Linear(1280, n_class, bias=False))
+        &#34;&#34;&#34;
+        # Create true IA
+        if ia_attention:
+            self.ia_attention = InputAttention(
+                16
+            )  # MAGIC...use from architecture array
+        else:
+            self.ia_attention = None
+
+        if part_attention:
+            self.p_sa = DenseAttention(36)  # MAGIC...use from architecture array
+            self.p_ca = ChannelAttention(36)
+            self.p_relu = nn.ReLU(inplace=True)
+        else:
+            self.p_ca = None
+            self.p_sa = None
+            self.p_relu = None
+
+        self._initialize_weights()
+
+    def forward(self, x):
+        x = self.first_conv(x)
+        if self.ia_attention is not None:
+            x = self.ia_attention(x) * x
+
+        x = self.features[0](x)
+        if self.p_ca is not None:
+            p_out = self.p_sa(x) * x
+            p_out = self.p_relu(p_out)
+            part_mask = self.p_ca(p_out)
+            x = (part_mask * p_out) + ((1 - part_mask) * x)
+
+        for idx, layer in enumerate(self.features[1:]):
+            x = layer(x)
+
+        x = self.conv_last(x)
+
+        x = self.globalpool(x)
+
+        &#34;&#34;&#34;x = self.LastSE(x)
+
+        x = x.contiguous().view(-1, 1280)
+
+        x = self.fc(x)
+        x = self.dropout(x)
+        x = self.classifier(x)&#34;&#34;&#34;
+        return x
+
+    def _initialize_weights(self):
+        for name, m in self.named_modules():
+            if isinstance(m, nn.Conv2d):
+                if &#34;first&#34; in name or &#34;SE&#34; in name:
+                    nn.init.normal_(m.weight, 0, 0.01)
+                else:
+                    nn.init.normal_(m.weight, 0, 1.0 / m.weight.shape[1])
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+    def load_param(self, weights_path):
+        params = torch.load(weights_path)
+        if &#34;state_dict&#34; in params:
+            # This is shufflenet style, not ours...
+            for i in params[&#34;state_dict&#34;]:  # ShuffleNet weights specific issue
+                if &#34;fc&#34; in i:
+                    continue
+                # All &#39;i&#39; in params have &#34;module.&#34; in front of their layer names. [7:] gets rid of it for our models...
+                if (
+                    i[7:] not in self.state_dict()
+                    or params[&#34;state_dict&#34;][i].shape != self.state_dict()[i[7:]].shape
+                ):
+                    continue
+                self.state_dict()[i[7:]].copy_(params[&#34;state_dict&#34;][i])
+        else:  # Our style
+            for _key in params:
+                if (
+                    _key not in self.state_dict().keys()
+                    or params[_key].shape != self.state_dict()[_key].shape
+                ):
+                    continue
+                self.state_dict()[_key].copy_(params[_key])
+
+
+def _shufflenetv2_plus(model_size=&#34;Small&#34;, **kwargs):
+    # Set up shufflenet architecture (from https://github.com/megvii-model/ShuffleNet-Series/blob/master/ShuffleNetV2%2B/train.py)
+    architecture = [0, 0, 3, 1, 1, 1, 0, 0, 2, 0, 2, 1, 1, 0, 2, 0, 2, 1, 3, 2]
+    model = ShuffleNetV2_Plus(
+        architecture=architecture, model_size=model_size, **kwargs
+    )
+    return model
+
+
+def shufflenetv2_small(**kwargs):
+    &#34;&#34;&#34;ShuffleNetv2-Small model from https://github.com/megvii-model/ShuffleNet-Series/
+    &#34;&#34;&#34;
+    return _shufflenetv2_plus(model_size=&#34;Small&#34;, **kwargs)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ednaml.backbones.shufflenet.channel_shuffle"><code class="name flex">
+<span>def <span class="ident">channel_shuffle</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def channel_shuffle(x):
+    batchsize, num_channels, height, width = x.data.size()
+    assert num_channels % 4 == 0
+    x = x.reshape(batchsize * num_channels // 2, 2, height * width)
+    x = x.permute(1, 0, 2)
+    x = x.reshape(2, -1, num_channels // 2, height, width)
+    return x[0], x[1]</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.shufflenet.shufflenetv2_small"><code class="name flex">
+<span>def <span class="ident">shufflenetv2_small</span></span>(<span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ShuffleNetv2-Small model from <a href="https://github.com/megvii-model/ShuffleNet-Series/">https://github.com/megvii-model/ShuffleNet-Series/</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shufflenetv2_small(**kwargs):
+    &#34;&#34;&#34;ShuffleNetv2-Small model from https://github.com/megvii-model/ShuffleNet-Series/
+    &#34;&#34;&#34;
+    return _shufflenetv2_plus(model_size=&#34;Small&#34;, **kwargs)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.backbones.shufflenet.HS"><code class="flex name class">
+<span>class <span class="ident">HS</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HS(nn.Module):
+    def __init__(self):
+        super(HS, self).__init__()
+
+    def forward(self, inputs):
+        clip = torch.clamp(inputs + 3, 0, 6) / 6
+        return inputs * clip</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.HS.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.shufflenet.HS.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.HS.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, inputs) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, inputs):
+    clip = torch.clamp(inputs + 3, 0, 6) / 6
+    return inputs * clip</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ednaml.backbones.shufflenet.SELayer"><code class="flex name class">
+<span>class <span class="ident">SELayer</span></span>
+<span>(</span><span>inplanes, isTensor=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SELayer(nn.Module):
+    def __init__(self, inplanes, isTensor=True):
+        super(SELayer, self).__init__()
+        if isTensor:
+            # if the input is (N, C, H, W)
+            self.SE_opr = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Conv2d(inplanes, inplanes // 4, kernel_size=1, stride=1, bias=False),
+                nn.BatchNorm2d(inplanes // 4),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(inplanes // 4, inplanes, kernel_size=1, stride=1, bias=False),
+            )
+        else:
+            # if the input is (N, C)
+            self.SE_opr = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1),
+                nn.Linear(inplanes, inplanes // 4, bias=False),
+                nn.BatchNorm1d(inplanes // 4),
+                nn.ReLU(inplace=True),
+                nn.Linear(inplanes // 4, inplanes, bias=False),
+            )
+
+    def forward(self, x):
+        atten = self.SE_opr(x)
+        atten = torch.clamp(atten + 3, 0, 6) / 6
+        return x * atten</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.SELayer.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.shufflenet.SELayer.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.SELayer.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x):
+    atten = self.SE_opr(x)
+    atten = torch.clamp(atten + 3, 0, 6) / 6
+    return x * atten</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus"><code class="flex name class">
+<span>class <span class="ident">ShuffleNetV2_Plus</span></span>
+<span>(</span><span>input_size=224, architecture=None, model_size='Large', ia_attention=True, part_attention=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ShuffleNetV2_Plus(nn.Module):
+    def __init__(
+        self,
+        input_size=224,
+        architecture=None,
+        model_size=&#34;Large&#34;,
+        ia_attention=True,
+        part_attention=True,
+    ):
+        super(ShuffleNetV2_Plus, self).__init__()
+
+        assert input_size % 32 == 0
+        assert architecture is not None
+
+        self.stage_repeats = [4, 4, 8, 4]
+        if model_size == &#34;Large&#34;:
+            self.stage_out_channels = [-1, 16, 68, 168, 336, 672, 1280]
+        elif model_size == &#34;Medium&#34;:
+            self.stage_out_channels = [-1, 16, 48, 128, 256, 512, 1280]
+        elif model_size == &#34;Small&#34;:
+            self.stage_out_channels = [-1, 16, 36, 104, 208, 416, 1280]
+        else:
+            raise NotImplementedError
+
+        # building first layer
+        input_channel = self.stage_out_channels[1]
+        self.first_conv = nn.Sequential(
+            nn.Conv2d(3, input_channel, 3, 2, 1, bias=False),
+            nn.BatchNorm2d(input_channel),
+            HS(),
+        )
+
+        self.features = nn.ModuleList([])
+        archIndex = 0
+        for idxstage in range(len(self.stage_repeats)):
+            numrepeat = self.stage_repeats[idxstage]
+            output_channel = self.stage_out_channels[idxstage + 2]
+
+            activation = &#34;HS&#34; if idxstage &gt;= 1 else &#34;ReLU&#34;
+            useSE = &#34;True&#34; if idxstage &gt;= 2 else False
+
+            for i in range(numrepeat):
+                if i == 0:
+                    inp, outp, stride = input_channel, output_channel, 2
+                else:
+                    inp, outp, stride = input_channel // 2, output_channel, 1
+
+                blockIndex = architecture[archIndex]
+                archIndex += 1
+                if blockIndex == 0:
+                    # print(&#39;Shuffle3x3&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=3,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 1:
+                    # print(&#39;Shuffle5x5&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=5,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 2:
+                    # print(&#39;Shuffle7x7&#39;)
+                    self.features.append(
+                        Shufflenet(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            ksize=7,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                elif blockIndex == 3:
+                    # print(&#39;Xception&#39;)
+                    self.features.append(
+                        Shuffle_Xception(
+                            inp,
+                            outp,
+                            base_mid_channels=outp // 2,
+                            stride=stride,
+                            activation=activation,
+                            useSE=useSE,
+                        )
+                    )
+                else:
+                    raise NotImplementedError
+                input_channel = output_channel
+        assert archIndex == len(architecture)
+        # self.features = nn.Sequential(*self.features)      # manually do it for attention....
+
+        self.conv_last = nn.Sequential(
+            nn.Conv2d(input_channel, 1280, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(1280),
+            HS(),
+        )
+        self.globalpool = nn.AvgPool2d(7)
+
+        &#34;&#34;&#34; Don&#39;t need these.
+        self.LastSE = SELayer(1280)
+        self.fc = nn.Sequential(
+            nn.Linear(1280, 1280, bias=False),
+            HS(),
+        )
+        self.dropout = nn.Dropout(0.2)
+        self.classifier = nn.Sequential(nn.Linear(1280, n_class, bias=False))
+        &#34;&#34;&#34;
+        # Create true IA
+        if ia_attention:
+            self.ia_attention = InputAttention(
+                16
+            )  # MAGIC...use from architecture array
+        else:
+            self.ia_attention = None
+
+        if part_attention:
+            self.p_sa = DenseAttention(36)  # MAGIC...use from architecture array
+            self.p_ca = ChannelAttention(36)
+            self.p_relu = nn.ReLU(inplace=True)
+        else:
+            self.p_ca = None
+            self.p_sa = None
+            self.p_relu = None
+
+        self._initialize_weights()
+
+    def forward(self, x):
+        x = self.first_conv(x)
+        if self.ia_attention is not None:
+            x = self.ia_attention(x) * x
+
+        x = self.features[0](x)
+        if self.p_ca is not None:
+            p_out = self.p_sa(x) * x
+            p_out = self.p_relu(p_out)
+            part_mask = self.p_ca(p_out)
+            x = (part_mask * p_out) + ((1 - part_mask) * x)
+
+        for idx, layer in enumerate(self.features[1:]):
+            x = layer(x)
+
+        x = self.conv_last(x)
+
+        x = self.globalpool(x)
+
+        &#34;&#34;&#34;x = self.LastSE(x)
+
+        x = x.contiguous().view(-1, 1280)
+
+        x = self.fc(x)
+        x = self.dropout(x)
+        x = self.classifier(x)&#34;&#34;&#34;
+        return x
+
+    def _initialize_weights(self):
+        for name, m in self.named_modules():
+            if isinstance(m, nn.Conv2d):
+                if &#34;first&#34; in name or &#34;SE&#34; in name:
+                    nn.init.normal_(m.weight, 0, 0.01)
+                else:
+                    nn.init.normal_(m.weight, 0, 1.0 / m.weight.shape[1])
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.BatchNorm1d):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0001)
+                nn.init.constant_(m.running_mean, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+    def load_param(self, weights_path):
+        params = torch.load(weights_path)
+        if &#34;state_dict&#34; in params:
+            # This is shufflenet style, not ours...
+            for i in params[&#34;state_dict&#34;]:  # ShuffleNet weights specific issue
+                if &#34;fc&#34; in i:
+                    continue
+                # All &#39;i&#39; in params have &#34;module.&#34; in front of their layer names. [7:] gets rid of it for our models...
+                if (
+                    i[7:] not in self.state_dict()
+                    or params[&#34;state_dict&#34;][i].shape != self.state_dict()[i[7:]].shape
+                ):
+                    continue
+                self.state_dict()[i[7:]].copy_(params[&#34;state_dict&#34;][i])
+        else:  # Our style
+            for _key in params:
+                if (
+                    _key not in self.state_dict().keys()
+                    or params[_key].shape != self.state_dict()[_key].shape
+                ):
+                    continue
+                self.state_dict()[_key].copy_(params[_key])</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.globalpool"><code class="name">var <span class="ident">globalpool</span></code></dt>
+<dd>
+<div class="desc"><p>Don't need these.
+self.LastSE = SELayer(1280)
+self.fc = nn.Sequential(
+nn.Linear(1280, 1280, bias=False),
+HS(),
+)
+self.dropout = nn.Dropout(0.2)
+self.classifier = nn.Sequential(nn.Linear(1280, n_class, bias=False))</p></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x):
+    x = self.first_conv(x)
+    if self.ia_attention is not None:
+        x = self.ia_attention(x) * x
+
+    x = self.features[0](x)
+    if self.p_ca is not None:
+        p_out = self.p_sa(x) * x
+        p_out = self.p_relu(p_out)
+        part_mask = self.p_ca(p_out)
+        x = (part_mask * p_out) + ((1 - part_mask) * x)
+
+    for idx, layer in enumerate(self.features[1:]):
+        x = layer(x)
+
+    x = self.conv_last(x)
+
+    x = self.globalpool(x)
+
+    &#34;&#34;&#34;x = self.LastSE(x)
+
+    x = x.contiguous().view(-1, 1280)
+
+    x = self.fc(x)
+    x = self.dropout(x)
+    x = self.classifier(x)&#34;&#34;&#34;
+    return x</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.load_param"><code class="name flex">
+<span>def <span class="ident">load_param</span></span>(<span>self, weights_path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_param(self, weights_path):
+    params = torch.load(weights_path)
+    if &#34;state_dict&#34; in params:
+        # This is shufflenet style, not ours...
+        for i in params[&#34;state_dict&#34;]:  # ShuffleNet weights specific issue
+            if &#34;fc&#34; in i:
+                continue
+            # All &#39;i&#39; in params have &#34;module.&#34; in front of their layer names. [7:] gets rid of it for our models...
+            if (
+                i[7:] not in self.state_dict()
+                or params[&#34;state_dict&#34;][i].shape != self.state_dict()[i[7:]].shape
+            ):
+                continue
+            self.state_dict()[i[7:]].copy_(params[&#34;state_dict&#34;][i])
+    else:  # Our style
+        for _key in params:
+            if (
+                _key not in self.state_dict().keys()
+                or params[_key].shape != self.state_dict()[_key].shape
+            ):
+                continue
+            self.state_dict()[_key].copy_(params[_key])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ednaml.backbones.shufflenet.Shuffle_Xception"><code class="flex name class">
+<span>class <span class="ident">Shuffle_Xception</span></span>
+<span>(</span><span>inp, oup, base_mid_channels, *, stride, activation, useSE)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Shuffle_Xception(nn.Module):
+    def __init__(self, inp, oup, base_mid_channels, *, stride, activation, useSE):
+        super(Shuffle_Xception, self).__init__()
+
+        assert stride in [1, 2]
+        assert base_mid_channels == oup // 2
+
+        self.base_mid_channel = base_mid_channels
+        self.stride = stride
+        self.ksize = 3
+        self.pad = 1
+        self.inp = inp
+        outputs = oup - inp
+
+        branch_main = nn.ModuleList(
+            [
+                # dw
+                nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                nn.BatchNorm2d(inp),
+                # pw
+                nn.Conv2d(inp, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    3,
+                    stride,
+                    1,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw
+                nn.Conv2d(base_mid_channels, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    3,
+                    stride,
+                    1,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw
+                nn.Conv2d(base_mid_channels, outputs, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(outputs),
+                None,
+            ]
+        )
+
+        if activation == &#34;ReLU&#34;:
+            branch_main[4] = nn.ReLU(inplace=True)
+            branch_main[9] = nn.ReLU(inplace=True)
+            branch_main[14] = nn.ReLU(inplace=True)
+        else:
+            branch_main[4] = HS()
+            branch_main[9] = HS()
+            branch_main[14] = HS()
+        assert None not in branch_main
+
+        if useSE:
+            assert activation != &#34;ReLU&#34;
+            branch_main.append(SELayer(outputs))
+
+        self.branch_main = nn.Sequential(*branch_main)
+
+        if self.stride == 2:
+            branch_proj = nn.ModuleList(
+                [
+                    # dw
+                    nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                    nn.BatchNorm2d(inp),
+                    # pw-linear
+                    nn.Conv2d(inp, inp, 1, 1, 0, bias=False),
+                    nn.BatchNorm2d(inp),
+                    None,
+                ]
+            )
+            if activation == &#34;ReLU&#34;:
+                branch_proj[-1] = nn.ReLU(inplace=True)
+            else:
+                branch_proj[-1] = HS()
+            self.branch_proj = nn.Sequential(*branch_proj)
+
+    def forward(self, old_x):
+        if self.stride == 1:
+            x_proj, x = channel_shuffle(old_x)
+            return torch.cat((x_proj, self.branch_main(x)), 1)
+        elif self.stride == 2:
+            x_proj = old_x
+            x = old_x
+            return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.Shuffle_Xception.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.shufflenet.Shuffle_Xception.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.Shuffle_Xception.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, old_x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, old_x):
+    if self.stride == 1:
+        x_proj, x = channel_shuffle(old_x)
+        return torch.cat((x_proj, self.branch_main(x)), 1)
+    elif self.stride == 2:
+        x_proj = old_x
+        x = old_x
+        return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ednaml.backbones.shufflenet.Shufflenet"><code class="flex name class">
+<span>class <span class="ident">Shufflenet</span></span>
+<span>(</span><span>inp, oup, base_mid_channels, *, ksize, stride, activation, useSE)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Shufflenet(nn.Module):
+    def __init__(
+        self, inp, oup, base_mid_channels, *, ksize, stride, activation, useSE
+    ):
+        super(Shufflenet, self).__init__()
+        self.stride = stride
+        assert stride in [1, 2]
+        assert ksize in [3, 5, 7]
+        assert base_mid_channels == oup // 2
+
+        self.base_mid_channel = base_mid_channels
+        self.ksize = ksize
+        pad = ksize // 2
+        self.pad = pad
+        self.inp = inp
+
+        outputs = oup - inp
+
+        branch_main = nn.ModuleList(
+            [
+                # pw
+                nn.Conv2d(inp, base_mid_channels, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(base_mid_channels),
+                None,
+                # dw
+                nn.Conv2d(
+                    base_mid_channels,
+                    base_mid_channels,
+                    ksize,
+                    stride,
+                    pad,
+                    groups=base_mid_channels,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(base_mid_channels),
+                # pw-linear
+                nn.Conv2d(base_mid_channels, outputs, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(outputs),
+                None,
+            ]
+        )
+        if activation == &#34;ReLU&#34;:
+            assert useSE == False
+            &#34;&#34;&#34;This model should not have SE with ReLU&#34;&#34;&#34;
+            branch_main[2] = nn.ReLU(inplace=True)
+            branch_main[-1] = nn.ReLU(inplace=True)
+        else:
+            branch_main[2] = HS()
+            branch_main[-1] = HS()
+            if useSE:
+                branch_main.append(SELayer(outputs))
+        self.branch_main = nn.Sequential(*branch_main)
+
+        if stride == 2:
+            branch_proj = nn.ModuleList(
+                [
+                    # dw
+                    nn.Conv2d(inp, inp, ksize, stride, pad, groups=inp, bias=False),
+                    nn.BatchNorm2d(inp),
+                    # pw-linear
+                    nn.Conv2d(inp, inp, 1, 1, 0, bias=False),
+                    nn.BatchNorm2d(inp),
+                    None,
+                ]
+            )
+            if activation == &#34;ReLU&#34;:
+                branch_proj[-1] = nn.ReLU(inplace=True)
+            else:
+                branch_proj[-1] = HS()
+            self.branch_proj = nn.Sequential(*branch_proj)
+        else:
+            self.branch_proj = None
+
+    def forward(self, old_x):
+        if self.stride == 1:
+            x_proj, x = channel_shuffle(old_x)
+            return torch.cat((x_proj, self.branch_main(x)), 1)
+        elif self.stride == 2:
+            x_proj = old_x
+            x = old_x
+            return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.Shufflenet.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.shufflenet.Shufflenet.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.shufflenet.Shufflenet.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, old_x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, old_x):
+    if self.stride == 1:
+        x_proj, x = channel_shuffle(old_x)
+        return torch.cat((x_proj, self.branch_main(x)), 1)
+    elif self.stride == 2:
+        x_proj = old_x
+        x = old_x
+        return torch.cat((self.branch_proj(x_proj), self.branch_main(x)), 1)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.backbones" href="index.html">ednaml.backbones</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.channel_shuffle" href="#ednaml.backbones.shufflenet.channel_shuffle">channel_shuffle</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.shufflenetv2_small" href="#ednaml.backbones.shufflenet.shufflenetv2_small">shufflenetv2_small</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.backbones.shufflenet.HS" href="#ednaml.backbones.shufflenet.HS">HS</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.HS.dump_patches" href="#ednaml.backbones.shufflenet.HS.dump_patches">dump_patches</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.HS.forward" href="#ednaml.backbones.shufflenet.HS.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.HS.training" href="#ednaml.backbones.shufflenet.HS.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ednaml.backbones.shufflenet.SELayer" href="#ednaml.backbones.shufflenet.SELayer">SELayer</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.SELayer.dump_patches" href="#ednaml.backbones.shufflenet.SELayer.dump_patches">dump_patches</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.SELayer.forward" href="#ednaml.backbones.shufflenet.SELayer.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.SELayer.training" href="#ednaml.backbones.shufflenet.SELayer.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus">ShuffleNetV2_Plus</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.dump_patches" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus.dump_patches">dump_patches</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.forward" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.globalpool" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus.globalpool">globalpool</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.load_param" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus.load_param">load_param</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.ShuffleNetV2_Plus.training" href="#ednaml.backbones.shufflenet.ShuffleNetV2_Plus.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ednaml.backbones.shufflenet.Shuffle_Xception" href="#ednaml.backbones.shufflenet.Shuffle_Xception">Shuffle_Xception</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.Shuffle_Xception.dump_patches" href="#ednaml.backbones.shufflenet.Shuffle_Xception.dump_patches">dump_patches</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.Shuffle_Xception.forward" href="#ednaml.backbones.shufflenet.Shuffle_Xception.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.Shuffle_Xception.training" href="#ednaml.backbones.shufflenet.Shuffle_Xception.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ednaml.backbones.shufflenet.Shufflenet" href="#ednaml.backbones.shufflenet.Shufflenet">Shufflenet</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.shufflenet.Shufflenet.dump_patches" href="#ednaml.backbones.shufflenet.Shufflenet.dump_patches">dump_patches</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.Shufflenet.forward" href="#ednaml.backbones.shufflenet.Shufflenet.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.shufflenet.Shufflenet.training" href="#ednaml.backbones.shufflenet.Shufflenet.training">training</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

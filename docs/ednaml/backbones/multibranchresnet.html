@@ -1,0 +1,1751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.backbones.multibranchresnet API documentation</title>
+<meta name="description" content="Contains code to build a multi-branch resnet, with a mix of
+weight-shared and independent branches …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.backbones.multibranchresnet</code></h1>
+</header>
+<section id="section-intro">
+<p>Contains code to build a multi-branch resnet, with a mix of
+weight-shared and independent branches.</p>
+<p><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code> creates subbranches contained all or part of resnet.
+Branching occurs at a specified resnet block, after which the remaining
+blocks occur on their own branches with no weight sharing. The branched
+model also has an option for branch fusing, to concatenate features.</p>
+<p>Typical usage example:</p>
+<p>model = multibranchresnet()
+x = torch.randn((3,100,100))
+features = model(x)</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Contains code to build a multi-branch resnet, with a mix of
+weight-shared and independent branches.
+
+`multibranchresnet` creates subbranches contained all or part of resnet. 
+Branching occurs at a specified resnet block, after which the remaining 
+blocks occur on their own branches with no weight sharing. The branched 
+model also has an option for branch fusing, to concatenate features.
+
+  Typical usage example:
+
+  model = multibranchresnet()
+  x = torch.randn((3,100,100))
+  features = model(x)
+&#34;&#34;&#34;
+
+import os
+from torch import nn
+import torch
+from typing import Dict, List
+from ednaml.utils.blocks import ResnetInput, ResnetBasicBlock, ResnetBottleneck
+
+
+class multibranchresnet(nn.Module):
+    &#34;&#34;&#34;`multibranchresnet` creates a resnet with specified branches. 
+    
+    `multibranchresnet` creates subbranches contained all or part of resnet. 
+    Branching occurs at a specified resnet block, after which the remaining 
+    blocks occur on their own branches with no weight sharing. The branched 
+    model also has an option for branch fusing, to concatenate features.
+
+    Attributes:
+        block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture
+        attention (str): Which type of attentio, if any, is implemented in this model. One of `cbam`, `dbam`
+        input_attention (bool): Whether model uses input attention at the first resnet block
+        ia_attention (bool): Whether the model uses input attention at the first layer
+        part_attention (bool): Whether the model uses local/part attention at the first resnet block
+        secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int). 
+        shared_block_count (int): Number of resnet blocks with weight sharing. Maximum value 4
+        num_branches (int): Number of branches after weight-shared blocks
+        pytorch_weights_paths (Dict[str,int]): Strings corresponding to official imagenet resnet weights from pytorch
+        resnetinput (ResnetInput): The input block consisting of conv layer, relu, and pooling.
+        sharedblock (Union[nn.Sequential,nn.Identity]): The shared layers, consisting of at most 4 Resnet blocks.
+        branches (nn.ModuleList): List of branching layers, with at most 4 Resnet blocks each.
+    &#34;&#34;&#34;
+
+    block: nn.Module
+    attention: str
+    input_attention: bool
+    ia_attention: bool
+    part_attention: bool
+    secondary_attention: int
+
+    shared_block_count: int
+    num_branches: int
+    pytorch_weights_paths: Dict[str, int]
+
+    resnetinput: ResnetInput
+    sharedblock: nn.Sequential
+    branches: nn.ModuleList
+
+    def __init__(
+        self,
+        block: nn.Module = ResnetBottleneck,
+        layers: List[int] = [3, 4, 6, 3],
+        last_stride: int = 2,
+        zero_init_residual: bool = False,
+        top_only: bool = True,
+        num_classes: bool = 1000,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: List[int] = None,
+        norm_layer: nn.Module = None,
+        attention: str = None,
+        input_attention: bool = None,
+        secondary_attention: int = None,
+        ia_attention: bool = None,
+        part_attention: bool = None,
+        num_branches: int = 2,
+        shared_block: int = 0,
+        **kwargs
+    ):
+        &#34;&#34;&#34;Initializes the multibranchresnet model and sets up internal modules.
+
+        Args:
+            block (nn.Module, optional): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            layers (List[int], optional): Number of layers in each block. Defaults to [3, 4, 6, 3].
+            last_stride (int, optional): The stride for the last block. Defaults to 2.
+            zero_init_residual (bool, optional): Whether to initialize network with only zeros. Unused. Defaults to False.
+            top_only (bool, optional): Whether to keep only the feature extractor block. Defaults to True.
+            num_classes (bool, optional): Number of classes for the imagenet layer. Unused. Defaults to 1000.
+            groups (int, optional): see nn.conv2D. Defaults to 1.
+            width_per_group (int, optional): see nn.conv2D. Defaults to 64.
+            replace_stride_with_dilation (List[int], optional): Whether to replace stride with dilation for each block. Defaults to None.
+            norm_layer (nn.Module, optional): The default normalization layer. If None, uses batchnorm. Defaults to None.
+            attention (str, optional): What attention to use, among `cbam`, `dbam`. Defaults to None.
+            input_attention (bool, optional): Whether to use input attention at the first resnet block. Defaults to None.
+            secondary_attention (int, optional): Whether to use secondary attention to apply `attention` to the specific resnet block only. Defaults to None.
+            ia_attention (bool, optional): Whether to use input attention at the first conv layer. Exclusive with `input_attention`. Defaults to None.
+            part_attention (bool, optional): Whether to use the local attention module. Defaults to None.
+            num_branches (int, optional): Number of branches for this resnet. Defaults to 2.
+            shared_block (int, optional): Number of weight-shared resnet blocks. Defaults to 0.
+
+        Raises:
+            ValueError: If attention blocks are not self-consistent. Specifically, the following rules:
+                - cannot have both `ia_attention` and `input_attention`.
+                - cannot have `part_attention` with `attention`, unless `secondary_attention`!=1
+            ValueError: If branching does not occur, i.e. `shared_block`&gt;=4
+            ValueError: If `replace_stride_with_dilation` is not a 3-tuple or None.
+        &#34;&#34;&#34;
+        super().__init__()
+
+        self.pytorch_weights_paths = self._model_weights()
+        self.block = block
+        self.inplanes = 64
+        if norm_layer is None:
+            self._norm_layer = nn.BatchNorm2d
+        # elif norm_layer == &#34;ln&#34;:
+        #    self._norm_layer = nn.LayerNorm
+        self.dilation = 1
+        if replace_stride_with_dilation is None:
+            replace_stride_with_dilation = [False, False, False]
+        if len(replace_stride_with_dilation) != 3:
+            raise ValueError(
+                &#34;replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}&#34;.format(
+                    replace_stride_with_dilation
+                )
+            )
+        self.groups = groups
+        self.base_width = width_per_group
+
+        # Attention parameters
+        self.attention = attention
+        self.input_attention = input_attention
+        self.ia_attention = ia_attention
+        self.part_attention = part_attention
+        self.secondary_attention = secondary_attention
+
+        # Make sure ia and input_attention do not conflict
+        if self.ia_attention is not None and self.input_attention is not None:
+            raise ValueError(&#34;Cannot have both ia_attention and input_attention.&#34;)
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention is None
+        ):
+            raise ValueError(&#34;Cannot have part-attention with CBAM everywhere&#34;)
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention == 1
+        ):
+            raise ValueError(&#34;Cannot have part-attention with CBAM-Early&#34;)
+
+        # Here, set up where the branching begins in the resnet backbone
+        self.shared_block_count = shared_block
+        if self.shared_block_count &gt; 4:
+            raise ValueError(
+                &#34;`shared_block_count` value is %i. Cannot be greater than 4&#34;
+                % self.shared_block_count
+            )
+        if self.shared_block_count == 4:
+            raise ValueError(
+                &#34;`shared_block_count` value is %i. This is a non-branching model.&#34;
+                % self.shared_block_count
+            )
+
+        # Set up the per-layer parameters for the primary ResNet blocks
+        layer_strides = [1, 2, 2, last_stride]
+        layer_part_attention = [self.part_attention, False, False, False]
+        layer_input_attention = [self.input_attention, False, False, False]
+        layer_dilate = [False] + replace_stride_with_dilation
+        layer_outplanes = [64, 128, 256, 512]
+        # Fix secondary attention
+        if secondary_attention is None:
+            layer_att = [self.attention] * 4
+        else:
+            layer_att = [None] * 4
+            layer_att[secondary_attention] = self.attention
+        # Zip layer arguments
+        layer_arguments = list(
+            zip(
+                layers,
+                layer_outplanes,
+                layer_strides,
+                layer_part_attention,
+                layer_input_attention,
+                layer_dilate,
+                layer_att,
+            )
+        )
+
+        # First, given the shared_block_count, generate the shared layers list. We will nn.Sequential them later
+        sharedlayers = []
+        for layer_zip in layer_arguments[: self.shared_block_count]:
+            sharedlayers.append(
+                self._make_layer(
+                    self.block,
+                    layer_zip[1],
+                    layer_zip[0],
+                    attention=layer_zip[6],
+                    input_attention=layer_zip[4],
+                    part_attention=layer_zip[3],
+                    dilate=layer_zip[5],
+                    stride=layer_zip[2],
+                )
+            )
+        self.shared_inplanes = self.inplanes
+        self.shared_dilation = self.dilation
+        # Then, given the branches, put the remaining resnet blocks in their branches
+        # During prediction, we will just get branch features so order does not matter yet. it will matter in MultiBranchResnet
+        # So, self.branches will be a nn.moduleList, with a bunch of nn.Sequentials
+        self.num_branches = num_branches
+        branches = [None] * self.num_branches
+        for bidx in range(self.num_branches):
+            branches[bidx] = []
+            for layer_zip in layer_arguments[self.shared_block_count :]:
+                branches[bidx].append(
+                    self._make_layer(
+                        self.block,
+                        layer_zip[1],
+                        layer_zip[0],
+                        attention=layer_zip[6],
+                        input_attention=layer_zip[4],
+                        part_attention=layer_zip[3],
+                        dilate=layer_zip[5],
+                        stride=layer_zip[2],
+                    )
+                )
+            branches[bidx] = nn.Sequential(*branches[bidx])
+            self.inplanes = self.shared_inplanes
+            self.dilation = self.shared_dilation
+
+        self.resnetinput = ResnetInput(ia_attention=ia_attention)
+        if len(sharedlayers) &gt; 0:
+            self.sharedblock = nn.Sequential(*sharedlayers)
+        else:
+            self.sharedblock = nn.Identity()
+        self.branches = nn.ModuleList(branches)
+
+    def _make_layer(
+        self,
+        block: nn.Module,
+        planes: int,
+        blocks: int,
+        stride: int = 1,
+        dilate: bool = False,
+        attention: str = None,
+        input_attention: bool = False,
+        ia_attention: bool = False,
+        part_attention: bool = False,
+    ) -&gt; nn.Sequential:
+        &#34;&#34;&#34;Creates a resnet block
+
+        Args:
+            block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            planes (int): Number of input depth
+            blocks (int): Number of blocks in this ResnetBlock
+            stride (int, optional): Stride for the conv layers. Defaults to 1.
+            dilate (bool, optional): Dilation for the conv layers. Defaults to False.
+            attention (str, optional): Which of `cbam`, `dbam` attention to use. Defaults to None.
+            input_attention (bool, optional): Whether to use `input_attention`. Defaults to False.
+            ia_attention (bool, optional): Whether to use `ia_attention`. Unused. Defaults to False.
+            part_attention (bool, optional): Whether to use local attention. Defaults to False.
+
+        Returns:
+            nn.Sequential: The layers comprising this Resnet Block as an nn.Sequential
+        &#34;&#34;&#34;
+        downsample = None
+        previous_dilation = self.dilation
+        if dilate:
+            self.dilation *= stride
+            stride = 1
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(
+                    self.inplanes,
+                    planes * block.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                ),
+                self._norm_layer(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(
+            block(
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                groups=self.groups,
+                base_width=self.base_width,
+                dilation=previous_dilation,
+                norm_layer=self._norm_layer,
+                attention=attention,
+                input_attention=input_attention,
+                part_attention=part_attention,
+            )
+        )
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=self._norm_layer,
+                    attention=attention,
+                )
+            )
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.resnetinput(x)
+        x = self.sharedblock(x)
+        return [self.branches[idx](x) for idx in range(self.num_branches)]
+
+    def load_param(self, weights_path: str):
+        &#34;&#34;&#34;Loads parameters from saved weights file
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        if os.path.basename(weights_path) in self.pytorch_weights_paths:
+            self.load_params_from_pytorch(weights_path)
+        else:
+            self.load_params_from_weights(weights_path)
+
+    def load_params_from_pytorch(self, weights_path: str):
+        &#34;&#34;&#34;Loads default pytorch weights file into the multibranch resnet
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        param_dict = torch.load(weights_path)
+        # Three stages: load resnetinput params, load shared block params, and then load branch params...
+        inputparams = [
+            &#34;conv1.weight&#34;,
+            &#34;bn1.running_mean&#34;,
+            &#34;bn1.running_var&#34;,
+            &#34;bn1.weight&#34;,
+            &#34;bn1.bias&#34;,
+        ]
+        # Load the input params
+        for param in inputparams:
+            self.state_dict()[&#34;resnetinput.&#34; + param].copy_(param_dict[param])
+
+        # load shared block params,
+        for layer_idx in range(self.shared_block_count):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for layer_name in full_layer_list:
+                # First, get the raw layer info, then append sharedblock to it...
+                local_param_name = self._build_local_layer_param_from_pytorch_name(
+                    layer_name, layer_idx
+                )
+                self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+        # Now, we need to load branch params...
+        for layer_idx in range(self.shared_block_count, 4):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for branch_idx in range(self.num_branches):
+                for layer_name in full_layer_list:
+                    # First, get the raw layer info, then append sharedblock to it...
+                    local_param_name = self._build_branch_layer_param_from_pytorch_name(
+                        layer_name, layer_idx, branch_idx, self.shared_block_count
+                    )
+                    self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+    def _build_local_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int
+    ) -&gt; str:
+        &#34;&#34;&#34;Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the shared block.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+
+        Returns:
+            str: Converted parameter name
+        &#34;&#34;&#34;
+        param_list = paramname.split(&#34;.&#34;)
+        new_param_list = [&#34;sharedblock&#34;, str(layeridx)] + param_list[1:]
+        return &#34;.&#34;.join(new_param_list)
+
+    def _build_branch_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int, branch_idx: int, layer_reset: int
+    ) -&gt; str:
+        &#34;&#34;&#34;Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the branches.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+            branch_idx (int): The target branch for this parameter
+            layer_reset (int): The layer reset number, since `multibranchresnet` restarts layer numbering at the branch junction
+
+        Returns:
+            str: Converted parameter name
+        &#34;&#34;&#34;
+        param_list = paramname.split(&#34;.&#34;)
+        new_param_list = [
+            &#34;branches&#34;,
+            str(branch_idx),
+            str(layeridx - layer_reset),
+        ] + param_list[1:]
+        return &#34;.&#34;.join(new_param_list)
+
+    def load_params_from_weights(self, weights_path: str):
+        &#34;&#34;&#34;Loads parameters from a saved `multibranchresnet`
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        param_dict = torch.load(weights_path)
+        for i in param_dict:
+            if &#34;fc&#34; in i and self.top_only:
+                continue
+            self.state_dict()[i].copy_(param_dict[i])
+
+    def _model_weights(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;Constructs a dictionary to quickly retrieve pytorch weight paths
+
+        Returns:
+            Dict[str,int]: the dictinary storing paths
+        &#34;&#34;&#34;
+        mw = [
+            &#34;resnet18-5c106cde.pth&#34;,
+            &#34;resnet34-333f7ec4.pth&#34;,
+            &#34;resnet50-19c8e357.pth&#34;,
+            &#34;resnet101-5d3b4d8f.pth&#34;,
+            &#34;resnet152-b121ed2d.pth&#34;,
+            &#34;resnext50_32x4d-7cdf4587.pth&#34;,
+            &#34;resnext101_32x8d-8ba56ff5.pth&#34;,
+            &#34;wide_resnet50_2-95faca4d.pth&#34;,
+            &#34;wide_resnet50_2-95faca4d.pth&#34;,
+            &#34;resnet18-5c106cde_cbam.pth&#34;,
+            &#34;resnet34-333f7ec4_cbam.pth&#34;,
+            &#34;resnet50-19c8e357_cbam.pth&#34;,
+            &#34;resnet101-5d3b4d8f_cbam.pth&#34;,
+            &#34;resnet152-b121ed2d_cbam.pth&#34;,
+        ]
+        return {item: 1 for item in mw}
+
+
+def _multibranchresnet(
+    arch, block, layers, pretrained, progress, **kwargs
+) -&gt; multibranchresnet:
+    &#34;&#34;&#34;Builds a `multibranchresnet`
+
+    Args:
+        arch (str): Architecture base. Unused.
+        block (nn.Module): The class of the ResnetBlock (BasicBlock or Bottleneck)
+        layers (List[int]): The layers for each ResnetBlock
+        pretrained (bool): Unused
+        progress (bool): Unused
+
+    Returns:
+        multibranchresnet: The `multibranchresnet` model
+    &#34;&#34;&#34;
+    model = multibranchresnet(block, layers, **kwargs)
+    return model
+
+
+def resnet18(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-18 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet18&#34;, ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs
+    )
+
+
+def resnet34(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-34 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet34&#34;, ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
+
+
+def resnet50(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-50 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet50&#34;, ResnetBottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )
+
+
+def resnet101(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-101 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet101&#34;, ResnetBottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )
+
+
+def resnet152(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-152 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet152&#34;, ResnetBottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
+    )
+
+
+def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNeXt-50 32x4d model from
+    `&#34;Aggregated Residual Transformation for Deep Neural Networks&#34; &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;groups&#34;] = 32
+    kwargs[&#34;width_per_group&#34;] = 4
+    return _multibranchresnet(
+        &#34;resnext50_32x4d&#34;,
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
+
+
+def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNeXt-101 32x8d model from
+    `&#34;Aggregated Residual Transformation for Deep Neural Networks&#34; &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;groups&#34;] = 32
+    kwargs[&#34;width_per_group&#34;] = 8
+    return _multibranchresnet(
+        &#34;resnext101_32x8d&#34;,
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
+
+
+def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;Wide ResNet-50-2 model from
+    `&#34;Wide Residual Networks&#34; &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;`_
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;width_per_group&#34;] = 64 * 2
+    return _multibranchresnet(
+        &#34;wide_resnet50_2&#34;,
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )
+
+
+def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;Wide ResNet-101-2 model from
+    `&#34;Wide Residual Networks&#34; &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;`_
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;width_per_group&#34;] = 64 * 2
+    return _multibranchresnet(
+        &#34;wide_resnet101_2&#34;,
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ednaml.backbones.multibranchresnet.resnet101"><code class="name flex">
+<span>def <span class="ident">resnet101</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNet-101 model from
+<code>"Deep Residual Learning for Image Recognition" &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnet101(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-101 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet101&#34;, ResnetBottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnet152"><code class="name flex">
+<span>def <span class="ident">resnet152</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNet-152 model from
+<code>"Deep Residual Learning for Image Recognition" &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnet152(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-152 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet152&#34;, ResnetBottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnet18"><code class="name flex">
+<span>def <span class="ident">resnet18</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNet-18 model from
+<code>"Deep Residual Learning for Image Recognition" &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnet18(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-18 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet18&#34;, ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnet34"><code class="name flex">
+<span>def <span class="ident">resnet34</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNet-34 model from
+<code>"Deep Residual Learning for Image Recognition" &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnet34(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-34 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet34&#34;, ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnet50"><code class="name flex">
+<span>def <span class="ident">resnet50</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNet-50 model from
+<code>"Deep Residual Learning for Image Recognition" &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnet50(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNet-50 model from
+    `&#34;Deep Residual Learning for Image Recognition&#34; &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    return _multibranchresnet(
+        &#34;resnet50&#34;, ResnetBottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnext101_32x8d"><code class="name flex">
+<span>def <span class="ident">resnext101_32x8d</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNeXt-101 32x8d model from
+<code>"Aggregated Residual Transformation for Deep Neural Networks" &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNeXt-101 32x8d model from
+    `&#34;Aggregated Residual Transformation for Deep Neural Networks&#34; &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;groups&#34;] = 32
+    kwargs[&#34;width_per_group&#34;] = 8
+    return _multibranchresnet(
+        &#34;resnext101_32x8d&#34;,
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.resnext50_32x4d"><code class="name flex">
+<span>def <span class="ident">resnext50_32x4d</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ResNeXt-50 32x4d model from
+<code>"Aggregated Residual Transformation for Deep Neural Networks" &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;</code>_</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resnext50_32x4d(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;ResNeXt-50 32x4d model from
+    `&#34;Aggregated Residual Transformation for Deep Neural Networks&#34; &lt;https://arxiv.org/pdf/1611.05431.pdf&gt;`_
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;groups&#34;] = 32
+    kwargs[&#34;width_per_group&#34;] = 4
+    return _multibranchresnet(
+        &#34;resnext50_32x4d&#34;,
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.wide_resnet101_2"><code class="name flex">
+<span>def <span class="ident">wide_resnet101_2</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wide ResNet-101-2 model from
+<code>"Wide Residual Networks" &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;</code>_
+The model is the same as ResNet except for the bottleneck number of channels
+which is twice larger in every block. The number of channels in outer 1x1
+convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+channels, and in Wide ResNet-50-2 has 2048-1024-2048.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;Wide ResNet-101-2 model from
+    `&#34;Wide Residual Networks&#34; &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;`_
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;width_per_group&#34;] = 64 * 2
+    return _multibranchresnet(
+        &#34;wide_resnet101_2&#34;,
+        ResnetBottleneck,
+        [3, 4, 23, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.wide_resnet50_2"><code class="name flex">
+<span>def <span class="ident">wide_resnet50_2</span></span>(<span>pretrained=False, progress=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wide ResNet-50-2 model from
+<code>"Wide Residual Networks" &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;</code>_
+The model is the same as ResNet except for the bottleneck number of channels
+which is twice larger in every block. The number of channels in outer 1x1
+convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+channels, and in Wide ResNet-50-2 has 2048-1024-2048.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pretrained</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, returns a model pre-trained on ImageNet</dd>
+<dt><strong><code>progress</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, displays a progress bar of the download to stderr</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wide_resnet50_2(pretrained=False, progress=True, **kwargs):
+    r&#34;&#34;&#34;Wide ResNet-50-2 model from
+    `&#34;Wide Residual Networks&#34; &lt;https://arxiv.org/pdf/1605.07146.pdf&gt;`_
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    &#34;&#34;&#34;
+    kwargs[&#34;width_per_group&#34;] = 64 * 2
+    return _multibranchresnet(
+        &#34;wide_resnet50_2&#34;,
+        ResnetBottleneck,
+        [3, 4, 6, 3],
+        pretrained,
+        progress,
+        **kwargs
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet"><code class="flex name class">
+<span>class <span class="ident">multibranchresnet</span></span>
+<span>(</span><span>block: torch.nn.modules.module.Module = ednaml.utils.blocks.ResnetBottleneck.ResnetBottleneck, layers: List[int] = [3, 4, 6, 3], last_stride: int = 2, zero_init_residual: bool = False, top_only: bool = True, num_classes: bool = 1000, groups: int = 1, width_per_group: int = 64, replace_stride_with_dilation: List[int] = None, norm_layer: torch.nn.modules.module.Module = None, attention: str = None, input_attention: bool = None, secondary_attention: int = None, ia_attention: bool = None, part_attention: bool = None, num_branches: int = 2, shared_block: int = 0, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code> creates a resnet with specified branches. </p>
+<p><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code> creates subbranches contained all or part of resnet.
+Branching occurs at a specified resnet block, after which the remaining
+blocks occur on their own branches with no weight sharing. The branched
+model also has an option for branch fusing, to concatenate features.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>nn.Module</code></dt>
+<dd>The block (BasicBlock or Bottleneck) used for the internal Resnet architecture</dd>
+<dt><strong><code>attention</code></strong> :&ensp;<code>str</code></dt>
+<dd>Which type of attentio, if any, is implemented in this model. One of <code>cbam</code>, <code>dbam</code></dd>
+<dt><strong><code>input_attention</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether model uses input attention at the first resnet block</dd>
+<dt><strong><code>ia_attention</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether the model uses input attention at the first layer</dd>
+<dt><strong><code>part_attention</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether the model uses local/part attention at the first resnet block</dd>
+<dt>secondary_attention (None | int): Whether <code>attention</code> is applied to all blocks (None) or to the specified block (int).</dt>
+<dt><strong><code>shared_block_count</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of resnet blocks with weight sharing. Maximum value 4</dd>
+<dt><strong><code>num_branches</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of branches after weight-shared blocks</dd>
+<dt><strong><code>pytorch_weights_paths</code></strong> :&ensp;<code>Dict[str,int]</code></dt>
+<dd>Strings corresponding to official imagenet resnet weights from pytorch</dd>
+<dt><strong><code>resnetinput</code></strong> :&ensp;<code>ResnetInput</code></dt>
+<dd>The input block consisting of conv layer, relu, and pooling.</dd>
+<dt><strong><code>sharedblock</code></strong> :&ensp;<code>Union[nn.Sequential,nn.Identity]</code></dt>
+<dd>The shared layers, consisting of at most 4 Resnet blocks.</dd>
+<dt><strong><code>branches</code></strong> :&ensp;<code>nn.ModuleList</code></dt>
+<dd>List of branching layers, with at most 4 Resnet blocks each.</dd>
+</dl>
+<p>Initializes the multibranchresnet model and sets up internal modules.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>nn.Module</code>, optional</dt>
+<dd>The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.</dd>
+<dt><strong><code>layers</code></strong> :&ensp;<code>List[int]</code>, optional</dt>
+<dd>Number of layers in each block. Defaults to [3, 4, 6, 3].</dd>
+<dt><strong><code>last_stride</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The stride for the last block. Defaults to 2.</dd>
+<dt><strong><code>zero_init_residual</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to initialize network with only zeros. Unused. Defaults to False.</dd>
+<dt><strong><code>top_only</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to keep only the feature extractor block. Defaults to True.</dd>
+<dt><strong><code>num_classes</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Number of classes for the imagenet layer. Unused. Defaults to 1000.</dd>
+<dt><strong><code>groups</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>see nn.conv2D. Defaults to 1.</dd>
+<dt><strong><code>width_per_group</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>see nn.conv2D. Defaults to 64.</dd>
+<dt><strong><code>replace_stride_with_dilation</code></strong> :&ensp;<code>List[int]</code>, optional</dt>
+<dd>Whether to replace stride with dilation for each block. Defaults to None.</dd>
+<dt><strong><code>norm_layer</code></strong> :&ensp;<code>nn.Module</code>, optional</dt>
+<dd>The default normalization layer. If None, uses batchnorm. Defaults to None.</dd>
+<dt><strong><code>attention</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>What attention to use, among <code>cbam</code>, <code>dbam</code>. Defaults to None.</dd>
+<dt><strong><code>input_attention</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to use input attention at the first resnet block. Defaults to None.</dd>
+<dt><strong><code>secondary_attention</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Whether to use secondary attention to apply <code>attention</code> to the specific resnet block only. Defaults to None.</dd>
+<dt><strong><code>ia_attention</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to use input attention at the first conv layer. Exclusive with <code>input_attention</code>. Defaults to None.</dd>
+<dt><strong><code>part_attention</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to use the local attention module. Defaults to None.</dd>
+<dt><strong><code>num_branches</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of branches for this resnet. Defaults to 2.</dd>
+<dt><strong><code>shared_block</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of weight-shared resnet blocks. Defaults to 0.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If attention blocks are not self-consistent. Specifically, the following rules:
+- cannot have both <code>ia_attention</code> and <code>input_attention</code>.
+- cannot have <code>part_attention</code> with <code>attention</code>, unless <code>secondary_attention</code>!=1</dd>
+<dt><code>ValueError</code></dt>
+<dd>If branching does not occur, i.e. <code>shared_block</code>&gt;=4</dd>
+<dt><code>ValueError</code></dt>
+<dd>If <code>replace_stride_with_dilation</code> is not a 3-tuple or None.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class multibranchresnet(nn.Module):
+    &#34;&#34;&#34;`multibranchresnet` creates a resnet with specified branches. 
+    
+    `multibranchresnet` creates subbranches contained all or part of resnet. 
+    Branching occurs at a specified resnet block, after which the remaining 
+    blocks occur on their own branches with no weight sharing. The branched 
+    model also has an option for branch fusing, to concatenate features.
+
+    Attributes:
+        block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture
+        attention (str): Which type of attentio, if any, is implemented in this model. One of `cbam`, `dbam`
+        input_attention (bool): Whether model uses input attention at the first resnet block
+        ia_attention (bool): Whether the model uses input attention at the first layer
+        part_attention (bool): Whether the model uses local/part attention at the first resnet block
+        secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int). 
+        shared_block_count (int): Number of resnet blocks with weight sharing. Maximum value 4
+        num_branches (int): Number of branches after weight-shared blocks
+        pytorch_weights_paths (Dict[str,int]): Strings corresponding to official imagenet resnet weights from pytorch
+        resnetinput (ResnetInput): The input block consisting of conv layer, relu, and pooling.
+        sharedblock (Union[nn.Sequential,nn.Identity]): The shared layers, consisting of at most 4 Resnet blocks.
+        branches (nn.ModuleList): List of branching layers, with at most 4 Resnet blocks each.
+    &#34;&#34;&#34;
+
+    block: nn.Module
+    attention: str
+    input_attention: bool
+    ia_attention: bool
+    part_attention: bool
+    secondary_attention: int
+
+    shared_block_count: int
+    num_branches: int
+    pytorch_weights_paths: Dict[str, int]
+
+    resnetinput: ResnetInput
+    sharedblock: nn.Sequential
+    branches: nn.ModuleList
+
+    def __init__(
+        self,
+        block: nn.Module = ResnetBottleneck,
+        layers: List[int] = [3, 4, 6, 3],
+        last_stride: int = 2,
+        zero_init_residual: bool = False,
+        top_only: bool = True,
+        num_classes: bool = 1000,
+        groups: int = 1,
+        width_per_group: int = 64,
+        replace_stride_with_dilation: List[int] = None,
+        norm_layer: nn.Module = None,
+        attention: str = None,
+        input_attention: bool = None,
+        secondary_attention: int = None,
+        ia_attention: bool = None,
+        part_attention: bool = None,
+        num_branches: int = 2,
+        shared_block: int = 0,
+        **kwargs
+    ):
+        &#34;&#34;&#34;Initializes the multibranchresnet model and sets up internal modules.
+
+        Args:
+            block (nn.Module, optional): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            layers (List[int], optional): Number of layers in each block. Defaults to [3, 4, 6, 3].
+            last_stride (int, optional): The stride for the last block. Defaults to 2.
+            zero_init_residual (bool, optional): Whether to initialize network with only zeros. Unused. Defaults to False.
+            top_only (bool, optional): Whether to keep only the feature extractor block. Defaults to True.
+            num_classes (bool, optional): Number of classes for the imagenet layer. Unused. Defaults to 1000.
+            groups (int, optional): see nn.conv2D. Defaults to 1.
+            width_per_group (int, optional): see nn.conv2D. Defaults to 64.
+            replace_stride_with_dilation (List[int], optional): Whether to replace stride with dilation for each block. Defaults to None.
+            norm_layer (nn.Module, optional): The default normalization layer. If None, uses batchnorm. Defaults to None.
+            attention (str, optional): What attention to use, among `cbam`, `dbam`. Defaults to None.
+            input_attention (bool, optional): Whether to use input attention at the first resnet block. Defaults to None.
+            secondary_attention (int, optional): Whether to use secondary attention to apply `attention` to the specific resnet block only. Defaults to None.
+            ia_attention (bool, optional): Whether to use input attention at the first conv layer. Exclusive with `input_attention`. Defaults to None.
+            part_attention (bool, optional): Whether to use the local attention module. Defaults to None.
+            num_branches (int, optional): Number of branches for this resnet. Defaults to 2.
+            shared_block (int, optional): Number of weight-shared resnet blocks. Defaults to 0.
+
+        Raises:
+            ValueError: If attention blocks are not self-consistent. Specifically, the following rules:
+                - cannot have both `ia_attention` and `input_attention`.
+                - cannot have `part_attention` with `attention`, unless `secondary_attention`!=1
+            ValueError: If branching does not occur, i.e. `shared_block`&gt;=4
+            ValueError: If `replace_stride_with_dilation` is not a 3-tuple or None.
+        &#34;&#34;&#34;
+        super().__init__()
+
+        self.pytorch_weights_paths = self._model_weights()
+        self.block = block
+        self.inplanes = 64
+        if norm_layer is None:
+            self._norm_layer = nn.BatchNorm2d
+        # elif norm_layer == &#34;ln&#34;:
+        #    self._norm_layer = nn.LayerNorm
+        self.dilation = 1
+        if replace_stride_with_dilation is None:
+            replace_stride_with_dilation = [False, False, False]
+        if len(replace_stride_with_dilation) != 3:
+            raise ValueError(
+                &#34;replace_stride_with_dilation should be `None` or a 3-element tuple. Got {}&#34;.format(
+                    replace_stride_with_dilation
+                )
+            )
+        self.groups = groups
+        self.base_width = width_per_group
+
+        # Attention parameters
+        self.attention = attention
+        self.input_attention = input_attention
+        self.ia_attention = ia_attention
+        self.part_attention = part_attention
+        self.secondary_attention = secondary_attention
+
+        # Make sure ia and input_attention do not conflict
+        if self.ia_attention is not None and self.input_attention is not None:
+            raise ValueError(&#34;Cannot have both ia_attention and input_attention.&#34;)
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention is None
+        ):
+            raise ValueError(&#34;Cannot have part-attention with CBAM everywhere&#34;)
+        if self.part_attention is not None and (
+            self.attention is not None and self.secondary_attention == 1
+        ):
+            raise ValueError(&#34;Cannot have part-attention with CBAM-Early&#34;)
+
+        # Here, set up where the branching begins in the resnet backbone
+        self.shared_block_count = shared_block
+        if self.shared_block_count &gt; 4:
+            raise ValueError(
+                &#34;`shared_block_count` value is %i. Cannot be greater than 4&#34;
+                % self.shared_block_count
+            )
+        if self.shared_block_count == 4:
+            raise ValueError(
+                &#34;`shared_block_count` value is %i. This is a non-branching model.&#34;
+                % self.shared_block_count
+            )
+
+        # Set up the per-layer parameters for the primary ResNet blocks
+        layer_strides = [1, 2, 2, last_stride]
+        layer_part_attention = [self.part_attention, False, False, False]
+        layer_input_attention = [self.input_attention, False, False, False]
+        layer_dilate = [False] + replace_stride_with_dilation
+        layer_outplanes = [64, 128, 256, 512]
+        # Fix secondary attention
+        if secondary_attention is None:
+            layer_att = [self.attention] * 4
+        else:
+            layer_att = [None] * 4
+            layer_att[secondary_attention] = self.attention
+        # Zip layer arguments
+        layer_arguments = list(
+            zip(
+                layers,
+                layer_outplanes,
+                layer_strides,
+                layer_part_attention,
+                layer_input_attention,
+                layer_dilate,
+                layer_att,
+            )
+        )
+
+        # First, given the shared_block_count, generate the shared layers list. We will nn.Sequential them later
+        sharedlayers = []
+        for layer_zip in layer_arguments[: self.shared_block_count]:
+            sharedlayers.append(
+                self._make_layer(
+                    self.block,
+                    layer_zip[1],
+                    layer_zip[0],
+                    attention=layer_zip[6],
+                    input_attention=layer_zip[4],
+                    part_attention=layer_zip[3],
+                    dilate=layer_zip[5],
+                    stride=layer_zip[2],
+                )
+            )
+        self.shared_inplanes = self.inplanes
+        self.shared_dilation = self.dilation
+        # Then, given the branches, put the remaining resnet blocks in their branches
+        # During prediction, we will just get branch features so order does not matter yet. it will matter in MultiBranchResnet
+        # So, self.branches will be a nn.moduleList, with a bunch of nn.Sequentials
+        self.num_branches = num_branches
+        branches = [None] * self.num_branches
+        for bidx in range(self.num_branches):
+            branches[bidx] = []
+            for layer_zip in layer_arguments[self.shared_block_count :]:
+                branches[bidx].append(
+                    self._make_layer(
+                        self.block,
+                        layer_zip[1],
+                        layer_zip[0],
+                        attention=layer_zip[6],
+                        input_attention=layer_zip[4],
+                        part_attention=layer_zip[3],
+                        dilate=layer_zip[5],
+                        stride=layer_zip[2],
+                    )
+                )
+            branches[bidx] = nn.Sequential(*branches[bidx])
+            self.inplanes = self.shared_inplanes
+            self.dilation = self.shared_dilation
+
+        self.resnetinput = ResnetInput(ia_attention=ia_attention)
+        if len(sharedlayers) &gt; 0:
+            self.sharedblock = nn.Sequential(*sharedlayers)
+        else:
+            self.sharedblock = nn.Identity()
+        self.branches = nn.ModuleList(branches)
+
+    def _make_layer(
+        self,
+        block: nn.Module,
+        planes: int,
+        blocks: int,
+        stride: int = 1,
+        dilate: bool = False,
+        attention: str = None,
+        input_attention: bool = False,
+        ia_attention: bool = False,
+        part_attention: bool = False,
+    ) -&gt; nn.Sequential:
+        &#34;&#34;&#34;Creates a resnet block
+
+        Args:
+            block (nn.Module): The block (BasicBlock or Bottleneck) used for the internal Resnet architecture. Defaults to ResnetBottleneck.
+            planes (int): Number of input depth
+            blocks (int): Number of blocks in this ResnetBlock
+            stride (int, optional): Stride for the conv layers. Defaults to 1.
+            dilate (bool, optional): Dilation for the conv layers. Defaults to False.
+            attention (str, optional): Which of `cbam`, `dbam` attention to use. Defaults to None.
+            input_attention (bool, optional): Whether to use `input_attention`. Defaults to False.
+            ia_attention (bool, optional): Whether to use `ia_attention`. Unused. Defaults to False.
+            part_attention (bool, optional): Whether to use local attention. Defaults to False.
+
+        Returns:
+            nn.Sequential: The layers comprising this Resnet Block as an nn.Sequential
+        &#34;&#34;&#34;
+        downsample = None
+        previous_dilation = self.dilation
+        if dilate:
+            self.dilation *= stride
+            stride = 1
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(
+                    self.inplanes,
+                    planes * block.expansion,
+                    kernel_size=1,
+                    stride=stride,
+                    bias=False,
+                ),
+                self._norm_layer(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(
+            block(
+                self.inplanes,
+                planes,
+                stride,
+                downsample,
+                groups=self.groups,
+                base_width=self.base_width,
+                dilation=previous_dilation,
+                norm_layer=self._norm_layer,
+                attention=attention,
+                input_attention=input_attention,
+                part_attention=part_attention,
+            )
+        )
+        self.inplanes = planes * block.expansion
+        for _ in range(1, blocks):
+            layers.append(
+                block(
+                    self.inplanes,
+                    planes,
+                    groups=self.groups,
+                    base_width=self.base_width,
+                    dilation=self.dilation,
+                    norm_layer=self._norm_layer,
+                    attention=attention,
+                )
+            )
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.resnetinput(x)
+        x = self.sharedblock(x)
+        return [self.branches[idx](x) for idx in range(self.num_branches)]
+
+    def load_param(self, weights_path: str):
+        &#34;&#34;&#34;Loads parameters from saved weights file
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        if os.path.basename(weights_path) in self.pytorch_weights_paths:
+            self.load_params_from_pytorch(weights_path)
+        else:
+            self.load_params_from_weights(weights_path)
+
+    def load_params_from_pytorch(self, weights_path: str):
+        &#34;&#34;&#34;Loads default pytorch weights file into the multibranch resnet
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        param_dict = torch.load(weights_path)
+        # Three stages: load resnetinput params, load shared block params, and then load branch params...
+        inputparams = [
+            &#34;conv1.weight&#34;,
+            &#34;bn1.running_mean&#34;,
+            &#34;bn1.running_var&#34;,
+            &#34;bn1.weight&#34;,
+            &#34;bn1.bias&#34;,
+        ]
+        # Load the input params
+        for param in inputparams:
+            self.state_dict()[&#34;resnetinput.&#34; + param].copy_(param_dict[param])
+
+        # load shared block params,
+        for layer_idx in range(self.shared_block_count):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for layer_name in full_layer_list:
+                # First, get the raw layer info, then append sharedblock to it...
+                local_param_name = self._build_local_layer_param_from_pytorch_name(
+                    layer_name, layer_idx
+                )
+                self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+        # Now, we need to load branch params...
+        for layer_idx in range(self.shared_block_count, 4):
+            # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+            # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+            full_layer_list = [
+                item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+            ]  # get all weights inside layer[x]
+
+            # The layers exist as an nn.sequential
+            for branch_idx in range(self.num_branches):
+                for layer_name in full_layer_list:
+                    # First, get the raw layer info, then append sharedblock to it...
+                    local_param_name = self._build_branch_layer_param_from_pytorch_name(
+                        layer_name, layer_idx, branch_idx, self.shared_block_count
+                    )
+                    self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+    def _build_local_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int
+    ) -&gt; str:
+        &#34;&#34;&#34;Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the shared block.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+
+        Returns:
+            str: Converted parameter name
+        &#34;&#34;&#34;
+        param_list = paramname.split(&#34;.&#34;)
+        new_param_list = [&#34;sharedblock&#34;, str(layeridx)] + param_list[1:]
+        return &#34;.&#34;.join(new_param_list)
+
+    def _build_branch_layer_param_from_pytorch_name(
+        self, paramname: str, layeridx: int, branch_idx: int, layer_reset: int
+    ) -&gt; str:
+        &#34;&#34;&#34;Converts a parameter name from an unbranched pytorch model to the corresponding `multibranchresnet` version inside the branches.
+
+        Args:
+            paramname (str): The original parameter name
+            layeridx (int): The layer this parameter name originated from
+            branch_idx (int): The target branch for this parameter
+            layer_reset (int): The layer reset number, since `multibranchresnet` restarts layer numbering at the branch junction
+
+        Returns:
+            str: Converted parameter name
+        &#34;&#34;&#34;
+        param_list = paramname.split(&#34;.&#34;)
+        new_param_list = [
+            &#34;branches&#34;,
+            str(branch_idx),
+            str(layeridx - layer_reset),
+        ] + param_list[1:]
+        return &#34;.&#34;.join(new_param_list)
+
+    def load_params_from_weights(self, weights_path: str):
+        &#34;&#34;&#34;Loads parameters from a saved `multibranchresnet`
+
+        Args:
+            weights_path (str): Path to the weights file
+        &#34;&#34;&#34;
+        param_dict = torch.load(weights_path)
+        for i in param_dict:
+            if &#34;fc&#34; in i and self.top_only:
+                continue
+            self.state_dict()[i].copy_(param_dict[i])
+
+    def _model_weights(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;Constructs a dictionary to quickly retrieve pytorch weight paths
+
+        Returns:
+            Dict[str,int]: the dictinary storing paths
+        &#34;&#34;&#34;
+        mw = [
+            &#34;resnet18-5c106cde.pth&#34;,
+            &#34;resnet34-333f7ec4.pth&#34;,
+            &#34;resnet50-19c8e357.pth&#34;,
+            &#34;resnet101-5d3b4d8f.pth&#34;,
+            &#34;resnet152-b121ed2d.pth&#34;,
+            &#34;resnext50_32x4d-7cdf4587.pth&#34;,
+            &#34;resnext101_32x8d-8ba56ff5.pth&#34;,
+            &#34;wide_resnet50_2-95faca4d.pth&#34;,
+            &#34;wide_resnet50_2-95faca4d.pth&#34;,
+            &#34;resnet18-5c106cde_cbam.pth&#34;,
+            &#34;resnet34-333f7ec4_cbam.pth&#34;,
+            &#34;resnet50-19c8e357_cbam.pth&#34;,
+            &#34;resnet101-5d3b4d8f_cbam.pth&#34;,
+            &#34;resnet152-b121ed2d_cbam.pth&#34;,
+        ]
+        return {item: 1 for item in mw}</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.attention"><code class="name">var <span class="ident">attention</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.block"><code class="name">var <span class="ident">block</span> : torch.nn.modules.module.Module</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.branches"><code class="name">var <span class="ident">branches</span> : torch.nn.modules.container.ModuleList</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.ia_attention"><code class="name">var <span class="ident">ia_attention</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.input_attention"><code class="name">var <span class="ident">input_attention</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.num_branches"><code class="name">var <span class="ident">num_branches</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.part_attention"><code class="name">var <span class="ident">part_attention</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.pytorch_weights_paths"><code class="name">var <span class="ident">pytorch_weights_paths</span> : Dict[str, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.resnetinput"><code class="name">var <span class="ident">resnetinput</span> : <a title="ednaml.utils.blocks.ResnetInput.ResnetInput" href="../utils/blocks/ResnetInput.html#ednaml.utils.blocks.ResnetInput.ResnetInput">ResnetInput</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.secondary_attention"><code class="name">var <span class="ident">secondary_attention</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.shared_block_count"><code class="name">var <span class="ident">shared_block_count</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.sharedblock"><code class="name">var <span class="ident">sharedblock</span> : torch.nn.modules.container.Sequential</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the :class:<code>Module</code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x):
+    x = self.resnetinput(x)
+    x = self.sharedblock(x)
+    return [self.branches[idx](x) for idx in range(self.num_branches)]</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.load_param"><code class="name flex">
+<span>def <span class="ident">load_param</span></span>(<span>self, weights_path: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads parameters from saved weights file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>weights_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the weights file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_param(self, weights_path: str):
+    &#34;&#34;&#34;Loads parameters from saved weights file
+
+    Args:
+        weights_path (str): Path to the weights file
+    &#34;&#34;&#34;
+    if os.path.basename(weights_path) in self.pytorch_weights_paths:
+        self.load_params_from_pytorch(weights_path)
+    else:
+        self.load_params_from_weights(weights_path)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_pytorch"><code class="name flex">
+<span>def <span class="ident">load_params_from_pytorch</span></span>(<span>self, weights_path: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads default pytorch weights file into the multibranch resnet</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>weights_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the weights file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_params_from_pytorch(self, weights_path: str):
+    &#34;&#34;&#34;Loads default pytorch weights file into the multibranch resnet
+
+    Args:
+        weights_path (str): Path to the weights file
+    &#34;&#34;&#34;
+    param_dict = torch.load(weights_path)
+    # Three stages: load resnetinput params, load shared block params, and then load branch params...
+    inputparams = [
+        &#34;conv1.weight&#34;,
+        &#34;bn1.running_mean&#34;,
+        &#34;bn1.running_var&#34;,
+        &#34;bn1.weight&#34;,
+        &#34;bn1.bias&#34;,
+    ]
+    # Load the input params
+    for param in inputparams:
+        self.state_dict()[&#34;resnetinput.&#34; + param].copy_(param_dict[param])
+
+    # load shared block params,
+    for layer_idx in range(self.shared_block_count):
+        # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+        # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+        full_layer_list = [
+            item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+        ]  # get all weights inside layer[x]
+
+        # The layers exist as an nn.sequential
+        for layer_name in full_layer_list:
+            # First, get the raw layer info, then append sharedblock to it...
+            local_param_name = self._build_local_layer_param_from_pytorch_name(
+                layer_name, layer_idx
+            )
+            self.state_dict()[local_param_name].copy_(param_dict[layer_name])
+
+    # Now, we need to load branch params...
+    for layer_idx in range(self.shared_block_count, 4):
+        # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
+        # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
+        full_layer_list = [
+            item for item in param_dict if (&#34;layer&#34; + str(layer_idx + 1) in item)
+        ]  # get all weights inside layer[x]
+
+        # The layers exist as an nn.sequential
+        for branch_idx in range(self.num_branches):
+            for layer_name in full_layer_list:
+                # First, get the raw layer info, then append sharedblock to it...
+                local_param_name = self._build_branch_layer_param_from_pytorch_name(
+                    layer_name, layer_idx, branch_idx, self.shared_block_count
+                )
+                self.state_dict()[local_param_name].copy_(param_dict[layer_name])</code></pre>
+</details>
+</dd>
+<dt id="ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_weights"><code class="name flex">
+<span>def <span class="ident">load_params_from_weights</span></span>(<span>self, weights_path: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads parameters from a saved <code><a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>weights_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the weights file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_params_from_weights(self, weights_path: str):
+    &#34;&#34;&#34;Loads parameters from a saved `multibranchresnet`
+
+    Args:
+        weights_path (str): Path to the weights file
+    &#34;&#34;&#34;
+    param_dict = torch.load(weights_path)
+    for i in param_dict:
+        if &#34;fc&#34; in i and self.top_only:
+            continue
+        self.state_dict()[i].copy_(param_dict[i])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.backbones" href="index.html">ednaml.backbones</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="ednaml.backbones.multibranchresnet.resnet101" href="#ednaml.backbones.multibranchresnet.resnet101">resnet101</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnet152" href="#ednaml.backbones.multibranchresnet.resnet152">resnet152</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnet18" href="#ednaml.backbones.multibranchresnet.resnet18">resnet18</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnet34" href="#ednaml.backbones.multibranchresnet.resnet34">resnet34</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnet50" href="#ednaml.backbones.multibranchresnet.resnet50">resnet50</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnext101_32x8d" href="#ednaml.backbones.multibranchresnet.resnext101_32x8d">resnext101_32x8d</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.resnext50_32x4d" href="#ednaml.backbones.multibranchresnet.resnext50_32x4d">resnext50_32x4d</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.wide_resnet101_2" href="#ednaml.backbones.multibranchresnet.wide_resnet101_2">wide_resnet101_2</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.wide_resnet50_2" href="#ednaml.backbones.multibranchresnet.wide_resnet50_2">wide_resnet50_2</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet" href="#ednaml.backbones.multibranchresnet.multibranchresnet">multibranchresnet</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.attention" href="#ednaml.backbones.multibranchresnet.multibranchresnet.attention">attention</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.block" href="#ednaml.backbones.multibranchresnet.multibranchresnet.block">block</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.branches" href="#ednaml.backbones.multibranchresnet.multibranchresnet.branches">branches</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.forward" href="#ednaml.backbones.multibranchresnet.multibranchresnet.forward">forward</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.ia_attention" href="#ednaml.backbones.multibranchresnet.multibranchresnet.ia_attention">ia_attention</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.input_attention" href="#ednaml.backbones.multibranchresnet.multibranchresnet.input_attention">input_attention</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.load_param" href="#ednaml.backbones.multibranchresnet.multibranchresnet.load_param">load_param</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_pytorch" href="#ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_pytorch">load_params_from_pytorch</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_weights" href="#ednaml.backbones.multibranchresnet.multibranchresnet.load_params_from_weights">load_params_from_weights</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.num_branches" href="#ednaml.backbones.multibranchresnet.multibranchresnet.num_branches">num_branches</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.part_attention" href="#ednaml.backbones.multibranchresnet.multibranchresnet.part_attention">part_attention</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.pytorch_weights_paths" href="#ednaml.backbones.multibranchresnet.multibranchresnet.pytorch_weights_paths">pytorch_weights_paths</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.resnetinput" href="#ednaml.backbones.multibranchresnet.multibranchresnet.resnetinput">resnetinput</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.secondary_attention" href="#ednaml.backbones.multibranchresnet.multibranchresnet.secondary_attention">secondary_attention</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.shared_block_count" href="#ednaml.backbones.multibranchresnet.multibranchresnet.shared_block_count">shared_block_count</a></code></li>
+<li><code><a title="ednaml.backbones.multibranchresnet.multibranchresnet.sharedblock" href="#ednaml.backbones.multibranchresnet.multibranchresnet.sharedblock">sharedblock</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

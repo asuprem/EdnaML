@@ -1,0 +1,76 @@
+EXECUTION:
+  OPTIMIZER_BUILDER: CoLabelOptimizer
+  MODEL_SERVING: None
+  EPOCHS: 71
+  TEST_FREQUENCY: 5
+  CRAWLER: CoLabelVehicleColorCrawler
+  CRAWLER_ARGS:
+    DATASET_FIELDS: 6
+    DATASET_FIELD_VALUES:
+      - id
+      - path
+      - color
+      - type
+      - make
+      - model
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "colbl_vcolor_exp3"
+  MODEL_BACKBONE: "res18"
+  MODEL_QUALIFIER: "all"
+  DRIVE_BACKUP: True
+  SAVE_FREQUENCY: 10 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+
+DATASET:
+  ROOT_DATA_FOLDER: "Data/VehicleColors"
+  TRAIN_FOLDER: "train"
+  TEST_FOLDER: "test"
+  VAL_FOLDER: "val"
+  SHAPE: [228,228]
+
+TRANSFORMATION:
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0.5
+  T_CROP: True
+  RANDOM_ERASE: True
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 64
+  WORKERS: 2
+
+MODEL:
+  MODEL_BASE: 'resnet18'
+  MODEL_ARCH: 'CoLabelResnet'
+  SOFTMAX_DIM: 11
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS: '{"attention":"cbam"}'
+
+COLABEL:
+  COMPRESSION: 5
+  ENSEMBLE: "majority"
+  CONFIDENCE: "decay"
+
+LOSS:
+  LOSSES: ['SoftmaxLogitsLoss']
+  LOSS_KWARGS: [{}]
+  LOSS_LAMBDAS: [1.0]
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "Adam"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.0001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'StepLR'
+  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch

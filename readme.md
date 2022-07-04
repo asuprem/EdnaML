@@ -1,28 +1,9 @@
-# Contextual Invariants for Vehicle Re-identification
+# CoLabel
 
-This repo contains the code for '<name redacted temporarily>'. Our approach is able to significantly improve mAP compared to comtemporary works without relying on complex architectures. We believe using our approach as a baseline will help ind eveloping more accurate vehicle re-identification models.
+
+This repo contains the code for 'Constructive Interpretability with CoLabel: Corroborative Integration, Complementary Features, and Collaborative Learning'
+
 
 # Requirements
-
-You will need the following:
-    - PyTorch 1.2.0
-    - Torchvision 0.4.0
-    - kaptan 0.5.12
-
-Multi-GPU training is currently not supported. You will need to ensure torch recognizes only one GPU, otherwise several functions will throw NotImplementedError(). 
-
-# Execution
-
-1. Clone this repo.
-2. To train a model, run 
-
-    $ python main.py path\to\config.yml --mode train
-
-3. To test a model, run
-
-    $ python main.py path\to\config.yml --mode test --weights \path\to\weights.pth
-
-We have provided several configuration files, as well as details about configuration options in `config.md`.
-
-# Additional details
+The code uses PyTorch, as well as existing vehicle datasets.
 

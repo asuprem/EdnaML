@@ -1,0 +1,91 @@
+EXECUTION:
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  MODEL_SERVING: None
+  EPOCHS: 10
+  SKIPEVAL: True
+  TEST_FREQUENCY: 5
+  DATAREADER: 
+    DATAREADER: CompCars
+    CRAWLER_ARGS:
+      data_folder: "Data/CompCars"
+      train_folder: "image"
+      trainfile: "train.txt"
+      testfile: "test.txt"
+    DATASET_ARGS: 
+      pathidx: 4
+      annotationidx: 0
+      classificationclass: make
+    GENERATOR_ARGS: {}      
+    DATALOADER_ARGS: {}
+  TRAINER: ClassificationTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 4
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "colabel_devel"
+  MODEL_BACKBONE: "res18"
+  MODEL_QUALIFIER: "make"
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+  
+
+TRANSFORMATION:
+  BATCH_SIZE: 32
+  WORKERS: 2
+  ARGS:
+    i_shape: [100,100]
+    normalization_mean: 0.5
+    normalization_std: 0.5
+    normalization_scale: 0.5
+    random_erase: False
+    random_erase_value: 0.5
+    channels: 3
+
+TRAIN_TRANSFORMATION:
+  ARGS:
+    h_flip: 0.5
+    t_crop: True
+
+TEST_TRANSFORMATION:
+  ARGS:
+    h_flip: 0
+
+MODEL:
+  BUILDER: classification_model_builder
+  MODEL_ARCH: 'ClassificationResnet'
+  MODEL_BASE: 'resnet18'
+  EMBEDDING_DIMENSIONS:
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS:
+  PARAMETER_GROUPS: 
+    - opt-1
+
+COLABEL:
+  COMPRESSION: 5
+  ENSEMBLE: "majority"
+  CONFIDENCE: "decay"
+
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    NAME: out1
+
+OPTIMIZER:
+  - OPTIMIZER: "Adam"
+    OPTIMIZER_KWARGS: {}
+    BASE_LR: 0.00001
+    LR_BIAS_FACTOR: 1.0
+    WEIGHT_DECAY: 0.0005
+    WEIGHT_BIAS_FACTOR: 0.0005
+
+SCHEDULER:
+  - LR_SCHEDULER: 'StepLR'
+    LR_KWARGS: 
+      step_size: 20
+      gamma: 0.1
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch

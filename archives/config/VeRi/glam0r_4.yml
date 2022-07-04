@@ -1,0 +1,66 @@
+EXECUTION:
+  MODEL_SERVING: None
+  EPOCHS: 36
+  TEST_FREQUENCY: 1
+  CRAWLER: VeRiDataCrawler
+  TRAINER: SimpleTrainer
+
+SAVE:
+  MODEL_VERSION: 4
+  MODEL_CORE_NAME: "glam0r"
+  MODEL_BACKBONE: "res18"
+  MODEL_QUALIFIER: "all"
+  DRIVE_BACKUP: True
+  SAVE_FREQUENCY: 5 # Epoch
+
+DATASET:
+  ROOT_DATA_FOLDER: "Data/VeRi"
+  TRAIN_FOLDER: "image_train"
+  TEST_FOLDER: "image_test"
+  QUERY_FOLDER: "image_query"
+  SHAPE: [350,350]
+
+TRANSFORMATION:
+  NORMALIZATION_MEAN: 0.5
+  NORMALIZATION_STD: 0.5
+  NORMALIZATION_SCALE: 255
+  H_FLIP: 0.5
+  T_CROP: True
+  RANDOM_ERASE: True
+  RANDOM_ERASE_VALUE: 0.5
+  CHANNELS: 3
+  BATCH_SIZE: 60
+  INSTANCES: 15
+  WORKERS: 8
+
+MODEL:
+  MODEL_BASE: 'resnet18'
+  MODEL_ARCH: 'Resnet'
+  EMB_DIM: 512
+  SOFTMAX: 575
+  MODEL_NORMALIZATION: 'ln'
+  MODEL_KWARGS: 
+    part_attention: true
+    ia_attention: true
+    attention: cbam
+    secondary_attention: 4
+LOSS:
+  LOSSES: ['SoftmaxLabelSmooth', 'TripletLoss', 'CenterLoss']
+  LOSS_KWARGS: [{'soft_dim':575, 'eps':0.2}, {'margin':0.2, 'mine':'hard'}, {'num_classes':575, 'feat_dim':512}]
+  LOSS_LAMBDAS: [1.0, 1.0, 0.0005]
+
+OPTIMIZER:
+  OPTIMIZER_NAME: "AdamW"
+  OPTIMIZER_KWARGS: '{}'
+  BASE_LR: 0.0001
+  LR_BIAS_FACTOR: 1.0
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_BIAS_FACTOR: 0.0005
+  FP16: True
+
+SCHEDULER:
+  LR_SCHEDULER: 'StepLR'
+  LR_KWARGS: '{"step_size":15, "gamma":0.8}'
+
+LOGGING:
+  STEP_VERBOSE: 200 # Batch

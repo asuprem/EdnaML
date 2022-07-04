@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ednaml.generators.CoLabelDeployGenerator API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ednaml.generators.CoLabelDeployGenerator</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from io import BytesIO
+import os.path as osp
+import torch
+from PIL import Image
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+from torch.utils.data import Dataset as TorchDataset
+from torch.utils.data import DataLoader as TorchDataLoader
+import torchvision.transforms as T
+
+
+class CoLabelDeployDataset(TorchDataset):
+    def __init__(self, dataset, transform=None, jpeg=[]):
+        self.dataset = dataset
+        self.transform = transform
+        self.jpeg = jpeg
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return (
+            [self.transform(item) for item in self.load(self.dataset[idx][0])],
+            self.dataset[idx][1],
+        )  # NOTE make this return a tuple for deploy (tuple of compressed), label
+
+    def load(self, img):
+        if not osp.exists(img):
+            raise IOError(&#34;{img} does not exist in path&#34;.format(img=img))
+        img_load = Image.open(img)
+        jpeg = [self.JPEGcompression(img_load, qf).convert(&#34;RGB&#34;) for qf in self.jpeg]
+        return [img_load.convert(&#34;RGB&#34;)] + jpeg
+
+    def JPEGcompression(self, image: Image.Image, qf=90) -&gt; Image.Image:
+        outputIoStream = BytesIO()
+        image.save(outputIoStream, &#34;JPEG&#34;, quality=qf)
+        outputIoStream.seek(0)
+        return Image.open(outputIoStream)
+
+
+class CoLabelDeployGenerator:
+    def __init__(
+        self,
+        gpus,
+        i_shape=(208, 208),
+        normalization_mean=0.5,
+        normalization_std=0.5,
+        normalization_scale=1.0 / 255.0,
+        h_flip=0.5,
+        t_crop=True,
+        rea=True,
+        **kwargs
+    ):
+        &#34;&#34;&#34; Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
+
+        Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
+
+        Args:
+            gpus (int): Number of GPUs
+            i_shape (int, int): 2D Image shape
+            normalization_mean (float): Value to pass as mean normalization parameter to pytorch Normalization
+            normalization_std (float): Value to pass as std normalization parameter to pytorch Normalization
+            normalization_scale (float): Value to pass as scale normalization parameter. Not used.
+            h_flip (float): Probability of horizontal flip for image
+            t_crop (bool): Whether to include random cropping
+            rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
+        
+        &#34;&#34;&#34;
+
+        self.gpus = gpus
+        transformer_primitive = []
+        transformer_primitive.append(T.Resize(size=i_shape))
+        transformer_primitive.append(T.ToTensor())
+        transformer_primitive.append(
+            T.Normalize(mean=normalization_mean, std=normalization_std)
+        )
+        self.transformer = T.Compose(transformer_primitive)
+
+        self.jpegs = kwargs.get(&#34;JPEG&#34;)
+
+    def setup(
+        self,
+        datacrawler,
+        mode=&#34;train&#34;,
+        batch_size=32,
+        instance=8,
+        workers=8,
+        crawlerclass=&#34;color&#34;,
+    ):
+        &#34;&#34;&#34; Setup the data generator.
+
+        Args:
+            workers (int): Number of workers to use during data retrieval/loading
+            datacrawler (VeRiDataCrawler): A DataCrawler object that has crawled the data directory
+            mode (str): One of &#39;train&#39;, &#39;test&#39;, &#39;validation???&#39;. 
+        &#34;&#34;&#34;
+
+        if datacrawler is None:
+            raise ValueError(&#34;Must pass DataCrawler instance. Passed `None`&#34;)
+        self.workers = workers * self.gpus
+
+        if mode == &#34;train&#34;:
+            raise NotImplementedError()
+        elif mode == &#34;test&#34;:
+            # For testing, we combine images in the query and testing set to generate batches
+            self.__dataset = CoLabelDeployDataset(
+                datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[mode][&#34;crawl&#34;],
+                self.transformer,
+                self.jpegs,
+            )
+        elif mode == &#34;full&#34;:
+            self.__dataset = CoLabelDeployDataset(
+                datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[&#34;train&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[&#34;test&#34;][&#34;crawl&#34;],
+                self.transformer,
+                self.jpegs,
+            )
+        else:
+            raise NotImplementedError()
+
+        if mode == &#34;train&#34;:
+            raise NotImplementedError()
+        elif mode == &#34;test&#34;:
+            self.dataloader = TorchDataLoader(
+                self.__dataset,
+                batch_size=batch_size * self.gpus,
+                shuffle=True,
+                num_workers=self.workers,
+                collate_fn=self.collate_simple,
+            )
+            self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+        elif mode == &#34;full&#34;:
+            self.dataloader = TorchDataLoader(
+                self.__dataset,
+                batch_size=batch_size * self.gpus,
+                shuffle=True,
+                num_workers=self.workers,
+                collate_fn=self.collate_simple,
+            )
+            self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+        else:
+            raise NotImplementedError()
+
+    def collate_simple(self, batch):
+        img, label = zip(
+            *batch
+        )  # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
+        num_stacks = len(img[0])
+        num_tstacks = [None] * num_stacks
+        for idx in range(num_stacks):
+            num_tstacks[idx] = torch.stack([item[idx] for item in img], dim=0)
+
+        class_id = torch.tensor(label, dtype=torch.int64)
+        return (
+            tuple(num_tstacks),
+            class_id,
+        )  # NOTE so this has to be modified...for tuple members...</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset"><code class="flex name class">
+<span>class <span class="ident">CoLabelDeployDataset</span></span>
+<span>(</span><span>dataset, transform=None, jpeg=[])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An abstract class representing a :class:<code>Dataset</code>.</p>
+<p>All datasets that represent a map from keys to data samples should subclass
+it. All subclasses should overwrite :meth:<code>__getitem__</code>, supporting fetching a
+data sample for a given key. Subclasses could also optionally overwrite
+:meth:<code>__len__</code>, which is expected to return the size of the dataset by many
+:class:<code>~torch.utils.data.Sampler</code> implementations and the default options
+of :class:<code>~torch.utils.data.DataLoader</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>:class:<code>~torch.utils.data.DataLoader</code> by default constructs a index
+sampler that yields integral indices.
+To make it work with a map-style
+dataset with non-integral indices/keys, a custom sampler must be provided.</p>
+</div></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CoLabelDeployDataset(TorchDataset):
+    def __init__(self, dataset, transform=None, jpeg=[]):
+        self.dataset = dataset
+        self.transform = transform
+        self.jpeg = jpeg
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return (
+            [self.transform(item) for item in self.load(self.dataset[idx][0])],
+            self.dataset[idx][1],
+        )  # NOTE make this return a tuple for deploy (tuple of compressed), label
+
+    def load(self, img):
+        if not osp.exists(img):
+            raise IOError(&#34;{img} does not exist in path&#34;.format(img=img))
+        img_load = Image.open(img)
+        jpeg = [self.JPEGcompression(img_load, qf).convert(&#34;RGB&#34;) for qf in self.jpeg]
+        return [img_load.convert(&#34;RGB&#34;)] + jpeg
+
+    def JPEGcompression(self, image: Image.Image, qf=90) -&gt; Image.Image:
+        outputIoStream = BytesIO()
+        image.save(outputIoStream, &#34;JPEG&#34;, quality=qf)
+        outputIoStream.seek(0)
+        return Image.open(outputIoStream)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.utils.data.dataset.Dataset</li>
+<li>typing.Generic</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.JPEGcompression"><code class="name flex">
+<span>def <span class="ident">JPEGcompression</span></span>(<span>self, image: PIL.Image.Image, qf=90) ‑> PIL.Image.Image</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def JPEGcompression(self, image: Image.Image, qf=90) -&gt; Image.Image:
+    outputIoStream = BytesIO()
+    image.save(outputIoStream, &#34;JPEG&#34;, quality=qf)
+    outputIoStream.seek(0)
+    return Image.open(outputIoStream)</code></pre>
+</details>
+</dd>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, img)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(self, img):
+    if not osp.exists(img):
+        raise IOError(&#34;{img} does not exist in path&#34;.format(img=img))
+    img_load = Image.open(img)
+    jpeg = [self.JPEGcompression(img_load, qf).convert(&#34;RGB&#34;) for qf in self.jpeg]
+    return [img_load.convert(&#34;RGB&#34;)] + jpeg</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator"><code class="flex name class">
+<span>class <span class="ident">CoLabelDeployGenerator</span></span>
+<span>(</span><span>gpus, i_shape=(208, 208), normalization_mean=0.5, normalization_std=0.5, normalization_scale=0.00392156862745098, h_flip=0.5, t_crop=True, rea=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only
+use with VeRi.</p>
+<p>Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>gpus</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of GPUs</dd>
+<dt><strong><code>i_shape</code></strong> :&ensp;<code>int, int</code></dt>
+<dd>2D Image shape</dd>
+<dt><strong><code>normalization_mean</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value to pass as mean normalization parameter to pytorch Normalization</dd>
+<dt><strong><code>normalization_std</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value to pass as std normalization parameter to pytorch Normalization</dd>
+<dt><strong><code>normalization_scale</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value to pass as scale normalization parameter. Not used.</dd>
+<dt><strong><code>h_flip</code></strong> :&ensp;<code>float</code></dt>
+<dd>Probability of horizontal flip for image</dd>
+<dt><strong><code>t_crop</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to include random cropping</dd>
+<dt><strong><code>rea</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to include random erasing augmentation (at 0.5 prob)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CoLabelDeployGenerator:
+    def __init__(
+        self,
+        gpus,
+        i_shape=(208, 208),
+        normalization_mean=0.5,
+        normalization_std=0.5,
+        normalization_scale=1.0 / 255.0,
+        h_flip=0.5,
+        t_crop=True,
+        rea=True,
+        **kwargs
+    ):
+        &#34;&#34;&#34; Data generator for training and testing. Works with the VeriDataCrawler. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
+
+        Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
+
+        Args:
+            gpus (int): Number of GPUs
+            i_shape (int, int): 2D Image shape
+            normalization_mean (float): Value to pass as mean normalization parameter to pytorch Normalization
+            normalization_std (float): Value to pass as std normalization parameter to pytorch Normalization
+            normalization_scale (float): Value to pass as scale normalization parameter. Not used.
+            h_flip (float): Probability of horizontal flip for image
+            t_crop (bool): Whether to include random cropping
+            rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
+        
+        &#34;&#34;&#34;
+
+        self.gpus = gpus
+        transformer_primitive = []
+        transformer_primitive.append(T.Resize(size=i_shape))
+        transformer_primitive.append(T.ToTensor())
+        transformer_primitive.append(
+            T.Normalize(mean=normalization_mean, std=normalization_std)
+        )
+        self.transformer = T.Compose(transformer_primitive)
+
+        self.jpegs = kwargs.get(&#34;JPEG&#34;)
+
+    def setup(
+        self,
+        datacrawler,
+        mode=&#34;train&#34;,
+        batch_size=32,
+        instance=8,
+        workers=8,
+        crawlerclass=&#34;color&#34;,
+    ):
+        &#34;&#34;&#34; Setup the data generator.
+
+        Args:
+            workers (int): Number of workers to use during data retrieval/loading
+            datacrawler (VeRiDataCrawler): A DataCrawler object that has crawled the data directory
+            mode (str): One of &#39;train&#39;, &#39;test&#39;, &#39;validation???&#39;. 
+        &#34;&#34;&#34;
+
+        if datacrawler is None:
+            raise ValueError(&#34;Must pass DataCrawler instance. Passed `None`&#34;)
+        self.workers = workers * self.gpus
+
+        if mode == &#34;train&#34;:
+            raise NotImplementedError()
+        elif mode == &#34;test&#34;:
+            # For testing, we combine images in the query and testing set to generate batches
+            self.__dataset = CoLabelDeployDataset(
+                datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[mode][&#34;crawl&#34;],
+                self.transformer,
+                self.jpegs,
+            )
+        elif mode == &#34;full&#34;:
+            self.__dataset = CoLabelDeployDataset(
+                datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[&#34;train&#34;][&#34;crawl&#34;]
+                + datacrawler.metadata[&#34;test&#34;][&#34;crawl&#34;],
+                self.transformer,
+                self.jpegs,
+            )
+        else:
+            raise NotImplementedError()
+
+        if mode == &#34;train&#34;:
+            raise NotImplementedError()
+        elif mode == &#34;test&#34;:
+            self.dataloader = TorchDataLoader(
+                self.__dataset,
+                batch_size=batch_size * self.gpus,
+                shuffle=True,
+                num_workers=self.workers,
+                collate_fn=self.collate_simple,
+            )
+            self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+        elif mode == &#34;full&#34;:
+            self.dataloader = TorchDataLoader(
+                self.__dataset,
+                batch_size=batch_size * self.gpus,
+                shuffle=True,
+                num_workers=self.workers,
+                collate_fn=self.collate_simple,
+            )
+            self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+        else:
+            raise NotImplementedError()
+
+    def collate_simple(self, batch):
+        img, label = zip(
+            *batch
+        )  # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
+        num_stacks = len(img[0])
+        num_tstacks = [None] * num_stacks
+        for idx in range(num_stacks):
+            num_tstacks[idx] = torch.stack([item[idx] for item in img], dim=0)
+
+        class_id = torch.tensor(label, dtype=torch.int64)
+        return (
+            tuple(num_tstacks),
+            class_id,
+        )  # NOTE so this has to be modified...for tuple members...</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.collate_simple"><code class="name flex">
+<span>def <span class="ident">collate_simple</span></span>(<span>self, batch)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def collate_simple(self, batch):
+    img, label = zip(
+        *batch
+    )  # NOTE for deploy, this is a tuple, label, i.e. (img, img, img), class
+    num_stacks = len(img[0])
+    num_tstacks = [None] * num_stacks
+    for idx in range(num_stacks):
+        num_tstacks[idx] = torch.stack([item[idx] for item in img], dim=0)
+
+    class_id = torch.tensor(label, dtype=torch.int64)
+    return (
+        tuple(num_tstacks),
+        class_id,
+    )  # NOTE so this has to be modified...for tuple members...</code></pre>
+</details>
+</dd>
+<dt id="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.setup"><code class="name flex">
+<span>def <span class="ident">setup</span></span>(<span>self, datacrawler, mode='train', batch_size=32, instance=8, workers=8, crawlerclass='color')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Setup the data generator.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>workers</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of workers to use during data retrieval/loading</dd>
+<dt><strong><code>datacrawler</code></strong> :&ensp;<code>VeRiDataCrawler</code></dt>
+<dd>A DataCrawler object that has crawled the data directory</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>str</code></dt>
+<dd>One of 'train', 'test', 'validation???'.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup(
+    self,
+    datacrawler,
+    mode=&#34;train&#34;,
+    batch_size=32,
+    instance=8,
+    workers=8,
+    crawlerclass=&#34;color&#34;,
+):
+    &#34;&#34;&#34; Setup the data generator.
+
+    Args:
+        workers (int): Number of workers to use during data retrieval/loading
+        datacrawler (VeRiDataCrawler): A DataCrawler object that has crawled the data directory
+        mode (str): One of &#39;train&#39;, &#39;test&#39;, &#39;validation???&#39;. 
+    &#34;&#34;&#34;
+
+    if datacrawler is None:
+        raise ValueError(&#34;Must pass DataCrawler instance. Passed `None`&#34;)
+    self.workers = workers * self.gpus
+
+    if mode == &#34;train&#34;:
+        raise NotImplementedError()
+    elif mode == &#34;test&#34;:
+        # For testing, we combine images in the query and testing set to generate batches
+        self.__dataset = CoLabelDeployDataset(
+            datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+            + datacrawler.metadata[mode][&#34;crawl&#34;],
+            self.transformer,
+            self.jpegs,
+        )
+    elif mode == &#34;full&#34;:
+        self.__dataset = CoLabelDeployDataset(
+            datacrawler.metadata[&#34;val&#34;][&#34;crawl&#34;]
+            + datacrawler.metadata[&#34;train&#34;][&#34;crawl&#34;]
+            + datacrawler.metadata[&#34;test&#34;][&#34;crawl&#34;],
+            self.transformer,
+            self.jpegs,
+        )
+    else:
+        raise NotImplementedError()
+
+    if mode == &#34;train&#34;:
+        raise NotImplementedError()
+    elif mode == &#34;test&#34;:
+        self.dataloader = TorchDataLoader(
+            self.__dataset,
+            batch_size=batch_size * self.gpus,
+            shuffle=True,
+            num_workers=self.workers,
+            collate_fn=self.collate_simple,
+        )
+        self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+    elif mode == &#34;full&#34;:
+        self.dataloader = TorchDataLoader(
+            self.__dataset,
+            batch_size=batch_size * self.gpus,
+            shuffle=True,
+            num_workers=self.workers,
+            collate_fn=self.collate_simple,
+        )
+        self.num_entities = datacrawler.metadata[mode][&#34;classes&#34;][crawlerclass]
+    else:
+        raise NotImplementedError()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ednaml.generators" href="index.html">ednaml.generators</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset">CoLabelDeployDataset</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.JPEGcompression" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.JPEGcompression">JPEGcompression</a></code></li>
+<li><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.load" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployDataset.load">load</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator">CoLabelDeployGenerator</a></code></h4>
+<ul class="">
+<li><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.collate_simple" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.collate_simple">collate_simple</a></code></li>
+<li><code><a title="ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.setup" href="#ednaml.generators.CoLabelDeployGenerator.CoLabelDeployGenerator.setup">setup</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
