@@ -268,15 +268,14 @@ class FakedditTrainer(BaseTrainer):
         )
 
 import click
-
 @click.argument("config")
 @click.argument("mode")
 def main(config, mode):
     from ednaml.core import EdnaML
     eml = EdnaML(config=config, mode=mode)
     eml.addCrawlerClass(FakedditCrawler)
-    eml.addModelClass(FakedditCrawler)
-    eml.addTrainerClass(FakedditCrawler)
+    eml.addModelClass(FakedditModel)
+    eml.addTrainerClass(FakedditTrainer)
 
     eml.apply(input_size=(eml.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,eml.cfg.EXECUTION.DATAREADER.DATASET_ARGS["maxlen"]),
           dtypes=[torch.long])
