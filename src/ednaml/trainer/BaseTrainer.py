@@ -200,6 +200,10 @@ class BaseTrainer:
 
         # save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
         # save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
+        
+        # TODO
+        # Have a Save Class that stores methods, 
+        # .save(object)
 
         torch.save(
             self.model.state_dict(),
