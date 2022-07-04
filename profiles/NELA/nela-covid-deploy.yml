@@ -17,7 +17,7 @@ EXECUTION:
       spm_model_file: 30k-clean.model 
       tokenizer: AlbertFullTokenizer
       vocab_file: 30k-clean.vocab
-  EPOCHS: 15
+  EPOCHS: 5
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
@@ -27,12 +27,16 @@ EXECUTION:
   TRAINER_ARGS: 
     accumulation_steps: 8
 
+DEPLOYMENT:
+  OUTPUT_ARGS:
+  DEPLOYMENT: BaseDeploy
+
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 0
   MODEL_CORE_NAME: nela
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: covid20
-  DRIVE_BACKUP: True
+  DRIVE_BACKUP: False
   SAVE_FREQUENCY: 1 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/NELA/Models/"
 
