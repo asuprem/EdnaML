@@ -1,5 +1,6 @@
 import importlib
 import os, shutil, logging, glob, re
+from types import FunctionType, MethodType
 from typing import Callable, Dict, List, Type
 import warnings
 from torchinfo import ModelStatistics
@@ -32,12 +33,6 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 
 
 class EdnaML(EdnaMLBase):
-    logLevels = {
-        0: logging.NOTSET,
-        1: logging.ERROR,
-        2: logging.INFO,
-        3: logging.DEBUG,
-    }
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
     model: ModelAbstract
@@ -103,17 +98,20 @@ class EdnaML(EdnaMLBase):
                 "Cannot have `test_only` and be in training mode. Switch to"
                 " `test` mode."
             )
+        self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetTrainerQueue]
+        self.resetQueueArray += self.addResetQueues()
         self.resetQueues()
 
-    def resetQueues(self):
-        """Resets the `apply()` queue"""
+    def addResetQueues(self):
+        return []
+    def resetCrawlerQueues(self):
         self._crawlerClassQueue = None
         self._crawlerArgsQueue = None
         self._crawlerArgsQueueFlag = False
         self._crawlerClassQueueFlag = False
         self._crawlerInstanceQueue = None
         self._crawlerInstanceQueueFlag = False
-
+    def resetGeneratorQueues(self):
         self._generatorClassQueue = None
         self._generatorArgsQueue = None
         self._generatorArgsQueueFlag = False
@@ -122,7 +120,7 @@ class EdnaML(EdnaMLBase):
         self._trainGeneratorInstanceQueueFlag = False
         self._testGeneratorInstanceQueue = None
         self._testGeneratorInstanceQueueFlag = False
-
+    def resetModelQueues(self):
         self._modelBuilderQueue = None
         self._modelBuilderQueueFlag = False
         self._modelConfigQueue = None
@@ -133,17 +131,23 @@ class EdnaML(EdnaMLBase):
         self._modelClassQueueFlag = False
         self._modelArgsQueue = None
         self._modelArgsQueueFlag = False
-
+    def resetOptimizerQueues(self):
         self._optimizerQueue = []
         self._optimizerNameQueue = []
         self._optimizerQueueFlag = False
-
-        self.resetLossBuilderQueue()
-
+    def resetLossBuilderQueue(self):
+        self._lossBuilderQueue = []
+        self._lossBuilderQueueFlag = False
+    def resetTrainerQueue(self):
         self._trainerClassQueue = None
         self._trainerClassQueueFlag = False
         self._trainerInstanceQueue = None
         self._trainerInstanceQueueFlag = False
+
+    def resetQueues(self):
+        """Resets the `apply()` queue"""
+        for queue_function in self.resetQueueArray:
+            queue_function()
 
     def recordVars(self):
         """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
@@ -404,9 +408,7 @@ class EdnaML(EdnaMLBase):
                 )
             self.logger.info("Built scheduler")
 
-    def resetLossBuilderQueue(self):
-        self._lossBuilderQueue = []
-        self._lossBuilderQueueFlag = False
+
 
     def addLossBuilder(
         self, loss_list, loss_lambdas, loss_kwargs, loss_name, loss_label
