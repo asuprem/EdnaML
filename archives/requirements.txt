@@ -16,7 +16,7 @@ MarkupSafe==1.1.1
 mkl-fft==1.0.12
 mkl-random==1.0.2
 mkl-service==2.0.2
-numpy==1.16.4
+numpy==1.22.0
 olefile==0.46
 packaging==19.1
 Pillow==6.2.0
