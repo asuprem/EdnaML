@@ -1,11 +1,43 @@
 Roadmap
-- connector to Google Drive
+
+- regularization
+    - in a dashboard
+    - 
+
+- metrics
+    - weight statistics
+    - mlflow listener
+    - ModelAbstract listener
+        - weight statistics
+    - BaseTrainer listener
+        - accuracy
+    - EdnaML base class
+    - accuracy++
+    - visualization
+        - EdnaQuery -- 
+
+
+- shared docs for roadmap elements
+
+- connector to Google Drive 
    - and other cloud solutions
+   - DRIVE_BACKUP --> assuming google drive
+   - <vaidya>
+   - "./", "s3://", "azure", 
+   - snippet --> integrated into EdnaML
+   - Save class that is instantiated with path, and has a public save method
+   - also needs a public read method
+   - as well as a public copy method
+
+
 - sharded training with pre-generated features for text ( and images...?)
     - need a generic sharded base dataloader, maybe???
     - basically, a class that loads data into memory, except now it can be sharded...?
     - memory mapping, and formalize transformation and pre-sharding...
     - need connectors to data storage as ell. For now, we can just do file system, but eventually, s3, azureblob, etc
+    - h5 and hdf
+    - 
+
 - need save details FIRST
     - when script with eml is run
     - during saving procedure
