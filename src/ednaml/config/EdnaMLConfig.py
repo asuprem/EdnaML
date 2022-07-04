@@ -4,6 +4,7 @@ import json
 from typing import List
 import yaml
 from ednaml.config import BaseConfig
+from ednaml.config.DeploymentConfig import DeploymentConfig
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
@@ -19,6 +20,7 @@ from ednaml.utils import merge_dictionary_on_key_with_copy
 
 class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
+    DEPLOYMENT: DeploymentConfig
     SAVE: SaveConfig
     TRAIN_TRANSFORMATION: TransformationConfig
     TEST_TRANSFORMATION: TransformationConfig
@@ -50,6 +52,7 @@ class EdnaMLConfig(BaseConfig):
                 with open(config_path, "r") as cfile:
                     ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults) #inside the exectution -- store execution object - -execution section
+        self.DEPLOYMENT = DeploymentConfig(ydict.get("DEPLOYMENT", {}), defaults) #inside the exectution -- store execution object - -execution section
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
         self.TRAIN_TRANSFORMATION = TransformationConfig(
             dict(
