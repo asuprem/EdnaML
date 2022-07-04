@@ -86,7 +86,7 @@ class ClassificationGenerator(ImageGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         if mode == "train":
             return TorchDataLoader(
-                dataset,
+                dataset,    # ClassificationDataset
                 batch_size=batch_size * self.gpus,
                 shuffle=kwargs.get("shuffle", True),
                 num_workers=self.workers,
