@@ -1,6 +1,7 @@
 from typing import Type
 from ednaml.core import EdnaML
 import logging
+from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
 
@@ -90,6 +91,49 @@ class EdnaDeploy(EdnaML):
         
         # Only need test dataloader...
         self.buildTestDataloader(data_reader_instance, self.crawler)
+
+    def buildTestDataloader(
+        self, data_reader: DataReader, crawler_instance: Crawler
+    ):
+        """Builds a test dataloader instance given the data_reader class and a crawler instance that has been initialized
+
+        Args:
+            data_reader (DataReader): A datareader class
+            crawler_instance (Crawler): A crawler instance
+        """
+        if self._testGeneratorInstanceQueueFlag:
+            self.test_generator: Generator = self._testGeneratorInstanceQueue
+        else:
+            self.test_generator: Generator = data_reader.GENERATOR(
+                logger=self.logger,
+                gpus=self.gpus,
+                transforms=self.cfg.TEST_TRANSFORMATION,
+                mode="test",
+                **self.cfg.DEPLOYMENT.DATAREADER.GENERATOR_ARGS
+            )
+            self.test_generator.build( 
+                crawler_instance,
+                batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
+                workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
+                **self.cfg.DEPLOYMENT.DATAREADER.DATASET_ARGS
+            )
+
+        if self.mode == "test":
+            self.labelMetadata = self.test_generator.num_entities
+        self.logger.info("Generated test data/query generator")
+
+    def _buildCrawlerInstance(self, data_reader: DataReader) -> Crawler:
+        """Builds a Crawler instance from the data_reader's provided crawler class in `data_reader.CRAWLER`
+
+        Args:
+            data_reader (DataReader): A DataReader class
+
+        Returns:
+            Crawler: A Crawler instanece for this experiment
+        """
+        return data_reader.CRAWLER(
+            logger=self.logger, **self.cfg.DEPLOYMENT.DATAREADER.CRAWLER_ARGS
+        )
 
     def deploy(self):
         self.deployment.deploy(continue_epoch=self.previous_stop + 1)
