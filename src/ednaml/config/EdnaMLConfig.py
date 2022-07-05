@@ -1,7 +1,7 @@
 # BaseConfig class to manage the input configurations. TODO
 import os
 import json
-from typing import List
+from typing import Dict, List
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
@@ -38,19 +38,14 @@ class EdnaMLConfig(BaseConfig):
     ]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
 
+    extensions: List[str]
+
     def __init__(
         self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()
     ):
-        ydict = {} 
+        self.extensions = ["DEPLOYMENT"]
+        ydict = self.read_path(config_path)
 
-        if len(config_path) > 0:
-            if not os.path.exists(config_path):
-                raise FileNotFoundError(
-                    "No file found for config at : %s" % config_path
-                )
-            else:
-                with open(config_path, "r") as cfile:
-                    ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
         self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults) #inside the exectution -- store execution object - -execution section
         self.DEPLOYMENT = DeploymentConfig(ydict.get("DEPLOYMENT", {}), defaults) #inside the exectution -- store execution object - -execution section
         self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
@@ -110,6 +105,47 @@ class EdnaMLConfig(BaseConfig):
         elif mode == "dict":
             return dicta
 
+    def extend(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()):
+        """Extends the existing config object with fields from the provided config
+
+        Args:
+            config_path (str): The path to the config file to extend with
+        """        
+        
+        ydict = self.read_path(config_path)
+        for extension in self.extensions:
+            if len(ydict.get(extension, {})) > 0:
+                if extension == "DEPLOYMENT":
+                    self.DEPLOYMENT = DeploymentConfig(ydict.get(extension, {}), defaults) 
+                    return "Extended with DEPLOYMENT."
+                else:
+                    return "No valid extensions available."
+
+
+
+    def read_path(self, path: os.PathLike) -> Dict[str,str]:
+        """Reads the config at the path and yields a dictionary of the config
+
+        Args:
+            path (os.PathLike): Path to the config
+
+        Raises:
+            FileNotFoundError: Raised if path does not exist
+
+        Returns:
+            Dict[str,str]: Config as a python dictionary
+        """        
+        ydict = {} 
+
+        if len(path) > 0:
+            if not os.path.exists(path):
+                raise FileNotFoundError(
+                    "No file found for config at : %s" % path
+                )
+            else:
+                with open(path, "r") as cfile:
+                    ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
+        return ydict
 
 """
 Notes for LOSS_OPTIMIZER and LOSS_SCHEDULER

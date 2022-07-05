@@ -5,7 +5,8 @@ from typing import Dict
 
 class DeploymentConfig(BaseConfig):
     OUTPUT_ARGS: Dict[str,str]
-    DEPLOYMENT: str
+    DEPLOY: str
+    DATAREADER: ExecutionDatareaderConfig
 
     def __init__(self, deployment_dict, defaults: ConfigDefaults):
         self.OUTPUT_ARGS = deployment_dict.get(
@@ -13,4 +14,7 @@ class DeploymentConfig(BaseConfig):
         )
         self.DEPLOYMENT = deployment_dict.get(
             "DEPLOYMENT", defaults.DEPLOYMENT
+        )
+        self.DATAREADER = ExecutionDatareaderConfig(
+            deployment_dict.get("DATAREADER", {})
         )
