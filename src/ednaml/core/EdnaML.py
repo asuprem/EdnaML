@@ -1,7 +1,7 @@
 import importlib
 import os, shutil, logging, glob, re
 from types import FunctionType, MethodType
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, List, Type, Union
 import warnings
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
@@ -50,7 +50,7 @@ class EdnaML(EdnaMLBase):
 
     def __init__(
         self,
-        config: str = "",
+        config: Union[List[str], str] = "",
         mode: str = "train",
         weights: str = None,
         logger: logging.Logger = None,
@@ -83,7 +83,15 @@ class EdnaML(EdnaMLBase):
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
 
-        self.cfg = EdnaMLConfig(config) ####### storing the config object
+        # Added configuration extentions
+        if type(self.config) is list:
+            self.cfg = EdnaMLConfig(config[0])
+            msg = self.cfg.extend(config[1])
+            self.logger.info(msg)
+        else:
+            self.cfg = EdnaMLConfig(config) 
+        
+        
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
