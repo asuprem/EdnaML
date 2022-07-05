@@ -116,7 +116,7 @@ class BaseDeploy:
     def data_step(self):   
         with torch.no_grad():
             for batch in tqdm.tqdm(
-                self.test_loader, total=len(self.test_loader), leave=False
+                self.data_loader, total=len(self.data_loader), leave=False
             ):    
                 feature_logits, features, secondary_outputs = self.deploy_step(batch)
 
@@ -141,4 +141,25 @@ class BaseDeploy:
         if self.global_batch % self.config.LOGGING.STEP_VERBOSE == 0:
             self.logger.info("Warning: No output is generated at step %i"%self.global_batch)
 
+    def load(self, load_epoch):
+        self.logger.info(
+            "Loading a model from saved epoch %i"
+            % (load_epoch)
+        )
+        model_load = self.model_save_name + "_epoch%i" % load_epoch + ".pth"
 
+        if self.save_backup:
+            self.logger.info(
+                "Loading model from drive backup."
+            )
+            model_load_path = os.path.join(self.backup_directory, model_load)
+        else:
+            self.logger.info(
+                "Loading model from local backup."
+            )
+            model_load_path = os.path.join(self.save_directory, model_load)
+
+        self.model.load_state_dict(torch.load(model_load_path))
+        self.logger.info(
+            "Finished loading model state_dict from %s" % model_load_path
+        )
