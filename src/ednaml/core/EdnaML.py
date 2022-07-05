@@ -87,7 +87,7 @@ class EdnaML(EdnaMLBase):
         if type(self.config) is list:
             self.cfg = EdnaMLConfig(config[0])
             msg = self.cfg.extend(config[1])
-            self.logger.info(msg)
+            print(msg)
         else:
             self.cfg = EdnaMLConfig(config) 
         
