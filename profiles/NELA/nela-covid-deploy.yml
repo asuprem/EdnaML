@@ -4,8 +4,9 @@ DEPLOYMENT:
   DEPLOY: BaseDeploy
   DATAREADER:
     CRAWLER_ARGS: 
-      data_folder: Data
-      sub_folder: nela-covid-2020
+      azstorage: ednadatasets
+      azcontainer: edna-covid-raw
+      azfile: tweets-2020-01-22.json.gz
     DATAREADER: AlbertReader
     DATASET_ARGS:
       classificationclass: ['reliability']
