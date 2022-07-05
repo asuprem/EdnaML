@@ -7,7 +7,8 @@ class AlbertDataset(torch.utils.data.Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
         self.dataset = dataset  # list of tuples (text, labels, labels)
         self.logger = logger
-        if kwargs.get("data_shuffle", True):
+        self.data_shuffle = kwargs.get("data_shuffle", True)
+        if self.data_shuffle:
             random.shuffle(self.dataset)
 
         # Options
@@ -85,13 +86,15 @@ class AlbertDataset(torch.utils.data.Dataset):
                 self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))-1   # TODO Bug fix if files do not have consistent numbering
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
             self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
-            random.shuffle(self.shard_shuffle)
+            if self.data_shuffle:
+                random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
             if self.masking:
                 self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
             self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
-            random.shuffle(self.shard_internal_shuffle)
+            if self.data_shuffle:
+                random.shuffle(self.shard_internal_shuffle)
 
 
 
@@ -104,7 +107,8 @@ class AlbertDataset(torch.utils.data.Dataset):
             self.shard_load_index += 1                  # increment the shard index that we will load
             if self.shard_load_index == self.shardsaveindex: # we have processed all shards.
                 self.shard_load_index = 0
-                random.shuffle(self.shard_shuffle)
+                if self.data_shuffle:
+                    random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
 
             if self.masking:
@@ -112,7 +116,8 @@ class AlbertDataset(torch.utils.data.Dataset):
 
             self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
-            random.shuffle(self.shard_internal_shuffle)
+            if self.data_shuffle:
+                random.shuffle(self.shard_internal_shuffle)
         shardindex = idx % self.current_shardsize
         return self.sharded_dataset[self.shard_internal_shuffle[shardindex]]
 
