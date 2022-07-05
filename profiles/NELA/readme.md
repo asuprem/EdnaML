@@ -26,7 +26,7 @@ This is after an ML model is trained and tested. We use it to predict things. Ru
 
 Current:
     Have same custom classes in colab cell (can extend existing colab notebook for deploy)
-    Set up an EdnaDeploy class
+    Set up an EdnaDeploy class: 
     Add custom classes (incl deploy class and custom data crawler class for prediction data...)
     apply()
     deploy()
@@ -52,15 +52,31 @@ Future Roadmap for this
         Finally, check if deployment.yml already has a copy in mongo (for now, no checking because we ain;t backing up anything)
         then set up edna-deploy, and ed.deploy()
 
+## EdnaServe
+
+This is a serve job, so deal with this later
+
+kubernetes deployment / 
+log in azure, start a longterm vm
+pytorch-serve <pytorch-model.pth>
+
+
+
+## EdnaJob
+
+Deal with this later
+
+<ingest> download from twitter
+<process> https://model-ip/v1/get-fake-news?text="twitter-text"
+<emit> table.insert(text, false/true)
 
 ## EdnaData
 
 This is an EdnaJob, so deal with this later
 
-## EdnaServe
+<ingest> from some live source
+<process>
+<emit> -> azure, gdrive, etc
 
-This is a serve job, so deal with this later
 
-## EdnaJob
 
-Deal with this later
