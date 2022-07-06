@@ -28,7 +28,7 @@ EXECUTION:
     accumulation_steps: 8
 
 SAVE:
-  MODEL_VERSION: 4
+  MODEL_VERSION: 5
   MODEL_CORE_NAME: nela
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: covid20
@@ -72,7 +72,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 5.0e-4
+    BASE_LR: 1.0e-5
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6
