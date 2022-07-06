@@ -226,6 +226,13 @@ class AlbertDataset(torch.utils.data.Dataset):
         # Also, -2 and +1 take care of [cls] and [sep] not being masked
         return [(torch.randperm(inplength-2)+1)[:int(inplength*self.mlm)]  for inplength in input_length_cache]
 
+    
+    def sharded_refresh_mask_ids(self):
+        pass
+
+    def sharded_build_mask_ids(self, input_length_cache):
+        pass
+
 
     def convert_to_features(self, dataset, tokenizer, maxlen):
         features = []
