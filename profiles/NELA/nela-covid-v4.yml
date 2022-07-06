@@ -10,7 +10,7 @@ EXECUTION:
       shardcache: True
       shardsize: 20000
       mlm_probability: 0.2
-      masking: True
+      masking: False
       shuffle: True
     GENERATOR_ARGS: 
       do_lower_case: True
@@ -82,7 +82,7 @@ OPTIMIZER:
 
 SCHEDULER:
 - LR_KWARGS: 
-    step;size: 3
+    step_size: 3
     gamma: 0.5
   LR_SCHEDULER: StepLR
   SCHEDULER_NAME: opt-1
