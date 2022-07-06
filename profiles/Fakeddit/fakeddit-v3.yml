@@ -24,10 +24,10 @@ EXECUTION:
   TEST_FREQUENCY: 1
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
-    accumulation_steps: 8
+    accumulation_steps: 4
 
 SAVE:
-  MODEL_VERSION: 1
+  MODEL_VERSION: 3
   MODEL_CORE_NAME: fakeddit
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: all
@@ -36,7 +36,7 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/Fakeddit/Models/"
 
 TRANSFORMATION:
-  BATCH_SIZE: 64
+  BATCH_SIZE: 128
 
 MODEL:
   BUILDER: ednaml_model_builder
@@ -71,7 +71,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 1.0e-4
+    BASE_LR: 1.0e-5
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6
