@@ -17,7 +17,7 @@ from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.trainer.BaseTrainer import BaseTrainer
-from ednaml.utils import locate_class
+from ednaml.utils import locate_class, path_import
 import ednaml.utils
 import torch
 from torchinfo import summary
@@ -25,6 +25,7 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 import ednaml.utils.web
 from ednaml.utils.SaveMetadata import SaveMetadata
 import logging
+import ednaml.core.decorators
 
 """TODO
 
@@ -47,6 +48,7 @@ class EdnaML(EdnaMLBase):
     train_generator: Generator
     test_generator: Generator
     cfg: EdnaMLConfig
+    decorator_reference: Dict[str,Type[MethodType]]
 
     def __init__(
         self,
@@ -109,6 +111,14 @@ class EdnaML(EdnaMLBase):
         self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetTrainerQueue]
         self.resetQueueArray += self.addResetQueues()
         self.resetQueues()
+
+        self.decorator_reference = {
+            "crawler": self.addCrawlerClass,
+            "model": self.addModelClass,
+            "trainer": self.addTrainerClass,
+            #"storage": self.addStorageClass,
+            "generator": self.addGeneratorClass
+        }
 
     def addResetQueues(self):
         return []
@@ -740,23 +750,48 @@ class EdnaML(EdnaMLBase):
                 self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
             ) # INPUT SIZE SHOULD HAVE A VALUE
         print("INPUT SIZE ==== ",input_size)
-        self.model_summary = summary(
-            self.model,
-            input_size=input_size,
-            col_names=[
-                "input_size",
-                "output_size",
-                "num_params",
-                "kernel_size",
-                "mult_adds",
-            ],
-            depth=3,
-            mode="train",
-            verbose=0,
-            dtypes=dtypes,
-        )
-        self.logger.info(str(self.model_summary))
 
+        try:
+            self.model_summary = summary(
+                self.model,
+                input_size=input_size,
+                col_names=[
+                    "input_size",
+                    "output_size",
+                    "num_params",
+                    "kernel_size",
+                    "mult_adds",
+                ],
+                depth=3,
+                mode="train",
+                verbose=0,
+                dtypes=dtypes,
+            )
+            self.logger.info(str(self.model_summary))
+        except KeyboardInterrupt:   # TODO check which exception is actually raised in summary and maybe have a better way to deal with this...
+            raise
+        except Exception as e:
+            import traceback
+            self.logger.info("Model Summary retured the following error:")
+            self.logger.info(traceback.format_exc())
+
+
+    #------------------------------GENERAL ADD--------------------------------------------------------------------
+    def add(self, file_or_module_path):
+        # We are given a file, which contains several class loaded through decorators when the file is imported.
+        imported_file = path_import(file_or_module_path)
+        # Once we have imported, the files are registered in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS
+        lookup_path = os.path.abspath(file_or_module_path)
+        for keyvalue in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path]:
+            if keyvalue in self.decorator_reference:
+                self.decorator_reference[keyvalue](
+                    ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]
+                )
+            else:
+                warnings.warn(
+                    "keyvalue %s in REGISTERED_EDNA_COMPONENTS %s is not available in self.decorator_reference. Not adding."%(keyvalue, 
+                    type(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
+                )
     # ----------------------------------------------   DATAREADERS   ----------------------------------------------
     def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
         """Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
