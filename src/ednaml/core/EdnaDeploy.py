@@ -141,7 +141,7 @@ class EdnaDeploy(EdnaML):
     def buildDeployment(self):
         """Builds the EdnaDeploy deployment and sets it up"""
         if self._deploymentClassQueueFlag:
-            ExecutionDeployment = self._deploymentClassQueueFlag
+            ExecutionDeployment = self._deploymentClassQueue
         else:
             ExecutionDeployment: Type[BaseDeploy] = locate_class(
                 subpackage="deploy", classpackage=self.cfg.DEPLOYMENT.DEPLOY

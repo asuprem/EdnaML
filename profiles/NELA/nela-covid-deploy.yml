@@ -16,6 +16,7 @@ DEPLOYMENT:
       mlm_probability: 0
       masking: False
       shuffle: False
+      data_shuffle: False
     GENERATOR_ARGS: 
       do_lower_case: True
       spm_model_file: 30k-clean.model 

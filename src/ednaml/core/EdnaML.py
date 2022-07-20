@@ -790,7 +790,7 @@ class EdnaML(EdnaMLBase):
             else:
                 warnings.warn(
                     "keyvalue %s in REGISTERED_EDNA_COMPONENTS %s is not available in self.decorator_reference. Not adding."%(keyvalue, 
-                    type(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
+                    str(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
                 )
     # ----------------------------------------------   DATAREADERS   ----------------------------------------------
     def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
