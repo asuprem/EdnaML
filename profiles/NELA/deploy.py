@@ -1,11 +1,11 @@
 import ednaml, torch, os, csv
 from ednaml.crawlers import Crawler
 from ednaml.deploy.BaseDeploy import BaseDeploy
+import ednaml.core.decorators as edna
 
 
 
-
-
+@edna.register_deployment
 class NELADeploy(BaseDeploy):
 
 
@@ -26,7 +26,7 @@ import click
 @click.argument("mode")
 def main(config, mode):
     from ednaml.core import EdnaDeploy
-    import main
+    import nela
     eml = EdnaDeploy(config=config)
     eml.addCrawlerClass(main.NELACrawler)
     eml.addModelClass(main.NELAModel)
