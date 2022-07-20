@@ -22,7 +22,7 @@ class EdnaDeploy(EdnaML):
 
         super().__init__([config,deploy], mode, weights, logger, verbose,**kwargs)
 
-    
+        self.decorator_reference["deployment"] = self.addDeploymentClass
 
 
     def apply(self, **kwargs):
