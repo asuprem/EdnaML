@@ -2,7 +2,9 @@ import importlib
 import os, shutil, logging, glob, re
 from types import FunctionType, MethodType
 from typing import Callable, Dict, List, Type, Union
+from urllib.error import URLError
 import warnings
+from ednaml.config.StorageConfig import StorageConfig
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
@@ -17,6 +19,8 @@ from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.trainer.BaseTrainer import BaseTrainer
+from ednaml.storage import BaseStorage
+from ednaml.storage import AzureStorage
 from ednaml.utils import locate_class
 import ednaml.utils
 import torch
@@ -223,6 +227,7 @@ class EdnaML(EdnaMLBase):
         self.printConfiguration()
         self.downloadModelWeights()
         self.setPreviousStop()
+        self.buildStorage() # this is where -- same as other build things...  
 
         self.buildDataloaders()
 
@@ -239,6 +244,25 @@ class EdnaML(EdnaMLBase):
         self.buildTrainer()
 
         self.resetQueues()
+
+    def addStorage(self, storageClass: Type[BaseStorage]):
+        self._storage = storageClass
+    
+    def addStorageClass(self, storageInstance: BaseStorage):
+        print("Not implemented yet") 
+        self._storageInstance = storageInstance
+
+    def buildStorage(self):  
+        StorageConfig: Type[BaseStorage] = locate_class(
+                subpackage="storage", classpackage=self.cfg.STORAGE.TYPE #change to take it in cfg
+            )
+        self.logger.info(
+            "Loaded {} from {} to build Trainer".format(
+                "BaseStorage", "ednaml.trainer"
+            )
+        )
+        storageinstance = StorageConfig(self.cfg.STORAGE.TYPE,self.cfg.STORAGE.STORAGE_ARGS,self.cfg.STORAGE.URL) #pass separately
+        return storageinstance
 
     def train(self):
         self.trainer.train(continue_epoch=self.previous_stop + 1)  #
@@ -268,6 +292,8 @@ class EdnaML(EdnaMLBase):
                 )
             )
 
+        storage = self.buildStorage()
+
         if self._trainerInstanceQueueFlag:
             self.trainer = self._trainerInstanceQueue
         else:
@@ -286,6 +312,7 @@ class EdnaML(EdnaMLBase):
                 crawler=self.crawler,
                 config=self.cfg,
                 labels=self.labelMetadata,
+                StorageInstance=storage,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
             self.trainer.setup(
