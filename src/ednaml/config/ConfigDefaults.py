@@ -55,6 +55,10 @@ class ConfigDefaults(BaseConfig):
 
     STEP_VERBOSE: int
 
+    TYPE: str
+    STORAGE_ARGS: Dict
+    URL: str
+
     def __init__(self, **kwargs):
 
         self.OPTIMIZER_BUILDER = kwargs.get(
@@ -118,3 +122,7 @@ class ConfigDefaults(BaseConfig):
         self.LR_KWARGS = kwargs.get("LR_KWARGS", {"step_size": 20})
 
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
+
+        self.TYPE = kwargs.get("TYPE", "local")
+        self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
+        self.URL = kwargs.get("URL", "./")
