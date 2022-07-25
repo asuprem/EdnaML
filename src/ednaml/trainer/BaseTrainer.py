@@ -1,6 +1,7 @@
 import json, logging, os, shutil
 from logging import Logger
 from typing import Dict, List
+from ednaml.config.StorageConfig import StorageConfig
 
 import torch
 from torch.utils.data import DataLoader
@@ -9,7 +10,8 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
-
+from ednaml.storage.BaseStorage import BaseStorage
+from ednaml.storage.AzureStorage import AzureStorage
 
 class BaseTrainer:
     model: ModelAbstract
@@ -34,6 +36,7 @@ class BaseTrainer:
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
+    storage: BaseStorage
 
     def __init__(
         self,
@@ -51,9 +54,9 @@ class BaseTrainer:
         crawler: Crawler,
         config: EdnaMLConfig,
         labels: LabelMetadata,
+        StorageInstance: BaseStorage,
         **kwargs
     ):
-
         self.model = model
         self.parameter_groups = list(self.model.parameter_groups.keys())
         self.loss_fn_order = {
@@ -102,6 +105,9 @@ class BaseTrainer:
         self.labelMetadata = labels
         self.crawler = crawler
         self.config = config
+        self.storage = StorageInstance
+        # Add later -- download data from Azure/other file instance
+        #self.downloadData()
 
         self.buildMetadata(
             # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
@@ -113,6 +119,11 @@ class BaseTrainer:
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
+
+    def downloadData(self):
+        #storageinstance = AzureStorage(self.cfg.STORAGE)
+        self.storage.read()
+
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
@@ -227,11 +238,16 @@ class BaseTrainer:
         
         if self.config.SAVE.LOG_BACKUP:
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
+            #appending the logs to azure
+            self.storage.copy(os.path.join(self.save_directory, self.logger_file))
+            # This is the local path where we are copying data . This can be commented/removed later
             if os.path.exists(LOGGER_SAVE):
                 os.remove(LOGGER_SAVE)
             shutil.copy2(
                 os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE
             )
+
+                
 
     def load(self, load_epoch):
         self.logger.info(
