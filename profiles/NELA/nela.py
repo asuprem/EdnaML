@@ -2,6 +2,7 @@ import ednaml, torch, os, csv, os, json, glob, click
 from ednaml.crawlers import Crawler
 import ednaml.core.decorators as edna
 
+
 @edna.register_crawler
 class NELACrawler(Crawler):
   def __init__(self, logger = None, data_folder="Data", sub_folder="nela-covid-2020"):
@@ -311,8 +312,13 @@ class NELATrainer(BaseTrainer):
                 )
         )
 
+ModelPluginBase = None
+@edna.register_model_plugin
+class KMP_Distance(ModelPluginBase):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
 
-
+  
 
 
 
