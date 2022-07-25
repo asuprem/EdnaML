@@ -20,3 +20,6 @@ setup(
     install_requires=requires,
     keywords=["deep learning", "pytorch", "AI"],
 )
+
+# Azure :
+# Install azure-storage>=0.30.0
