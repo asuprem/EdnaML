@@ -23,6 +23,7 @@ class ConfigDefaults(BaseConfig):
     OUTPUT_ARGS: Dict[str,str]
     DEPLOYMENT: str
     DEPLOYMENT_ARGS: Dict[str,str]
+    DEPLOYMENT_EPOCHS: int
 
     TRANSFORM_ARGS: Dict
     BATCH_SIZE: int
@@ -86,6 +87,7 @@ class ConfigDefaults(BaseConfig):
         self.OUTPUT_ARGS = {}
         self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
         self.DEPLOYMENT_ARGS = kwargs.get("DEPLOYMENT_ARGS", {})
+        self.DEPLOYMENT_EPOCHS = kwargs.get("DEPLOYMENT_EPOCHS", 1)
 
         self.TRANSFORM_ARGS = {}
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)

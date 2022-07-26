@@ -8,6 +8,7 @@ class DeploymentConfig(BaseConfig):
     DEPLOYMENT_ARGS: Dict[str,str]
     DEPLOY: str
     DATAREADER: ExecutionDatareaderConfig
+    EPOCHS: int
 
     def __init__(self, deployment_dict, defaults: ConfigDefaults):
         self.OUTPUT_ARGS = deployment_dict.get(
@@ -22,3 +23,4 @@ class DeploymentConfig(BaseConfig):
         self.DATAREADER = ExecutionDatareaderConfig(
             deployment_dict.get("DATAREADER", {})
         )
+        self.EPOCHS = deployment_dict.get("EPOCHS", defaults.DEPLOYMENT_EPOCHS)
