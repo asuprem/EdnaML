@@ -184,7 +184,7 @@ class ModelAbstract(nn.Module):
 
     #-------------------------------------------------------------------------------------------
     # Model Plugins and Hooks architecture
-    def addPlugin(self, plugin: ModelPlugin, plugin_name: str = None):
+    def addPlugin(self, plugin: ModelPlugin, plugin_name: str = None, plugin_kwargs: Dict[str, Any] = {}):
         if plugin_name is None:
             plugin_name = plugin.name
         if plugin_name == "ModelPlugin":
@@ -195,7 +195,7 @@ class ModelAbstract(nn.Module):
         if plugin_name in self.plugins:
             raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
         else:
-            self.plugins[plugin_name] = plugin
+            self.plugins[plugin_name] = plugin(**plugin_kwargs)
         
         self.plugin_count = len(self.plugins)
         self.has_plugins = self.plugin_count > 0
