@@ -1,7 +1,22 @@
 from setuptools import setup
+import os
+
+
+requires = [
+        "scikit-learn>=1.0.2",
+        "torch>=1.10.*",
+        "torchinfo>=1.6.5",
+        "torchvision>=0.11.*",
+        "Pillow>=7.1.2",    #9.0.x, this is for colab...
+        "tqdm>=4.63.*",
+        "sentencepiece>=0.1.96"
+    ]
+
 
 # Create full install that includes all extra dependencies
-if __name__ == "__main__":
-    setup(
+
+setup(
+    name="ednaml",
+    install_requires=requires,
     keywords=["deep learning", "pytorch", "AI"],
 )
