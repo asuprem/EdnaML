@@ -312,16 +312,6 @@ class NELATrainer(BaseTrainer):
                 )
         )
 
-ModelPluginBase = None
-@edna.register_model_plugin
-class KMP_Distance(ModelPluginBase):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-
-  
-
-
-
 import click
 @click.argument("config")
 @click.argument("mode")
