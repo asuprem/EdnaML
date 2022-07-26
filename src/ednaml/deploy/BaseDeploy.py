@@ -24,6 +24,7 @@ class BaseDeploy:
         self,
         model: ModelAbstract,
         data_loader: DataLoader,
+        epochs: int,
         logger: logging.Logger,
         crawler: Crawler,
         config: EdnaMLConfig,
@@ -36,7 +37,8 @@ class BaseDeploy:
        
         self.data_loader = data_loader
         self.logger = logger
-
+        self.epochs = epochs
+        self.global_epoch = 0
         self.global_batch = 0  # Current batch number in the epoch
 
         self.metadata = {}
@@ -109,7 +111,15 @@ class BaseDeploy:
             self.model.inference()
         else:
             self.model.eval()
-        self.data_step()
+
+        self.logger.info("Executing deploymen for  %i epochs" % self.epochs)
+        for epoch in range(self.epochs + 1):
+            # TODO pre_epoch...?
+            self.data_step()
+            # TODO post_epoch
+            self.global_epoch = epoch + 1
+
+        
 
         self.logger.info("Completed deployment task.")
 
