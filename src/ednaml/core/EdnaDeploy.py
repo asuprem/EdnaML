@@ -158,6 +158,7 @@ class EdnaDeploy(EdnaML):
             self.deployment = ExecutionDeployment(
                 model=self.model,
                 data_loader=self.test_generator.dataloader, # TODO
+                epochs=self.cfg.DEPLOYMENT.EPOCHS,
                 logger=self.logger,
                 crawler=self.crawler,
                 config=self.cfg,
