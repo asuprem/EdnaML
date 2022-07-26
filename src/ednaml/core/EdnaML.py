@@ -16,6 +16,7 @@ from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
+from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.utils import locate_class, path_import
 import ednaml.utils
@@ -36,7 +37,7 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 class EdnaML(EdnaMLBase):
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
-    model: ModelAbstract
+    model: ModelAbstract = None
     loss_function_array: List[LossBuilder]
     loss_optimizer_array: List[torch.optim.Optimizer]
     optimizer: List[torch.optim.Optimizer]
@@ -49,6 +50,7 @@ class EdnaML(EdnaMLBase):
     test_generator: Generator
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
+    plugins: List[ModelPlugin]
 
     def __init__(
         self,
@@ -117,7 +119,8 @@ class EdnaML(EdnaMLBase):
             "model": self.addModelClass,
             "trainer": self.addTrainerClass,
             #"storage": self.addStorageClass,
-            "generator": self.addGeneratorClass
+            "generator": self.addGeneratorClass,
+            "model_plugin": self.addPlugins,
         }
 
     def addResetQueues(self):
@@ -658,7 +661,24 @@ class EdnaML(EdnaMLBase):
                 self.cfg.MODEL.MODEL_ARCH
             )
         )
+        self.addPluginsToModel()
 
+    # Add model hooks here, since it is a ModelAbstract
+    def addPlugins(self, plugin_class_list: List[Type[ModelPlugin]], **kwargs):
+        """add plugins to the plugins queue...
+        ideally this is called before add model
+        then add model can add the plugins in the queue to the model...
+        """
+        for plugin in plugin_class_list:
+            self.plugins.append(plugin)
+        if self.model is not None:
+            # model is defined. We will add plugins to queue, and then call the model's add plugin bit...
+            self.addPluginsToModel()
+
+    def addPluginsToModel(self):
+        for plugin in self.plugins:
+            self.model.addPlugin(plugin)    # TODO plugin kwargs, plugin_name...
+            
     def addModelBuilder(
         self, model_builder: Type[Callable], model_config: ModelConfig = None
     ):
@@ -927,13 +947,6 @@ class EdnaML(EdnaMLBase):
         if self._trainGeneratorInstanceQueueFlag:
             self.train_generator: Generator = self._trainGeneratorInstanceQueue
         else:
-            #print("??????????????????????????????????????????????????????????????????????//",self.cfg.TRAIN_TRANSFORMATION.getVars())
-            #train_transform_values = self.cfg.TRAIN_TRANSFORMATION.getVars()
-            #values_for_transform = {}
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #print("THIS IS A CHANGE!")
             print(self.cfg.TRAIN_TRANSFORMATION)
             if self.mode != "test":
                 self.train_generator: Generator = data_reader.GENERATOR( ##imp -- initialize generator
