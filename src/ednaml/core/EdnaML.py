@@ -50,7 +50,7 @@ class EdnaML(EdnaMLBase):
     test_generator: Generator
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
-    plugins: List[ModelPlugin]
+    plugins: List[ModelPlugin] = []
 
     def __init__(
         self,
@@ -90,8 +90,9 @@ class EdnaML(EdnaMLBase):
         # Added configuration extentions
         if type(self.config) is list:
             self.cfg = EdnaMLConfig(config[0])
-            msg = self.cfg.extend(config[1])
-            print(msg)
+            for cfg_item in config[1:]:
+                msg = self.cfg.extend(cfg_item)
+                self.logger.info(str(msg))
         else:
             self.cfg = EdnaMLConfig(config) 
         
@@ -301,7 +302,7 @@ class EdnaML(EdnaMLBase):
                 labels=self.labelMetadata,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
-            self.trainer.setup(
+            self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
@@ -661,6 +662,7 @@ class EdnaML(EdnaMLBase):
                 self.cfg.MODEL.MODEL_ARCH
             )
         )
+        self.logger.info("Adding plugins after constructing model")
         self.addPluginsToModel()
 
     # Add model hooks here, since it is a ModelAbstract
@@ -673,11 +675,14 @@ class EdnaML(EdnaMLBase):
             self.plugins.append(plugin)
         if self.model is not None:
             # model is defined. We will add plugins to queue, and then call the model's add plugin bit...
+            self.logger.info("Model already constructed. Adding plugins.")
             self.addPluginsToModel()
 
     def addPluginsToModel(self):
         for plugin in self.plugins:
-            self.model.addPlugin(plugin)    # TODO plugin kwargs, plugin_name...
+            self.model.addPlugin(plugin, 
+                            plugin_name = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_NAME, 
+                            plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_KWARGS)
             
     def addModelBuilder(
         self, model_builder: Type[Callable], model_config: ModelConfig = None
@@ -764,14 +769,14 @@ class EdnaML(EdnaMLBase):
         self.model.cuda()
         # change below statement according to line 722
         # default for input size is None/null
-        if input_size is None:
-            input_size = (
-                self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
-                self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
-            ) # INPUT SIZE SHOULD HAVE A VALUE
-        print("INPUT SIZE ==== ",input_size)
-
         try:
+            if input_size is None:
+                input_size = (
+                    self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                    self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
+                ) # INPUT SIZE SHOULD HAVE A VALUE
+            print("INPUT SIZE ==== ",input_size)
+
             self.model_summary = summary(
                 self.model,
                 input_size=input_size,
