@@ -51,7 +51,7 @@ class EdnaMLConfig(BaseConfig):
         self._updateConfig(ydict, defaults)
     
     def _extension_verifier(self, ydict, extension, verification):
-        return [] if len(ydict.get(extension, verification)) == 0 else [extension]
+        return [] if ydict.get(extension, verification) == verification else [extension]
 
     def _updateConfig(self, ydict: Dict[str,str], defaults: ConfigDefaults):
         added_extensions = []   # add control to check if extension was added or default was used...
@@ -160,7 +160,7 @@ class EdnaMLConfig(BaseConfig):
     def _extend(self, config_path, defaults: ConfigDefaults):
         ydict = self.read_path(config_path)
         added_extensions = self._updateConfig(ydict, defaults)
-        return "Extended with : %s"%", ".join(added_extensions)
+        return "Extended with : %s"%", ".join([item[0] for item in added_extensions if len(item)>0])
 
 
 
