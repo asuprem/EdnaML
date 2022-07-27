@@ -3,7 +3,7 @@ import torch
 from sklearn.neighbors import KDTree
 
 class KMeansProxy(ModelPlugin):
-    def __init__(self, num_clusters, dimensions, dist, rand_seed, epochs):
+    def __init__(self, num_clusters=10, dimensions=768, dist="l2", rand_seed=12344, epochs=3):
         super().__init__(num_clusters = num_clusters, dimensions=dimensions, dist=dist, rand_seed = rand_seed, epochs=epochs)
 
 
@@ -14,6 +14,9 @@ class KMeansProxy(ModelPlugin):
         self.dist = kwargs.get("dist", "l2")    # TODO
         self.epochs = kwargs.get("epochs", 2)
         self.epoch_count = 0
+        self.pre_epoch_flag = False
+        self.pre_epoch_num = -1
+        self.post_epoch_num = -1
         self.activated = False
         self.kdcluster = None
 
@@ -35,11 +38,19 @@ class KMeansProxy(ModelPlugin):
 
     def post_epoch(self, epoch: int = 0, **kwargs):
         if not self.activated:  # If already activated, we do not need to change anything
-            self.epoch_count = epoch    # Maybe have a better check in case something drops or epochs get skipped...
+            self.post_epoch_num = epoch    # Maybe have a better check in case something drops or epochs get skipped...
+            if self.pre_epoch_flag: # Means we had a pre_epoch flag so an epoch was completed.
+                self.pre_epoch_flag = False # reset the flag
+                self.epoch_count+=1
+                if self.post_epoch_num != self.pre_epoch_num:
+                    raise ValueError("Epoch may have been skipped. Before: %i\tAfter: %i"%(self.pre_epoch_num, self.post_epoch_num))
             self.activated = self.epoch_count > self.epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
         if self.activated and self.kdcluster is not None:
             self.kdcluster = KDTree(self.cluster_means)
 
+    def pre_epoch(self, epoch: int = 0, **kwargs):
+        self.pre_epoch_flag = True
+        self.pre_epoch_num = epoch
 
     def update_minibatch_kmeans_clusters(self, batch: torch.Tensor, ):
         V = torch.zeros(self.num_clusters)
