@@ -1,7 +1,7 @@
 from os import PathLike
 from torch import TensorType, nn
 import torch
-from typing import Any, List, Dict, Tuple
+from typing import Any, List, Dict, Tuple, Type
 from ednaml.plugins import ModelPlugin
 from ednaml.utils.LabelMetadata import LabelMetadata
 
@@ -40,7 +40,7 @@ class ModelAbstract(nn.Module):
     metadata: LabelMetadata
     parameter_groups: Dict[str, nn.Module]
 
-    plugins: Dict[str,ModelPlugin]
+    plugins: Dict[str,ModelPlugin] = {}
     plugin_count: int = 0
     has_plugins: bool = False
 
@@ -184,13 +184,28 @@ class ModelAbstract(nn.Module):
 
     #-------------------------------------------------------------------------------------------
     # Model Plugins and Hooks architecture
-    def addPlugin(self, plugin: ModelPlugin, plugin_name: str = None, plugin_kwargs: Dict[str, Any] = {}):
+    def loadPlugins(self, plugin_path: PathLike):
+        plugin_dict = torch.load(plugin_path)
+        for plugin_name in plugin_dict:
+            if plugin_name in self.plugins:
+                self.plugins[plugin_name].load(plugin_dict[plugin_name])
+                print("Loading plugin with name %s"%plugin_name)
+            else:
+                print("No plugin exists for name %s"%plugin_name)
+
+    def savePlugins(self):
+        save_dict = {}
+        for plugin_name in self.plugins:
+            save_dict[plugin_name] = self.plugins[plugin_name].save()
+
+        return save_dict
+
+    def addPlugin(self, plugin: Type[ModelPlugin], plugin_name: str = None, plugin_kwargs: Dict[str, Any] = {}):
         if plugin_name is None:
-            plugin_name = plugin.name
+            plugin_name = plugin.__name__
         if plugin_name == "ModelPlugin":
             # TODO NOTE we are badly changing the ModelPlugin name to the class name
-            plugin_name = plugin.__class__.__name__
-            plugin.name = plugin_name
+            raise ValueError("Potentially no actual plugin passed!")
 
         if plugin_name in self.plugins:
             raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
@@ -204,7 +219,7 @@ class ModelAbstract(nn.Module):
         for plugin in self.plugins:
             self.plugins[plugin].pre_epoch(epoch=epoch)
 
-    def end_epoch_hook(self, epoch: int = 0):
+    def post_epoch_hook(self, epoch: int = 0):
         for plugin in self.plugins:
             self.plugins[plugin].post_epoch(epoch=epoch)
 
