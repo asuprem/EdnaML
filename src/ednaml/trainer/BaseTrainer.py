@@ -118,7 +118,7 @@ class BaseTrainer:
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
 
-    def setup(
+    def apply(
         self,
         step_verbose: int = 5,
         save_frequency: int = 5,
