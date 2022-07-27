@@ -1,0 +1,7 @@
+MODEL_PLUGIN:
+  - PLUGIN_NAME: KMeansProxy
+    PLUGIN_KWARGS:
+      num_clusters: 10
+      dimensions: 768
+      dist: l2
+      epochs: 2
