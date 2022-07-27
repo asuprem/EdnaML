@@ -55,6 +55,8 @@ class ConfigDefaults(BaseConfig):
     LR_KWARGS: Dict[str, str]
 
     STEP_VERBOSE: int
+    PLUGIN_NAME: str
+    PLUGIN_KWARGS: Dict[str, str]
 
     def __init__(self, **kwargs):
 
@@ -120,3 +122,6 @@ class ConfigDefaults(BaseConfig):
         self.LR_KWARGS = kwargs.get("LR_KWARGS", {"step_size": 20})
 
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
+
+        self.PLUGIN_NAME = "ModelPlugin"
+        self.PLUGIN_KWARGS = {}
