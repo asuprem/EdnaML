@@ -61,6 +61,7 @@ class BaseDeploy:
         step_verbose: int = 5,
         save_directory: str = "./checkpoint/",
         save_backup: bool = False,
+        save_frequency: int = 1,
         backup_directory: str = None,
         gpus: int = 1,
         fp16: bool = False,
@@ -69,6 +70,7 @@ class BaseDeploy:
     ):
         self.step_verbose = step_verbose
         self.save_directory = save_directory
+        self.save_frequency = save_frequency
         self.backup_directory = None
         self.model_save_name = model_save_name
         self.logger_file = logger_file
@@ -114,10 +116,12 @@ class BaseDeploy:
 
         self.logger.info("Executing deploymen for  %i epochs" % self.epochs)
         for epoch in range(self.epochs + 1):
-            # TODO pre_epoch...?
+            self.model.pre_epoch_hook(epoch=epoch)
             self.data_step()
-            # TODO post_epoch
+            self.model.post_epoch_hook(epoch=epoch)
             self.global_epoch = epoch + 1
+            if self.global_epoch % self.save_frequency == 0:
+                self.save()
 
         
 
@@ -173,3 +177,59 @@ class BaseDeploy:
         self.logger.info(
             "Finished loading model state_dict from %s" % model_load_path
         )
+        # Here, we will need to get a list of pickled or serialized plugin objects, then load them into a dictionary, then pass them into model
+        # YES!!!!
+        plugin_load = self.model_save_name + "_plugins.pth"
+
+        if self.save_backup:
+            self.logger.info(
+                "Looking for model plugins from drive backup."
+            )
+            plugin_load_path = os.path.join(self.backup_directory, plugin_load)
+        else:
+            self.logger.info(
+                "Looking for model plugins from local backup."
+            )
+            plugin_load_path = os.path.join(self.save_directory, plugin_load)
+
+        if os.path.exists(plugin_load_path):
+            self.model.loadPlugins(plugin_load_path)
+        else:
+            self.logger.info(
+                "No plugins found at %s"%plugin_load_path
+            )
+
+
+    def save(self, save_epoch: int = None):
+        if save_epoch is None:
+            save_epoch = self.global_epoch
+        self.logger.info("Saving model plugins.")
+        PLUGIN_SAVE_NAME = self.model_save_name + "_plugins.pth"
+        # here, we save only the plugins...
+        # Do not need model save, or training save, or log save...
+        
+        # A ModelAbstract can save its own plugins...?
+        # No, we get back a plugin serialization object that we use to , well, save the plugin
+        # Later, during plugin instantiation, we will need to write the code to load the plugin's save code...
+        plugin_save = self.model.savePlugins()
+
+        if len(plugin_save) > 0:
+            torch.save(plugin_save, os.path.join(
+                self.save_directory, PLUGIN_SAVE_NAME
+            ))
+            self.logger.info("Saved plugins: %s"%str(plugin_save.keys()))
+
+            if self.save_backup:
+                shutil.copy2(
+                    os.path.join(self.save_directory, PLUGIN_SAVE_NAME),
+                    self.backup_directory,
+                )
+
+                self.logger.info(
+                    "Performing drive backup of model plugins"
+                )
+        else:
+            self.logger.info("No plugins to save")
+
+       
+        
