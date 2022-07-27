@@ -6,7 +6,7 @@ from torch import nn
 class ModelPlugin(nn.Module):
     name: str = "ModelPlugin"
     def __init__(self, **kwargs):
-        
+        super().__init__()
         self.build_plugin(**kwargs)
         self.build_params(**kwargs)
         
@@ -55,3 +55,12 @@ class ModelPlugin(nn.Module):
             epoch (int, optional): _description_. Defaults to 0.
         """
         pass
+
+    def save(self):
+        return self.__dict__
+        # returns an object of itself for saving
+
+    def load(self, save_dict_or_path):
+        # TODO adjust this so plugin can be loaded from a file, instead of directly passing parameters...
+        self.__dict__.clear()
+        self.__dict__.update(save_dict_or_path) # probably need a better way to do this, i.e. iterate through dict, and keep what is ther, warn about extra keys, etc...
