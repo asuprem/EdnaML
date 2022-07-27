@@ -30,6 +30,7 @@ class AlbertDataset(torch.utils.data.Dataset):
                 shutil.rmtree(self.shardpath)
             else:
                 self.shards_exist = True
+                self.logger.debug("Shards already exist and `shard_replace` is False")
         os.makedirs(self.shardpath, exist_ok=True)
         
 
