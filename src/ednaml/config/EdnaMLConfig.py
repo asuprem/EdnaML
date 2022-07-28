@@ -75,7 +75,7 @@ class EdnaMLConfig(BaseConfig):
                     added_extensions.append([extension])
             elif extension == "TRANSFORMATION":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
-                has_train = self._extension_verifier(ydict, "TRAIN_TRANSFORMATION", {})
+                has_train = self._has_extension_verifier(ydict, "TRAIN_TRANSFORMATION", {})
                 if (has_extension and has_train) or update_with_defaults:
                     self.TRAIN_TRANSFORMATION = TransformationConfig(
                         dict(
@@ -84,7 +84,7 @@ class EdnaMLConfig(BaseConfig):
                         defaults,
                     )
                     added_extensions.append(["TRAIN_TRANSFORMATION"])
-                has_test = self._extension_verifier(ydict, "TEST_TRANSFORMATION", {})
+                has_test = self._has_extension_verifier(ydict, "TEST_TRANSFORMATION", {})
                 if (has_extension and has_test) or update_with_defaults:
                     self.TEST_TRANSFORMATION = TransformationConfig(
                         dict(
