@@ -4,4 +4,4 @@ MODEL_PLUGIN:
       num_clusters: 10
       dimensions: 768
       dist: l2
-      epochs: 2
+      epochs: 5
