@@ -92,7 +92,7 @@ class EdnaML(EdnaMLBase):
             self.cfg = EdnaMLConfig(config[0])
             for cfg_item in config[1:]:
                 msg = self.cfg.extend(cfg_item)
-                self.logger.info(str(msg))
+                print(str(msg))
         else:
             self.cfg = EdnaMLConfig(config) 
         
