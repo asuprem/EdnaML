@@ -137,8 +137,8 @@ class ModelAbstract(nn.Module):
 
         # TODO deal with secondary_output_queues
         if self.has_plugins:
-            secondary_outputs.append(secondary_output_queue_pre)
-            secondary_outputs.append(secondary_output_queue_post)
+            secondary_outputs += tuple(secondary_output_queue_pre)
+            secondary_outputs += tuple(secondary_output_queue_post)
         return feature_logits, features, secondary_outputs
 
     def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:
@@ -184,12 +184,15 @@ class ModelAbstract(nn.Module):
 
     #-------------------------------------------------------------------------------------------
     # Model Plugins and Hooks architecture
-    def loadPlugins(self, plugin_path: PathLike):
+    def loadPlugins(self, plugin_path: PathLike, ignore_plugins: List[str] = []):
         plugin_dict = torch.load(plugin_path)
         for plugin_name in plugin_dict:
             if plugin_name in self.plugins:
-                self.plugins[plugin_name].load(plugin_dict[plugin_name])
-                print("Loading plugin with name %s"%plugin_name)
+                if plugin_name not in ignore_plugins:
+                    self.plugins[plugin_name].load(plugin_dict[plugin_name])
+                    print("Loading plugin with name %s"%plugin_name)
+                else:
+                    print("Ignoring plugin with name %s"%plugin_name)
             else:
                 print("No plugin exists for name %s"%plugin_name)
 
@@ -202,7 +205,7 @@ class ModelAbstract(nn.Module):
 
     def addPlugin(self, plugin: Type[ModelPlugin], plugin_name: str = None, plugin_kwargs: Dict[str, Any] = {}):
         if plugin_name is None:
-            plugin_name = plugin.__name__
+            plugin_name = plugin.name
         if plugin_name == "ModelPlugin":
             # TODO NOTE we are badly changing the ModelPlugin name to the class name
             raise ValueError("Potentially no actual plugin passed!")
