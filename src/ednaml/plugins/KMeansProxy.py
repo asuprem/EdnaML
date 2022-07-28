@@ -3,6 +3,7 @@ import torch
 from sklearn.neighbors import KDTree
 
 class KMeansProxy(ModelPlugin):
+    name = "KMeansProxy"
     def __init__(self, num_clusters=10, dimensions=768, dist="l2", rand_seed=12344, epochs=3):
         super().__init__(num_clusters = num_clusters, dimensions=dimensions, dist=dist, rand_seed = rand_seed, epochs=epochs)
 
@@ -45,7 +46,7 @@ class KMeansProxy(ModelPlugin):
                 if self.post_epoch_num != self.pre_epoch_num:
                     raise ValueError("Epoch may have been skipped. Before: %i\tAfter: %i"%(self.pre_epoch_num, self.post_epoch_num))
             self.activated = self.epoch_count > self.epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
-        if self.activated and self.kdcluster is not None:
+        if self.activated and self.kdcluster is None:
             self.kdcluster = KDTree(self.cluster_means)
 
     def pre_epoch(self, epoch: int = 0, **kwargs):
@@ -53,13 +54,15 @@ class KMeansProxy(ModelPlugin):
         self.pre_epoch_num = epoch
 
     def update_minibatch_kmeans_clusters(self, batch: torch.Tensor, ):
+        #batch_device = batch.get_device()   # TODO fix this hacky with the hack from https://stackoverflow.com/questions/58926054/how-to-get-the-device-type-of-a-pytorch-module-conveniently 2nd answer
+        local_batch = batch.cpu()
         V = torch.zeros(self.num_clusters)
         idxs = torch.empty(batch.shape[0], dtype=torch.int)
-        for j, x in enumerate(batch):
+        for j, x in enumerate(local_batch):
             idxs[j] = torch.argmin(((self.cluster_means - x)**2).sum(1))
 
         # Update centers:
-        for j, x in enumerate(batch):
+        for j, x in enumerate(local_batch):
             V[idxs[j]] += 1
             eta = 1.0 / V[idxs[j]]
             self.cluster_means[idxs[j]] = (1.0 - eta) * self.cluster_means[idxs[j]] + eta * x
@@ -68,7 +71,8 @@ class KMeansProxy(ModelPlugin):
         """Compute the cluster labels for dataset X given centers C.
         """
         # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        dist, labels = self.kdcluster.query(batch, k=1, return_distance=True)   #.squeeze()
+        q_batch = batch.cpu()
+        dist, labels = self.kdcluster.query(q_batch, k=1, return_distance=True)   #.squeeze()
         return dist, labels
 
 
