@@ -254,8 +254,8 @@ class EdnaML(EdnaMLBase):
 
         self.resetQueues()
 
-    def train(self):
-        self.trainer.train(continue_epoch=self.previous_stop + 1)  #
+    def train(self, **kwargs):
+        self.trainer.train(continue_epoch=self.previous_stop + 1, **kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()

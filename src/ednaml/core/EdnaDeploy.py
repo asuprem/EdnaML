@@ -135,8 +135,8 @@ class EdnaDeploy(EdnaML):
             logger=self.logger, **self.cfg.DEPLOYMENT.DATAREADER.CRAWLER_ARGS
         )
 
-    def deploy(self):
-        self.deployment.deploy(continue_epoch=self.previous_stop + 1)
+    def deploy(self, **kwargs):
+        self.deployment.deploy(continue_epoch=self.previous_stop + 1, **kwargs)
 
     def buildDeployment(self):
         """Builds the EdnaDeploy deployment and sets it up"""
