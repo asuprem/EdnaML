@@ -95,7 +95,7 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def deploy(self, continue_epoch=0, inference = False):
+    def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = []):
         self.logger.info("Starting deployment")
         self.logger.info("Logging to:\t%s" % self.logger_file)
         if self.config.SAVE.LOG_BACKUP:
@@ -104,18 +104,19 @@ class BaseDeploy:
                 % self.backup_directory
             )
         
-        self.logger.info("Loading model from saved epoch %i" % continue_epoch)
+        self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
         if continue_epoch > 0:
             load_epoch = continue_epoch - 1
-            self.load(load_epoch)
+            self.load(load_epoch, ignore_plugins=ignore_plugins)
 
         if inference:
             self.model.inference()
         else:
             self.model.eval()
 
-        self.logger.info("Executing deploymen for  %i epochs" % self.epochs)
+        self.logger.info("Executing deployment for  %i epochs" % self.epochs)
         for epoch in range(self.epochs + 1):
+            self.logger.info("Starting epoch %i"%self.global_epoch)
             self.model.pre_epoch_hook(epoch=epoch)
             self.data_step()
             self.model.post_epoch_hook(epoch=epoch)
@@ -155,7 +156,7 @@ class BaseDeploy:
         if self.global_batch % self.config.LOGGING.STEP_VERBOSE == 0:
             self.logger.info("Warning: No output is generated at step %i"%self.global_batch)
 
-    def load(self, load_epoch):
+    def load(self, load_epoch, ignore_plugins: List[str] = []):
         self.logger.info(
             "Loading a model from saved epoch %i"
             % (load_epoch)
@@ -193,7 +194,11 @@ class BaseDeploy:
             plugin_load_path = os.path.join(self.save_directory, plugin_load)
 
         if os.path.exists(plugin_load_path):
-            self.model.loadPlugins(plugin_load_path)
+            
+            self.model.loadPlugins(plugin_load_path, ignore_plugins=ignore_plugins)
+            self.logger.info(
+                "Loaded plugins from %"%plugin_load_path
+            )
         else:
             self.logger.info(
                 "No plugins found at %s"%plugin_load_path
@@ -203,6 +208,7 @@ class BaseDeploy:
     def save(self, save_epoch: int = None):
         if save_epoch is None:
             save_epoch = self.global_epoch
+        self.logger.info("Performing save at epoch %i"%save_epoch)
         self.logger.info("Saving model plugins.")
         PLUGIN_SAVE_NAME = self.model_save_name + "_plugins.pth"
         # here, we save only the plugins...
