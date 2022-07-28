@@ -52,6 +52,8 @@ class BaseDeploy:
             config=json.loads(config.export("json")),
         )
 
+        self.model_is_built = False
+
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
@@ -95,38 +97,46 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = []):
-        self.logger.info("Starting deployment")
-        self.logger.info("Logging to:\t%s" % self.logger_file)
-        if self.config.SAVE.LOG_BACKUP:
-            self.logger.info(
-                "Logs will be backed up to drive directory:\t%s"
-                % self.backup_directory
-            )
-        
-        self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
-        if continue_epoch > 0:
-            load_epoch = continue_epoch - 1
-            self.load(load_epoch, ignore_plugins=ignore_plugins)
+    
+    def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
+        if model_build or (model_build is None and not self.model_is_built):
+            self.logger.info("Starting deployment")
+            self.logger.info("Logging to:\t%s" % self.logger_file)
+            if self.config.SAVE.LOG_BACKUP:
+                self.logger.info(
+                    "Logs will be backed up to drive directory:\t%s"
+                    % self.backup_directory
+                )
+            
+            self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
+            if continue_epoch > 0:
+                load_epoch = continue_epoch - 1
+                self.load(load_epoch, ignore_plugins=ignore_plugins)
 
-        if inference:
-            self.model.inference()
+            if inference:
+                self.model.inference()
+            else:
+                self.model.eval()
+            self.model_is_built = True
         else:
-            self.model.eval()
+            if not model_build:
+                self.logger.info("Skipping model building due to `model_build=False`")
+            elif self.model_is_built:
+                self.logger.info("Skipping model building because model is already built. To force, set the `model_build` flag to True in `ed.deploy`")
 
-        self.logger.info("Executing deployment for  %i epochs" % self.epochs)
-        for epoch in range(self.epochs + 1):
-            self.logger.info("Starting epoch %i"%self.global_epoch)
-            self.model.pre_epoch_hook(epoch=epoch)
-            self.data_step()
-            self.model.post_epoch_hook(epoch=epoch)
-            self.global_epoch = epoch + 1
-            if self.global_epoch % self.save_frequency == 0:
-                self.save()
-
-        
-
-        self.logger.info("Completed deployment task.")
+        if execute:
+            self.logger.info("Executing deployment for  %i epochs" % self.epochs)
+            for epoch in range(self.epochs + 1):
+                self.logger.info("Starting epoch %i"%self.global_epoch)
+                self.model.pre_epoch_hook(epoch=epoch)
+                self.data_step()
+                self.model.post_epoch_hook(epoch=epoch)
+                self.global_epoch = epoch + 1
+                if self.global_epoch % self.save_frequency == 0:
+                    self.save()
+            self.logger.info("Completed deployment task.")
+        else:
+            self.logger.info("Skipping execution of deployment task due to `execute = False`.")
 
     def data_step(self):   
         with torch.no_grad():
@@ -142,7 +152,7 @@ class BaseDeploy:
 
     def deploy_step(self, batch):   # USER IMPLEMENTS
         batch = tuple(item.cuda() for item in batch)
-        data, labels = batch
+        data, labels = batch    # TODO move plugins here to allow labels as well!!!!!!!!
         feature_logits, features, secondary_outputs = self.model(data)
 
         return feature_logits, features, secondary_outputs
@@ -197,7 +207,7 @@ class BaseDeploy:
             
             self.model.loadPlugins(plugin_load_path, ignore_plugins=ignore_plugins)
             self.logger.info(
-                "Loaded plugins from %"%plugin_load_path
+                "Loaded plugins from %s"%plugin_load_path
             )
         else:
             self.logger.info(

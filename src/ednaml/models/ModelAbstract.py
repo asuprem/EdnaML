@@ -119,7 +119,7 @@ class ModelAbstract(nn.Module):
                 continue
             self.state_dict()[_key].copy_(params[_key])
 
-    def forward(self, x, **kwargs):
+    def forward(self, x, labels=None, **kwargs):    # Labels for the plugins...?????
         if self.training and self.inferencing:
             raise ValueError(
                 "Cannot inference and train at the same time! Call"
