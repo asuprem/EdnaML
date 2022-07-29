@@ -1,7 +1,7 @@
 EXECUTION:
   DATAREADER:
     CRAWLER_ARGS: 
-      data_folder: Data/Fakeddit
+      data_folder: Data
     DATAREADER: AlbertReader
     DATASET_ARGS:
       classificationclass: ['reliability']
@@ -24,7 +24,7 @@ EXECUTION:
   TEST_FREQUENCY: 1
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
-    accumulation_steps: 4
+    accumulation_steps: 8
 
 SAVE:
   MODEL_VERSION: 3
@@ -36,7 +36,7 @@ SAVE:
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/Fakeddit/Models/"
 
 TRANSFORMATION:
-  BATCH_SIZE: 128
+  BATCH_SIZE: 64
 
 MODEL:
   BUILDER: ednaml_model_builder
@@ -59,6 +59,7 @@ MODEL:
     initializer_range: 0.02
     layer_norm_eps: 1.0e-12
     pooling: pooled
+    num_labels: 6
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 

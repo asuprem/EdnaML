@@ -2,7 +2,9 @@ import importlib
 import os, shutil, logging, glob, re
 from types import FunctionType, MethodType
 from typing import Callable, Dict, List, Type, Union
+from urllib.error import URLError
 import warnings
+from ednaml.config.StorageConfig import StorageConfig
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
@@ -17,6 +19,8 @@ from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.trainer.BaseTrainer import BaseTrainer
+from ednaml.storage import BaseStorage
+from ednaml.storage import AzureStorage
 from ednaml.utils import locate_class
 import ednaml.utils
 import torch
@@ -106,7 +110,7 @@ class EdnaML(EdnaMLBase):
                 "Cannot have `test_only` and be in training mode. Switch to"
                 " `test` mode."
             )
-        self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetTrainerQueue]
+        self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetStorageQueues, self.resetTrainerQueue]
         self.resetQueueArray += self.addResetQueues()
         self.resetQueues()
 
@@ -151,6 +155,12 @@ class EdnaML(EdnaMLBase):
         self._trainerClassQueueFlag = False
         self._trainerInstanceQueue = None
         self._trainerInstanceQueueFlag = False
+    def resetStorageQueues(self):
+        self._storageInstanceQueueFlag = False
+        self._storageClassQueueFlag = False
+        self._storageInstanceQueue = None
+        self._storageClassQueue = None
+
 
     def resetQueues(self):
         """Resets the `apply()` queue"""
@@ -223,6 +233,7 @@ class EdnaML(EdnaMLBase):
         self.printConfiguration()
         self.downloadModelWeights()
         self.setPreviousStop()
+        self.buildStorage() # this is where -- same as other build things...  
 
         self.buildDataloaders()
 
@@ -236,9 +247,46 @@ class EdnaML(EdnaMLBase):
         self.buildLossOptimizer()
         self.buildLossScheduler()
 
+        self.buildStorage()
         self.buildTrainer()
 
         self.resetQueues()
+
+    def addStorage(self, storage: BaseStorage):
+        self._storageInstanceQueue = storage
+        self._storageInstanceQueueFlag = True
+    
+    def addStorageClass(self, storage_class: Type[BaseStorage]):
+        self._storageClassQueue = storage_class
+        self._storageClassQueueFlag = True
+
+    def buildStorage(self):  
+        # Options: a class was passed through the edna add functionality
+        # Alternatively, we have specified a specific class in the storage.type section
+        # Alternatively, we have specified a type, but that does bot exist as a built in
+
+        # So, first we check if a class or instance was directly passed.
+        # If nothing has been passed, then we try to locate a built-in version based on storage.type
+        # If that doesn't work, then we can throw an error...
+
+        if self._storageClassQueueFlag:
+            storage = self._storageClassQueue
+        else:
+            storage: Type[BaseStorage] = locate_class(
+                subpackage="storage", classpackage=self.cfg.STORAGE.TYPE
+            )
+            self.logger.info(
+                "Loaded {} from {} to build Storage".format(
+                    self.cfg.STORAGE.TYPE, "ednaml.storage"
+                )
+            )
+
+        if self._storageInstanceQueueFlag:
+            self.storage = self._storageInstanceQueue
+        else:
+            self.storage = storage(type=self.cfg.STORAGE.TYPE,
+                                    url=self.cfg.STORAGE.URL,
+                                    **self.cfg.STORAGE.STORAGE_ARGS)
 
     def train(self):
         self.trainer.train(continue_epoch=self.previous_stop + 1)  #
@@ -286,6 +334,7 @@ class EdnaML(EdnaMLBase):
                 crawler=self.crawler,
                 config=self.cfg,
                 labels=self.labelMetadata,
+                storage=self.storage,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
             self.trainer.setup(

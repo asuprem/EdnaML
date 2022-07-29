@@ -16,6 +16,7 @@ from ednaml.config.SaveConfig import SaveConfig
 from ednaml.config.SchedulerConfig import SchedulerConfig
 from ednaml.config.TransformationConfig import TransformationConfig
 from ednaml.config.ModelConfig import ModelConfig
+from ednaml.config.StorageConfig import StorageConfig
 from ednaml.utils import merge_dictionary_on_key_with_copy
 
 class EdnaMLConfig(BaseConfig):
@@ -37,6 +38,7 @@ class EdnaMLConfig(BaseConfig):
         SchedulerConfig
     ]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
+    STORAGE: StorageConfig
 
     extensions: List[str]
 
@@ -93,6 +95,7 @@ class EdnaMLConfig(BaseConfig):
 
         self.LOGGING = LoggingConfig(ydict.get("LOGGING", {}), defaults)
 
+        self.STORAGE = StorageConfig(ydict.get("STORAGE", {}), defaults)
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
 
     def export(self, mode="yaml"):
