@@ -123,6 +123,6 @@ class ConfigDefaults(BaseConfig):
 
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
 
-        self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "local")
+        self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "BaseStorage")
         self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
         self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
