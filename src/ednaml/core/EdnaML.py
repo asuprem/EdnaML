@@ -245,12 +245,13 @@ class EdnaML(EdnaMLBase):
 
         self.resetQueues()
 
-    def addStorage(self, storageClass: Type[BaseStorage]):
-        self._storage = storageClass
+    def addStorage(self, storage: BaseStorage):
+        self._storageInstanceQueue = storageClass
+        self._storageInstanceQueueFlag = True
     
-    def addStorageClass(self, storageInstance: BaseStorage):
-        print("Not implemented yet") 
-        self._storageInstance = storageInstance
+    def addStorageClass(self, storage_class: Type[BaseStorage]):
+        self._storageClassQueue = storageClass
+        self._storageClassQueueFlag = True
 
     def buildStorage(self):  
         StorageConfig: Type[BaseStorage] = locate_class(
