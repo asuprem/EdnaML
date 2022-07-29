@@ -6,17 +6,7 @@ from ednaml.config.SaveConfig import SaveConfig
 from ednaml.storage.BaseStorage import BaseStorage
 import os,shutil,gzip
 
-class AzureStorage(BaseStorage):
-    TYPE: str
-    STORAGE_ARGS: Dict
-    URL: str
-
-    '''def __init__(self, configs: EdnaMLConfig, **kwargs):    # diff between : and = 
-        self.TYPE = configs.TYPE
-        self.STORAGE_ARGS = configs.STORAGE_ARGS
-        self.URL = configs.URL
-        #self.SaveConfig = configs.STORAGE'''
-
+class LocalStorage(BaseStorage):
     def read(self):
         print("Implement download file here")
         downloadpath = "This is dummy name"
