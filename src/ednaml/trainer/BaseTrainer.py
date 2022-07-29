@@ -11,7 +11,6 @@ from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.storage.AzureStorage import AzureStorage
 
 class BaseTrainer:
     model: ModelAbstract
@@ -54,7 +53,7 @@ class BaseTrainer:
         crawler: Crawler,
         config: EdnaMLConfig,
         labels: LabelMetadata,
-        StorageInstance: BaseStorage,
+        storage: BaseStorage,
         **kwargs
     ):
         self.model = model
@@ -105,7 +104,7 @@ class BaseTrainer:
         self.labelMetadata = labels
         self.crawler = crawler
         self.config = config
-        self.storage = StorageInstance
+        self.storage = storage
         # Add later -- download data from Azure/other file instance
         #self.downloadData()
 
@@ -120,7 +119,7 @@ class BaseTrainer:
         self.evaluateFlag = False
         self.saveFlag = False
 
-    def downloadData(self):
+    def downloadData(self): #TODO
         #storageinstance = AzureStorage(self.cfg.STORAGE)
         self.storage.read()
 
@@ -239,7 +238,7 @@ class BaseTrainer:
         if self.config.SAVE.LOG_BACKUP:
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
             #appending the logs to azure
-            self.storage.copy(os.path.join(self.save_directory, self.logger_file))
+            #self.storage.copy(os.path.join(self.save_directory, self.logger_file)) # TODO
             # This is the local path where we are copying data . This can be commented/removed later
             if os.path.exists(LOGGER_SAVE):
                 os.remove(LOGGER_SAVE)
