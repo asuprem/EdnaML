@@ -55,9 +55,9 @@ class ConfigDefaults(BaseConfig):
 
     STEP_VERBOSE: int
 
-    TYPE: str
+    STORAGE_TYPE: str
     STORAGE_ARGS: Dict
-    URL: str
+    STORAGE_URL: str
 
     def __init__(self, **kwargs):
 
@@ -123,6 +123,6 @@ class ConfigDefaults(BaseConfig):
 
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
 
-        self.TYPE = kwargs.get("TYPE", "local")
+        self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "local")
         self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
-        self.URL = kwargs.get("URL", "./")
+        self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
