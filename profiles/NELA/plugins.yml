@@ -4,12 +4,12 @@ MODEL_PLUGIN:
     PLUGIN_KWARGS:
       num_clusters: 10
       dimensions: 768
-      dist: l2
+      dist: euclidean
       epochs: 1
   - PLUGIN: KMeansProxy
     PLUGIN_NAME: KMP-cos
     PLUGIN_KWARGS:
       num_clusters: 10
       dimensions: 768
-      dist: cos
+      dist: cosine
       epochs: 1
