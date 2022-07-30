@@ -1,16 +1,17 @@
 
+from typing import List
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.plugins import ModelPlugin
 import torch
 import torch.nn.functional
 from sklearn.neighbors import KDTree
 from ednaml.plugins.ModelPlugin import ModelPlugin
-
+from sortedcontainers import SortedKeyList
 
 class RandomizedLipschitz(ModelPlugin):
     name = "RandomizedLipschitz"
     def __init__(self, proxies=10, dimensions=768, dist="euclidean", rand_seed=12344, neighbors = 10, proxy_epochs=3):
-        super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, rand_seed = rand_seed, neighbors = 10, proxy_epochs=proxy_epochs)
+        super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, rand_seed = rand_seed, neighbors = neighbors, proxy_epochs=proxy_epochs)
 
 
     def build_plugin(self, **kwargs):
@@ -36,6 +37,8 @@ class RandomizedLipschitz(ModelPlugin):
         elif self.dist == "cosine":
             self._preprocess = torch.nn.functional.normalize
 
+        self._closest_features : List[SortedKeyList] = None
+
 
 
     def build_dist(self, dist="euclidean"):
@@ -47,7 +50,7 @@ class RandomizedLipschitz(ModelPlugin):
             raise ValueError("Invalid value for dist: %s"%dist)
 
     def l2dist(self, x):
-        return torch.argmin(torch.sqrt(((self.cluster_means - x)**2).sum(1)))
+        return torch.sqrt(((self.cluster_means - x)**2).sum(1)) # torch.argmin()
     def cosdist(self, x):   #https://stackoverflow.com/questions/46409846/using-k-means-with-cosine-similarity-python
         return self.l2dist(torch.nn.functional.normalize(x, dim=0))
         
@@ -65,8 +68,6 @@ class RandomizedLipschitz(ModelPlugin):
             if self.lipschitz_stage:
                 # this epoch, we are trying to find the m closest points to each cluster mean...
                 # for the batch, find each points distance to cluster means...??????
-                import pdb
-                pdb.set_trace()
                 self.search_minibatch_kmeans_clusters(features)
                 
             return feature_logits, features, secondary_outputs, kwargs, {}
@@ -90,16 +91,25 @@ class RandomizedLipschitz(ModelPlugin):
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
                 pass
-        if (self.activated or self.lipschitz_stage) and self.kdcluster is None:
+                import pdb
+                pdb.set_trace()
+                # So we are done settng up neighbors...
+                # here, we have access to the model. We can not pass all our features and stuff through the model, get the logits, compute L, etc, etc
+                
+
+        if (self.activated or self.lipschitz_stage) and self._closest_features is None:
+            """
             if self.dist == "euclidean":
                 self.kdcluster = KDTree(self.cluster_means)
             elif self.dist == "cosine":
                 self.kdcluster = KDTree(torch.nn.functional.normalize(self.cluster_means))
             else:
                 raise ValueError("Invalid value for dist: %s"%self.dist)
-
+            """
             #model.classifier(self.cluster_means.cuda())
             #self.labels = torch.argmax(model.classifier(self.cluster_means.cuda()), dim=1).cpu()   # potentially unneeded
+            # build the array of closest neighbor features...
+            self._closest_features = [SortedKeyList(key=lambda x:x[1]) for _ in range(len(self.cluster_means))]  #x <- (feature, distance)
 
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
@@ -111,8 +121,10 @@ class RandomizedLipschitz(ModelPlugin):
         local_batch = batch.cpu()
         V = torch.zeros(self.proxies)
         idxs = torch.empty(batch.shape[0], dtype=torch.int)
+        import pdb
+        pdb.set_trace()
         for j, x in enumerate(local_batch):
-            idxs[j] = self._dist_func(x)
+            idxs[j] = torch.min(self._dist_func(x),0)[1].item()
 
         # Update centers:
         for j, x in enumerate(local_batch):
@@ -123,16 +135,18 @@ class RandomizedLipschitz(ModelPlugin):
     def search_minibatch_kmeans_clusters(self, batch: torch.Tensor, ):
         #batch_device = batch.get_device()   # TODO fix this hacky with the hack from https://stackoverflow.com/questions/58926054/how-to-get-the-device-type-of-a-pytorch-module-conveniently 2nd answer
         local_batch = batch.cpu()
-        V = torch.zeros(self.proxies)
-        idxs = torch.empty(batch.shape[0], dtype=torch.int)
-        for j, x in enumerate(local_batch):
-            idxs[j] = self._dist_func(x)
-
-        # Update centers:
-        for j, x in enumerate(local_batch):
-            V[idxs[j]] += 1
-            eta = 1.0 / V[idxs[j]]
-            self.cluster_means[idxs[j]] = (1.0 - eta) * self.cluster_means[idxs[j]] + eta * x
+        
+        for _, x in enumerate(local_batch):
+            resp = self._dist_func(x)   # distance of x to each cluster_center
+            import pdb
+            pdb.set_trace()
+            # basically --> 
+            [feature_list.add(x, resp[0].item()) for idx, feature_list in enumerate(self._closest_features)]
+        
+        # prune each to be length of self.neighbors...
+        self._closest_features = [SortedKeyList(feature_list[:self.neighbors], key=feature_list.key) for idx, feature_list in enumerate(self._closest_features)]
+        
+        # For each cluster center, we have a dict of closest features...
 
     def compute_labels(self, batch):
         """Compute the cluster labels for dataset X given centers C.
