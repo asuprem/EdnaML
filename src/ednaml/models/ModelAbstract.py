@@ -200,6 +200,8 @@ class ModelAbstract(nn.Module):
         save_dict = {}
         for plugin_name in self.plugins:
             save_dict[plugin_name] = self.plugins[plugin_name].save()
+            builtin_keys = [item for item in save_dict[plugin_name].keys() if item[0] == "_"]
+            [save_dict[plugin_name].pop(key) for key in builtin_keys]
 
         return save_dict
 
