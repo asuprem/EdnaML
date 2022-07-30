@@ -119,7 +119,7 @@ class ModelAbstract(nn.Module):
                 continue
             self.state_dict()[_key].copy_(params[_key])
 
-    def forward(self, x, labels=None, **kwargs):    # Labels for the plugins...?????
+    def forward(self, x, labels=None, **kwargs):    # TODO Labels for the plugins...?????
         if self.training and self.inferencing:
             raise ValueError(
                 "Cannot inference and train at the same time! Call"
@@ -220,11 +220,11 @@ class ModelAbstract(nn.Module):
 
     def pre_epoch_hook(self, epoch: int = 0):
         for plugin in self.plugins:
-            self.plugins[plugin].pre_epoch(epoch=epoch)
+            self.plugins[plugin].pre_epoch(model = self, epoch=epoch)
 
     def post_epoch_hook(self, epoch: int = 0):
         for plugin in self.plugins:
-            self.plugins[plugin].post_epoch(epoch=epoch)
+            self.plugins[plugin].post_epoch(model = self, epoch=epoch)
 
     def pre_forward_hook(self, x, **kwargs):
         # For example, L-Score will perturb the input, then itself call self.forward_impl with the perturbed input (i.e. itself very 
