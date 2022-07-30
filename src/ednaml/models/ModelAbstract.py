@@ -242,6 +242,6 @@ class ModelAbstract(nn.Module):
         # For example, KMP, after forward pass, provides distance to nearest proxy as well as nearest proxy in the secondary_outputs
         secondaries: Dict[str, Any] = {}
         for plugin in self.plugins:
-            feature_logits, features, secondary_outputs, kwargs, secondary_output_post = self.plugins[plugin].post_forward(x,feature_logits, features, secondary_outputs,**kwargs)
+            feature_logits, features, secondary_outputs, kwargs, secondary_output_post = self.plugins[plugin].post_forward(x,feature_logits, features, secondary_outputs,self, **kwargs)
             secondaries[plugin] = secondary_output_post
         return feature_logits, features, secondary_outputs, secondaries
