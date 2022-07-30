@@ -26,7 +26,7 @@ class ModelPlugin(nn.Module):
         """
         return x, kwargs, {}
 
-    def post_forward(self, x, feature_logits, features, secondary_outputs, **kwargs):
+    def post_forward(self, x, feature_logits, features, secondary_outputs, model, **kwargs):
         """Called after the forward pass of a ModelAbstract, to use Plugin operations parameters to add to secondary outputs and adjust the outputs
 
         Args:
