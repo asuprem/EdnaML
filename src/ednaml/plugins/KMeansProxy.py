@@ -47,7 +47,7 @@ class KMeansProxy(ModelPlugin):
         self.cluster_counts = torch.zeros(self.num_clusters)
 
 
-    def post_forward(self, x, feature_logits, features, secondary_outputs, **kwargs):
+    def post_forward(self, x, feature_logits, features, secondary_outputs, model, **kwargs):
         if not self.activated:
             # perform the training here
             self.update_minibatch_kmeans_clusters(features)
@@ -75,7 +75,7 @@ class KMeansProxy(ModelPlugin):
                 raise ValueError("Invalid value for dist: %s"%self.dist)
 
             #model.classifier(self.cluster_means.cuda())
-            with torch.no_grad:
+            with torch.no_grad():
                 self.labels = torch.argmax(model.classifier(self.cluster_means.cuda()), dim=1).cpu()
 
 
