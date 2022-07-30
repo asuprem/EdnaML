@@ -1,10 +1,9 @@
 import importlib
 import os, shutil, logging, glob, re
-from types import FunctionType, MethodType
+from types import MethodType
 from typing import Callable, Dict, List, Type, Union
 from urllib.error import URLError
 import warnings
-from ednaml.config.StorageConfig import StorageConfig
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
@@ -53,7 +52,7 @@ class EdnaML(EdnaMLBase):
     test_generator: Generator
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
-    plugins: List[ModelPlugin] = []
+    plugins: Dict[str, ModelPlugin] = {}
 
     def __init__(
         self,
@@ -715,18 +714,48 @@ class EdnaML(EdnaMLBase):
 
     # Add model hooks here, since it is a ModelAbstract
     def addPlugins(self, plugin_class_list: List[Type[ModelPlugin]], **kwargs):
-        """add plugins to the plugins queue...
+        """add plugins to the plugins class queue...
         ideally this is called before add model
         then add model can add the plugins in the queue to the model...
+
+        NOTE -- any plugins are added through the config file, specifically, with the plugin arguments. 
+        This is because multiple plugins can use the same class, but variations of it.
+        For example, one might want to train KMP under l2 and cos, and use then simultaneously...
+
+        So, plugins class queue exists only as a lookup for plugin classes...if a correspondiing enttry is NOT in MODEL_PLUGINS in the config,
+        it will never be added into Edna/Deploy...
         """
         for plugin in plugin_class_list:
-            self.plugins.append(plugin)
-        if self.model is not None:
-            # model is defined. We will add plugins to queue, and then call the model's add plugin bit...
-            self.logger.info("Model already constructed. Adding plugins.")
-            self.addPluginsToModel()
+            self.plugins[plugin.__name__] = plugin  # order matters; can replace...though shouldn't matter too much...
+        
+        # The follow will not happen, logically, i think, because model is ONLY defined in self.buildModel(), and by that point, one is already calling apply()
+        # Adding plugins after the fact...????? Don't think so...
+        # And in any case, we should make apply() truely declarative, so that one can simply apply() again after adding plugins
+        #if self.model is not None:
+        #    # model is defined. We will add plugins to queue, and then call the model's add plugin bit...
+        #    self.logger.info("Model already constructed. Adding plugins.")
+        #    self.addPluginsToModel()
 
     def addPluginsToModel(self):
+        # Here, we iterate through plugins IN the config file, then import their classes, and add them to the model...
+        for plugin_save_name in self.cfg.MODEL_PLUGIN:
+            # Now, we need to locate the plugin class...check first if it is in plugins...
+            if self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN not in self.plugins:
+                # now we need to locate the class in builtins
+                plugin = locate_class(
+                    subpackage="plugins",
+                    classpackage=self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN,
+                    classfile=self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN
+                )
+            else:
+                plugin = self.plugins[self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN]
+            
+            self.model.addPlugin(
+                plugin = plugin,
+                plugin_name = plugin_save_name,
+                plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN_KWARGS
+            )
+
         for plugin in self.plugins:
             self.model.addPlugin(plugin, 
                             plugin_name = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_NAME, 
