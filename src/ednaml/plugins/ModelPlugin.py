@@ -1,4 +1,4 @@
-from typing import Any
+import copy
 from torch import nn
 class ModelPlugin(nn.Module):
     name: str = "ModelPlugin"
@@ -54,7 +54,7 @@ class ModelPlugin(nn.Module):
         pass
 
     def save(self):
-        return self.__dict__
+        return copy.deepcopy(self.__dict__)
         # returns an object of itself for saving
 
     def load(self, save_dict_or_path):
