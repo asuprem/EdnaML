@@ -55,6 +55,7 @@ class ConfigDefaults(BaseConfig):
     LR_KWARGS: Dict[str, str]
 
     STEP_VERBOSE: int
+    PLUGIN: str
     PLUGIN_NAME: str
     PLUGIN_KWARGS: Dict[str, str]
 
@@ -131,5 +132,6 @@ class ConfigDefaults(BaseConfig):
         self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
         self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
         
-        self.PLUGIN_NAME = "ModelPlugin"
+        self.PLUGIN_NAME = "mp-1"
+        self.PLUGIN = "ModelPlugin"
         self.PLUGIN_KWARGS = {}
