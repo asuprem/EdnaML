@@ -128,7 +128,7 @@ class BaseTrainer:
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
 
-    def setup(
+    def apply(
         self,
         step_verbose: int = 5,
         save_frequency: int = 5,
@@ -207,6 +207,9 @@ class BaseTrainer:
             )
             for lossname in self.loss_scheduler
         }
+        # TODO need to check if ModelAbstract contains the plugins that came with it...
+        # if not, we will need to save plugins in a plugins artifact.
+        # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
 
         # save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
         # save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
@@ -361,7 +364,9 @@ class BaseTrainer:
         self.saveFlag = False
         for epoch in range(self.epochs + 1):
             if epoch >= continue_epoch:
+                # TODO pre epoch
                 self.epoch_step(epoch)
+                # TODO post epoch
             else:
                 self.global_epoch = epoch + 1
 

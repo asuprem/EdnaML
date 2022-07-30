@@ -1,10 +1,12 @@
 # BaseConfig class to manage the input configurations. TODO
 import os
 import json
+from turtle import update
 from typing import Dict, List
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
+from ednaml.config.ModelPluginConfig import ModelPluginConfig
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
@@ -27,6 +29,7 @@ class EdnaMLConfig(BaseConfig):
     TEST_TRANSFORMATION: TransformationConfig
     MODEL: ModelConfig
     LOSS: List[LossConfig]
+    MODEL_PLUGIN: Dict[str, ModelPluginConfig]
     OPTIMIZER: List[
         OptimizerConfig
     ]  # one optimizer for each set of model params
@@ -45,57 +48,120 @@ class EdnaMLConfig(BaseConfig):
     def __init__(
         self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()
     ):
-        self.extensions = ["DEPLOYMENT"]
+        self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
         ydict = self.read_path(config_path)
 
-        self.EXECUTION = ExecutionConfig(ydict.get("EXECUTION", {}), defaults) #inside the exectution -- store execution object - -execution section
-        self.DEPLOYMENT = DeploymentConfig(ydict.get("DEPLOYMENT", {}), defaults) #inside the exectution -- store execution object - -execution section
-        self.SAVE = SaveConfig(ydict.get("SAVE", {}), defaults)
-        self.TRAIN_TRANSFORMATION = TransformationConfig(
-            dict(
-                merge_dictionary_on_key_with_copy(ydict.get("TRANSFORMATION", {}), ydict.get("TRAIN_TRANSFORMATION", {}))
-            ),
-            defaults,
-        )
-        #print("SELF.TRAIN_TRANSFORMATION ::::::::::::::::::: ",self.TRAIN_TRANSFORMATION)
-        self.TEST_TRANSFORMATION = TransformationConfig(
-            dict(
-                merge_dictionary_on_key_with_copy(ydict.get("TRANSFORMATION", {}), ydict.get("TEST_TRANSFORMATION", {}))
-            ),
-            defaults,
-        )
-        #print("SELF.TEST_TRANSFORMATION ::::::::::::::::::: ",self.TEST_TRANSFORMATION)
+        self._updateConfig(ydict, defaults, update_with_defaults=True)
+    
+    def _has_extension_verifier(self, ydict, extension, verification):
+        return False if ydict.get(extension, verification) == verification else True
 
-        self.MODEL = ModelConfig(
-            ydict.get("MODEL", {}), defaults
-        )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
-        self.LOSS = [
-            LossConfig(loss_item, defaults)
-            for loss_item in ydict.get("LOSS", [])
-        ]  # No default LOSS itself --> it will be empty...
-
-        # Default optimizer is Adam
-        self.OPTIMIZER = [
-            OptimizerConfig(optimizer_item, defaults)
-            for optimizer_item in ydict.get("OPTIMIZER", [{}])
-        ]
-        self.SCHEDULER = [
-            SchedulerConfig(scheduler_item, defaults)
-            for scheduler_item in ydict.get("SCHEDULER", [{}])
-        ]
-
-        self.LOSS_OPTIMIZER = [
-            OptimizerConfig(optimizer_item, defaults)
-            for optimizer_item in ydict.get("LOSS_OPTIMIZER", [{}])
-        ]
-        self.LOSS_SCHEDULER = [
-            SchedulerConfig(scheduler_item, defaults)
-            for scheduler_item in ydict.get("LOSS_SCHEDULER", [{}])
-        ]
-
-        self.LOGGING = LoggingConfig(ydict.get("LOGGING", {}), defaults)
-
-        self.STORAGE = StorageConfig(ydict.get("STORAGE", {}), defaults)
+    def _updateConfig(self, ydict: Dict[str,str], defaults: ConfigDefaults, update_with_defaults: bool):
+        added_extensions = []   # add control to check if extension was added or default was used...
+        for extension in self.extensions:
+            
+            if extension == "EXECUTION":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.EXECUTION = ExecutionConfig(ydict.get(extension, {}), defaults) 
+                    added_extensions.append([extension])
+            elif extension == "DEPLOYMENT":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.DEPLOYMENT = DeploymentConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            elif extension == "STORAGE":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.STORAGE = StorageConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            elif extension == "SAVE":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.SAVE = SaveConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            elif extension == "TRANSFORMATION":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                has_train = self._has_extension_verifier(ydict, "TRAIN_TRANSFORMATION", {})
+                if (has_extension and has_train) or update_with_defaults:
+                    self.TRAIN_TRANSFORMATION = TransformationConfig(
+                        dict(
+                            merge_dictionary_on_key_with_copy(ydict.get(extension, {}), ydict.get("TRAIN_TRANSFORMATION", {}))
+                        ),
+                        defaults,
+                    )
+                    added_extensions.append(["TRAIN_TRANSFORMATION"])
+                has_test = self._has_extension_verifier(ydict, "TEST_TRANSFORMATION", {})
+                if (has_extension and has_test) or update_with_defaults:
+                    self.TEST_TRANSFORMATION = TransformationConfig(
+                        dict(
+                            merge_dictionary_on_key_with_copy(ydict.get(extension, {}), ydict.get("TEST_TRANSFORMATION", {}))
+                        ),
+                        defaults,
+                    )
+                    added_extensions.append(["TEST_TRANSFORMATION"])
+            elif extension == "MODEL":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.MODEL = ModelConfig(
+                        ydict.get(extension, {}), defaults
+                    )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
+                    added_extensions.append([extension])
+            elif extension == "MODEL_PLUGIN":
+                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                if has_extension or update_with_defaults:
+                    mp_list = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [{}])]
+                    self.MODEL_PLUGIN = {item.PLUGIN_NAME: item for item in mp_list}
+                    added_extensions.append([extension])
+            elif extension == "LOSS":
+                has_extension = self._has_extension_verifier(ydict, extension, [])
+                if has_extension or update_with_defaults:
+                    self.LOSS = [
+                        LossConfig(loss_item, defaults)
+                        for loss_item in ydict.get(extension, [])
+                    ]  # No default LOSS itself --> it will be empty...
+                    added_extensions.append([extension])
+            elif extension == "OPTIMIZER":
+                # Default optimizer is Adam
+                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                if has_extension or update_with_defaults:
+                    self.OPTIMIZER = [
+                        OptimizerConfig(optimizer_item, defaults)
+                        for optimizer_item in ydict.get(extension, [{}])
+                    ]
+                    added_extensions.append([extension])
+            elif extension == "SCHEDULER":
+                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                if has_extension or update_with_defaults:
+                    self.SCHEDULER = [
+                        SchedulerConfig(scheduler_item, defaults)
+                        for scheduler_item in ydict.get(extension, [{}])
+                    ]
+                    added_extensions.append([extension])
+            elif extension == "LOSS_OPTIMIZER":
+                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                if has_extension or update_with_defaults:
+                    self.LOSS_OPTIMIZER = [
+                        OptimizerConfig(optimizer_item, defaults)
+                        for optimizer_item in ydict.get(extension, [{}])
+                    ]
+                    added_extensions.append([extension])
+            elif extension == "LOSS_SCHEDULER":
+                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                if has_extension or update_with_defaults:
+                    self.LOSS_SCHEDULER = [
+                        SchedulerConfig(scheduler_item, defaults)
+                        for scheduler_item in ydict.get(extension, [{}])
+                    ]
+                    added_extensions.append([extension])
+            elif extension == "LOGGING":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.LOGGING = LoggingConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            else:
+                raise RuntimeError("Somehow received unhandled extension %s"%str(extension))
+        return added_extensions
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
 
     def export(self, mode="yaml"):
@@ -114,15 +180,21 @@ class EdnaMLConfig(BaseConfig):
         Args:
             config_path (str): The path to the config file to extend with
         """        
-        
+        responses = {}
+        if type(config_path) is str:
+            config_path = [config_path]
+        if type(config_path) is list:
+            for cpath in config_path:
+                responses[cpath] = self._extend(cpath, defaults)
+        else:
+            raise ValueError("Expected `list`, got %s"%type(config_path))
+
+        return responses
+
+    def _extend(self, config_path, defaults: ConfigDefaults):
         ydict = self.read_path(config_path)
-        for extension in self.extensions:
-            if len(ydict.get(extension, {})) > 0:
-                if extension == "DEPLOYMENT":
-                    self.DEPLOYMENT = DeploymentConfig(ydict.get(extension, {}), defaults) 
-                    return "Extended with DEPLOYMENT."
-                else:
-                    return "No valid extensions available."
+        added_extensions = self._updateConfig(ydict, defaults, update_with_defaults=False)
+        return "Extended with : %s"%", ".join([item[0] for item in added_extensions if len(item)>0])
 
 
 
