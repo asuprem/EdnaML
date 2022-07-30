@@ -119,10 +119,12 @@ class BaseDeploy:
                 self.model.eval()
             self.model_is_built = True
         else:
-            if not model_build:
+            if model_build is not None and not model_build:
                 self.logger.info("Skipping model building due to `model_build=False`")
             elif self.model_is_built:
                 self.logger.info("Skipping model building because model is already built. To force, set the `model_build` flag to True in `ed.deploy`")
+            else:
+                self.logger.info("Skipping model building")
 
         if execute:
             self.logger.info("Executing deployment for  %i epochs" % self.epochs)
