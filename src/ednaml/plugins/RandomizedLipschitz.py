@@ -86,13 +86,36 @@ class RandomizedLipschitz(ModelPlugin):
                     self.epoch_count+=1
                     if self.post_epoch_num != self.pre_epoch_num:
                         raise ValueError("Epoch may have been skipped. Before: %i\tAfter: %i"%(self.pre_epoch_num, self.post_epoch_num))
-                self.lipschitz_stage = self.epoch_count > self.proxy_epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
+                self.lipschitz_stage = self.epoch_count >= self.proxy_epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
                 self.proxy_stage = not self.lipschitz_stage
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
                 pass
-                import pdb
-                pdb.set_trace()
+
+                with torch.no_grad():
+                    for idx in range(len(self.cluster_means)):
+                        raw_logits = model.classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()
+                        lipschitz_logits = model.classifier(torch.stack([item[0] for item in self._closest_features[idx]]).cuda()).cpu()
+
+                        # use euclidean here, only!!!!!!
+                        feature_lscore = torch.sqrt(((torch.stack([item[0] for item in self._closest_features[idx]])  - self.cluster_means[idx].unsqueeze(0))**2).sum(1))
+                        logit_lscore = torch.sqrt(((lipschitz_logits - raw_logits)**2).sum(1))
+
+                        
+                        import pdb
+                        pdb.set_trace()
+                        smoothlogit_lscore = lipschitz_logits[torch.argmax(raw_logits)] - raw_logits[torch.argmax(raw_logits)]
+
+                        l_scores = logit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
+                        smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
+
+                        self.lipschitz_threshold = torch.max(l_scores)
+                        self.lipschitz_threshold_mean = torch.mean(l_scores)
+                        self.smooth_lipschitz_threshold_mean = torch.max(smooth_lscores)
+                        self.smooth_lipschitz_threshold_mean = torch.mean(smooth_lscores)
+
+
+                    torch.stack([item[0] for item in self._closest_features[0]])
                 # So we are done settng up neighbors...
                 # here, we have access to the model. We can not pass all our features and stuff through the model, get the logits, compute L, etc, etc
                 
@@ -121,8 +144,6 @@ class RandomizedLipschitz(ModelPlugin):
         local_batch = batch.cpu()
         V = torch.zeros(self.proxies)
         idxs = torch.empty(batch.shape[0], dtype=torch.int)
-        import pdb
-        pdb.set_trace()
         for j, x in enumerate(local_batch):
             idxs[j] = torch.min(self._dist_func(x),0)[1].item()
 
@@ -138,10 +159,8 @@ class RandomizedLipschitz(ModelPlugin):
         
         for _, x in enumerate(local_batch):
             resp = self._dist_func(x)   # distance of x to each cluster_center
-            import pdb
-            pdb.set_trace()
             # basically --> 
-            [feature_list.add(x, resp[0].item()) for idx, feature_list in enumerate(self._closest_features)]
+            [feature_list.add((x, resp[idx].item())) for idx, feature_list in enumerate(self._closest_features)]
         
         # prune each to be length of self.neighbors...
         self._closest_features = [SortedKeyList(feature_list[:self.neighbors], key=feature_list.key) for idx, feature_list in enumerate(self._closest_features)]
