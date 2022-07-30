@@ -75,7 +75,8 @@ class KMeansProxy(ModelPlugin):
                 raise ValueError("Invalid value for dist: %s"%self.dist)
 
             #model.classifier(self.cluster_means.cuda())
-            self.labels = torch.argmax(model.classifier(self.cluster_means.cuda()), dim=1).cpu()
+            with torch.no_grad:
+                self.labels = torch.argmax(model.classifier(self.cluster_means.cuda()), dim=1).cpu()
 
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
