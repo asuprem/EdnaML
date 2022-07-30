@@ -1,7 +1,15 @@
 MODEL_PLUGIN:
-  - PLUGIN_NAME: KMeansProxy
+  - PLUGIN: KMeansProxy
+    PLUGIN_NAME: KMP-l2
     PLUGIN_KWARGS:
       num_clusters: 10
       dimensions: 768
       dist: l2
-      epochs: 5
+      epochs: 1
+  - PLUGIN: KMeansProxy
+    PLUGIN_NAME: KMP-cos
+    PLUGIN_KWARGS:
+      num_clusters: 10
+      dimensions: 768
+      dist: cos
+      epochs: 1
