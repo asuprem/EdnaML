@@ -6,7 +6,7 @@ from sklearn.neighbors import KDTree
 
 class KMeansProxy(ModelPlugin):
     name = "KMeansProxy"
-    def __init__(self, num_clusters=10, dimensions=768, dist="l2", rand_seed=12344, epochs=3):
+    def __init__(self, num_clusters=10, dimensions=768, dist="euclidean", rand_seed=145845, epochs=3):
         super().__init__(num_clusters = num_clusters, dimensions=dimensions, dist=dist, rand_seed = rand_seed, epochs=epochs)
 
 
@@ -15,18 +15,18 @@ class KMeansProxy(ModelPlugin):
         self.rand_seed = kwargs.get("rand_seed", 145845)
         self.dimensions = kwargs.get("dimensions")
         self.dist = kwargs.get("dist", "euclidean")    # TODO
-        self.epochs = kwargs.get("epochs", 2)
+        self.epochs = kwargs.get("epochs", 3)
         self.epoch_count = 0
         self.pre_epoch_flag = False
         self.pre_epoch_num = -1
         self.post_epoch_num = -1
         self.activated = False
         self.kdcluster = None
-        self.dist_func = self.build_dist(self.dist)
+        self._dist_func = self.build_dist(self.dist)
         if self.dist == "euclidean":
-            self.preprocess = lambda x:x
+            self._preprocess = lambda x:x
         elif self.dist == "cosine":
-            self.preprocess = torch.nn.functional.normalize
+            self._preprocess = torch.nn.functional.normalize
 
     def build_dist(self, dist="euclidean"):
         if dist == "euclidean":
@@ -39,7 +39,7 @@ class KMeansProxy(ModelPlugin):
     def l2dist(self, x):
         return torch.argmin(torch.sqrt(((self.cluster_means - x)**2).sum(1)))
     def cosdist(self, x):   #https://stackoverflow.com/questions/46409846/using-k-means-with-cosine-similarity-python
-        return self.l2dist(torch.nn.functional.normalize(x))
+        return self.l2dist(torch.nn.functional.normalize(x, dim=0))
         
     
     def build_params(self, **kwargs):
@@ -74,10 +74,8 @@ class KMeansProxy(ModelPlugin):
             else:
                 raise ValueError("Invalid value for dist: %s"%self.dist)
 
-            # TODO now we need to pass self.cluster_means into model to get the labels
-            # For now, we will use assumptions, we can deal with finding the actual labels later for generic models
-            import pdb
-            pdb.set_trace()
+            #model.classifier(self.cluster_means.cuda())
+            self.labels = torch.argmax(model.classifier(self.cluster_means.cuda()), dim=1).cpu()
 
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
@@ -90,7 +88,7 @@ class KMeansProxy(ModelPlugin):
         V = torch.zeros(self.num_clusters)
         idxs = torch.empty(batch.shape[0], dtype=torch.int)
         for j, x in enumerate(local_batch):
-            idxs[j] = self.dist_func(x)
+            idxs[j] = self._dist_func(x)
 
         # Update centers:
         for j, x in enumerate(local_batch):
@@ -103,9 +101,10 @@ class KMeansProxy(ModelPlugin):
         """
         # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
         q_batch = batch.cpu()
-        dist, idx = self.kdcluster.query(self.preprocess(q_batch), k=1, return_distance=True)   #.squeeze()
+        dist, idx = self.kdcluster.query(self._preprocess(q_batch), k=1, return_distance=True)   #.squeeze()
         # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return dist, idx
+        return torch.from_numpy(dist).squeeze(1), torch.stack([self.labels[item[0]] for item in idx])
+
 
 
 """cluster_distances = torch.zeros(self.num_clusters)
