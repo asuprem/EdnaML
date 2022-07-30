@@ -13,3 +13,10 @@ MODEL_PLUGIN:
       dimensions: 768
       dist: cosine
       epochs: 1
+  - PLUGIN: RandomizedLipschitz
+    PLUGIN_NAME: RL-midas
+    PLUGIN_KWARGS:
+      proxies: 10
+      dimensions: 768
+      dist: euclidean
+      proxy_epochs: 1
