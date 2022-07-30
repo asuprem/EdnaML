@@ -1,10 +1,5 @@
 from typing import Any
 from torch import nn
-
-from ednaml.models.ModelAbstract import ModelAbstract
-
-
-
 class ModelPlugin(nn.Module):
     name: str = "ModelPlugin"
     def __init__(self, **kwargs):
@@ -42,7 +37,7 @@ class ModelPlugin(nn.Module):
         """
         return feature_logits, features, secondary_outputs, kwargs, {}
 
-    def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
+    def pre_epoch(self, model: 'ModelAbstract', epoch: int = 0, **kwargs):
         """Hook that is executed during the model training by BaseTrainer. Occurs before an epoch starts
 
         Args:
@@ -50,7 +45,7 @@ class ModelPlugin(nn.Module):
         """
         pass
 
-    def post_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
+    def post_epoch(self, model: 'ModelAbstract', epoch: int = 0, **kwargs):
         """Hook that is executed during model training by BaseTrainer. Occurs at the end of an epoch.
 
         Args:
