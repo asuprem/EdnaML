@@ -56,7 +56,10 @@ class ModelPlugin(nn.Module):
         pass
 
     def save(self):
-        return copy.deepcopy(self.__dict__)
+        return copy.deepcopy({item:self.__dict__[item] for item in self.__dict__.keys() if item[0] != "_"})
+        #builtin_keys = [item for item in sdict.keys() if item[0] == "_"]
+        #[sdict.pop(key) for key in builtin_keys]
+        #return sdict
         # returns an object of itself for saving
 
     def load(self, save_dict_or_path):
