@@ -11,6 +11,7 @@ def register(func, functype):
         fname = inspect.getfile(func)
     except TypeError:
         fname = os.path.abspath(func.__module__)
+    print("Registering a %s: %s, from file: %s"%(functype, str(type(func)), fname))
     if fname not in REGISTERED_EDNA_COMPONENTS:
         REGISTERED_EDNA_COMPONENTS[fname] = {}
     # TODO also add in some type of lookup for the file basename...?
