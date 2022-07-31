@@ -1,6 +1,9 @@
 import ednaml, torch, os, csv
 from ednaml.crawlers import Crawler
 
+import ednaml.core.decorators as edna
+
+
 class FakedditCrawler(Crawler):
     def __init__(self, logger = None, data_folder="Data/Fakeddit"):
         """Crawls the Data folder with all datasets already extracted to their individual folders.
