@@ -24,6 +24,7 @@ class EdnaDeploy(EdnaML):
 
         self.decorator_reference["deployment"] = self.addDeploymentClass
         self.decorator_reference.pop("trainer") # We do not need trainer in a Deployment
+        self.dataloader_mode = kwargs.get("dataloader_mode", self.mode)
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
@@ -108,7 +109,7 @@ class EdnaDeploy(EdnaML):
                 logger=self.logger,
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION,
-                mode="test",
+                mode=self.dataloader_mode,  # TODO convert this to better options: i.e. which mode to use, and which transformations to use, as an option in data_reader, specifically for deployments
                 **self.cfg.DEPLOYMENT.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build( 
