@@ -1029,7 +1029,7 @@ class EdnaML(EdnaMLBase):
         if self._trainGeneratorInstanceQueueFlag:
             self.train_generator: Generator = self._trainGeneratorInstanceQueue
         else:
-            print(self.cfg.TRAIN_TRANSFORMATION)
+            #print(self.cfg.TRAIN_TRANSFORMATION)
             if self.mode != "test":
                 self.train_generator: Generator = data_reader.GENERATOR( ##imp -- initialize generator
                     logger=self.logger,
