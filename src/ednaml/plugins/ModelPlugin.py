@@ -1,7 +1,9 @@
 import copy
+from logging import Logger
 from torch import nn
 class ModelPlugin(nn.Module):
     name: str = "ModelPlugin"
+    _logger: Logger = None
     def __init__(self, **kwargs):
         super().__init__()
         self.build_plugin(**kwargs)

@@ -124,10 +124,13 @@ class RandomizedLipschitz(ModelPlugin):
                         raise ValueError("Epoch may have been skipped. Before: %i\tAfter: %i"%(self.pre_epoch_num, self.post_epoch_num))
                 self.lipschitz_stage = self.epoch_count >= self.proxy_epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
                 self.proxy_stage = not self.lipschitz_stage
+                if self.proxy_stage:
+                    self._logger.info("RandomizedLipschitz continuing proxy stage")
+                else:
+                    self._logger.info("RandomizedLipschitz starting Lipschitz stage")
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
-                pass
-
+                self._logger.info("RandomizedLipschitz has completed Lipschitz stage. Computing L values.")
                 with torch.no_grad():
                     for idx in range(len(self.cluster_means)):
                         raw_logits = model.classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()

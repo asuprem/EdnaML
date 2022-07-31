@@ -709,6 +709,7 @@ class EdnaML(EdnaMLBase):
                 self.cfg.MODEL.MODEL_ARCH
             )
         )
+        self.model._logger = self.logger
         self.logger.info("Adding plugins after constructing model")
         self.addPluginsToModel()
 

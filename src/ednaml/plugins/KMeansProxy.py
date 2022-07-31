@@ -67,6 +67,7 @@ class KMeansProxy(ModelPlugin):
                     raise ValueError("Epoch may have been skipped. Before: %i\tAfter: %i"%(self.pre_epoch_num, self.post_epoch_num))
             self.activated = self.epoch_count > self.epochs # better way to deal with this whole situation, i.e. once activated, never changes...!
         if self.activated and self.kdcluster is None:
+            self._logger.info("KMP is active. Generating kdcluster")
             if self.dist == "euclidean":
                 self.kdcluster = KDTree(self.cluster_means)
             elif self.dist == "cosine":

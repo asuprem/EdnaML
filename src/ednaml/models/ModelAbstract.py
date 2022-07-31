@@ -1,3 +1,4 @@
+from logging import Logger
 from os import PathLike
 from torch import TensorType, nn
 import torch
@@ -43,6 +44,8 @@ class ModelAbstract(nn.Module):
     plugins: Dict[str,ModelPlugin] = {}
     plugin_count: int = 0
     has_plugins: bool = False
+
+    _logger: Logger = None
 
     def __init__(
         self,
@@ -215,6 +218,7 @@ class ModelAbstract(nn.Module):
             raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
         else:
             self.plugins[plugin_name] = plugin(**plugin_kwargs)
+            self.plugins[plugin_name]._logger = self._logger
         
         self.plugin_count = len(self.plugins)
         self.has_plugins = self.plugin_count > 0
