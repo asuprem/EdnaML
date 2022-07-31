@@ -11,8 +11,8 @@ class NELADeploy(BaseDeploy):
   def deploy_step(self, batch):
     batch = tuple(item.cuda() for item in batch)
     all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels = batch
-    outputs = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
-    logit = outputs[0].detach().cpu()
+    logits, features, (secondary, plugin_pre, plugin_post) = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
+    logit = logits.detach().cpu()
     logit_labels = torch.argmax(logit, dim=1)
     import pdb
     pdb.set_trace()

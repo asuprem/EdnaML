@@ -89,8 +89,6 @@ class RandomizedLipschitz(ModelPlugin):
 
 
     def compute_lscores(self, features, feature_logits, model):
-        import pdb
-        pdb.set_trace()
         perturbed = self.generate_perturbation(self.epsilon,self.dimensions,self.perturbation_neighbors).T.cuda()
         lscore = [None]*features.shape[0]
         smooth_lscore = [None]*features.shape[0]
