@@ -84,21 +84,21 @@ class RandomizedLipschitz(ModelPlugin):
         else:
             lscore, smoothlscore = self.compute_lscores(features, feature_logits, model)
             # here, we use the features, perturb them, compute the logits, then compute l_score, then compare, etc, etc
-            dist, labels = self.compute_labels(features)
+            #dist, labels = self.compute_labels(features)
             return feature_logits, features, secondary_outputs, kwargs, {"l_score": lscore, "smooth_l_score": smoothlscore, "l_threshold": [self.lipschitz_threshold]*features.shape[0], "smooth_l_threshold": [self.smooth_lipschitz_threshold]*features.shape[0]}
 
 
     def compute_lscores(self, features, feature_logits, model):
         import pdb
         pdb.set_trace()
-        perturbed = self.generate_perturbation(self.epsilon,self.dimensions,self.perturbation_neighbors)
+        perturbed = self.generate_perturbation(self.epsilon,self.dimensions,self.perturbation_neighbors).T.cuda()
         lscore = [None]*features.shape[0]
         smooth_lscore = [None]*features.shape[0]
         for j,x in enumerate(features):
             perturbation = x+perturbed
             with torch.no_grad():
                 perturbed_logits = model.classifier(perturbation)
-                raw_logits = feature_logits[j]
+                raw_logits = feature_logits[j].unsqueeze(0)
 
                 feature_lscore = torch.sqrt((perturbed**2).sum(1))
                 logit_lscore = torch.sqrt(((perturbed_logits - raw_logits)**2).sum(1))
@@ -108,8 +108,8 @@ class RandomizedLipschitz(ModelPlugin):
                 l_scores = logit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
                 smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
 
-                lscore[j] = torch.max(l_scores).item()
-                smooth_lscore[j] = torch.max(smooth_lscores).item()
+                lscore[j] = torch.max(l_scores).cpu().item()
+                smooth_lscore[j] = torch.max(smooth_lscores).cpu().item()
         
         return lscore, smooth_lscore
 

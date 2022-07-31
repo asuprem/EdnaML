@@ -14,6 +14,8 @@ class NELADeploy(BaseDeploy):
     outputs = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
     logit = outputs[0].detach().cpu()
     logit_labels = torch.argmax(logit, dim=1)
+    import pdb
+    pdb.set_trace()
     #print(str(logit_labels[0]), "\t", ",".join([str(item) for item in all_input_ids[0].cpu()[:10].tolist()]))
     return logit_labels, logit, None
 

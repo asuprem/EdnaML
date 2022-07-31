@@ -137,8 +137,9 @@ class ModelAbstract(nn.Module):
 
         # TODO deal with secondary_output_queues
         if self.has_plugins:
-            secondary_outputs += tuple(secondary_output_queue_pre)
-            secondary_outputs += tuple(secondary_output_queue_post)
+            secondary_outputs = (secondary_outputs, secondary_output_queue_pre, secondary_output_queue_post)
+        import pdb
+        pdb.set_trace()
         return feature_logits, features, secondary_outputs
 
     def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:
