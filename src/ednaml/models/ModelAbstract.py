@@ -44,6 +44,7 @@ class ModelAbstract(nn.Module):
     plugins: Dict[str,ModelPlugin] = {}
     plugin_count: int = 0
     has_plugins: bool = False
+    plugin_hook: str = "always"
 
     _logger: Logger = None
 
@@ -63,10 +64,14 @@ class ModelAbstract(nn.Module):
         self.normalization = normalization
         self.parameter_groups = {}
         self.inferencing = False
+        
 
         self.model_attributes_setup(**kwargs)
         self.model_setup(**kwargs)
         self.parameter_groups_setup(parameter_groups)
+
+    def set_plugin_hooks(self, plugin_hook: str):   # always | warmup | activated
+        self.plugin_hook = plugin_hook
 
     def model_attributes_setup(self, **kwargs):
         raise NotImplementedError()
@@ -192,11 +197,11 @@ class ModelAbstract(nn.Module):
             if plugin_name in self.plugins:
                 if plugin_name not in ignore_plugins:
                     self.plugins[plugin_name].load(plugin_dict[plugin_name])
-                    print("Loading plugin with name %s"%plugin_name)
+                    self._logger.info("Loading plugin with name %s"%plugin_name)
                 else:
-                    print("Ignoring plugin with name %s"%plugin_name)
+                    self._logger.info("Ignoring plugin with name %s"%plugin_name)
             else:
-                print("No plugin exists for name %s"%plugin_name)
+                self._logger.info("No plugin exists for name %s"%plugin_name)
 
     def savePlugins(self):
         save_dict = {}
@@ -222,13 +227,30 @@ class ModelAbstract(nn.Module):
         self.plugin_count = len(self.plugins)
         self.has_plugins = self.plugin_count > 0
 
+    def set_usable_plugins(self):
+        if self.plugin_hook == "always":
+            self.usable_plugins = [item for item in self.plugins]
+        elif self.plugin_hook == "warmup":
+            self.usable_plugins = [item for item in self.plugins if not self.plugins[item].activated]
+        elif self.plugin_hook == "activated":
+            self.usable_plugins = [item for item in self.plugins if self.plugins[item].activated]
+        else:
+            raise ValueError("Unknown calue for `plugin_hook`: %s"%self.plugin_hook)
+
     def pre_epoch_hook(self, epoch: int = 0):
+        # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
+        # we do this check before, and after...
+        self.set_usable_plugins()   # dealing with a plugin-load
         for plugin in self.plugins:
             self.plugins[plugin].pre_epoch(model = self, epoch=epoch)
-
+        self.set_usable_plugins()   # post plugin usage
     def post_epoch_hook(self, epoch: int = 0):
+        # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
+        # we do this check before, and after...
+        #self.set_usable_plugins()  # unneeded
         for plugin in self.plugins:
             self.plugins[plugin].post_epoch(model = self, epoch=epoch)
+        self.set_usable_plugins()   # post plugin usage
 
     def pre_forward_hook(self, x, **kwargs):
         # For example, L-Score will perturb the input, then itself call self.forward_impl with the perturbed input (i.e. itself very 

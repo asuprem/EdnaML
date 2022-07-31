@@ -108,7 +108,7 @@ class BaseDeploy:
                     % self.backup_directory
                 )
             
-            self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
+            #self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
             if continue_epoch > 0:
                 load_epoch = continue_epoch - 1
                 self.load(load_epoch, ignore_plugins=ignore_plugins)
@@ -127,6 +127,9 @@ class BaseDeploy:
                 self.logger.info("Skipping model building")
 
         if execute:
+            self.logger.info("Setting up plugin hooks. Plugins will fire during:  %s"%self.config.DEPLOYMENT.PLUGIN.HOOKS)
+            self.model.set_plugin_hooks(self.config.DEPLOYMENT.PLUGIN.HOOKS)
+
             self.logger.info("Executing deployment for  %i epochs" % self.epochs)
             for epoch in range(self.epochs):
                 self.logger.info("Starting epoch %i"%self.global_epoch)

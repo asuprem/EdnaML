@@ -1,11 +1,12 @@
 import copy
 from logging import Logger
 from torch import nn
-class ModelPlugin(nn.Module):
+class ModelPlugin():
     name: str = "ModelPlugin"
     _logger: Logger = None
+    activated: bool = False
     def __init__(self, **kwargs):
-        super().__init__()
+        #super().__init__()
         self.build_plugin(**kwargs)
         self.build_params(**kwargs)
         
