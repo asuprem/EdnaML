@@ -880,7 +880,7 @@ class EdnaML(EdnaMLBase):
 
 
     #------------------------------GENERAL ADD--------------------------------------------------------------------
-    def add(self, file_or_module_path):
+    def _add(self, file_or_module_path):
         # We are given a file, which contains several class loaded through decorators when the file is imported.
         imported_file = path_import(file_or_module_path)
         # Once we have imported, the files are registered in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS
@@ -895,6 +895,13 @@ class EdnaML(EdnaMLBase):
                     "keyvalue %s in REGISTERED_EDNA_COMPONENTS %s is not available in self.decorator_reference. Not adding."%(keyvalue, 
                     str(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
                 )
+    def add(self, file_or_module_path):
+        if type(file_or_module_path) is list:
+            for file_or_module in file_or_module_path:
+                self._add(file_or_module)
+        else:
+            self._add(file_or_module_path)
+        
     # ----------------------------------------------   DATAREADERS   ----------------------------------------------
     def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
         """Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
