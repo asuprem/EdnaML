@@ -3,7 +3,7 @@ from ednaml.crawlers import Crawler
 
 import ednaml.core.decorators as edna
 
-
+@edna.register_crawler
 class FakedditCrawler(Crawler):
     def __init__(self, logger = None, data_folder="Data/Fakeddit"):
         """Crawls the Data folder with all datasets already extracted to their individual folders.
@@ -62,6 +62,7 @@ from ednaml.models.ModelAbstract import ModelAbstract
 from torch import nn
 from ednaml.utils.albert import AlbertEmbeddingAverage, AlbertPooledOutput, AlbertRawCLSOutput
 
+@edna.register_model
 class FakedditModel(ModelAbstract):
     def __init__(self, base, weights, metadata, normalization, parameter_groups, **kwargs):
         super().__init__(base=base,
@@ -158,6 +159,7 @@ from sklearn.metrics import f1_score
 import tqdm
 import torch
 
+@edna.register_trainer
 class FakedditTrainer(BaseTrainer):
     def __init__(
             self,

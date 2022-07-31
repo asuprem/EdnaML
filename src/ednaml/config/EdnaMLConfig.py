@@ -108,9 +108,9 @@ class EdnaMLConfig(BaseConfig):
                     )  # No default MODEL itself, though it will be instantiated here? deal with this TODO
                     added_extensions.append([extension])
             elif extension == "MODEL_PLUGIN":
-                has_extension = self._has_extension_verifier(ydict, extension, [{}])
+                has_extension = self._has_extension_verifier(ydict, extension, [])
                 if has_extension or update_with_defaults:
-                    mp_list = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [{}])]
+                    mp_list = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [])]
                     self.MODEL_PLUGIN = {item.PLUGIN_NAME: item for item in mp_list}
                     added_extensions.append([extension])
             elif extension == "LOSS":
