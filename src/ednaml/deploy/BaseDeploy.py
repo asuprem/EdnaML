@@ -128,7 +128,7 @@ class BaseDeploy:
 
         if execute:
             self.logger.info("Executing deployment for  %i epochs" % self.epochs)
-            for epoch in range(self.epochs + 1):
+            for epoch in range(self.epochs):
                 self.logger.info("Starting epoch %i"%self.global_epoch)
                 self.model.pre_epoch_hook(epoch=epoch)
                 self.data_step()
