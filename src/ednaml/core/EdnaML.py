@@ -1054,7 +1054,10 @@ class EdnaML(EdnaMLBase):
                     **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
                 )
             else:
-                self.train_generator = Generator()
+                self.logger.info(
+                "Not creating `train_generator` in `test_only` mode."
+                )
+                self.train_generator = Generator(logger=self.logger)
         if self.mode != "test":
             self.logger.info(
                 "Generated training data generator with %i trainnig data points"
