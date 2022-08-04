@@ -251,7 +251,8 @@ class EdnaML(EdnaMLBase):
 
         self.buildModel()
         self.loadWeights()
-        self.getModelSummary(**kwargs) 
+        if not kwargs.get("skip_model_summary", False):
+            self.getModelSummary(**kwargs) 
         self.buildOptimizer()
         self.buildScheduler()
 
