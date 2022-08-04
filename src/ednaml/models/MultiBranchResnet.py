@@ -410,7 +410,7 @@ class MultiBranchResnet(ModelAbstract):
             fused_outs += [self.softmax_fused(fused_features[0])]
 
         # in forward_impl, we do for softtargetnames in self.soft-t-b-n, self.branches[softtargetnames].features --> send to the thingamagig and add to outputs
-        soft_outs = []
+        soft_outs = [None]*len(self.soft_target_branch_names)
         for idx, softtargetnames in enumerate(self.soft_target_branch_names):
             soft_outs[idx] = self.soft_target_outputs[idx](
                 features[self.branch_name_idx_map[softtargetnames]]
