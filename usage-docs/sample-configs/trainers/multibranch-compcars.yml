@@ -8,6 +8,9 @@ EXECUTION:
     DATAREADER: CompCars
     CRAWLER_ARGS:
       data_folder: "Data/CompCars"
+      train_folder: "image"
+      trainfile: "train.txt"
+      testfile: "test.txt"
     DATASET_ARGS: 
       pathidx: 4
       annotationidx: [0,2,3]
@@ -29,7 +32,7 @@ SAVE:
 
 TRANSFORMATION:
   ARGS:
-    shape: [200,200]
+    i_shape: [200,200]
     normalization_mean: 0.5
     normalization_std: 0.5
     normalization_scale: 0.5
@@ -53,28 +56,33 @@ MODEL:
   MODEL_KWARGS: 
     number_branches: 3
     branches:
-      - name: make
+      - name: bmake
         number_outputs: 1
         outputs: 
           - dimensions:
             name: make-fc
             label: make
-      - name: type
+      - name: btype
         number_outputs: 1
         outputs: 
           - dimensions:
             name: type-fc
             label: type
-      - name: year
+      - name: byear
         number_outputs: 1
         outputs: 
           - dimensions:
             name: year-fc
             label: year
     fuse: True
-    fuse_outputs: ['make', 'year', 'type']
+    fuse_outputs: ['bmake', 'byear', 'btype']
     fuse_dimensions:
     fuse_label: make
+    fuse_name: fuse
+    shared_block: 1
+    soft_targets: True
+    soft_target_branch: ['bmake']
+    soft_target_output_source: fuse
     attention: 'cbam'
 
 COLABEL:
@@ -86,24 +94,43 @@ LOSS:
   - LOSSES: ['SoftmaxLogitsLoss', 'SoftmaxLabelSmooth']
     KWARGS: [{}, {'eps':0.2}]
     LAMBDAS: [1.0, 1.0]
-    NAME: color
+    LABEL: year
+    NAME: make-fc
   - LOSSES: ['SoftmaxLabelSmooth', 'SoftmaxLogitsLoss']
     KWARGS: [{'eps':0.3}, {}]
     LAMBDAS: [1.0, 2.0]
-    NAME: type
+    LABEL: type
+    NAME: type-fc
+  - LOSSES: ['SoftmaxLogitsLoss', 'SoftmaxLabelSmooth']
+    KWARGS: [{}, {'eps':0.2}]
+    LAMBDAS: [1.0, 1.0]
+    LABEL: make
+    NAME: make-fc
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: fuse
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: bmake # This is for soft targets
+  
 
 OPTIMIZER:
-  OPTIMIZER_NAME: "Adam"
-  OPTIMIZER_KWARGS: '{}'
-  BASE_LR: 0.0001
-  LR_BIAS_FACTOR: 1.0
-  WEIGHT_DECAY: 0.0005
-  WEIGHT_BIAS_FACTOR: 0.0005
-  FP16: True
+  - OPTIMIZER: "Adam"
+    OPTIMIZER_NAME: opt-1
+    OPTIMIZER_KWARGS: {}
+    BASE_LR: 0.0001
+    LR_BIAS_FACTOR: 1.0
+    WEIGHT_DECAY: 0.0005
+    WEIGHT_BIAS_FACTOR: 0.0005
+    FP16: True
 
 SCHEDULER:
-  LR_SCHEDULER: 'StepLR'
-  LR_KWARGS: '{"step_size":20, "gamma":0.1}'
+  - LR_SCHEDULER: 'StepLR'
+    LR_KWARGS: {"step_size":20, "gamma":0.1}
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch
