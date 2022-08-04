@@ -415,7 +415,7 @@ class MultiBranchResnet(ModelAbstract):
             soft_outs[idx] = self.soft_target_outputs[idx](
                 features[self.branch_name_idx_map[softtargetnames]]
             )
-        return features + fused_features, outputs + fused_outs + soft_outs, []
+        return outputs + fused_outs + soft_outs, features + fused_features, []
 
     def parameter_groups_setup(self, parameter_groups: List[str]):
         self.parameter_groups[parameter_groups[0]] = self
