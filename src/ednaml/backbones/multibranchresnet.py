@@ -36,7 +36,7 @@ class multibranchresnet(nn.Module):
         part_attention (bool): Whether the model uses local/part attention at the first resnet block
         secondary_attention (None | int): Whether `attention` is applied to all blocks (None) or to the specified block (int).
         shared_block_count (int): Number of resnet blocks with weight sharing. Maximum value 4
-        num_branches (int): Number of branches after weight-shared blocks
+        number_branches (int): Number of branches after weight-shared blocks
         pytorch_weights_paths (Dict[str,int]): Strings corresponding to official imagenet resnet weights from pytorch
         resnetinput (ResnetInput): The input block consisting of conv layer, relu, and pooling.
         sharedblock (Union[nn.Sequential,nn.Identity]): The shared layers, consisting of at most 4 Resnet blocks.
@@ -75,7 +75,7 @@ class multibranchresnet(nn.Module):
         secondary_attention: int = None,
         ia_attention: bool = None,
         part_attention: bool = None,
-        num_branches: int = 2,
+        number_branches: int = 2,
         shared_block: int = 0,
         **kwargs
     ):
@@ -207,7 +207,7 @@ class multibranchresnet(nn.Module):
         # Then, given the branches, put the remaining resnet blocks in their branches
         # During prediction, we will just get branch features so order does not matter yet. it will matter in MultiBranchResnet
         # So, self.branches will be a nn.moduleList, with a bunch of nn.Sequentials
-        self.num_branches = num_branches
+        self.num_branches = number_branches
         branches = [None] * self.num_branches
         for bidx in range(self.num_branches):
             branches[bidx] = []
