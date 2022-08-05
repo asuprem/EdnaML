@@ -26,15 +26,6 @@ Else, ignore and write -1
 ]
 
 
-deployment_step:
-
-    for batch in data:
-        <perform the live KNN proxy thingamajig>
-        <pass it though the model to get the L score stuff>
-
-        update the components with the right values, i.e. the KMeans matrix, and the L-score for each proxy as well...(i.e. we might need multiple epochs for this)
-
-
 
 - Deploy
     - need a way to rerun existing saved model, by also saving the file model was generated from...🟢
@@ -465,4 +456,14 @@ for batch in dataloader:
 
     get these values
     compare to true ground truth... 
-    
+
+
+
+
+deployment_step:🟢
+
+    for batch in data:🟢
+        <perform the live KNN proxy thingamajig>🟢
+        <pass it though the model to get the L score stuff>🟢
+        update the components with the right values, i.e. the KMeans matrix, and the L-score for each proxy as well...(i.e. we might need multiple epochs for this)🟢
+
