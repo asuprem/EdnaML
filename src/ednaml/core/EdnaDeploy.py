@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Union, List
 from ednaml.core import EdnaML
 import logging
 from ednaml.crawlers import Crawler
@@ -12,18 +12,19 @@ class EdnaDeploy(EdnaML):
     def __init__(
         self,
         config: str = "",
-        deploy: str = "",
+        deploy: Union[List[str], str] = "",
         mode: str = "test",
         weights: str = None,
         logger: logging.Logger = None,
         verbose: int = 2,
         **kwargs
     ):
-
+        
         super().__init__([config,deploy], mode, weights, logger, verbose,**kwargs)
 
-    
-
+        self.decorator_reference["deployment"] = self.addDeploymentClass
+        self.decorator_reference.pop("trainer") # We do not need trainer in a Deployment
+        self.dataloader_mode = kwargs.get("dataloader_mode", self.mode)
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
@@ -108,7 +109,7 @@ class EdnaDeploy(EdnaML):
                 logger=self.logger,
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION,
-                mode="test",
+                mode=self.dataloader_mode,  # TODO convert this to better options: i.e. which mode to use, and which transformations to use, as an option in data_reader, specifically for deployments
                 **self.cfg.DEPLOYMENT.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build( 
@@ -135,13 +136,13 @@ class EdnaDeploy(EdnaML):
             logger=self.logger, **self.cfg.DEPLOYMENT.DATAREADER.CRAWLER_ARGS
         )
 
-    def deploy(self):
-        self.deployment.deploy(continue_epoch=self.previous_stop + 1)
+    def deploy(self, **kwargs):
+        self.deployment.deploy(continue_epoch=self.previous_stop + 1, **kwargs)
 
     def buildDeployment(self):
         """Builds the EdnaDeploy deployment and sets it up"""
         if self._deploymentClassQueueFlag:
-            ExecutionDeployment = self._deploymentClassQueueFlag
+            ExecutionDeployment = self._deploymentClassQueue
         else:
             ExecutionDeployment: Type[BaseDeploy] = locate_class(
                 subpackage="deploy", classpackage=self.cfg.DEPLOYMENT.DEPLOY
@@ -158,6 +159,7 @@ class EdnaDeploy(EdnaML):
             self.deployment = ExecutionDeployment(
                 model=self.model,
                 data_loader=self.test_generator.dataloader, # TODO
+                epochs=self.cfg.DEPLOYMENT.EPOCHS,
                 logger=self.logger,
                 crawler=self.crawler,
                 config=self.cfg,
@@ -168,6 +170,7 @@ class EdnaDeploy(EdnaML):
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
                 save_backup=self.cfg.SAVE.DRIVE_BACKUP,
+                save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
                 backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,

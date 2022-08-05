@@ -23,6 +23,7 @@ class ConfigDefaults(BaseConfig):
     OUTPUT_ARGS: Dict[str,str]
     DEPLOYMENT: str
     DEPLOYMENT_ARGS: Dict[str,str]
+    DEPLOYMENT_EPOCHS: int
 
     TRANSFORM_ARGS: Dict
     BATCH_SIZE: int
@@ -54,6 +55,9 @@ class ConfigDefaults(BaseConfig):
     LR_KWARGS: Dict[str, str]
 
     STEP_VERBOSE: int
+    PLUGIN: str
+    PLUGIN_NAME: str
+    PLUGIN_KWARGS: Dict[str, str]
 
     STORAGE_TYPE: str
     STORAGE_ARGS: Dict
@@ -90,6 +94,7 @@ class ConfigDefaults(BaseConfig):
         self.OUTPUT_ARGS = {}
         self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
         self.DEPLOYMENT_ARGS = kwargs.get("DEPLOYMENT_ARGS", {})
+        self.DEPLOYMENT_EPOCHS = kwargs.get("DEPLOYMENT_EPOCHS", 1)
 
         self.TRANSFORM_ARGS = {}
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)
@@ -126,3 +131,7 @@ class ConfigDefaults(BaseConfig):
         self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "BaseStorage")
         self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
         self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
+        
+        self.PLUGIN_NAME = "mp-1"
+        self.PLUGIN = "ModelPlugin"
+        self.PLUGIN_KWARGS = {}

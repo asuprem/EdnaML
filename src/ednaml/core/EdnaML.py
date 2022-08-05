@@ -1,10 +1,9 @@
 import importlib
 import os, shutil, logging, glob, re
-from types import FunctionType, MethodType
+from types import MethodType
 from typing import Callable, Dict, List, Type, Union
 from urllib.error import URLError
 import warnings
-from ednaml.config.StorageConfig import StorageConfig
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
@@ -18,10 +17,10 @@ from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
+from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.storage import BaseStorage
-from ednaml.storage import AzureStorage
-from ednaml.utils import locate_class
+from ednaml.utils import locate_class, path_import
 import ednaml.utils
 import torch
 from torchinfo import summary
@@ -29,6 +28,7 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 import ednaml.utils.web
 from ednaml.utils.SaveMetadata import SaveMetadata
 import logging
+import ednaml.core.decorators
 
 """TODO
 
@@ -39,7 +39,7 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 class EdnaML(EdnaMLBase):
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
-    model: ModelAbstract
+    model: ModelAbstract = None
     loss_function_array: List[LossBuilder]
     loss_optimizer_array: List[torch.optim.Optimizer]
     optimizer: List[torch.optim.Optimizer]
@@ -51,6 +51,8 @@ class EdnaML(EdnaMLBase):
     train_generator: Generator
     test_generator: Generator
     cfg: EdnaMLConfig
+    decorator_reference: Dict[str,Type[MethodType]]
+    plugins: Dict[str, ModelPlugin] = {}
 
     def __init__(
         self,
@@ -90,8 +92,9 @@ class EdnaML(EdnaMLBase):
         # Added configuration extentions
         if type(self.config) is list:
             self.cfg = EdnaMLConfig(config[0])
-            msg = self.cfg.extend(config[1])
-            print(msg)
+            for cfg_item in config[1:]:
+                msg = self.cfg.extend(cfg_item)
+                print(str(msg))
         else:
             self.cfg = EdnaMLConfig(config) 
         
@@ -113,6 +116,15 @@ class EdnaML(EdnaMLBase):
         self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetStorageQueues, self.resetTrainerQueue]
         self.resetQueueArray += self.addResetQueues()
         self.resetQueues()
+
+        self.decorator_reference = {
+            "crawler": self.addCrawlerClass,
+            "model": self.addModelClass,
+            "trainer": self.addTrainerClass,
+            #"storage": self.addStorageClass,
+            "generator": self.addGeneratorClass,
+            "model_plugin": self.addPlugins,
+        }
 
     def addResetQueues(self):
         return []
@@ -239,7 +251,8 @@ class EdnaML(EdnaMLBase):
 
         self.buildModel()
         self.loadWeights()
-        self.getModelSummary(**kwargs) 
+        if not kwargs.get("skip_model_summary", False):
+            self.getModelSummary(**kwargs) 
         self.buildOptimizer()
         self.buildScheduler()
 
@@ -288,8 +301,8 @@ class EdnaML(EdnaMLBase):
                                     url=self.cfg.STORAGE.URL,
                                     **self.cfg.STORAGE.STORAGE_ARGS)
 
-    def train(self):
-        self.trainer.train(continue_epoch=self.previous_stop + 1)  #
+    def train(self, **kwargs):
+        self.trainer.train(continue_epoch=self.previous_stop + 1, **kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()
@@ -337,7 +350,7 @@ class EdnaML(EdnaMLBase):
                 storage=self.storage,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
-            self.trainer.setup(
+            self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
@@ -697,7 +710,59 @@ class EdnaML(EdnaMLBase):
                 self.cfg.MODEL.MODEL_ARCH
             )
         )
+        self.model._logger = self.logger
+        self.logger.info("Adding plugins after constructing model")
+        self.addPluginsToModel()
 
+    # Add model hooks here, since it is a ModelAbstract
+    def addPlugins(self, plugin_class_list: List[Type[ModelPlugin]], **kwargs):
+        """add plugins to the plugins class queue...
+        ideally this is called before add model
+        then add model can add the plugins in the queue to the model...
+
+        NOTE -- any plugins are added through the config file, specifically, with the plugin arguments. 
+        This is because multiple plugins can use the same class, but variations of it.
+        For example, one might want to train KMP under l2 and cos, and use then simultaneously...
+
+        So, plugins class queue exists only as a lookup for plugin classes...if a correspondiing enttry is NOT in MODEL_PLUGINS in the config,
+        it will never be added into Edna/Deploy...
+        """
+        for plugin in plugin_class_list:
+            self.plugins[plugin.__name__] = plugin  # order matters; can replace...though shouldn't matter too much...
+        
+        # The follow will not happen, logically, i think, because model is ONLY defined in self.buildModel(), and by that point, one is already calling apply()
+        # Adding plugins after the fact...????? Don't think so...
+        # And in any case, we should make apply() truely declarative, so that one can simply apply() again after adding plugins
+        #if self.model is not None:
+        #    # model is defined. We will add plugins to queue, and then call the model's add plugin bit...
+        #    self.logger.info("Model already constructed. Adding plugins.")
+        #    self.addPluginsToModel()
+
+    def addPluginsToModel(self):
+        # Here, we iterate through plugins IN the config file, then import their classes, and add them to the model...
+        for plugin_save_name in self.cfg.MODEL_PLUGIN:
+            # Now, we need to locate the plugin class...check first if it is in plugins...
+            if self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN not in self.plugins:
+                # now we need to locate the class in builtins
+                plugin = locate_class(
+                    subpackage="plugins",
+                    classpackage=self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN,
+                    classfile=self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN
+                )
+            else:
+                plugin = self.plugins[self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN]
+            
+            self.model.addPlugin(
+                plugin = plugin,
+                plugin_name = plugin_save_name,
+                plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN_KWARGS
+            )
+
+        for plugin in self.plugins:
+            self.model.addPlugin(plugin, 
+                            plugin_name = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_NAME, 
+                            plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_KWARGS)
+            
     def addModelBuilder(
         self, model_builder: Type[Callable], model_config: ModelConfig = None
     ):
@@ -783,29 +848,61 @@ class EdnaML(EdnaMLBase):
         self.model.cuda()
         # change below statement according to line 722
         # default for input size is None/null
-        if input_size is None:
-            input_size = (
-                self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
-                self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
-            ) # INPUT SIZE SHOULD HAVE A VALUE
-        print("INPUT SIZE ==== ",input_size)
-        self.model_summary = summary(
-            self.model,
-            input_size=input_size,
-            col_names=[
-                "input_size",
-                "output_size",
-                "num_params",
-                "kernel_size",
-                "mult_adds",
-            ],
-            depth=3,
-            mode="train",
-            verbose=0,
-            dtypes=dtypes,
-        )
-        self.logger.info(str(self.model_summary))
+        try:
+            if input_size is None:
+                input_size = (
+                    self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
+                    self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
+                ) # INPUT SIZE SHOULD HAVE A VALUE
+            print("INPUT SIZE ==== ",input_size)
 
+            self.model_summary = summary(
+                self.model,
+                input_size=input_size,
+                col_names=[
+                    "input_size",
+                    "output_size",
+                    "num_params",
+                    "kernel_size",
+                    "mult_adds",
+                ],
+                depth=3,
+                mode="train",
+                verbose=0,
+                dtypes=dtypes,
+            )
+            self.logger.info(str(self.model_summary))
+        except KeyboardInterrupt:   # TODO check which exception is actually raised in summary and maybe have a better way to deal with this...
+            raise
+        except Exception as e:
+            import traceback
+            self.logger.info("Model Summary retured the following error:")
+            self.logger.info(traceback.format_exc())
+
+
+    #------------------------------GENERAL ADD--------------------------------------------------------------------
+    def _add(self, file_or_module_path):
+        # We are given a file, which contains several class loaded through decorators when the file is imported.
+        imported_file = path_import(file_or_module_path)
+        # Once we have imported, the files are registered in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS
+        lookup_path = os.path.abspath(file_or_module_path)
+        for keyvalue in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path]:
+            if keyvalue in self.decorator_reference:
+                self.decorator_reference[keyvalue](
+                    ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]
+                )
+            else:
+                warnings.warn(
+                    "keyvalue %s in REGISTERED_EDNA_COMPONENTS %s is not available in self.decorator_reference. Not adding."%(keyvalue, 
+                    str(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
+                )
+    def add(self, file_or_module_path):
+        if type(file_or_module_path) is list:
+            for file_or_module in file_or_module_path:
+                self._add(file_or_module)
+        else:
+            self._add(file_or_module_path)
+        
     # ----------------------------------------------   DATAREADERS   ----------------------------------------------
     def addCrawlerClass(self, crawler_class: Type[Crawler], **kwargs):
         """Adds a crawler class to the EdnaML `apply()` queue. This will be applied to the configuration when calling `apply()`
@@ -941,14 +1038,7 @@ class EdnaML(EdnaMLBase):
         if self._trainGeneratorInstanceQueueFlag:
             self.train_generator: Generator = self._trainGeneratorInstanceQueue
         else:
-            #print("??????????????????????????????????????????????????????????????????????//",self.cfg.TRAIN_TRANSFORMATION.getVars())
-            #train_transform_values = self.cfg.TRAIN_TRANSFORMATION.getVars()
-            #values_for_transform = {}
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #values_for_transform['i_shape'] = train_transform_values['SHAPE']
-            #print("THIS IS A CHANGE!")
-            print(self.cfg.TRAIN_TRANSFORMATION)
+            #print(self.cfg.TRAIN_TRANSFORMATION)
             if self.mode != "test":
                 self.train_generator: Generator = data_reader.GENERATOR( ##imp -- initialize generator
                     logger=self.logger,
@@ -965,7 +1055,10 @@ class EdnaML(EdnaMLBase):
                     **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
                 )
             else:
-                self.train_generator = Generator()
+                self.logger.info(
+                "Not creating `train_generator` in `test_only` mode."
+                )
+                self.train_generator = Generator(logger=self.logger)
         if self.mode != "test":
             self.logger.info(
                 "Generated training data generator with %i trainnig data points"

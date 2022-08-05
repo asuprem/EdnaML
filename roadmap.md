@@ -1,3 +1,7 @@
+🟢🟡
+
+Deploy also needs to deal with storage classes
+
 Roadmap
 [
 
@@ -22,10 +26,19 @@ Else, ignore and write -1
 ]
 
 
+deployment_step:
+
+    for batch in data:
+        <perform the live KNN proxy thingamajig>
+        <pass it though the model to get the L score stuff>
+
+        update the components with the right values, i.e. the KMeans matrix, and the L-score for each proxy as well...(i.e. we might need multiple epochs for this)
+
+
 
 - Deploy
-    - need a way to rerun existing saved model, by also saving the file model was generated from...
-    - for actual file, pretty easy
+    - need a way to rerun existing saved model, by also saving the file model was generated from...🟢
+    - for actual file, pretty easy🟢
     - but for colab, maybe we can have an edna API that takes in the file...? Yeah -- that's it...
 
 
@@ -144,7 +157,7 @@ Else, ignore and write -1
 - VehicleColors 🟢
 - logging -- tensorboard???
 - metrics logging
-- apply()
+- apply()🟢
     - also, when user wants to put custom things in Edna, they can use the custom add functions (addOptimizer, etc). This will do lazy setup
     - Then, when user does apply, this will apply the lazy changes internally.
         - custom Crawler    🟢
@@ -169,7 +182,7 @@ Else, ignore and write -1
     - need to upgrade to azure, or in-house system, or cloudlab...
 
 
-- EdnaML in test mode -- does not build train data loader...
+- EdnaML in test mode -- does not build train data loader...🟢
 --------------------------------------------------------------------
 so, someone does the following??? ✅
 EdnaML() <-- empty, so no configuration is set up> ✅
@@ -194,11 +207,11 @@ add/update LossScheduler ✅
 
 
 --------------------------------------------------------------------
-soft_targets: true
-soft_target_branch: ['vcolor', 'vtype']
-soft_target_output_source: fuse
+soft_targets: true🟢
+soft_target_branch: ['vcolor', 'vtype']🟢
+soft_target_output_source: fuse🟢
 
-if soft targets true, model internally stores this value as well as the name of the output source. Then, secondary outputs gets a list of these soft target `guesses`
+if soft targets true, model internally stores this value as well as the name of the output source. Then, secondary outputs gets a list of these soft target `guesses`🟢
 --------------------------------------------------------------------
 
 

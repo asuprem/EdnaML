@@ -28,17 +28,22 @@ SAVE:
   
 
 TRANSFORMATION:
-  SHAPE: [200,200]
-  NORMALIZATION_MEAN: 0.5
-  NORMALIZATION_STD: 0.5
-  NORMALIZATION_SCALE: 255
-  H_FLIP: 0.5
-  T_CROP: True
-  RANDOM_ERASE: False
-  RANDOM_ERASE_VALUE: 0.5
-  CHANNELS: 3
+  ARGS:
+    i_shape: [200,200]
+    normalization_mean: 0.5
+    normalization_std: 0.5
+    normalization_scale: 0.5
+    channels: 3
   BATCH_SIZE: 64
   WORKERS: 2
+
+TRAIN_TRANSFORMATION:
+  ARGS:
+    h_flip: 0.5
+    t_crop: True
+    random_erase: True
+    random_erase_value: 0.3
+
 
 MODEL:
   BUILDER: multibranch_model_builder

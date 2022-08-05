@@ -1,6 +1,9 @@
 from typing import Dict
-from azure.storage.blob import BlockBlobService
-from azure.storage.blob import AppendBlobService
+try:
+    from azure.storage.blob import BlockBlobService
+    from azure.storage.blob import AppendBlobService
+except:
+    pass
 from ednaml.storage.BaseStorage import BaseStorage
 import os,shutil,gzip
 

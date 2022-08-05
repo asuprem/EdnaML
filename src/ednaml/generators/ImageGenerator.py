@@ -58,17 +58,17 @@ class ImageGenerator(Generator):
         )
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
-        if kwargs.get("h_flip") > 0:
+        if kwargs.get("h_flip", 0) > 0:
             transformer_primitive.append(
                 T.RandomHorizontalFlip(p=kwargs.get("h_flip"))
             )
-        if kwargs.get("t_crop"):
+        if kwargs.get("t_crop", False):
             transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())
         transformer_primitive.append(
             T.Normalize(mean=normalization_mean, std=normalization_std)
         )
-        if kwargs.get("rea"):
+        if kwargs.get("rea", False):
             transformer_primitive.append(
                 T.RandomErasing(
                     p=0.5, scale=(0.02, 0.4), value=kwargs.get("rea_value", 0)
