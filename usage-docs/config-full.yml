@@ -43,7 +43,8 @@ SAVE:
   MODEL_CORE_NAME: "config"
   MODEL_BACKBONE: "backbone"
   MODEL_QUALIFIER: "all"
-  DRIVE_BACKUP: False
+  DRIVE_BACKUP: True
+  LOG_BACKUP: True
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/Experiment/Models"
 
