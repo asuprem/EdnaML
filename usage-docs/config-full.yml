@@ -1,32 +1,56 @@
 EXECUTION:
   OPTIMIZER_BUILDER: ClassificationOptimizer
-  MODEL_SERVING: None
+  MODEL_SERVING: False
   EPOCHS: 10
   SKIPEVAL: True
   TEST_FREQUENCY: 5
   FP16: False
   DATAREADER: 
-    DATAREADER: VehicleColor
+    DATAREADER: DataReader
     CRAWLER_ARGS: {}
-    DATASET_ARGS: 
-      pathidx: 0
-      annotationidx: 1
-      classificationclass: color
+    DATASET_ARGS: {}
     GENERATOR: 
-    GENERATOR_ARGS: 
+    GENERATOR_ARGS: {}
     DATALOADER_ARGS: {}
-  TRAINER: ClassificationTrainer
+  TRAINER: BaseTrainer
   TRAINER_ARGS: 
-    accumulation_steps: 4
+    accumulation_steps: 1
+  PLUGIN: {}
+
+DEPLOYMENT:
+  OUTPUT_ARGS:
+    file_path: deploy-out.txt
+  DEPLOY: BaseDeploy
+  DEPLOYMENT_ARGS: {}
+  EPOCHS: 1
+  DATAREADER:
+    CRAWLER_ARGS: {}
+    DATAREADER: DataReader
+    DATASET_ARGS: {}
+    GENERATOR: 
+    GENERATOR_ARGS: {}
+    DATALOADER_ARGS: {}
+  FP16: False
+  PLUGIN: {}
+
+MODEL_PLUGIN:
+  - PLUGIN: ModelPlugin
+    PLUGIN_NAME: mp-1
+    PLUGIN_KWARGS: {}
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: "colabel_devel"
-  MODEL_BACKBONE: "res18"
+  MODEL_CORE_NAME: "config"
+  MODEL_BACKBONE: "backbone"
   MODEL_QUALIFIER: "all"
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
-  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/Experiment/Models"
+
+STORAGE:
+  TYPE: BaseStorage
+  STORAGE_ARGS: {}
+  URL: ./
 
 TRANSFORMATION:
   BATCH_SIZE: 8
@@ -50,39 +74,36 @@ TEST_TRANSFORMATION:
     h_flip: 0
 
 MODEL:
-  BUILDER: classification_model_builder
-  MODEL_ARCH: 'ClassificationResnet'
-  MODEL_BASE: 'resnet18'
+  BUILDER: ednaml_model_builder
+  MODEL_ARCH: ClassificationResnet
+  MODEL_BASE: resnet18
   EMBEDDING_DIMENSIONS:
-  MODEL_NORMALIZATION: 'bn'
+  MODEL_NORMALIZATION: bn
   MODEL_KWARGS:
   PARAMETER_GROUPS: 
     - opt-1
-
-COLABEL:
-  COMPRESSION: 5
-  ENSEMBLE: "majority"
-  CONFIDENCE: "decay"
 
 LOSS:
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]
     LAMBDAS: [1.0]
     NAME: out1
+    LABEL: labelname
 
 OPTIMIZER:
-  OPTIMIZER_NAME: "Adam"
-  OPTIMIZER_KWARGS: '{}'
-  BASE_LR: 0.00001
-  LR_BIAS_FACTOR: 1.0
-  WEIGHT_DECAY: 0.0005
-  WEIGHT_BIAS_FACTOR: 0.0005
-  FP16: True
+  - OPTIMIZER: Adam
+    OPTIMIZER_NAME: opt-1
+    OPTIMIZER_KWARGS: {}
+    BASE_LR: 1.0e-3
+    LR_BIAS_FACTOR: 1.0
+    WEIGHT_DECAY: 0.0005
+    WEIGHT_BIAS_FACTOR: 0.0005
   
 SCHEDULER:
-  - LR_SCHEDULER: 'StepLR'
+  - LR_SCHEDULER: StepLR
+    SCHEDULER_NAME: opt-1
     LR_KWARGS: 
-      step_size: 20
+      step_size: 5
       gamma: 0.1
 
 LOGGING:

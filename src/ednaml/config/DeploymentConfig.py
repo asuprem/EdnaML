@@ -11,6 +11,7 @@ class DeploymentConfig(BaseConfig):
     DATAREADER: ExecutionDatareaderConfig
     EPOCHS: int
     PLUGIN: ExecutionPluginConfig
+    FP16: bool
 
 
     def __init__(self, deployment_dict, defaults: ConfigDefaults):
@@ -28,3 +29,4 @@ class DeploymentConfig(BaseConfig):
         )
         self.EPOCHS = deployment_dict.get("EPOCHS", defaults.DEPLOYMENT_EPOCHS)
         self.PLUGIN = ExecutionPluginConfig(deployment_dict.get("PLUGIN", {}))
+        self.FP16 = deployment_dict.get("FP16", defaults.DEPLOYMENT_FP16)

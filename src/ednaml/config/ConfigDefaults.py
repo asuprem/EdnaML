@@ -24,6 +24,7 @@ class ConfigDefaults(BaseConfig):
     DEPLOYMENT: str
     DEPLOYMENT_ARGS: Dict[str,str]
     DEPLOYMENT_EPOCHS: int
+    DEPLOYMENT_FP16: bool
 
     TRANSFORM_ARGS: Dict
     BATCH_SIZE: int
@@ -72,6 +73,7 @@ class ConfigDefaults(BaseConfig):
         self.EPOCHS = kwargs.get("EPOCHS", 10)
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
         self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
+        self.FP16 = kwargs.get("FP16", False)
         self.TRAINER = kwargs.get("TRAINER", "BaseTrainer")
         self.TRAINER_ARGS = kwargs.get(
             "TRAINER_ARGS",
@@ -95,6 +97,7 @@ class ConfigDefaults(BaseConfig):
         self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
         self.DEPLOYMENT_ARGS = kwargs.get("DEPLOYMENT_ARGS", {})
         self.DEPLOYMENT_EPOCHS = kwargs.get("DEPLOYMENT_EPOCHS", 1)
+        self.DEPLOYMENT_FP16 = kwargs.get("DEPLOYMENT_FP16", False)
 
         self.TRANSFORM_ARGS = {}
         self.BATCH_SIZE = kwargs.get("BATCH_SIZE", 32)

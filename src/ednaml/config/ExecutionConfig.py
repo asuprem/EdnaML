@@ -1,3 +1,4 @@
+from typing import Dict
 from ednaml.config import BaseConfig
 from ednaml.config.ConfigDefaults import ConfigDefaults
 from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
@@ -9,7 +10,9 @@ class ExecutionConfig(BaseConfig):
     EPOCHS: int
     SKIPEVAL: bool
     TEST_FREQUENCY: int
+    FP16: bool
     TRAINER: str
+    TRAINER_ARGS: Dict
     DATAREADER: ExecutionDatareaderConfig
     PLUGIN: ExecutionPluginConfig
 
