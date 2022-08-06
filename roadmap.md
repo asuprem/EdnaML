@@ -1,5 +1,23 @@
 🟢🟡
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Deploy also needs to deal with storage classes
 
 Roadmap

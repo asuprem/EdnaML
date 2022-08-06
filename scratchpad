@@ -1,0 +1,107 @@
+To truly replicate runs properly, we need to track a few things:
+
+
+EdnaML needs to track:
+
+config file used for something
+Any custom things added for this execution
+
+
+
+We will define a `run` as an execution with a specific config file, excepting the SAVE parameter, which is required to sync runs
+
+If config files are different in some way, i.e. some parameter is changed, that constitutes a new run (exceptions are when a user changes something that is meant to clarify and WOULD NOT CONFLICT WITH A PRIOR RUN, for continuation, i.e. if we discover that the transformations were not set correctly but don't need to restart this run, and we will discuss this later)
+
+
+In a run, we will need to record the following:
+    The exact way this run occured. 
+    The exact files used in this run
+    The metrics for this run
+
+
+The exact way this run occured:
+    every EdnaML command records, into an EdnaLog, that it occured. This way, if we are asked to reconstruct a run, we can programmatically perform the commands again.
+    If we "continue a run", we can ask ednaml to execute the EdnaLog, or redo our commands
+    When we redo our commands, and it is an existing run, EdnaML will simply move the old EdnaLog to EdnaLog<int> and create a new EdnaLog
+    We keep a running list of EdnaLog (or rather, the most recent increment) in run.yml, which contains the run information (e.g. `mostRecentRunNumber`)
+
+    If the exact way this run occured is different, what then...and how do we detect difference???
+        Detecting difference: when we do apply, or train/eval(), we check whether our current EdnaLog matches the prior EdnaLogs
+        If it does, then we ask user whether they want to proceed with a different run
+
+    What does an EdnaLog actually record
+        The sequence of commands. Specifically:
+            command
+            keyword1:
+            argument1:
+            alias1:
+            etc, etc
+
+            Alias is when the argument should be replaced by something else
+            This is, for now, ONLY for paths to files, for reconstruction, because we will keep a copy of config, and input files in the run
+            Anything else that is NOT an outside reference, will get saved as argument without alias
+
+            https://stackoverflow.com/questions/10724495/getting-all-arguments-and-values-passed-to-a-function
+
+
+The exact files used in this run
+    Any EdnaML or EdnaDeploy (or variety) function that accepts files also performs a copy of these files into the `run` folder.
+    `run` folder is created and saved during the initialization process, along with helper functions, etc that save the run directory and add an update to the EdnaLog
+    When we save the command, we also add an alias, basically an update file path that takes the basename. This means the file will be in the run directory
+    What happens when 2 files are named the same -- simply, the alias is updated, silly...
+
+
+The metrics for this run
+    Ok, this is more complicated...
+    So, we need to attach Metrics to a Deployment or Execution
+    During execution, Metrics are given access to the results, plus anything else they might need
+    Metrics, like plugins, come from a file...or are built in
+
+    During a run, any metrics we compute are saved for that run.
+    So, EdnaML, or BaseTrainer, will record all metrics as and when they appear in a MetricsManager
+    Then, MetricsManager saves when BaseTrainer saves, etc, etc
+    The Save can take advantage of SaveStorage for specifics, i.e. saving in Local, or Azure, or MlFlow, etc...
+
+    For a deployment, this is different
+    Deployments can happen for any dataset, etc, etc
+    So...what to do about Metrics in this case...
+
+    So, we need an EdnaML and maybe an EdnaDeploy section in our saves
+    Deployments do not rely on each other
+    They are independent of each other
+    BUT, plugins ina deployment are NOT ephemeral
+    But, also, plugins are loaded indendently
+    But also, plugins are tracked independently
+    
+    At some point in future, we will need to distinguish a ModelPlugin and a DataPlugin
+    ModelPlugin tied to a Model
+    DataPlugin tied to Data, such as a KMeansProxy; This needs the Data architecture, so we will deal with this later...
+        But briad strokes: we can register a data source with EdnaML
+        When registering, we will specifically register a Datareader, or something.
+        Figure this out later...
+    
+
+    So... Metrics
+    we track through mlflow, right...?
+    So during save, we use MetricManager.save to save through mlflow
+    things tagged for all metrics:
+        epoch
+        step
+        the run-id for this run
+
+TODO:
+    establish EdnaLog
+    establish saving and checking if commands are same
+    THEN, establish runs as canonical
+    establish that if something does not have a run, we will create one next time
+
+        
+
+
+
+NOTE -- Plugins update:
+    plugins need to be saved in their individual files
+    This is to prevent overwriting, I think
+
+
+
