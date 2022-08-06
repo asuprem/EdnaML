@@ -9,6 +9,7 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
 from ednaml.config.ModelConfig import ModelConfig
 from ednaml.core import EdnaMLBase
+from ednaml.core.EdnaExecutionLog import EdnaExecutionLog
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
@@ -53,6 +54,7 @@ class EdnaML(EdnaMLBase):
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
     plugins: Dict[str, ModelPlugin] = {}
+    executionLog: EdnaExecutionLog
 
     def __init__(
         self,
@@ -125,6 +127,13 @@ class EdnaML(EdnaMLBase):
             "generator": self.addGeneratorClass,
             "model_plugin": self.addPlugins,
         }
+
+        # ExecutionLog
+        self.executionLog = EdnaExecutionLog()
+        # 
+        import pdb
+        pdb.set_trace()
+        self.executionLog.addCommand(command="__init__")
 
     def addResetQueues(self):
         return []
