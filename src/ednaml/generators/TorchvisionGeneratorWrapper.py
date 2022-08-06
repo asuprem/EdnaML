@@ -14,30 +14,13 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
     """
 
     def __init__(
-        self,
-        logger, 
-        gpus: int,
-        i_shape: Union[List[int], Tuple[int, int]],
-        channels: int,
-        normalization_mean: float,
-        normalization_std: float,
-        normalization_scale: float,
-        **kwargs
+        self, logger=None, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
-        super().__init__(logger,
-            gpus,
-            i_shape,
-            channels,
-            normalization_mean,
-            normalization_std,
-            normalization_scale,
-            **kwargs
-        )
+        super().__init__(logger, gpus=gpus, transforms=transforms, mode=mode, **kwargs)
 
-        """
-        So we will have arguments inside the kwargs that set up the dataloader object
-        """
-        self.gpus = gpus
+        
+
+    def buildGeneratorAttributes(self, **kwargs):
         self.torchvision_dataset_class = kwargs.get("tv_dataset")
         self.torchvision_dataset_args = kwargs.get("tv_args")
 
@@ -61,7 +44,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
                 train=(mode == "train"),
                 transform=self.transformer,
                 target_transform=None,
-                **self.torchvision_dataset_args
+                **self.torchvision_dataset_args.get("args", {})
             )
         elif self.torchvision_dataset_class in [
             "CelebA",
