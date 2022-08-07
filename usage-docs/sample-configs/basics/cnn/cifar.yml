@@ -8,7 +8,7 @@ EXECUTION:
   DATAREADER: 
     DATAREADER: TorchvisionDatareader
     GENERATOR_ARGS:
-      tv_dataset: MNIST
+      tv_dataset: CIFAR10
       tv_args: 
         root: "Data/"
         args:
@@ -24,7 +24,7 @@ SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: configtest
   MODEL_BACKBONE: res18
-  MODEL_QUALIFIER: mnist
+  MODEL_QUALIFIER: cifar
   DRIVE_BACKUP: False
   LOG_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
