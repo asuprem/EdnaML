@@ -876,7 +876,8 @@ class EdnaML(EdnaMLBase):
         # add bookkeeping
         # does config has input size? if it does use that, but prepend batch size .
         # if it doesn't have it, use input size in arguments
-        self.model.cuda()
+        if self.gpus:
+            self.model.cuda()
         # change below statement according to line 722
         # default for input size is None/null
         try:

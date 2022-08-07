@@ -37,7 +37,8 @@ class SoftmaxLabelSmooth(Loss):
         llabels = torch.zeros(log_probs.size()).scatter_(
             1, llabels.unsqueeze(1).data.cpu(), 1
         )
-        llabels = llabels.cuda()
+        if torch.cuda.device_count():
+            llabels = llabels.cuda()
         llabels = (1 - self.eps) * llabels + self.eps / self.softmax_dimensions
         loss = (-llabels * log_probs).mean(0).sum()
         return loss

@@ -86,9 +86,10 @@ class BaseDeploy:
         self.gpus = gpus
 
         if self.gpus != 1:
-            raise NotImplementedError()
-
-        self.model.cuda() # moves the model into GPU
+            self.logger.warning("Multi-gpu or non-gpu not yet fully supported.")
+        
+        if self.gpus:
+            self.model.cuda() # moves the model into GPU
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
@@ -156,7 +157,8 @@ class BaseDeploy:
 
 
     def deploy_step(self, batch):   # USER IMPLEMENTS
-        batch = tuple(item.cuda() for item in batch)
+        if self.gpus:
+            batch = tuple(item.cuda() for item in batch)
         data, labels = batch    # TODO move plugins here to allow labels as well!!!!!!!!
         feature_logits, features, secondary_outputs = self.model(data)
 

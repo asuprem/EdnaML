@@ -58,7 +58,8 @@ class ClassificationTrainer(BaseTrainer):
             img,
             batch_kwargs["labels"],
         ) = batch  # This is the tensor response from collate_fn
-        img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
+        if self.gpus:
+            img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
@@ -97,7 +98,8 @@ class ClassificationTrainer(BaseTrainer):
                 self.test_loader, total=len(self.test_loader), leave=False
             ):
                 data, label = batch
-                data = data.cuda()
+                if self.gpus:
+                    data = data.cuda()
                 logit, feature, _ = self.model(data)
                 feature = feature.detach().cpu()
                 logit = logit.detach().cpu()
