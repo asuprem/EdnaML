@@ -29,7 +29,7 @@ class EdnaDeploy(EdnaML):
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
         self.printConfiguration()
-        self.downloadModelWeights()
+        self._downloadModelWeights()
         self.setPreviousStop()
 
         self.buildDataloaders()
@@ -185,7 +185,7 @@ class EdnaDeploy(EdnaML):
         self._deploymentInstanceQueue = None
         self._deploymentInstanceQueueFlag = False
     
-    def addResetQueues(self):
+    def _addResetQueues(self):
         return [self.resetDeploymentQueue]
 
     def addDeploymentClass(self, deployment_class: Type[BaseDeploy]):

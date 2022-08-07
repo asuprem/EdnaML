@@ -85,11 +85,8 @@ class EdnaML(EdnaMLBase):
         """
         # ExecutionLog
         self.executionLog = EdnaExecutionLog()
-        # 
-        import pdb
-        pdb.set_trace()
         self._update_execution_log("__init__", locals(), file_alias_keys=["config"])
-        pdb.set_trace()
+
 
         self.config = config
         self.mode = mode
@@ -123,7 +120,7 @@ class EdnaML(EdnaMLBase):
                 " `test` mode."
             )
         self.resetQueueArray:List[MethodType] = [self.resetCrawlerQueues, self.resetGeneratorQueues, self.resetModelQueues, self.resetOptimizerQueues, self.resetLossBuilderQueue, self.resetStorageQueues, self.resetTrainerQueue]
-        self.resetQueueArray += self.addResetQueues()
+        self.resetQueueArray += self._addResetQueues()
         self.resetQueues()
 
         self.decorator_reference = {
@@ -136,6 +133,8 @@ class EdnaML(EdnaMLBase):
         }
 
     def _update_execution_log(self, funcname, local_vars: Dict[str, Any], file_alias_keys: List[str]):
+        local_vars.pop("self", None)
+        local_vars.pop("pdb", None) 
         arg_keys = local_vars.keys()
         arg_vals = local_vars.values()
         arg_alias = [None]*len(arg_keys)
@@ -146,9 +145,10 @@ class EdnaML(EdnaMLBase):
             command=funcname,argument_key=local_vars.keys(), argument_value=local_vars.values(), argument_alias=arg_alias
         )
 
-    def addResetQueues(self):
+    def _addResetQueues(self):  # No need to call executionlog
         return []
-    def resetCrawlerQueues(self):
+    # TODO make the reset functions `builtin`
+    def resetCrawlerQueues(self):   # no execution log
         self._crawlerClassQueue = None
         self._crawlerArgsQueue = None
         self._crawlerArgsQueueFlag = False
@@ -192,8 +192,6 @@ class EdnaML(EdnaMLBase):
         self._storageClassQueueFlag = False
         self._storageInstanceQueue = None
         self._storageClassQueue = None
-
-
     def resetQueues(self):
         """Resets the `apply()` queue"""
         for queue_function in self.resetQueueArray:
@@ -203,7 +201,6 @@ class EdnaML(EdnaMLBase):
         """recordVars() completes initial setup, allowing you to proceed with the core ml pipeline
         of dataloading, model building, etc
         """
-
         self.epochs = self.cfg.EXECUTION.EPOCHS
         self.skipeval = self.cfg.EXECUTION.SKIPEVAL
         self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
@@ -211,7 +208,7 @@ class EdnaML(EdnaMLBase):
         self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
         self.fp16 = self.cfg.EXECUTION.FP16
 
-    def downloadModelWeights(self):
+    def _downloadModelWeights(self):
         """Downloads model weights specified in the configuration if `weights` were not passed into EdnaML and if model weights are supported.
 
         TODO -- do not throw error for no weights or missing base, if this is a new architecture to be trained from scratch
@@ -262,8 +259,9 @@ class EdnaML(EdnaMLBase):
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML"""
+        self._update_execution_log("apply", locals())
         self.printConfiguration()
-        self.downloadModelWeights()
+        self._downloadModelWeights()
         self.setPreviousStop()
         self.buildStorage() # this is where -- same as other build things...  
 
@@ -285,6 +283,17 @@ class EdnaML(EdnaMLBase):
 
         self.resetQueues()
 
+    # TODO
+    # https://stackoverflow.com/questions/51566497/getting-the-source-of-an-object-defined-in-a-jupyter-notebook
+    # We need to work on adding the custom classes themselves somehow....
+    # OR, we can declare that the way to reproduce runs is to follow a specific recipe, like everything
+    # Recipe being no custom classes or anything in the current context. Everything is dome with a 
+    # file, i.e. if there are custom objects, they will be in a separate file that is fed into EdnaML
+
+    # That said, how will we deal with custom classes...? We could likely get the code for the custom 
+    # class using inspect. But, if we are executing in a jupyter notebook, then we cannot. In this case, we
+    # will declare the EdnaLog invalid. So, if we try to 'resurrect' the run, it won't compute. We will have to
+    # manually perform the steps. But the invalid log will still be saved, so that we can inspect it later...
     def addStorage(self, storage: BaseStorage):
         self._storageInstanceQueue = storage
         self._storageInstanceQueueFlag = True
@@ -322,9 +331,11 @@ class EdnaML(EdnaMLBase):
                                     **self.cfg.STORAGE.STORAGE_ARGS)
 
     def train(self, **kwargs):
+        self._update_execution_log("train", locals())
         self.trainer.train(continue_epoch=self.previous_stop + 1, **kwargs)  #
 
     def eval(self):
+        self._update_execution_log("eval", locals())
         return self.trainer.evaluate()
 
     def addTrainerClass(self, trainerClass: Type[BaseTrainer]):
@@ -917,6 +928,7 @@ class EdnaML(EdnaMLBase):
                     str(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]))
                 )
     def add(self, file_or_module_path):
+        self._update_execution_log("add", locals(), file_alias_keys=["file_or_module_path"])
         if type(file_or_module_path) is list:
             for file_or_module in file_or_module_path:
                 self._add(file_or_module)
@@ -1247,6 +1259,7 @@ class EdnaML(EdnaMLBase):
         return None
 
     def setModelWeightsFromEpoch(self, epoch=0):
+        self._update_execution_log("setModelWeightsFromEpoch", locals())
         """Sets the internal model weights path using the provided epoch value.
         If there is no corresponding weights path to this epoch value, then
         sets the weights path to `None`
@@ -1257,6 +1270,7 @@ class EdnaML(EdnaMLBase):
         self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
 
     def loadEpoch(self, epoch=0):
+        self._update_execution_log("loadEpoch", locals())
         """Loads weights saved at a specific epoch into the current stored model
         in `self.model`. If no weights are saved for that epoch, logs this and
         does nothing.
@@ -1279,8 +1293,10 @@ class EdnaML(EdnaMLBase):
             self.logger.info("No saved weights provided.")
 
     def deleteLocal(self):
+        self._update_execution_log("deleteLocal", locals())
         import shutil
         shutil.rmtree(self.saveMetadata.MODEL_SAVE_FOLDER)
 
     def setBackupToFalse(self):
+        self._update_execution_log("setBackupToFalse", locals())
         self.cfg.SAVE.DRIVE_BACKUP = False
