@@ -140,7 +140,25 @@ class EdnaML(EdnaMLBase):
         arg_alias = [None]*len(arg_keys)
         for idx, (key,val) in enumerate(zip(arg_keys,arg_vals)):
             if key in file_alias_keys:
-                arg_alias[idx] = val    # TODO this is edited to get the filepath basename...
+                if type(val) is list:
+                    for idx, _ in enumerate(val):
+                        if type(val[idx]) is list:
+                            for s_idx, _ in enumerate(val[idx]):
+                                if type(val[idx][s_idx]) is list:
+                                    warnings.warn("Recursion depth too much")
+                                elif type(val[idx][s_idx]) is str:
+                                    val[idx][s_idx] = os.path.basename(val[idx])
+                                else:
+                                    pass
+                        elif type(val[idx]) is str:
+                            val[idx] = os.path.basename(val)
+                        else:
+                            pass
+                elif type(val) is str:
+                    val = os.path.basename(val)
+                else:
+                    pass
+                arg_alias[idx] = val
         self.executionLog.addCommand(
             command=funcname,argument_key=local_vars.keys(), argument_value=local_vars.values(), argument_alias=arg_alias
         )
@@ -886,7 +904,6 @@ class EdnaML(EdnaMLBase):
                     self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,
                     self.cfg.TRAIN_TRANSFORMATION.INPUT_SIZE,
                 ) # INPUT SIZE SHOULD HAVE A VALUE
-            print("INPUT SIZE ==== ",input_size)
 
             self.model_summary = summary(
                 self.model,
