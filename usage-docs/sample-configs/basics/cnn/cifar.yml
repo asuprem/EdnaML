@@ -40,7 +40,7 @@ TRANSFORMATION:
     normalization_scale: 0.5
     random_erase: False
     random_erase_value: 0.5
-    channels: 1
+    channels: 3
 
 TRAIN_TRANSFORMATION:
   ARGS:
@@ -73,7 +73,7 @@ OPTIMIZER:
   - OPTIMIZER: Adam
     OPTIMIZER_NAME: opt-1
     OPTIMIZER_KWARGS: {}
-    BASE_LR: 1.0e-3
+    BASE_LR: 1.0e-4
     LR_BIAS_FACTOR: 1.0
     WEIGHT_DECAY: 0.0005
     WEIGHT_BIAS_FACTOR: 0.0005

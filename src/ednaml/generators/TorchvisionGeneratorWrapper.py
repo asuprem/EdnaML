@@ -77,5 +77,5 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
 
     def getNumEntities(self, datacrawler, mode, **kwargs) -> LabelMetadata:
         label_name = kwargs.get("label_name", "label")
-        num_classes = kwargs.get("num_classes", torch.unique(self.dataset.targets).shape[0])
+        num_classes = kwargs.get("num_classes", torch.unique(torch.Tensor(self.dataset.targets)).shape[0])
         return LabelMetadata({label_name: {"classes": num_classes}})
