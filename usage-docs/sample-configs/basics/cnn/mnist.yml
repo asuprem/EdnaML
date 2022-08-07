@@ -13,6 +13,9 @@ EXECUTION:
         root: "Data/"
         args:
           download: true
+    DATASET_ARGS:
+      label_name: label
+      num_labels:
   TRAINER: ClassificationTrainer
   TRAINER_ARGS: 
     accumulation_steps: 1
@@ -37,7 +40,7 @@ TRANSFORMATION:
     normalization_scale: 0.5
     random_erase: False
     random_erase_value: 0.5
-    channels: 3
+    channels: 1
 
 TRAIN_TRANSFORMATION:
   ARGS:
@@ -63,7 +66,7 @@ LOSS:
     KWARGS: [{}]
     LAMBDAS: [1.0]
     NAME: out1
-    LABEL: labelname
+    LABEL: label
 
 OPTIMIZER:
   - OPTIMIZER: Adam

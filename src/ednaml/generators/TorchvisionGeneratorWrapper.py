@@ -4,6 +4,8 @@ from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import DataLoader as TorchDataLoader
 from ednaml.utils import locate_class
 from torchvision.datasets import VisionDataset
+import torch
+from ednaml.utils.LabelMetadata import LabelMetadata
 
 
 class TorchvisionGeneratorWrapper(ImageGenerator):
@@ -24,8 +26,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         self.torchvision_dataset_class = kwargs.get("tv_dataset")
         self.torchvision_dataset_args = kwargs.get("tv_args")
 
-    def build(self, datacrawler, mode, batch_size, workers, **kwargs):
-        # We don't need the data crawler...
+    def buildDataset(self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
 
         dataset_class: VisionDataset = locate_class(
             package="torchvision",
@@ -39,7 +40,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         # https://github.com/pytorch/vision/issues/1080
         if self.torchvision_dataset_class in ["CIFAR10", "MNIST", "USPS"]:
             # These have a train argument...
-            self.dataset = dataset_class(
+            return dataset_class(
                 root=self.torchvision_dataset_args.get("root"),
                 train=(mode == "train"),
                 transform=self.transformer,
@@ -55,7 +56,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         ]:
             if self.torchvision_dataset_class == "ImageNet":
                 mode = mode if mode == "train" else "val"
-            self.dataset = dataset_class(
+            return dataset_class(
                 root=self.torchvision_dataset_args.get("root"),
                 split=mode,
                 transform=self.transformer,
@@ -65,9 +66,6 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         else:
             raise NotImplementedError()
 
-        self.dataloader = self.buildDataLoader(
-            self.dataset, mode, batch_size=batch_size, **kwargs
-        )
 
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         return TorchDataLoader(
@@ -76,3 +74,8 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
             shuffle=kwargs.get("shuffle", True),
             num_workers=self.workers,
         )
+
+    def getNumEntities(self, datacrawler, mode, **kwargs) -> LabelMetadata:
+        label_name = kwargs.get("label_name", "label")
+        num_classes = kwargs.get("num_classes", torch.unique(self.dataset.targets).shape[0])
+        return LabelMetadata({label_name: {"classes": num_classes}})

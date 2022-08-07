@@ -7,7 +7,7 @@ class Crawler:
 
     classes: Dict[str, int]
 
-    def __init__(self):
+    def __init__(self, logger):
         self.classes = {}
 
     def __verify(self, folder):

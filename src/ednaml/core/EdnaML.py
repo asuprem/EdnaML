@@ -132,7 +132,7 @@ class EdnaML(EdnaMLBase):
             "model_plugin": self.addPlugins,
         }
 
-    def _update_execution_log(self, funcname, local_vars: Dict[str, Any], file_alias_keys: List[str]):
+    def _update_execution_log(self, funcname, local_vars: Dict[str, Any], file_alias_keys: List[str] = []):
         local_vars.pop("self", None)
         local_vars.pop("pdb", None) 
         arg_keys = local_vars.keys()
