@@ -1,7 +1,7 @@
 import importlib
 import os, shutil, logging, glob, re
 from types import MethodType
-from typing import Callable, Dict, List, Type, Union
+from typing import Any, Callable, Dict, List, Type, Union
 from urllib.error import URLError
 import warnings
 from torchinfo import ModelStatistics
@@ -83,6 +83,13 @@ class EdnaML(EdnaMLBase):
             test_only: Under this condition, if in test mode, only model and dataloaders will be created. Optimizers, schedulers will be empty.
 
         """
+        # ExecutionLog
+        self.executionLog = EdnaExecutionLog()
+        # 
+        import pdb
+        pdb.set_trace()
+        self._update_execution_log("__init__", locals(), file_alias_keys=["config"])
+        pdb.set_trace()
 
         self.config = config
         self.mode = mode
@@ -128,12 +135,16 @@ class EdnaML(EdnaMLBase):
             "model_plugin": self.addPlugins,
         }
 
-        # ExecutionLog
-        self.executionLog = EdnaExecutionLog()
-        # 
-        import pdb
-        pdb.set_trace()
-        self.executionLog.addCommand(command="__init__")
+    def _update_execution_log(self, funcname, local_vars: Dict[str, Any], file_alias_keys: List[str]):
+        arg_keys = local_vars.keys()
+        arg_vals = local_vars.values()
+        arg_alias = [None]*len(arg_keys)
+        for idx, (key,val) in enumerate(zip(arg_keys,arg_vals)):
+            if key in file_alias_keys:
+                arg_alias[idx] = val    # TODO this is edited to get the filepath basename...
+        self.executionLog.addCommand(
+            command=funcname,argument_key=local_vars.keys(), argument_value=local_vars.values(), argument_alias=arg_alias
+        )
 
     def addResetQueues(self):
         return []
