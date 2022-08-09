@@ -19,6 +19,7 @@ from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.plugins.ModelPlugin import ModelPlugin
+from ednaml.tracking import BackupManager, ModelBackup, ModelArtifactsBackup, ModelPluginBackup, MetricsBackup, LogBackup, ConfigBackup
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.storage import BaseStorage
 from ednaml.utils import locate_class, path_import
@@ -55,6 +56,7 @@ class EdnaML(EdnaMLBase):
     decorator_reference: Dict[str,Type[MethodType]]
     plugins: Dict[str, ModelPlugin] = {}
     executionLog: EdnaExecutionLog
+    storage: Dict[str, BaseStorage]
 
     def __init__(
         self,
@@ -108,9 +110,82 @@ class EdnaML(EdnaMLBase):
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
+        # This is the local save location
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
-
         self.logger = self.buildLogger(logger=logger, **kwargs)
+        # We need to get the run ID!!!!
+
+        # So we need to set up the backup options
+        # cfg.SAVE has backup details, i.e. which storage to use, etc...
+
+        # Storage is the one thing we need to set up before everything else
+        # For now, only built-in storage allowed
+        # For the plugin case, which we will deal with later, we wil need users to 
+        # physically install the plugin inside ednaml so that it becomes "built-in", I think similar
+        # to mlflow
+
+        # Specifically, we NEED config storage to be built in
+        # Other storage can be custom!!!!!!!!
+        self.storage = {}
+        config_storage_name = self.cfg.SAVE.CONFIG_BACKUP.STORAGE
+        config_storage_class: Type[BaseStorage] = locate_class(package="ednaml", subpackage="storage", 
+            classpackage=self.cfg.STORAGE[config_storage_name].TYPE,
+            classfile=self.cfg.STORAGE[config_storage_name].TYPE)
+        self.storage[config_storage_name] = config_storage_class(type=self.cfg.STORAGE[config_storage_name].TYPE,
+                                                url=self.cfg.STORAGE[config_storage_name].URL)
+        self.storage[config_storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)    
+        self.storage[config_storage_name].setRun(self.storage[config_storage_name].getMostRecentRun())
+
+        # Set up other storages; assume they are built-in for now. We will extend this later:
+        for storage_name in self.cfg.STORAGE:
+            if storage_name not in self.storage:
+                storage_class: Type[BaseStorage] = locate_class(package="ednaml", subpackage="storage", 
+                    classpackage=self.cfg.STORAGE[storage_name].TYPE,
+                    classfile=self.cfg.STORAGE[storage_name].TYPE)
+                self.storage[storage_name] = config_storage_class(type=self.cfg.STORAGE[storage_name].TYPE,
+                                                        url=self.cfg.STORAGE[storage_name].URL)
+                self.storage[storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)    
+                self.storage[storage_name].setRun(self.storage[storage_name].getMostRecentRun())
+
+
+        # So, we will set up config backup. This will check, given the current config information, 
+        # if this exists already. This check, of course, will depend on the storage option
+        # So each storage needs a function to check the index, and the run, and the file information...
+        self.backupManager = BackupManager(
+            configbackup = ConfigBackup(
+                storage_name = self.cfg.SAVE.CONFIG_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY,
+                storage = self.storage
+            ),
+            modelbackup=ModelBackup(
+                storage_name = self.cfg.SAVE.MODEL_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.MODEL_BACKUP.FREQUENCY,
+                storage = self.storage
+            ),
+            modelartifactsbackup=ModelArtifactsBackup(
+                storage_name = self.cfg.SAVE.MODEL_ARTIFACTS_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.MODEL_ARTIFACTS_BACKUP.FREQUENCY,
+                storage = self.storage
+            ),
+            modelpluginbackup=ModelPluginBackup(
+                storage_name = self.cfg.SAVE.MODEL_PLUGIN_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.MODEL_PLUGIN_BACKUP.FREQUENCY,
+                storage = self.storage
+            ),
+            metricsbackup=MetricsBackup(
+                storage_name = self.cfg.SAVE.METRICS_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.METRICS_BACKUP.FREQUENCY,
+                storage = self.storage
+            ),
+            logbackup=LogBackup(
+                storage_name = self.cfg.SAVE.LOG_BACKUP.STORAGE,
+                storage_frequency = self.cfg.SAVE.LOG_BACKUP.FREQUENCY,
+                storage = self.storage
+            )
+        )
+        # TODO make sure runs are not just created empty. Create the folder/db entry in storage when we have at least one thing to put in there. 
+
+
         self.previous_stop = -1
         self.load_epoch = kwargs.get("load_epoch", None)
         self.test_only = kwargs.get("test_only", False)
@@ -145,7 +220,7 @@ class EdnaML(EdnaMLBase):
                         if type(val[idx]) is list:
                             for s_idx, _ in enumerate(val[idx]):
                                 if type(val[idx][s_idx]) is list:
-                                    warnings.warn("Recursion depth too much")
+                                    warnings.warn("Recursion depth exceeded")
                                 elif type(val[idx][s_idx]) is str:
                                     val[idx][s_idx] = os.path.basename(val[idx])
                                 else:
@@ -281,7 +356,7 @@ class EdnaML(EdnaMLBase):
         self.printConfiguration()
         self._downloadModelWeights()
         self.setPreviousStop()
-        self.buildStorage() # this is where -- same as other build things...  
+        #self.buildStorage() # this is where -- same as other build things...  
 
         self.buildDataloaders()
 
@@ -296,7 +371,7 @@ class EdnaML(EdnaMLBase):
         self.buildLossOptimizer()
         self.buildLossScheduler()
 
-        self.buildStorage()
+        #self.buildStorage()
         self.buildTrainer()
 
         self.resetQueues()
@@ -409,6 +484,7 @@ class EdnaML(EdnaMLBase):
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,
                 model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+                backup_manager=self.backupManager,
                 logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
 
