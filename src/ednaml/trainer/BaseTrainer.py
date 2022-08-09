@@ -1,7 +1,6 @@
 import json, logging, os, shutil
 from logging import Logger
 from typing import Dict, List
-from ednaml.config.StorageConfig import StorageConfig
 
 import torch
 from torch.utils.data import DataLoader
@@ -9,6 +8,7 @@ import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.tracking import BackupManager
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage.BaseStorage import BaseStorage
 
@@ -35,7 +35,8 @@ class BaseTrainer:
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
-    storage: BaseStorage
+    backup_manager: BackupManager
+    storage: Dict[str,BaseStorage]
 
     def __init__(
         self,
@@ -139,6 +140,7 @@ class BaseTrainer:
         gpus: int = 1,
         fp16: bool = False,
         model_save_name: str = None,
+        backup_manager: BackupManager = None,
         logger_file: str = None,
     ):
         self.step_verbose = step_verbose
@@ -166,6 +168,7 @@ class BaseTrainer:
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
         #    self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
+        self.backup_manager = backup_manager
 
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
@@ -178,6 +181,10 @@ class BaseTrainer:
         TRAINING_SAVE = (
             self.model_save_name + "_epoch%i" % save_epoch + "_training.pth"
         )
+        CONFIG_SAVE = "config.yml"
+        with open(os.path.join(self.save_directory,CONFIG_SAVE), "w") as cfile:
+            cfile.write(self.config.export())
+
 
         save_dict = {}
         save_dict["optimizer"] = {
@@ -239,16 +246,28 @@ class BaseTrainer:
                 "Performing drive backup of model, optimizer, and scheduler."
             )
         
-        if self.config.SAVE.LOG_BACKUP:
-            LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
-            #appending the logs to azure
-            #self.storage.copy(os.path.join(self.save_directory, self.logger_file)) # TODO
-            # This is the local path where we are copying data . This can be commented/removed later
-            if os.path.exists(LOGGER_SAVE):
-                os.remove(LOGGER_SAVE)
-            shutil.copy2(
-                os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE
-            )
+        # Here, we check whether to backup or not!!!!!
+        # We also need to deal with zero frequencies, i.e. when backup is supposed to be done only once.
+        # Meaning our storage is supposed to have a method to check if run already exists.
+        # TODO frequency goes inside backup
+        #if self.config.SAVE.LOG_BACKUP.FREQUENCY>=0:
+            #LOGGER_SAVE = self.logger_file
+        self.backup_manager.logBackup.backup(os.path.join(self.save_directory, self.logger_file), save_epoch)
+        self.backup_manager.configBackup.backup(os.path.join(self.save_directory, CONFIG_SAVE), save_epoch)
+        #self.backup_manager.metricsBackup.backup("metrics.json", save_epoch)   # No metrics to save TODO
+        self.backup_manager.modelBackup.backup(os.path.join(self.save_directory, MODEL_SAVE), save_epoch)
+        self.backup_manager.modelArtifactsBackup.backup(os.path.join(self.save_directory, TRAINING_SAVE), save_epoch)
+        #self.backup_manager.modelPluginBackup.backup("path/to/plugin/file(s)", save_epoch)  # Uneeded for EdnaML, because plugins are for deployment...
+        
+        
+        #appending the logs to azure
+        #self.storage.copy(os.path.join(self.save_directory, self.logger_file)) # TODO
+        # This is the local path where we are copying data . This can be commented/removed later
+        """if os.path.exists(LOGGER_SAVE):
+            os.remove(LOGGER_SAVE)
+        shutil.copy2(
+            os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE
+        )"""
 
                 
 
