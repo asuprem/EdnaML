@@ -28,6 +28,7 @@ class EdnaDeploy(EdnaML):
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
+        self._update_execution_log("apply", locals())
         self.printConfiguration()
         self._downloadModelWeights()
         self.setPreviousStop()
@@ -36,7 +37,8 @@ class EdnaDeploy(EdnaML):
 
         self.buildModel()
         self.loadWeights()
-        self.getModelSummary(**kwargs) 
+        if not kwargs.get("skip_model_summary", False):
+            self.getModelSummary(**kwargs) 
 
         self.buildDeployment()
 
