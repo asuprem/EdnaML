@@ -41,7 +41,7 @@ class EdnaMLConfig(BaseConfig):
         SchedulerConfig
     ]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
-    STORAGE: StorageConfig
+    STORAGE: Dict[str,StorageConfig]
 
     extensions: List[str]
 
@@ -73,7 +73,8 @@ class EdnaMLConfig(BaseConfig):
             elif extension == "STORAGE":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
-                    self.STORAGE = StorageConfig(ydict.get(extension, {}), defaults)
+                    storage_list = [StorageConfig(storage_item,defaults) for storage_item in ydict.get(extension, [])]
+                    self.STORAGE = {item.NAME : item for item in storage_list}
                     added_extensions.append([extension])
             elif extension == "SAVE":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
