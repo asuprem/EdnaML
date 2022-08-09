@@ -1,6 +1,10 @@
 To truly replicate runs properly, we need to track a few things:
 
 
+
+
+
+
 EdnaML needs to track:
 
 config file used for something
@@ -20,7 +24,10 @@ In a run, we will need to record the following:
 
 
 The exact way this run occured:
-    every EdnaML command records, into an EdnaLog, that it occured. This way, if we are asked to reconstruct a run, we can programmatically perform the commands again.
+    every EdnaML command records, into an EdnaLog, that it occured. This way, if we are asked to reconstruct a run, we can programmatically perform the commands again. 🟢
+        MODIFIED: only the primary commands of init, add(), apply() need to be done. This is because the individual add commands do not store the source code 🟢
+        FUTURE: we will need to convert the addStorage and addStorageInstance to backend methods (_addStorage). Then create new addStorage commands. Then these commands will 
+            pickle the actual object, and keep a name for the object in the alias list. This adds significant complexity. So we will deal with them later.
     If we "continue a run", we can ask ednaml to execute the EdnaLog, or redo our commands
     When we redo our commands, and it is an existing run, EdnaML will simply move the old EdnaLog to EdnaLog<int> and create a new EdnaLog
     We keep a running list of EdnaLog (or rather, the most recent increment) in run.yml, which contains the run information (e.g. `mostRecentRunNumber`)
@@ -105,3 +112,64 @@ NOTE -- Plugins update:
 
 
 
+------------------
+Ok, now that we have the beginnings of EdnaExecutionLog, let's deal with a run.
+
+We will make them backwards compatible, so existing versions are converted to runs
+We won't deal with config checking, so just assume that a run is perfect. So basically a single run per experiment
+
+
+What is the process for Runs...?
+
+Well, we are given a way to index an experiment from the SaveMetadata, specifically the experiment information
+
+So, based on the ConfigStorage method, we will need to check if that experiment already exists
+
+
+Problem right now -- we are trying to do both Gdrive backup AND mongo config backup
+
+Can both work simultaneously
+
+YES, they have to
+
+Basically, we have a local backup.
+
+Then user decides whether the local version should be backed up to Gdrive, or network drive, or mongo, or some combination
+
+
+So, to rehash, what are the things we are backing up:
+
+Config              -> ConfigBackup ----------> the final EdnaMLConfig. Unique to a Run.
+Model               -> ModelBackup  ----------> Model .pth files (per save frequency). Unique to a Run.
+ModelArtifacts      -> ModelArtifactsBackup --> Artifacts .pth files (per save frequency). Unique to a Run.
+ModelPlugins        -> ModelPluginBackup -----> Plugin .pth (per epoch). Unique to a Run.
+Metrics             -> MetricsBackup ---------> Per epoch (OR step, basically a continuous backup, I think). Unique to a Run.
+
+DataPlugins         -> DataPluginBackup ------> Unique to a Datareader
+
+
+So, in EdnaML, EdnaDeploy
+
+- during Save and Load, we rely on implicit assumption of a file backup.
+- Now, we need to, in Save and Load, call the respective Backup classes, and use their save and load thingamajigs
+- We will use the file as the canonical notion
+- A <ItemBackup> class is provided a file, and an indexing mechanism for SAVING
+- for Loading, <ItemBackup> class is provided an indexing mechanism, a local path, and must return a path to a file stored in that local path
+
+
+Examples
+
+1.  we execute a ml config, with inferred ItemBackups to gdrive
+    When we execute that ml config again, EdnaML/Deploy will identify the Run / Run Id / Run idx
+    They do this based on the ConfigBackup specified in our config, and choose the most recent run which ConfigBackup must implement (we can adjust this later to control specific runs)
+    Then that run-id/x combined with the SaveMetadata allows ModelBackup to copy the model file, model artifacts to copy the model artifacts file, model plugins to etc, etc
+
+2. We provide the config-identifier to edna. It wil download the respective config to the local SaveMetadata (this is the job of the mongobackup...etc.etc)
+
+So, our task right now is to create the custom ConfigBackup that can accept a StorageClass (or the default LocalStorage)
+
+
+
+
+
+Triggers --> but these are possibly based on ModelPlugins or DataPlugins, so we will deal with these later. These are EdnaJobs
