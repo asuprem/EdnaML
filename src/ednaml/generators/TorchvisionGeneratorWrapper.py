@@ -38,7 +38,7 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         # dataset API is not unified, see discussions below
         # https://github.com/pytorch/vision/issues/1067
         # https://github.com/pytorch/vision/issues/1080
-        if self.torchvision_dataset_class in ["CIFAR10", "MNIST", "USPS"]:
+        if self.torchvision_dataset_class in ["CIFAR10", "MNIST", "USPS", "CIFAR100"]:
             # These have a train argument...
             return dataset_class(
                 root=self.torchvision_dataset_args.get("root"),
