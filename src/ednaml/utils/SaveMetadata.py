@@ -55,12 +55,15 @@ class SaveMetadata:
                 cfg.SAVE.MODEL_BACKBONE,
                 cfg.SAVE.MODEL_QUALIFIER,
             )
+        CHECKPOINT_DIRECTORY = ""
+        """
         if cfg.SAVE.DRIVE_BACKUP or cfg.SAVE.LOG_BACKUP:
             CHECKPOINT_DIRECTORY = os.path.join(
-                cfg.SAVE.CHECKPOINT_DIRECTORY, MODEL_SAVE_FOLDER
+                "./", MODEL_SAVE_FOLDER
             )
         else:
             CHECKPOINT_DIRECTORY = ""
+        """
         return (
             MODEL_SAVE_NAME,
             MODEL_SAVE_FOLDER,
