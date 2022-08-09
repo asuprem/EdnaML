@@ -8,7 +8,7 @@ EXECUTION:
   DATAREADER: 
     DATAREADER: TorchvisionDatareader
     GENERATOR_ARGS:
-      tv_dataset: CIFAR10
+      tv_dataset: CIFAR100
       tv_args: 
         root: "Data/"
         args:
@@ -24,28 +24,28 @@ SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: configtest
   MODEL_BACKBONE: res18
-  MODEL_QUALIFIER: cifar
+  MODEL_QUALIFIER: cifar100
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 5 # Epoch
   CONFIG_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
     FREQUENCY: 0  # i.e. only once
   LOG_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
     FREQUENCY: -1 # never
   MODEL_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
     FREQUENCY: # If none, use SAVE_FREQUENCY
   MODEL_ARTIFACTS_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
   MODEL_PLUGIN_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
   METRICS_BACKUP:
-    STORAGE: local
+    STORAGE: mlflow
 
 STORAGE:
-  - NAME: local
-    TYPE: LocalStorage
+  - NAME: mlflow
+    TYPE: MlflowStorage
     STORAGE_ARGS:
     URL: "./Backup/"
 

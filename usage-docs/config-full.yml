@@ -44,14 +44,44 @@ SAVE:
   MODEL_BACKBONE: "backbone"
   MODEL_QUALIFIER: "all"
   DRIVE_BACKUP: True
-  LOG_BACKUP: True
   SAVE_FREQUENCY: 5 # Epoch
-  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/Experiment/Models"
+  CONFIG_BACKUP:
+    STORAGE: mongo
+    FREQUENCY: 0  # i.e. only once
+  LOG_BACKUP:
+    STORAGE: gdrive
+    FREQUENCY: -1 # never
+  MODEL_BACKUP:
+    STORAGE: model
+    FREQUENCY: # If none, use SAVE_FREQUENCY
+  MODEL_ARTIFACTS_BACKUP:
+    STORAGE: model
+  MODEL_PLUGIN_BACKUP:
+    STORAGE: model
+  METRICS_BACKUP:
+    STORAGE: mlflow
 
 STORAGE:
-  TYPE: BaseStorage
-  STORAGE_ARGS: {}
-  URL: ./
+  - NAME: base
+    TYPE: BaseStorage
+    STORAGE_ARGS: {}
+    URL: ./
+  - NAME: mongo
+    TYPE: MongoStorage
+    STORAGE_ARGS: {"user": "something", "password": something, "port": 8080}
+    URL: ./
+  - NAME: gdrive
+    TYPE: NetworkDriveStorage
+    STORAGE_ARGS: {"directory": "./drive/MyDrive/Projects/Experiment/Models"}
+    URL: ./
+  - NAME: model # and for artifacts and plugins
+    TYPE: GDriveStorage
+    STORAGE_ARGS: {"user": "something", "token": something}
+    URL: ./
+  - NAME: mlflow  # for metrics
+    TYPE: MlflowStorage
+    STORAGE_ARGS: {"tracking_url": "something", "auth": something, "port": 8080}
+    URL: ./
 
 TRANSFORMATION:
   BATCH_SIZE: 8
