@@ -113,6 +113,7 @@ class EdnaML(EdnaMLBase):
         # This is the local save location
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
         self.logger = self.buildLogger(logger=logger, **kwargs)
+        self.logger.info("Created logger file in %s"%self.saveMetadata.MODEL_SAVE_FOLDER)
         # We need to get the run ID!!!!
 
         # So we need to set up the backup options
@@ -126,15 +127,22 @@ class EdnaML(EdnaMLBase):
 
         # Specifically, we NEED config storage to be built in
         # Other storage can be custom!!!!!!!!
+        self.logger.info("Generating storage classes...")
         self.storage = {}
         config_storage_name = self.cfg.SAVE.CONFIG_BACKUP.STORAGE
-        config_storage_class: Type[BaseStorage] = locate_class(package="ednaml", subpackage="storage", 
-            classpackage=self.cfg.STORAGE[config_storage_name].TYPE,
-            classfile=self.cfg.STORAGE[config_storage_name].TYPE)
-        self.storage[config_storage_name] = config_storage_class(type=self.cfg.STORAGE[config_storage_name].TYPE,
-                                                url=self.cfg.STORAGE[config_storage_name].URL)
-        self.storage[config_storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)    
-        self.storage[config_storage_name].setRun(self.storage[config_storage_name].getMostRecentRun())
+        if config_storage_name == "no_storage_provided":
+            self.logger.info("No storage provided for config.")
+        else:
+            config_storage_class: Type[BaseStorage] = locate_class(package="ednaml", subpackage="storage", 
+                classpackage=self.cfg.STORAGE[config_storage_name].TYPE,
+                classfile=self.cfg.STORAGE[config_storage_name].TYPE)
+            self.storage[config_storage_name] = config_storage_class(type=self.cfg.STORAGE[config_storage_name].TYPE,
+                                                    url=self.cfg.STORAGE[config_storage_name].URL,
+                                                    logger = self.logger,
+                                                    **self.cfg.STORAGE[config_storage_name].STORAGE_ARGS)
+            self.logger.info("\tBuilt config storage {config_storage_name}, using {storage_type}".format(config_storage_name=config_storage_name, storage_type = self.cfg.STORAGE[config_storage_name].TYPE))
+        #self.storage[config_storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)
+        #self.storage[config_storage_name].setRun(self.storage[config_storage_name].getNextRun())
 
         # Set up other storages; assume they are built-in for now. We will extend this later:
         for storage_name in self.cfg.STORAGE:
@@ -142,10 +150,36 @@ class EdnaML(EdnaMLBase):
                 storage_class: Type[BaseStorage] = locate_class(package="ednaml", subpackage="storage", 
                     classpackage=self.cfg.STORAGE[storage_name].TYPE,
                     classfile=self.cfg.STORAGE[storage_name].TYPE)
-                self.storage[storage_name] = config_storage_class(type=self.cfg.STORAGE[storage_name].TYPE,
-                                                        url=self.cfg.STORAGE[storage_name].URL)
-                self.storage[storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)    
+                self.storage[storage_name] = storage_class(type=self.cfg.STORAGE[storage_name].TYPE,
+                                                        url=self.cfg.STORAGE[storage_name].URL, 
+                                                        logger = self.logger,
+                                                        **self.cfg.STORAGE[config_storage_name].STORAGE_ARGS)
+                self.logger.info("\tBuilt config storage {config_storage_name}, using {storage_type}".format(config_storage_name=config_storage_name, storage_type = self.cfg.STORAGE[config_storage_name].TYPE))
+        
+        
+        for storage_name in self.cfg.STORAGE:
+            self.logger.info("Setting storage index for [%s] to %s"%(storage_name, self.saveMetadata.MODEL_SAVE_FOLDER))
+            self.storage[storage_name].setIndex(self.saveMetadata.MODEL_SAVE_FOLDER)
+            
+        # Check whether we need to : set a new run or continue from an old run remotely, or continue from old run locally
+        # Default option (continue=None) is to set a new run. So we will check and do the getNextRun()
+        # continue="remote" means we do getRecentRun() and use that to pass into EdnaMl, so that EdnaML's load() can make the best choice
+        # That is, we set the run correctly
+        # continue="local"  is not handled for now..
+        self.logger.info("Setting storage runs for [%s]"%storage_name)
+        continue_run = kwargs.get("continue", None)
+        for storage_name in self.cfg.STORAGE:
+            if continue_run is None:
+                self.storage[storage_name].setRun(self.storage[storage_name].getNextRun())
+            elif continue_run == "remote":
                 self.storage[storage_name].setRun(self.storage[storage_name].getMostRecentRun())
+            elif type(continue_run) is int:
+                self.storage[storage_name].setRun(continue_run)
+            else:
+                raise NotImplementedError()
+            self.logger.info("\tSet storage runs for [%s] to %s"%(storage_name, str(self.storage[storage_name].run)))
+
+        # 
 
 
         # So, we will set up config backup. This will check, given the current config information, 
@@ -155,32 +189,38 @@ class EdnaML(EdnaMLBase):
             configbackup = ConfigBackup(
                 storage_name = self.cfg.SAVE.CONFIG_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             ),
             modelbackup=ModelBackup(
                 storage_name = self.cfg.SAVE.MODEL_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.MODEL_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             ),
             modelartifactsbackup=ModelArtifactsBackup(
                 storage_name = self.cfg.SAVE.MODEL_ARTIFACTS_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.MODEL_ARTIFACTS_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             ),
             modelpluginbackup=ModelPluginBackup(
                 storage_name = self.cfg.SAVE.MODEL_PLUGIN_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.MODEL_PLUGIN_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             ),
             metricsbackup=MetricsBackup(
                 storage_name = self.cfg.SAVE.METRICS_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.METRICS_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             ),
             logbackup=LogBackup(
                 storage_name = self.cfg.SAVE.LOG_BACKUP.STORAGE,
                 storage_frequency = self.cfg.SAVE.LOG_BACKUP.FREQUENCY,
-                storage = self.storage
+                storage = self.storage,
+                logger = self.logger
             )
         )
         # TODO make sure runs are not just created empty. Create the folder/db entry in storage when we have at least one thing to put in there. 
@@ -479,7 +519,7 @@ class EdnaML(EdnaMLBase):
                 save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
                 save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
-                save_backup=self.cfg.SAVE.DRIVE_BACKUP,
+                drive_backup=self.cfg.SAVE.DRIVE_BACKUP,
                 backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,
@@ -494,11 +534,57 @@ class EdnaML(EdnaMLBase):
 
     def getPreviousStop(self) -> int:
         """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory."""
-        if self.cfg.SAVE.DRIVE_BACKUP:
+        if self.cfg.SAVE.DRIVE_BACKUP:  # For now, local runs are not managed unless backup is disabled. So this suffices
+            # So, if there is drive backup, we need to get the prior stop for the model
+            # But why...
+            # Shouldn't all this take place inside Trainer/Deploy???
+            # No -- maybe not?. We'll keep it simple. 
+
+            # So, we will use the backup_manager's ModelBackup to retrieve the list of saves, as well as the most recent epoch
+            # For LocalStorage, this is pretty easy
+            # But what about Mongo...?
+            # So, Storage needs a few more functions:
+            # basically, we should be able to ask a Storage to, given a pattern???? find the most recent one
+            # Fortunately, we have already set up these patterns as index-run-filename triplets
+            # So we just want the most recent filenames
+            # Which means when we set up Mongo, or MlFlow, given index-run-filename triplet, we should be able to retrieve the most recent model
+
+            # So, we need to figure out a few more things: 
+            """
+            LocalStorage
+                query local storage for list of files in the current index-run that fit the pattern *.pth, then extract the file that has the correct epoch number (i.e. biggest)
+                Then, we can query LocalStorage to copy over only that index-run-filename_epoch[].pth here
+                
+            Mongo
+                query the database for list of file URIs? that fit the pattern --> index-run-*.pth, and get the most recent one from there...
+
+
+            MlFlow
+                query the mlflow database for list of file URIs that fit the pattern index-run-*.pth
+
+            Essentially, we need to formalize how files are saved inside a run. Then, we can rely on this formalization for everything.
+
+            Formalization:
+
+            Config
+                config.yml
+            Model
+                model-[MODEL_SAVE_NAME]_epoch[].pth
+            ModelArtifacts
+                artifacts-[MODEL_SAVE_NAME]_epoch[].pth
+            ModelPlugin
+                plugins-[MODEL_SAVE_NAME].pth   (NOT MODEL_SAVE_NAME_plugins.pth)
+            Metrics
+                metrics.json
+            Log
+                [MODEL_SAVE_NAME]-logger.log
+
+
+            """
             fl_list = glob.glob(
                 os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, "*.pth")
             )
-        else:
+        else:   # local file list
             fl_list = glob.glob(
                 os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, "*.pth")
             )
