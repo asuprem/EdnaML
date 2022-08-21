@@ -27,6 +27,12 @@ class LocalStorage(BaseStorage):
             self.makeIndexDir()
         if not self.run_made:
             self.makeRunDir()
+        self.logger.info("[LocalStorage {storage}] Saving {filename} in index {index} with run {run}".format(
+            storage=self.storage_url,
+            filename = os.path.basename(file_path),
+            index=index,
+            run=run
+        ))
         shutil.copy2(
             file_path,
             os.path.join(self.storage_url, index, run, os.path.basename(file_path))
@@ -37,6 +43,14 @@ class LocalStorage(BaseStorage):
             index = self.index
         if run is None:
             run = self.run
+        self.logger.info("[LocalStorage {storage}] Loading {filename} from index {index} with run {run} into local file {target}".format(
+            storage=self.storage_url,
+            filename = file_name,
+            target=os.path.basename(local_path),
+            index=self.index,
+            run=self.run
+        ))
+        
         shutil.copy2(
             os.path.join( self.storage_url, index, run, file_name), 
             local_path
@@ -57,12 +71,17 @@ class LocalStorage(BaseStorage):
         try:
             run_max = max([int(item[3:]) for item in run_list])
         except (TypeError, ValueError):
-            run_max = "0"
+            run_max = "-1"
         return run_max
+    
+    def getNextRun(self):
+        return str(int(self.getMostRecentRun())+1)
 
     def setRun(self, run):
-        self.run = str(run)
-        self.run_dir = os.path.join(self.index_dir, "run%s"%self.run)
+        if int(run) == -1:
+            run = 0
+        self.run = "run%s"%str(run)
+        self.run_dir = os.path.join(self.storage_url, self.index, self.run)
         self.run_made = False
     
     def makeRunDir(self):
