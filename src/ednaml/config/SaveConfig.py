@@ -7,7 +7,7 @@ class BackupConfig(BaseConfig):
     FREQUENCY: int
     def __init__(self, config_dict, defaults: ConfigDefaults):
         self.STORAGE = config_dict.get("STORAGE", "no_storage_provided")
-        self.FREQUENCY = config_dict.get("FREQUENCY", -1)   # -1: never. 0: Once. >0: At save frequency, e.g. whenever save is triggered. We can deal with other variations later.
+        self.FREQUENCY = config_dict.get("FREQUENCY", None)   # -1: never. 0: Once. >0: At save frequency, e.g. whenever save is triggered. We can deal with other variations later.
 
 class SaveConfig(BaseConfig):
     MODEL_VERSION: int
