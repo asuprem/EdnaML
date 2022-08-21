@@ -178,7 +178,7 @@ class BaseDeploy:
             "Loading a model from saved epoch %i"
             % (load_epoch)
         )
-        model_load = self.model_save_name + "_epoch%i" % load_epoch + ".pth"
+        model_load = "model-" + self.model_save_name + "_epoch%i" % load_epoch + ".pth"
 
         if self.save_backup:
             self.logger.info(

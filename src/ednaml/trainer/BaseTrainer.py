@@ -135,7 +135,7 @@ class BaseTrainer:
         save_frequency: int = 5,
         test_frequency: int = 5,
         save_directory: str = "./checkpoint/",
-        save_backup: bool = False,
+        drive_backup: bool = False,
         backup_directory: str = None,
         gpus: int = 1,
         fp16: bool = False,
@@ -150,10 +150,10 @@ class BaseTrainer:
         self.backup_directory = None
         self.model_save_name = model_save_name
         self.logger_file = logger_file
-        self.save_backup = save_backup
-        if self.save_backup or self.config.SAVE.LOG_BACKUP:
-            self.backup_directory = backup_directory
-            os.makedirs(self.backup_directory, exist_ok=True)
+        self.drive_backup = drive_backup
+        #if self.drive_backup or self.config.SAVE.LOG_BACKUP:
+        #    self.backup_directory = backup_directory
+        #    os.makedirs(self.backup_directory, exist_ok=True)
         os.makedirs(self.save_directory, exist_ok=True)
         self.saveMetadata()
 
@@ -177,9 +177,9 @@ class BaseTrainer:
         if save_epoch is None:
             save_epoch = self.global_epoch
         self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = self.model_save_name + "_epoch%i" % save_epoch + ".pth"
+        MODEL_SAVE = "model-" + self.model_save_name + "_epoch%i" % save_epoch + ".pth"
         TRAINING_SAVE = (
-            self.model_save_name + "_epoch%i" % save_epoch + "_training.pth"
+            "artifacts-"+ self.model_save_name + "_epoch%i" % save_epoch + "_training.pth"
         )
         CONFIG_SAVE = "config.yml"
         with open(os.path.join(self.save_directory,CONFIG_SAVE), "w") as cfile:
@@ -232,7 +232,8 @@ class BaseTrainer:
         )
         torch.save(save_dict, os.path.join(self.save_directory, TRAINING_SAVE))
 
-        if self.save_backup:
+        """
+        if self.drive_backup:
             shutil.copy2(
                 os.path.join(self.save_directory, MODEL_SAVE),
                 self.backup_directory,
@@ -245,19 +246,21 @@ class BaseTrainer:
             self.logger.info(
                 "Performing drive backup of model, optimizer, and scheduler."
             )
-        
+        """
         # Here, we check whether to backup or not!!!!!
         # We also need to deal with zero frequencies, i.e. when backup is supposed to be done only once.
         # Meaning our storage is supposed to have a method to check if run already exists.
         # TODO frequency goes inside backup
         #if self.config.SAVE.LOG_BACKUP.FREQUENCY>=0:
             #LOGGER_SAVE = self.logger_file
-        self.backup_manager.logBackup.backup(os.path.join(self.save_directory, self.logger_file), save_epoch)
-        self.backup_manager.configBackup.backup(os.path.join(self.save_directory, CONFIG_SAVE), save_epoch)
-        #self.backup_manager.metricsBackup.backup("metrics.json", save_epoch)   # No metrics to save TODO
-        self.backup_manager.modelBackup.backup(os.path.join(self.save_directory, MODEL_SAVE), save_epoch)
-        self.backup_manager.modelArtifactsBackup.backup(os.path.join(self.save_directory, TRAINING_SAVE), save_epoch)
-        #self.backup_manager.modelPluginBackup.backup("path/to/plugin/file(s)", save_epoch)  # Uneeded for EdnaML, because plugins are for deployment...
+        if self.drive_backup:
+            self.logger.info("Performing backups")
+            self.backup_manager.logBackup.backup(os.path.join(self.save_directory, self.logger_file), save_epoch)
+            self.backup_manager.configBackup.backup(os.path.join(self.save_directory, CONFIG_SAVE), save_epoch)
+            #self.backup_manager.metricsBackup.backup("metrics.json", save_epoch)   # No metrics to save TODO
+            self.backup_manager.modelBackup.backup(os.path.join(self.save_directory, MODEL_SAVE), save_epoch)
+            self.backup_manager.modelArtifactsBackup.backup(os.path.join(self.save_directory, TRAINING_SAVE), save_epoch)
+            #self.backup_manager.modelPluginBackup.backup("path/to/plugin/file(s)", save_epoch)  # Uneeded for EdnaML, because plugins are for deployment...
         
         
         #appending the logs to azure
@@ -281,7 +284,7 @@ class BaseTrainer:
             self.model_save_name + "_epoch%i" % load_epoch + "_training.pth"
         )
 
-        if self.save_backup:
+        if self.drive_backup:
             self.logger.info(
                 "Loading model, optimizer, and scheduler from drive backup."
             )
@@ -350,7 +353,7 @@ class BaseTrainer:
                 "Logs will be backed up to drive directory:\t%s"
                 % self.backup_directory
             )
-        if self.save_backup:
+        if self.drive_backup:
             self.logger.info(
                 "Models will be backed up to drive directory:\t%s"
                 % self.backup_directory
