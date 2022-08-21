@@ -2,16 +2,18 @@
 
 
 
+from logging import Logger
 from os import PathLike
 from typing import Dict
 from ednaml.storage.BaseStorage import BaseStorage
 
 class Backup:
-    def __init__(self, storage_name: str, storage_frequency: int, storage: Dict[str,BaseStorage]):
+    def __init__(self, storage_name: str, storage_frequency: int, storage: Dict[str,BaseStorage], logger: Logger):
         self.storage_name = storage_name
         self.storage_frequency = storage_frequency
         self.storage = storage
         self.initial_backup = False
+        self.logger = logger
 
     def backup(self, file_name: PathLike, epoch: int):
         """Use storage to perform backup
@@ -22,10 +24,15 @@ class Backup:
         """
         if self.storage_frequency == -1:
             pass
-        elif self.storage_frequency == 0 and not self.initial_backup:
+        elif self.storage_frequency == 0 and not self.initial_backup and self.storage_name in self.storage:
             self.performBackup(file_name, epoch)
-        elif self.storage_frequency > 0:
+        elif self.storage_frequency is None or self.storage_frequency > 0 and self.storage_name in self.storage:
             self.performBackup(file_name, epoch)
+        elif self.storage_name not in self.storage:
+            self.logger.info("Not backing up {filename}. Storage name [{storage_name}] not in list of provided Storages.".format(
+                filename = file_name,
+                storage_name = self.storage_name
+            ))
         else:
             pass
 
