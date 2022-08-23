@@ -32,8 +32,6 @@ class FNCFilter(ModelAbstract):
 
     def forward_impl(self, x, **kwargs): # x is list of objects in batch
         # we are provided a batch of objects as a list
-        import pdb
-        pdb.set_trace()
         filter_batch = []
         unfilter_batch = []
         for item in x:
@@ -49,10 +47,7 @@ class FNCFilter(ModelAbstract):
 @edna.register_deployment
 class FNCFilterDeployment(BaseDeploy):
     def deploy_step(self, batch):   # batch should be list of dicts
-        import pdb
-        pdb.set_trace()
         filter_batch, _, unfilter_batch = self.model(batch)
-
 
         return filter_batch, None, unfilter_batch
 
