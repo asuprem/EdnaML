@@ -183,7 +183,9 @@ class FNCRawDataset(TorchDataset):
 
     def save_shard(self, shard: List[Dict[str,str]], shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
-        json.dump(shard, shard_save_path)
+        with open(shard_save_path, 'w') as f:
+            json.dump(shard, f, ensure_ascii=False)
+        #json.dump(shard, shard_save_path)
 
     def load_shard(self, shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
