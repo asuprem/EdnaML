@@ -190,7 +190,10 @@ class FNCRawDataset(TorchDataset):
     def load_shard(self, shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
         self.logger.debug("Loading shard %s"%shard_save_path)
-        return json.load(shard_save_path)
+        f = open(shard_save_path, 'r')
+        jload = json.load(f.read().strip())
+        f.close()
+        return jload
 
 
 
