@@ -253,5 +253,4 @@ class FNCRawGenerator(TextGenerator):
 
 
     def collate_fn(self, batch):
-        import pdb
-        pdb.set_trace()
+        return batch

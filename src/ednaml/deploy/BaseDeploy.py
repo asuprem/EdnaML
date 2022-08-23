@@ -86,7 +86,9 @@ class BaseDeploy:
         self.gpus = gpus
 
         if self.gpus != 1:
-            raise NotImplementedError()
+            pass
+        else:
+            self.model.cuda() # moves the model into GPU
 
         self.model.cuda() # moves the model into GPU
 

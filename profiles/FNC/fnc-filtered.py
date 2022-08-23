@@ -29,7 +29,7 @@ class FNCFilter(ModelAbstract):
     def model_setup(self, **kwargs):
         self.filter_func = lambda x : 1 if len([item for item in self.filter_list if item in x]) > 0 else 0
 
-    def foward_impl(self, x, **kwargs): # x is list of objects in batch
+    def forward_impl(self, x, **kwargs): # x is list of objects in batch
         # we are provided a batch of objects as a list
         import pdb
         pdb.set_trace()
