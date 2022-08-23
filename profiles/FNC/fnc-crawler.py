@@ -17,6 +17,8 @@ import shutil
 @edna.register_crawler
 class FNCCrawler(Crawler):
     """Downloads a FNC raw file from Azure if it exists and builds an iterable from the file contents.
+
+    Crawler yields a list of tweet objects, i.e. a dictionary containing tweet attributes.
     """
     def __init__(
         self,
@@ -230,8 +232,8 @@ class FNCRawGenerator(TextGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         return torch.utils.data.DataLoader(
             dataset,batch_size=batch_size*self.gpus,
-                    shuffle=(True if mode=="train" else kwargs.get("shuffle", False)), num_workers = self.workers, 
-                    collate_fn=self.collate_fn)
+                    shuffle=(True if mode=="train" else kwargs.get("shuffle", False)), num_workers = self.workers)
+                    #collate_fn=self.collate_fn)
     
     def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
         label_dict = {
@@ -241,14 +243,14 @@ class FNCRawGenerator(TextGenerator):
         return LabelMetadata(label_dict=label_dict)
 
 
-    def collate_fn(self, batch):
-        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
-        max_len = max(all_lens).item()
-        all_input_ids = all_input_ids[:, :max_len]
-        all_attention_mask = all_attention_mask[:, :max_len]
-        all_token_type_ids = all_token_type_ids[:, :max_len]
-        all_masklm = all_masklm[:, :max_len]
+    #def collate_fn(self, batch):
+        #json_element  = map(torch.stack, zip(*batch))
+        #max_len = max(all_lens).item()
+        #all_input_ids = all_input_ids[:, :max_len]
+        #all_attention_mask = all_attention_mask[:, :max_len]
+        #all_token_type_ids = all_token_type_ids[:, :max_len]
+        #all_masklm = all_masklm[:, :max_len]
 
-        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
+        #return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
 
     
