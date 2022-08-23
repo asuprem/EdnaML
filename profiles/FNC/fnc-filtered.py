@@ -24,7 +24,7 @@ class FNCFilter(ModelAbstract):
     """
 
     def model_attributes_setup(self, **kwargs):
-        self.filter_list = ["covid", "corona"]
+        self.filter_list = kwargs.get("filter_list", ["covid", "corona"])
 
     def model_setup(self, **kwargs):
         self.filter_func = lambda x : 1 if len([item for item in self.filter_list if item in x]) > 0 else 0
