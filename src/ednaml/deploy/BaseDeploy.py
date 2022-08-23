@@ -141,6 +141,9 @@ class BaseDeploy:
                 self.global_epoch = epoch + 1
                 if self.global_epoch % self.save_frequency == 0:
                     self.save()
+                self.logger.info("Executing end of epoch steps")
+                self.end_of_epoch(epoch=epoch)
+            self.end_of_deployment()
             self.logger.info("Completed deployment task.")
         else:
             self.logger.info("Skipping execution of deployment task due to `execute = False`.")
@@ -164,7 +167,11 @@ class BaseDeploy:
 
         return feature_logits, features, secondary_outputs
 
-
+    def end_of_epoch(self, epoch: int):
+        pass
+    
+    def end_of_deployment(self):
+        pass
 
     def output_setup(self, **kwargs): # USER IMPLEMENTS; kwargs from config.DEPLOYMENT.OUTPUT_ARGS
         self.logger.info("Warning: No output setup is performed")

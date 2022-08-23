@@ -1,3 +1,4 @@
+import os, json
 import torch
 from ednaml.deploy.BaseDeploy import BaseDeploy
 from ednaml.models.Albert import AlbertPreTrainedModel, AlbertModel, AlbertOnlyMLMHead
@@ -56,10 +57,23 @@ class FNCFilterDeployment(BaseDeploy):
         return filter_batch, None, unfilter_batch
 
     def output_setup(self, **kwargs):
-        pass
+        filter_file = kwargs.get("filtered_output")
+        unfilter_file = kwargs.get("unfiltered_output")
+        basename = kwargs.get("basename")
+        filter_name = "-".join([basename, filter_file])+".json"
+        unfilter_name = "-".join([basename, unfilter_file])+".json"
+
+        self.filter_obj = open(filter_name, "w")
+        self.unfilter_obj = open(unfilter_name, "w")
 
     def output_step(self, logits, features, secondary):
         #logits is filter_batch
         # secondary is unfilter_batch
-        import pdb
-        pdb.set_trace()
+        for item in logits:
+            self.filter_obj.write(json.dumps(item)+"\n")
+        for item in secondary:
+            self.unfilter_obj.write(json.dumps(item)+"\n")
+
+    def end_of_deployment(self):
+        self.filter_obj.close()
+        self.unfilter_obj.close()
