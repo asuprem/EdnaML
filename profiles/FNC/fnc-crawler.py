@@ -122,6 +122,8 @@ class FNCRawDataset(TorchDataset):
                 self.logger.debug("Deleting existing shards")
                 shutil.rmtree(self.shardpath)
             else:
+                with open(os.path.join(self.shardpath,"len.txt"), "r") as f:
+                    self.len = int(f.read().strip())
                 self.shards_exist = True
                 self.logger.debug("Shards already exist and `shard_replace` is False")
         os.makedirs(self.shardpath, exist_ok=True)
@@ -170,7 +172,7 @@ class FNCRawDataset(TorchDataset):
                 trow = []
                 #pbar.update(1)
         # final shard...
-        self.len = idx
+        
         if len(trow) > 0:
             # SAVE HERE
             self.save_shard(shard=trow,
@@ -179,6 +181,9 @@ class FNCRawDataset(TorchDataset):
             trow = []
             #pbar.update(1)
         #pbar.close()
+        self.len = idx
+        with open(os.path.join(self.shardpath,"len.txt"), "w") as f:
+            f.write(str(self.len))
         return shardsaveindex
 
     def save_shard(self, shard: List[Dict[str,str]], shard_index: int):
@@ -190,9 +195,8 @@ class FNCRawDataset(TorchDataset):
     def load_shard(self, shard_index: int):
         shard_save_path = self.base_shardpath + str(shard_index) + ".pt"
         self.logger.debug("Loading shard %s"%shard_save_path)
-        f = open(shard_save_path, 'r')
-        jload = json.load(f.read().strip())
-        f.close()
+        with open(shard_save_path, 'r') as f:
+          jload = json.load(f)
         return jload
 
 
@@ -237,8 +241,8 @@ class FNCRawGenerator(TextGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         return torch.utils.data.DataLoader(
             dataset,batch_size=batch_size*self.gpus,
-                    shuffle=(True if mode=="train" else kwargs.get("shuffle", False)), num_workers = self.workers)
-                    #collate_fn=self.collate_fn)
+                    shuffle=(True if mode=="train" else kwargs.get("shuffle", False)), num_workers = self.workers,
+                    collate_fn=self.collate_fn)
     
     def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
         label_dict = {
@@ -248,14 +252,6 @@ class FNCRawGenerator(TextGenerator):
         return LabelMetadata(label_dict=label_dict)
 
 
-    #def collate_fn(self, batch):
-        #json_element  = map(torch.stack, zip(*batch))
-        #max_len = max(all_lens).item()
-        #all_input_ids = all_input_ids[:, :max_len]
-        #all_attention_mask = all_attention_mask[:, :max_len]
-        #all_token_type_ids = all_token_type_ids[:, :max_len]
-        #all_masklm = all_masklm[:, :max_len]
-
-        #return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
-
-    
+    def collate_fn(self, batch):
+        import pdb
+        pdb.set_trace()
