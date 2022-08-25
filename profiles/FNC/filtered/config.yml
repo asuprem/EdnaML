@@ -36,7 +36,8 @@ MODEL:
   MODEL_ARCH: FNCFilter
   MODEL_BASE: NoBase
   MODEL_KWARGS: 
-    filter_list: ["covid", "corona"]
+    filter_list: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
+      "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci", ]
   MODEL_NORMALIZATION: bn
   PARAMETER_GROUPS: [opt-1]
 

@@ -1,0 +1,44 @@
+EXECUTION:
+  DATAREADER:
+    CRAWLER_ARGS: 
+      azstorage: ednadatasets
+      azcontainer: edna-covid-raw
+      azfile: tweets-2020-01-22.json.gz
+    DATAREADER: AlbertReader
+    DATASET_ARGS:
+      classificationclass: ['fn_label']
+      maxlen: 512
+      shardcache: True
+      shardsize: 5000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-filtermask-shard
+      mlm_probability: 0.15
+      masking: False
+      shuffle: False
+      data_shuffle: False
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert
+  EPOCHS: 5
+  FP16: False
+  MODEL_SERVING: False
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  TRAINER: BaseTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 8
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-extension
+  MODEL_BACKBONE: albert
+  MODEL_QUALIFIER: raw
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
+
+
+TRANSFORMATION:
+  BATCH_SIZE: 128
