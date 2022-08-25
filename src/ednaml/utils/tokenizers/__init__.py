@@ -139,3 +139,5 @@ from .AlbertTokenizer import (
     AlbertBasicTokenizer,
     AlbertFullTokenizer,
 )
+
+from .HFAutoTokenizer import HFAutoTokenizer
