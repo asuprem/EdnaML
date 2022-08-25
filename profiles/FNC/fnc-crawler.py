@@ -26,21 +26,24 @@ class FNCCrawler(Crawler):
         azstorage="ednadatasets",
         azcontainer="edna-covid-raw",
         azfile="tweets-2020-01-22.json.gz",
+        localfile = None,
     ):
-        
-        az_url = self.build_url(azstorage, azcontainer, azfile)
-        logger.info("Crawling %s" % (az_url))
-        if not os.path.exists(azfile):
-            download(azfile, az_url)
-        else:
-            logger.info("%s already exists at %s" % (az_url, azfile))
-        az_jsonfile = os.path.splitext(azfile)[0]
+        if localfile is None:
+            az_url = self.build_url(azstorage, azcontainer, azfile)
+            logger.info("Crawling %s" % (az_url))
+            if not os.path.exists(azfile):
+                download(azfile, az_url)
+            else:
+                logger.info("%s already exists at %s" % (az_url, azfile))
+            az_jsonfile = os.path.splitext(azfile)[0]
 
-        # Then unzip the file
-        if not os.path.exists(az_jsonfile):
-            with gzip.open(azfile, "rb") as f_in:
-                with open(az_jsonfile, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+            # Then unzip the file
+            if not os.path.exists(az_jsonfile):
+                with gzip.open(azfile, "rb") as f_in:
+                    with open(az_jsonfile, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+        else:   # TODO possible sanity checks????
+            az_jsonfile = localfile
 
         # set up class metadata
         self.classes = {}
