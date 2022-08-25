@@ -19,7 +19,7 @@ EXECUTION:
       data_shuffle: False
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
-      from_pretrained: albert
+      from_pretrained: albert-base-v2
   EPOCHS: 5
   FP16: False
   MODEL_SERVING: False

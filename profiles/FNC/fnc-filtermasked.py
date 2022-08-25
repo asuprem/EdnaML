@@ -12,6 +12,7 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
         self.dataset = dataset  # list of tuples (text, labels, labels)
         self.logger = logger
+        self.file_len = kwargs.get("crawler_secondary").get("linecount", 1)
         self.data_shuffle = kwargs.get("data_shuffle", True)
         if self.data_shuffle:
             random.shuffle(self.dataset)
@@ -36,6 +37,8 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             else:
                 self.shards_exist = True
                 self.logger.debug("Shards already exist and `shard_replace` is False")
+        else:
+          self.logger.debug("Shards do not exist and will be created.")
         if self.shardcache:
             self.logger.debug("Creating shardpath %s"%self.shardpath)
             os.makedirs(self.shardpath, exist_ok=True)
@@ -85,7 +88,6 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)
             self.logger.debug("Masking")
             self.memcached_dataset = self.refresh_mask_ids()
-
         if self.shardcache:
             self.input_length_cache = []
             if not self.shards_exist:
@@ -133,67 +135,41 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
         features = []
         shardsaveindex = 0
         self.input_length_cache = []
-        pbar = tqdm(total=int(len(dataset)/self.shardsize)+1)
+        self.logger.info("Generating shards")
+        pbar = tqdm(total=int(self.file_len/self.shardsize)+1)
+        keywords = ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
+            "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
         for idx, sample in enumerate(dataset):
-            import pdb
-            pdb.set_trace()
-            keywords = []
-            word_tokens = sample[0].split(" ")
-            keyword_idx = []
-            for idx,item in word_tokens:
-                if len(sum([1 if kword in item else 0 for kword in keywords])) > 0:
-                    keyword_idx.append(idx) # i.e. find word index for each keyword, if it exists
             
+            word_tokens = sample["full_text"].split(" ")
+            keyword_idx = []
+            for widx,item in enumerate(word_tokens):
+                if sum([1 if kword in item else 0 for kword in keywords]) > 0:
+                    keyword_idx.append(widx) # i.e. find word index for each keyword, if it exists
 
-            encoded = self.tokenizer(sample[0], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True)
+            encoded = self.tokenizer(sample["full_text"], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
+            enc_len = torch.sum(encoded["attention_mask"])
             # create a list of lists. Each sublist is a mask for each keyword. So, we can AND all sublists to get the overall mask.
             # Edge cases -- no keywords: 
             match_idxs = torch.LongTensor([[wid != keyword_idx[kidx] for wid in encoded.word_ids(0)] for kidx in range(len(keyword_idx))])
             if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
-                match_idxs = torch.all(match_idxs, dim=1)
+                match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
+                merged_mask = torch.where(match_idxs == 0, match_idxs, encoded["attention_mask"])
+            else:
+                merged_mask = encoded["attention_mask"]
             
-            merged_mask = torch.where(match_idxs == 0, match_idxs, encoded["attention_mask"])
-            
-            
-            """
-            tokens = self.tokenizer.tokenize(sample[0])
-            if len(tokens) > maxlen - 2:
-                tokens = tokens[0:(maxlen - 2)]
-
-            finaltokens = ["[CLS]"]
-            token_type_ids = [0]
-            for token in tokens:
-                finaltokens.appends(token)
-                token_type_ids.append(0)
-            finaltokens.append("[SEP]")
-            token_type_ids.append(0)
-
-            input_ids = self.tokenizer.convert_tokens_to_ids(finaltokens)
-            
-            attention_mask = [1]*len(input_ids)
-            input_len = len(input_ids)
-            self.input_length_cache.append(len(input_ids))
-            while len(input_ids) < maxlen:
-                input_ids.append(0)
-                attention_mask.append(0)
-                token_type_ids.append(0) 
-
-            assert len(input_ids) == maxlen
-            assert len(attention_mask) == maxlen
-            assert len(token_type_ids) == maxlen
-            """
             features.append(
-                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], encoded["length"], *sample[1:])
+                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], enc_len, 0)  # 0 used to be *sample[1:]
             )
 
             if (idx+1)%self.shardsize == 0: # we need to save this shard.
                 # TODO need to handle multiple labels, later...
-                all_input_ids = torch.tensor([f[0] for f in features], dtype=torch.long)
-                all_attention_mask = torch.tensor([f[1] for f in features], dtype=torch.long)
-                all_token_type_ids = torch.tensor([f[2] for f in features], dtype=torch.long)
-                all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
-                all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
-                all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+                all_input_ids = torch.cat([f[0] for f in features])
+                all_attention_mask = torch.cat([f[1] for f in features])
+                all_token_type_ids = torch.cat([f[2] for f in features])
+                all_lens = torch.Tensor([f[3] for f in features])
+                all_labels = torch.Tensor([f[4] for f in features])
+                all_masklm = -1*torch.ones(all_input_ids.shape)
 
                 # SAVE HERE
                 self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
@@ -203,12 +179,12 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
                 pbar.update(1)
         # final shard...
         if len(features) > 0:
-            all_input_ids = torch.tensor([f[0] for f in features], dtype=torch.long)
-            all_attention_mask = torch.tensor([f[1] for f in features], dtype=torch.long)
-            all_token_type_ids = torch.tensor([f[2] for f in features], dtype=torch.long)
-            all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
-            all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
-            all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+            all_input_ids = torch.cat([f[0] for f in features])
+            all_attention_mask = torch.cat([f[1] for f in features])
+            all_token_type_ids = torch.cat([f[2] for f in features])
+            all_lens = torch.Tensor([f[3] for f in features])
+            all_labels = torch.Tensor([f[4] for f in features])
+            all_masklm = -1*torch.ones(all_input_ids.shape)
 
             # SAVE HERE
             self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
@@ -271,8 +247,6 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             tokens = self.tokenizer.tokenize(sample[0])
             if len(tokens) > maxlen - 2:
                 tokens = tokens[0:(maxlen - 2)]
-            import pdb
-            pdb.set_trace() # Basically, we need to check how the tokens and ids are generated. Then get in there to add masks for keywords...
             # An easy way potentially -- get the index of each word in the token set...
             # Then check which word is in keyword
             # Then mask out that word...????????
@@ -329,37 +303,37 @@ class FNCFilterMaskGenerator(TextGenerator):
   # Then create a cached batch
   # From cached batch, yield batches until it is empty
 
-  def build_transforms(self, transform, mode, **kwargs):  #<-- generator kwargs:
-    from ednaml.utils import locate_class
-    print("Building Transforms")
-    tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
-    self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
-    self.tokenizer = self.tokenizer(**kwargs) 
+    def build_transforms(self, transform, mode, **kwargs):  #<-- generator kwargs:
+        from ednaml.utils import locate_class
+        print("Building Transforms")
+        tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
+        self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
+        self.tokenizer = self.tokenizer(**kwargs) 
 
   
-  def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
-    print("Building Dataset")
-    return FNCFilterMaskDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
+    def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
+        print("Building Dataset")
+        return FNCFilterMaskDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, crawler_secondary = crawler.metadata.get("secondary", {}), **kwargs) # needs maxlen, memcache, mlm_probability
 
-  def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
-    print("Building Dataloader")
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
+    def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
+        print("Building Dataloader")
+        return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
                                         shuffle=kwargs.get("shuffle", True), num_workers = self.workers, 
                                        collate_fn=self.collate_fn)
 
-  def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
-    label_dict = {
-        item: {"classes": crawler.metadata[mode]["classes"][item]}
-        for item in kwargs.get("classificationclass", ["color"])
-    }
-    return LabelMetadata(label_dict=label_dict)
+    def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
+        label_dict = {
+            item: {"classes": crawler.metadata[mode]["classes"][item]}
+            for item in kwargs.get("classificationclass", ["color"])
+        }
+        return LabelMetadata(label_dict=label_dict)
 
-  def collate_fn(self, batch):
-    all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
-    max_len = max(all_lens).item()
-    all_input_ids = all_input_ids[:, :max_len]
-    all_attention_mask = all_attention_mask[:, :max_len]
-    all_token_type_ids = all_token_type_ids[:, :max_len]
-    all_masklm = all_masklm[:, :max_len]
+    def collate_fn(self, batch):
+        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
+        max_len = max(all_lens).item()
+        all_input_ids = all_input_ids[:, :max_len]
+        all_attention_mask = all_attention_mask[:, :max_len]
+        all_token_type_ids = all_token_type_ids[:, :max_len]
+        all_masklm = all_masklm[:, :max_len]
 
-    return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
+        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
