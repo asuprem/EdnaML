@@ -3,6 +3,7 @@ import random
 import torch, os, shutil
 from torch.utils.data import TensorDataset
 from tqdm import tqdm
+import ednaml.core.decorators as edna
 
 
 
@@ -319,6 +320,8 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
 
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.generators import TextGenerator
+
+@edna.register_generator
 class FNCFilterMaskGenerator(TextGenerator):
   # input includes tokenizer for build...
 
