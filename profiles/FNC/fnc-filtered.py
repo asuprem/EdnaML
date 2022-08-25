@@ -35,7 +35,7 @@ class FNCFilter(ModelAbstract):
         filter_batch = []
         unfilter_batch = []
         for item in x:
-            if self.filter_func(item["full_text"]):
+            if self.filter_func(item["full_text"].lower()):
                 filter_batch.append(item)
             else:
                 unfilter_batch.append(item)
