@@ -51,6 +51,7 @@ class FNCCrawler(Crawler):
 
         # set up content metadata
         self.metadata = {}
+        self.metadata["secondary"] = {}
         self.metadata["secondary"]["linecount"] = self.bufcount(az_jsonfile)
 
         self.metadata["train"] = {}
@@ -80,7 +81,7 @@ class FNCCrawler(Crawler):
             azstorage=azstorage, azcontainer=azcontainer, azfile=azfile
         )
 
-    def bufcount(filename):
+    def bufcount(self, filename):
         f = open(filename)                  
         lines = 0
         buf_size = 1024 * 1024

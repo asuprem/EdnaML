@@ -167,9 +167,9 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
                 all_input_ids = torch.cat([f[0] for f in features])
                 all_attention_mask = torch.cat([f[1] for f in features])
                 all_token_type_ids = torch.cat([f[2] for f in features])
-                all_lens = torch.Tensor([f[3] for f in features])
-                all_labels = torch.Tensor([f[4] for f in features])
-                all_masklm = -1*torch.ones(all_input_ids.shape)
+                all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
+                all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
+                all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
                 # SAVE HERE
                 self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
@@ -182,9 +182,9 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             all_input_ids = torch.cat([f[0] for f in features])
             all_attention_mask = torch.cat([f[1] for f in features])
             all_token_type_ids = torch.cat([f[2] for f in features])
-            all_lens = torch.Tensor([f[3] for f in features])
-            all_labels = torch.Tensor([f[4] for f in features])
-            all_masklm = -1*torch.ones(all_input_ids.shape)
+            all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
+            all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
+            all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
             # SAVE HERE
             self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
