@@ -336,7 +336,7 @@ class FNCAlbertModelerTrainer(BaseTrainer):
         self.logger.info(m_str)
         self.logger.info(u_str)
 
-        return None, None, None
+        return None, None, None # maybe return predictions or something ...?
 
     def printStepInformation(self):
         loss_avg = [0.0] * len(self.losses)
