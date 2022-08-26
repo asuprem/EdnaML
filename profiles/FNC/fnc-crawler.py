@@ -26,24 +26,70 @@ class FNCCrawler(Crawler):
         azstorage="ednadatasets",
         azcontainer="edna-covid-raw",
         azfile="tweets-2020-01-22.json.gz",
-        localfile = None,
+        test_file = None,
+        train_azstorage=None,
+        train_azcontainer=None,
+        train_azfile=None,
+        train_file = None
     ):
-        if localfile is None:
-            az_url = self.build_url(azstorage, azcontainer, azfile)
-            logger.info("Crawling %s" % (az_url))
-            if not os.path.exists(azfile):
-                download(azfile, az_url)
-            else:
-                logger.info("%s already exists at %s" % (az_url, azfile))
-            az_jsonfile = os.path.splitext(azfile)[0]
+        """Initializes the FNC Crawler.
 
-            # Then unzip the file
-            if not os.path.exists(az_jsonfile):
-                with gzip.open(azfile, "rb") as f_in:
-                    with open(az_jsonfile, "wb") as f_out:
-                        shutil.copyfileobj(f_in, f_out)
+        By default, only the test data is populated. If the corresponding values for arguments is None, it is not used, instead of throwing error.
+
+        Args:
+            logger (_type_, optional): Logger. Defaults to None.
+
+            azstorage (str, optional): Axure storage name. Defaults to "ednadatasets".
+            azcontainer (str, optional): Azure container name. Defaults to "edna-covid-raw".
+            azfile (str, optional): Azure file name (blob name). Defaults to "tweets-2020-01-22.json.gz".
+            test_file (_type_, optional): If using local files, this will supersede the Azure data. Defaults to None.
+
+            train_azstorage (str, optional): Axure storage name. Defaults to "ednadatasets".
+            train_azcontainer (str, optional): Azure container name. Defaults to "edna-covid-raw".
+            train_azfile (str, optional): Azure file name (blob name). Defaults to "tweets-2020-01-22.json.gz".
+            train_file (_type_, optional): If using local files, this will be present in the "train" metadata and supersede Azure data. Defaults to None.
+            
+        """
+        if test_file is None:
+            if azstorage is not None:
+                az_url = self.build_url(azstorage, azcontainer, azfile)
+                logger.info("Crawling %s" % (az_url))
+                if not os.path.exists(azfile):
+                    download(azfile, az_url)
+                else:
+                    logger.info("%s already exists at %s" % (az_url, azfile))
+                az_jsonfile = os.path.splitext(azfile)[0]
+
+                # Then unzip the file
+                if not os.path.exists(az_jsonfile):
+                    with gzip.open(azfile, "rb") as f_in:
+                        with open(az_jsonfile, "wb") as f_out:
+                            shutil.copyfileobj(f_in, f_out)
+            else:
+                az_jsonfile = None
         else:   # TODO possible sanity checks????
-            az_jsonfile = localfile
+            az_jsonfile = test_file
+
+
+        if train_file is None:
+            if train_azstorage is not None:
+                train_az_url = self.build_url(train_azstorage, train_azcontainer, train_azfile)
+                logger.info("Crawling %s" % (train_az_url))
+                if not os.path.exists(train_azfile):
+                    download(train_azfile, train_az_url)
+                else:
+                    logger.info("%s already exists at %s" % (train_az_url, train_azfile))
+                train_az_jsonfile = os.path.splitext(train_azfile)[0]
+
+                # Then unzip the file
+                if not os.path.exists(train_az_jsonfile):
+                    with gzip.open(train_azfile, "rb") as f_in:
+                        with open(train_az_jsonfile, "wb") as f_out:
+                            shutil.copyfileobj(f_in, f_out)
+            else:
+                train_az_jsonfile = None
+        else:   # TODO possible sanity checks????
+            train_az_jsonfile = train_file
 
         # set up class metadata
         self.classes = {}
@@ -52,7 +98,15 @@ class FNCCrawler(Crawler):
         # set up content metadata
         self.metadata = {}
         self.metadata["secondary"] = {}
-        self.metadata["secondary"]["linecount"] = self.bufcount(az_jsonfile)
+
+        if az_jsonfile is not None:
+            self.metadata["secondary"]["linecount"] = self.bufcount(az_jsonfile)
+        else:
+            self.metadata["secondary"]["linecount"] = 0
+        if train_az_jsonfile is not None:
+            self.metadata["secondary"]["train_linecount"] = self.bufcount(train_az_jsonfile)
+        else:
+            self.metadata["secondary"]["train_linecount"] = 0
 
         self.metadata["train"] = {}
         self.metadata["test"] = {}
@@ -66,11 +120,18 @@ class FNCCrawler(Crawler):
         # This will be slow because of json.loads line by line. We should speed this up with chunking?
 
         # TODO extracts full_text only. Fix this so it extracts all relevant objects (or possibly all objects??)
-        self.metadata["test"]["crawl"] = IterableFile(
-            az_jsonfile,
-            #line_callback=lambda row: (json.loads(row.strip())["full_text"], 0),
-            line_callback=lambda row: json.loads(row.strip()),
-        )
+        if az_jsonfile is not None:
+            self.metadata["test"]["crawl"] = IterableFile(
+                az_jsonfile,
+                #line_callback=lambda row: (json.loads(row.strip())["full_text"], 0),
+                line_callback=lambda row: json.loads(row.strip()),
+            )
+        if train_az_jsonfile is not None:
+            self.metadata["train"]["crawl"] = IterableFile(
+                train_az_jsonfile,
+                #line_callback=lambda row: (json.loads(row.strip())["full_text"], 0),
+                line_callback=lambda row: json.loads(row.strip()),
+            )
         self.metadata["train"]["classes"] = self.classes
         self.metadata["test"]["classes"] = self.classes
         self.metadata["val"]["classes"] = self.classes
