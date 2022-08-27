@@ -123,7 +123,7 @@ class FastKMP(ModelPlugin):
                 stime = time.time()
         print("\tCompeted MBKM for k={kval}, with inertia: {inertia}".format(kval=self.iterations, inertia = kmeans.inertia_))
         data.close()
-        self.cluster_means = kmeans.cluster_centers_
+        self.cluster_means = torch.tensor(kmeans.cluster_centers_)
         self.inertia = kmeans.inertia_
         return inertia
 
@@ -141,14 +141,14 @@ class FastKMP(ModelPlugin):
         print("Starting High Density estimation")
         for i in range(0, data_size, self.batch_size):
             current_data = data['features'][i:i+self.batch_size]
-            dist, indices = self.kdcluster.query(self._preprocess(current_data), k=1, return_distance=True)   #.squeeze()
-            for idx in indices:
-                distance_bins[idx].append(dist[idx])
+            dist, indices = self.kdcluster.query(self._preprocess(torch.tensor(current_data)), k=1, return_distance=True)   #.squeeze()
+            for idx in indices[:,0]:
+                distance_bins[idx].append(dist[idx, 0])
         
         self.high_density_thresholds = [None]*self.proxies
         import numpy as np
         for proxy in range(self.proxies):
-            self.high_density_thresholds[proxy] = np.percentile(distance_bins, self.alpha * 100)
+            self.high_density_thresholds[proxy] = np.percentile(distance_bins[proxy], self.alpha * 100)
         print("Completed High Density threshold estimation")
         data.close()
 
