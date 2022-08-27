@@ -371,7 +371,7 @@ class FNCTrainingFeaturesDeploy(BaseDeploy):
     all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels = batch
     prediction_scores, pooled_out, outputs = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
     
-    return None, pooled_out, None
+    return None, pooled_out.cpu(), None
 
   def output_setup(self, **kwargs):
     output_file = kwargs.get("feature_file", "training_features")
@@ -386,7 +386,7 @@ class FNCTrainingFeaturesDeploy(BaseDeploy):
         self.writer["features"].resize((self.writer["features"].shape[0] + feats.shape[0]), axis=0)
         self.writer["features"][-feats.shape[0]:] = feats        
     else:   # First time writing -- we will need to create the dataset.
-        self.writer.create_dataset("features", features.numpy(), compression = "gzip", chunks=True)
+        self.writer.create_dataset("features", data=features.numpy(), compression = "gzip", chunks=True, maxshape=(None,features.shape[1]))
         self.written = True
 
     if self.writer["features"].shape[0]%5000 > self.prev_idx:
