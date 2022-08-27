@@ -85,7 +85,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 5.0e-5
+    BASE_LR: 1.0e-5
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6
@@ -99,4 +99,8 @@ SCHEDULER:
       gamma: 0.5
     LR_SCHEDULER: StepLR
     SCHEDULER_NAME: opt-1
+
+LOGGING:
+  STEP_VERBOSE: 100
+  INPUT_SIZE: [16, 512]
 
