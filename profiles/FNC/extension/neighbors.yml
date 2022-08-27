@@ -2,6 +2,7 @@
 DEPLOYMENT:
   OUTPUT_ARGS:
     neighbor_output: neighbor
+    unfiltered_output: unfiltered
     basename: tweets-2020-01-22
   DEPLOY: BaseDeploy
   DATAREADER:
@@ -44,7 +45,7 @@ SAVE:
 
 MODEL_PLUGIN:
   - PLUGIN: FastKMP
-    PLUGIN_NAME: FastKMP-l2
+    PLUGIN_NAME: FastKMP-cos
     PLUGIN_KWARGS:
       proxies: 20
       dimensions: 768
