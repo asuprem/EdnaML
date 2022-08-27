@@ -149,6 +149,7 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
 
             encoded = self.tokenizer(sample["full_text"], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
             enc_len = torch.sum(encoded["attention_mask"])
+            self.input_length_cache.append(enc_len)
             # create a list of lists. Each sublist is a mask for each keyword. So, we can AND all sublists to get the overall mask.
             # Edge cases -- no keywords: 
             match_idxs = torch.LongTensor([[wid != keyword_idx[kidx] for wid in encoded.word_ids(0)] for kidx in range(len(keyword_idx))])
@@ -171,6 +172,12 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
                 all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
                 all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
+                # Propagate input masking to output masking
+                for midx in range(all_attention_mask.shape[0]):
+                    masked_index = torch.where(all_attention_mask[midx][:self.input_length_cache[midx]]==0)[0]
+                    all_masklm[midx][masked_index] = all_input_ids[midx][masked_index] # Set the masking labels for these to the actual word index from all_input_ids
+                self.input_length_cache = []
+
                 # SAVE HERE
                 self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
                         shard_index = shardsaveindex)
@@ -185,6 +192,12 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
             all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
             all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+
+            # Propagate input masking to output masking
+            for midx in range(all_attention_mask.shape[0]):
+                masked_index = torch.where(all_attention_mask[midx][:self.input_length_cache[midx]]==0)[0]
+                all_masklm[midx][masked_index] = all_input_ids[midx][masked_index] # Set the masking labels for these to the actual word index from all_input_ids
+            self.input_length_cache = []
 
             # SAVE HERE
             self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
@@ -281,7 +294,7 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
         self.all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
         self.all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
         self.all_masklm = -1*torch.ones(self.all_input_ids.shape, dtype=torch.long)
-        
+                
     def __len__(self):
         return len(self.dataset)
 

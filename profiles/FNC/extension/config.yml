@@ -20,7 +20,7 @@ EXECUTION:
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: albert-base-v2
-  EPOCHS: 15
+  EPOCHS: 20
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
@@ -32,15 +32,15 @@ EXECUTION:
 
 
 TRANSFORMATION:
-  BATCH_SIZE: 128
+  BATCH_SIZE: 64
 
 
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: fnc-extension
   MODEL_BACKBONE: albert
-  MODEL_QUALIFIER: raw
-  DRIVE_BACKUP: False
+  MODEL_QUALIFIER: tweets-2020-01-22
+  DRIVE_BACKUP: True
   SAVE_FREQUENCY: 5 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
 
@@ -82,7 +82,7 @@ LOSS:
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
-    BASE_LR: 1.0e-5
+    BASE_LR: 5.0e-5
     LR_BIAS_FACTOR: 1.0
     OPTIMIZER_KWARGS: 
       eps: 1.0e-6

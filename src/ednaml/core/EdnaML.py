@@ -1066,7 +1066,7 @@ class EdnaML(EdnaMLBase):
                 self.train_generator = Generator(logger=self.logger)
         if self.mode != "test":
             self.logger.info(
-                "Generated training data generator with %i trainnig data points"
+                "Generated training data generator with %i training data points"
                 % len(self.train_generator.dataset)
             )
             self.labelMetadata = self.train_generator.num_entities

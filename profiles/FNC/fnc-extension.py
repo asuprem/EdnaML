@@ -232,7 +232,7 @@ class FNCAlbertModelerTrainer(BaseTrainer):
             .cpu()
         )
         # zero out the bad losses here...
-        lm_loss = masked_loss if not torch.isnan(masked_loss) else 0 
+        lm_loss = masked_loss
         
     
 
@@ -350,7 +350,7 @@ class FNCAlbertModelerTrainer(BaseTrainer):
             len(self.maskedaccuracy[-100:])
         )
         self.logger.info(
-            "Epoch{0}.{1}\tMaskedLM: {2:.3f}\tReconstruct: {4:.3f}\tMasked Acc: {5:.3f}".format(
+            "Epoch{0}.{1}\tMaskedLM: {2:.3f}\tReconstruct: {3:.3f}\tMasked Acc: {4:.3f}".format(
                 self.global_epoch,
                 self.global_batch,
                 loss_avg[0],
@@ -358,3 +358,46 @@ class FNCAlbertModelerTrainer(BaseTrainer):
                 mask_avg,
             )
         )
+
+
+import ednaml, torch, os, csv
+from ednaml.deploy.BaseDeploy import BaseDeploy
+import h5py
+
+@edna.register_deployment
+class FNCTrainingFeaturesDeploy(BaseDeploy):
+  def deploy_step(self, batch):
+    batch = tuple(item.cuda() for item in batch)
+    all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels = batch
+    prediction_scores, pooled_out, outputs = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
+    
+    return None, pooled_out, None
+
+  def output_setup(self, **kwargs):
+    output_file = kwargs.get("feature_file", "training_features")
+    self.output_file = output_file + ".h5"
+    self.writer = h5py.File(self.output_file, "w")  #we will delete old training features file
+    self.written = False
+    self.prev_idx = -1
+    
+  def output_step(self, logits, features: torch.LongTensor, secondary): 
+    if self.written:
+        feats = features.numpy()
+        self.writer["features"].resize((self.writer["features"].shape[0] + feats.shape[0]), axis=0)
+        self.writer["features"][-feats.shape[0]:] = feats        
+    else:   # First time writing -- we will need to create the dataset.
+        self.writer.create_dataset("features", features.numpy(), compression = "gzip", chunks=True)
+        self.written = True
+
+    if self.writer["features"].shape[0]%5000 > self.prev_idx:
+        self.logger.debug("Chunked %i lines in deployment output %s"%(self.writer["features"].shape[0], self.output_file))
+        self.prev_idx = self.writer["features"].shape[0]%5000
+
+  def end_of_epoch(self, epoch: int):
+      self.writer.close()
+
+  def end_of_deployment(self):
+      pass
+
+
+
