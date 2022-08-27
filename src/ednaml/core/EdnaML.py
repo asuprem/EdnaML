@@ -897,11 +897,19 @@ class EdnaML(EdnaMLBase):
         lookup_path = os.path.abspath(file_or_module_path)
         for keyvalue in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path]:
             if keyvalue in self.decorator_reference:
-                self.logger.info("Adding a {ftype}, from {src}, with inferred name {inf}".format(
+                if type(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]) is list:
+                  for i in range(len(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue])):
+                    self.logger.info("Adding a {ftype}, from {src}, with inferred name {inf}".format(
                     ftype=keyvalue,
                     src = lookup_path,
-                    inf = ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue].__name__
+                    inf = ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue][i].__name__
                 ))
+                else:
+                  self.logger.info("Adding a {ftype}, from {src}, with inferred name {inf}".format(
+                      ftype=keyvalue,
+                      src = lookup_path,
+                      inf = ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue].__name__
+                  ))
                 self.decorator_reference[keyvalue](
                     ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]
                 )
