@@ -189,6 +189,7 @@ class EdnaDeploy(EdnaML):
         return [self.resetDeploymentQueue]
 
     def addDeploymentClass(self, deployment_class: Type[BaseDeploy]):
+        self.logger.debug("Added deployment class: %s"%deployment_class.__name__)
         self._deploymentClassQueue = deployment_class
         self._deploymentClassQueueFlag = True
 
