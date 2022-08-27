@@ -14,8 +14,6 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
         self.logger = logger
         self.file_len = kwargs.get("crawler_secondary").get("linecount", 1)
         self.data_shuffle = kwargs.get("data_shuffle", True)
-        if self.data_shuffle:
-            random.shuffle(self.dataset)
 
         # Options
         self.cache = kwargs.get("cache", False)
@@ -43,8 +41,11 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             self.logger.debug("Creating shardpath %s"%self.shardpath)
             os.makedirs(self.shardpath, exist_ok=True)
         
-
-
+        
+        self.keyword_masking = kwargs.get("keyword_mask", True)
+        self.keywords = []
+        if self.keyword_masking:
+            self.keywords = kwargs.get("keywords")
         
         # Tokenizer and lengths
         self.tokenizer = kwargs.get("tokenizer")
@@ -137,30 +138,31 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
         self.input_length_cache = []
         self.logger.info("Generating shards")
         pbar = tqdm(total=int(self.file_len/self.shardsize)+1)
-        keywords = ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
-            "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
         for idx, sample in enumerate(dataset):
-            
-            word_tokens = sample["full_text"].split(" ")
-            keyword_idx = []
-            for widx,item in enumerate(word_tokens):
-                if sum([1 if kword in item else 0 for kword in keywords]) > 0:
-                    keyword_idx.append(widx) # i.e. find word index for each keyword, if it exists
+            if self.keyword_masking:
+                word_tokens = sample["full_text"].split(" ")
+                keyword_idx = []
+                for widx,item in enumerate(word_tokens):
+                    if sum([1 if kword in item else 0 for kword in self.keywords]) > 0:
+                        keyword_idx.append(widx) # i.e. find word index for each keyword, if it exists
 
             encoded = self.tokenizer(sample["full_text"], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
             enc_len = torch.sum(encoded["attention_mask"])
             self.input_length_cache.append(enc_len)
             # create a list of lists. Each sublist is a mask for each keyword. So, we can AND all sublists to get the overall mask.
             # Edge cases -- no keywords: 
-            match_idxs = torch.LongTensor([[wid != keyword_idx[kidx] for wid in encoded.word_ids(0)] for kidx in range(len(keyword_idx))])
-            if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
-                match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
-                merged_mask = torch.where(match_idxs == 0, match_idxs, encoded["attention_mask"])
+            if self.keyword_masking:
+                match_idxs = torch.LongTensor([[wid != keyword_idx[kidx] for wid in encoded.word_ids(0)] for kidx in range(len(keyword_idx))])
+                if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
+                    match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
+                    merged_mask = torch.where(match_idxs == 0, match_idxs, encoded["attention_mask"])
+                else:
+                    merged_mask = encoded["attention_mask"]
             else:
                 merged_mask = encoded["attention_mask"]
             
             features.append(
-                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], enc_len, 0)  # 0 used to be *sample[1:]
+                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], enc_len, 0)  # 0 used to be *sample[1:], i.e. the label
             )
 
             if (idx+1)%self.shardsize == 0: # we need to save this shard.
