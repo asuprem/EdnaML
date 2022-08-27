@@ -9,3 +9,6 @@ class LoggingConfig(BaseConfig):
         self.STEP_VERBOSE = logging_dict.get(
             "STEP_VERBOSE", defaults.STEP_VERBOSE
         )
+        self.INPUT_SIZE = logging_dict.get(
+            "INPUT_SIZE", defaults.INPUT_SIZE
+        )

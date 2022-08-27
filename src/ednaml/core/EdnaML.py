@@ -253,6 +253,9 @@ class EdnaML(EdnaMLBase):
         self.buildModel()
         self.loadWeights()
         if not kwargs.get("skip_model_summary", False):
+            if self.cfg.LOGGING.INPUT_SIZE is not None:
+                if kwargs.get("input_size", None) is None:
+                    kwargs["input_size"] = self.cfg.LOGGING.INPUT_SIZE
             self.getModelSummary(**kwargs) 
         self.buildOptimizer()
         self.buildScheduler()
