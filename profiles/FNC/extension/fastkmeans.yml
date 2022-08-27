@@ -41,11 +41,11 @@ SAVE:
 
 MODEL_PLUGIN:
   - PLUGIN: FastKMP
-    PLUGIN_NAME: FastKMP-cos
+    PLUGIN_NAME: FastKMP-l2
     PLUGIN_KWARGS:
       proxies: 20
       dimensions: 768
-      dist: cosine
+      dist: euclidean
       iterations: 30
       batch_size: 256
       alpha: 0.5
