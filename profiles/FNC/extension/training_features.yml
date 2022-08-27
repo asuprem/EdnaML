@@ -15,11 +15,12 @@ DEPLOYMENT:
       shardsize: 5000
       shard_replace: False
       shardpath: datashard-artifacts
-      shardname: fnc-filtermask-shard
+      shardname: fnc-unmasked-shard
       mlm_probability: 0.15
       masking: False
       shuffle: False
       data_shuffle: False
+      keyword_mask: False
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: albert-base-v2
