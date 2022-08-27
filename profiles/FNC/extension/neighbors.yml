@@ -1,5 +1,8 @@
 
 DEPLOYMENT:
+  OUTPUT_ARGS:
+    neighbor_output: neighbor
+    basename: tweets-2020-01-22
   DEPLOY: BaseDeploy
   DATAREADER:
     CRAWLER_ARGS: 
@@ -26,15 +29,15 @@ DEPLOYMENT:
   FP16: False
   EPOCHS: 1
   PLUGIN:
-    HOOKS: warmup
-    RESET: True
+    HOOKS: activated
+    RESET: False
 
 SAVE:
   MODEL_VERSION: 2
   MODEL_CORE_NAME: fnc-extension
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: tweets-2020-01-22
-  DRIVE_BACKUP: True
+  DRIVE_BACKUP: False
   SAVE_FREQUENCY: 1 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
 
