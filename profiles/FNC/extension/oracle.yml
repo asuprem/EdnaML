@@ -38,7 +38,7 @@ SAVE:
   MODEL_CORE_NAME: fnc-extension
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: tweets-2020-01-22
-  DRIVE_BACKUP: False
+  DRIVE_BACKUP: True
   SAVE_FREQUENCY: 1 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
 
