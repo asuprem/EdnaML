@@ -75,8 +75,8 @@ class FastKMP(ModelPlugin):
             
             return feature_logits, features, secondary_outputs, kwargs, {}
         else:
-            dist, labels = self.compute_labels(features)
-            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist}
+            dist, labels, idx = self.compute_labels(features)
+            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist, "label": idx}
 
     def save_features(self, features):
         feats = features.cpu().numpy()
@@ -159,7 +159,7 @@ class FastKMP(ModelPlugin):
         feats = features.cpu()
         dist, idx = self.kdcluster.query(self._preprocess(feats), k=1, return_distance=True)   #.squeeze()
         # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return torch.from_numpy(dist).squeeze(1), torch.stack([self.high_density_thresholds[item[0]] for item in idx])
+        return torch.from_numpy(dist).squeeze(1), torch.tensor([self.high_density_thresholds[item[0]] for item in idx]), idx[:,0]
 
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
