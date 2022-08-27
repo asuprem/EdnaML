@@ -221,6 +221,7 @@ class ModelAbstract(nn.Module):
         if plugin_name in self.plugins:
             raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
         else:
+            self._logger.info("Added plugin %s"%plugin_name)
             self.plugins[plugin_name] = plugin(**plugin_kwargs)
             self.plugins[plugin_name]._logger = self._logger
         
