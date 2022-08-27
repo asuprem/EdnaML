@@ -15,8 +15,11 @@ EXECUTION:
       shardname: fnc-filtermask-shard
       mlm_probability: 0.15
       masking: False
-      shuffle: False
-      data_shuffle: False
+      shuffle: True
+      data_shuffle: True
+      keyword_mask: True
+      keywords: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
+        "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: albert-base-v2
