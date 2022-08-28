@@ -26,6 +26,8 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
         self.shardpath = kwargs.get("shardpath", "datashard-artifacts")
         self.shardpath = mode+"-"+self.shardpath
         self.shardname = kwargs.get("shardname", "fnc-filtermask-shard") + "-"  #the dash
+        if self.shardcache:
+            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.shardpath, shards=self.shardname, mode=mode))
         self.base_shardpath = os.path.join(self.shardpath, self.shardname)
         self.shards_exist = False
         if os.path.exists(self.base_shardpath + "0.pt"):
@@ -42,16 +44,29 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             os.makedirs(self.shardpath, exist_ok=True)
         
         
+        
+        self.word_masking = kwargs.get("word_mask", False)
         self.keyword_masking = kwargs.get("keyword_mask", True)
-        self.keywords = []
-        if self.keyword_masking:
-            self.keywords = kwargs.get("keywords")
+        self.token_masking = kwargs.get("token_mask", False)
+        self.keytoken_masking = kwargs.get("keytoken_mask", False)
+        
         
         # Tokenizer and lengths
         self.tokenizer = kwargs.get("tokenizer")
         self.maxlen = kwargs.get("maxlen")
         self.mlm = kwargs.get("mlm_probability", 0.2)
         self.masking = kwargs.get("masking", mode=="train")
+
+
+        self.keywords = []
+        if self.keyword_masking:
+            self.keywords = kwargs.get("keywords", [])
+        self.keytokens = []
+        if self.keytoken_masking:
+            self.keytokens = kwargs.get("keytokens", [])
+        # Store indices corresponding to keytokens
+        vocab = self.tokenizer.get_vocab()
+        self.keytokens = {vocab[item]:1 for item in self.keytokens if item in vocab}
 
         # This is for memcache and shardcache
         self.getcount = 0
@@ -89,18 +104,23 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
             self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)
             self.logger.debug("Masking")
             self.memcached_dataset = self.refresh_mask_ids()
+
         if self.shardcache:
             self.input_length_cache = []
             if not self.shards_exist:
+                self.logger.debug("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
                 self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))-1   # TODO Bug fix if files do not have consistent numbering
+            self.logger.debug("Obtained %i shards"%self.shardsaveindex)
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
             self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
             if self.data_shuffle:
+                self.logger.debug("Shuffling shard load order")
                 random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
             if self.masking:
+                self.logger.debug("Refreshing token masks for loaded shard")    # TODO
                 self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
             self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
@@ -160,6 +180,8 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
                     merged_mask = encoded["attention_mask"]
             else:
                 merged_mask = encoded["attention_mask"]
+            #if self.keytoken_masking:
+
             
             features.append(
                 (encoded["input_ids"], merged_mask, encoded["token_type_ids"], enc_len, 0)  # 0 used to be *sample[1:], i.e. the label
