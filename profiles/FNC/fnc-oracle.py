@@ -26,7 +26,7 @@ class FNCOracleBinning(BaseDeploy):
     # outputs is a list, where the post is in outputs[2], I think????
     # In any case, we need to check ouputs[2] to get the threshold...
     dist = secondary[2]["FastKMP-l2"]["distance"].tolist()
-    idx = secondary[2]["FastKMP-l2"]["idx"].tolist()
+    idx = secondary[2]["FastKMP-l2"]["label"].tolist()
     self.oracle_obj.write("\n".join([",".join([str(item[0]), str(item[1])]) for item in zip(dist, idx)]) + "\n")
 
   def end_of_deployment(self):

@@ -23,7 +23,7 @@ EXECUTION:
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: albert-base-v2
-  EPOCHS: 20
+  EPOCHS: 3
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
