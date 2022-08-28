@@ -91,12 +91,12 @@ class EdnaML(EdnaMLBase):
 
         # Added configuration extentions
         if type(self.config) is list:
-            self.cfg = EdnaMLConfig(config[0])
+            self.cfg = EdnaMLConfig(config[0], **kwargs)
             for cfg_item in config[1:]:
                 msg = self.cfg.extend(cfg_item)
                 print(str(msg))
         else:
-            self.cfg = EdnaMLConfig(config) 
+            self.cfg = EdnaMLConfig(config, **kwargs) 
         
         
         self.saveMetadata = SaveMetadata(

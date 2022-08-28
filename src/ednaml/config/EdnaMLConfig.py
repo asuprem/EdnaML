@@ -46,13 +46,27 @@ class EdnaMLConfig(BaseConfig):
     extensions: List[str]
 
     def __init__(
-        self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()
+        self, config_path: str, defaults: ConfigDefaults = ConfigDefaults(), **kwargs
     ):
         self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
         ydict = self.read_path(config_path)
+        config_inject = kwargs.get("config_inject", None)
+        if config_inject is not None and type(config_inject) is list:
+            ydict = self.inject(ydict, config_inject)
 
         self._updateConfig(ydict, defaults, update_with_defaults=True)
     
+    def config_inject(self, ydict, config_inject: List[List[str]]):
+        for inject in config_inject:
+            inject_key = inject[0]
+            inject_value = inject[1]
+            self._setinject(ydict, inject_key.split("."), inject_value)
+
+    def _setinject(self, d, inject_key, inject_val):
+        for elem in inject_key[:-1]:
+            d = d[elem]
+        d[inject_key[-1]] = inject_val
+
     def _has_extension_verifier(self, ydict, extension, verification):
         return False if ydict.get(extension, verification) == verification else True
 
