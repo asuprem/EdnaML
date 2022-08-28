@@ -15,7 +15,7 @@ DEPLOYMENT:
       classificationclass: ['fn_label']
       maxlen: 512
       shardcache: True
-      shardsize: 5000
+      shardsize: 20000
       shard_replace: False
       shardpath: datashard-artifacts
       shardname: fnc-unmasked-shard

@@ -15,7 +15,7 @@ DEPLOYMENT:
       shard_replace: False
       shardpath: datashard-artifacts
       shardname: fnc-raw-shard
-      shardsize: 5000
+      shardsize: 20000
       shuffle: False
   FP16: False
 
