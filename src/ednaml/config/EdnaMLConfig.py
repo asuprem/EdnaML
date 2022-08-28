@@ -52,8 +52,7 @@ class EdnaMLConfig(BaseConfig):
         ydict = self.read_path(config_path)
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
-            ydict = self.inject(ydict, config_inject)
-
+            self.config_inject(ydict, config_inject)
         self._updateConfig(ydict, defaults, update_with_defaults=True)
     
     def config_inject(self, ydict, config_inject: List[List[str]]):
@@ -66,6 +65,7 @@ class EdnaMLConfig(BaseConfig):
         for elem in inject_key[:-1]:
             d = d[elem]
         d[inject_key[-1]] = inject_val
+
 
     def _has_extension_verifier(self, ydict, extension, verification):
         return False if ydict.get(extension, verification) == verification else True
