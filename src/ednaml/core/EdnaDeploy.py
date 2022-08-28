@@ -105,6 +105,7 @@ class EdnaDeploy(EdnaML):
         if self._testGeneratorInstanceQueueFlag:
             self.test_generator: Generator = self._testGeneratorInstanceQueue
         else:
+            self.logger.info("Generating dataloader `{dataloader}` with `{mode}` mode".format(mode=self.dataloader_mode, dataloader=data_reader.GENERATOR.__class__.__name__))
             self.test_generator: Generator = data_reader.GENERATOR(
                 logger=self.logger,
                 gpus=self.gpus,
