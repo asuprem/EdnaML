@@ -12,7 +12,7 @@ class FNCFilterMaskDataset(torch.utils.data.Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
         self.dataset = dataset  # list of tuples (text, labels, labels)
         self.logger = logger
-        self.file_len = kwargs.get("crawler_secondary").get("linecount", 1)
+        self.file_len = len(dataset)    #kwargs.get("crawler_secondary").get("linecount", 1)
         self.data_shuffle = kwargs.get("data_shuffle", True)
 
         # Options
