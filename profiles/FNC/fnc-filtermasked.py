@@ -342,18 +342,18 @@ class FNCFilterMaskGenerator(TextGenerator):
 
     def build_transforms(self, transform, mode, **kwargs):  #<-- generator kwargs:
         from ednaml.utils import locate_class
-        print("Building Transforms")
+        self.logger.info("Building Transforms")
         tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
         self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
         self.tokenizer = self.tokenizer(**kwargs) 
 
   
     def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
-        print("Building Dataset")
+        self.logger.info("Building Dataset")
         return FNCFilterMaskDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, crawler_secondary = crawler.metadata.get("secondary", {}), **kwargs) # needs maxlen, memcache, mlm_probability
 
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
-        print("Building Dataloader")
+        self.logger.info("Building Dataloader")
         return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
                                         shuffle=kwargs.get("shuffle", True), num_workers = self.workers, 
                                        collate_fn=self.collate_fn)
