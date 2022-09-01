@@ -59,12 +59,19 @@ class EdnaMLConfig(BaseConfig):
         for inject in config_inject:
             inject_key = inject[0]
             inject_value = inject[1]
-            self._setinject(ydict, inject_key.split("."), inject_value)
+            if len(inject) == 3:
+                inject_kwarg = inject[2]
+            else:
+                inject_kwarg = None
+            self._setinject(ydict, inject_key.split("."), inject_value, inject_kwarg)
 
-    def _setinject(self, d, inject_key, inject_val):
+    def _setinject(self, d, inject_key, inject_val, inject_kwarg = None):
         for elem in inject_key[:-1]:
             d = d[elem]
-        d[inject_key[-1]] = inject_val
+        if inject_kwarg is not None:
+            d[inject_key[-1]][inject_kwarg] = inject_val    
+        else:
+            d[inject_key[-1]] = inject_val
 
 
     def _has_extension_verifier(self, ydict, extension, verification):

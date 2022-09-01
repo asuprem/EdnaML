@@ -121,7 +121,7 @@ class FastKMP(ModelPlugin):
                 etime = round(time.time() - stime, 2)
                 print("\t[{elapse} s] -- Completed {iters} iterations".format(iters=iters, elapse = etime))
                 stime = time.time()
-        print("\tCompeted MBKM for k={kval}, with inertia: {inertia}".format(kval=self.iterations, inertia = kmeans.inertia_))
+        print("\tCompeted MBKM for k={kval}, with inertia: {inertia}".format(kval=self.proxies, inertia = kmeans.inertia_))
         data.close()
         self.cluster_means = torch.tensor(kmeans.cluster_centers_)
         self.inertia = kmeans.inertia_

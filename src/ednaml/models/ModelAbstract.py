@@ -236,7 +236,7 @@ class ModelAbstract(nn.Module):
         elif self.plugin_hook == "activated":
             self.usable_plugins = [item for item in self.plugins if self.plugins[item].activated]
         else:
-            raise ValueError("Unknown calue for `plugin_hook`: %s"%self.plugin_hook)
+            raise ValueError("Unknown value for `plugin_hook`: %s"%self.plugin_hook)
 
     def pre_epoch_hook(self, epoch: int = 0):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
