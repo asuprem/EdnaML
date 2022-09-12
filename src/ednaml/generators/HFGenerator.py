@@ -125,7 +125,7 @@ class HFDataset(torch.utils.data.Dataset):
         self.keyword_masking = kwargs.get("keyword_mask", True)
         self.token_masking = kwargs.get("token_mask", False)
         self.keytoken_masking = kwargs.get("keytoken_mask", False)
-        self.keytoken_masking = kwargs.get("stopword_mask", False)
+        self.stopword_masking = kwargs.get("stopword_mask", False)
         
         
         # Tokenizer and lengths
@@ -144,6 +144,7 @@ class HFDataset(torch.utils.data.Dataset):
         # Store indices corresponding to keytokens
         vocab = self.tokenizer.get_vocab()
         self.keytokens = {vocab[item]:1 for item in self.keytokens if item in vocab}
+        self.keytokens_tensor = torch.tensor(list(self.keytokens.keys())).unsqueeze(0).T
 
         # This is for memcache and shardcache
         self.getcount = 0
@@ -238,53 +239,58 @@ class HFDataset(torch.utils.data.Dataset):
                     random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
 
-            if self.masking:
-                self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
-
             self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:
                 random.shuffle(self.shard_internal_shuffle)
+            if self.masking:
+                self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
         #shardindex = idx % self.current_shardsize
         return self.sharded_dataset[self.shard_internal_shuffle[self.getcount]]
 
     def sharded_convert_to_features(self, dataset, tokenizer, maxlen):
         features = []
         shardsaveindex = 0
-        self.input_length_cache = []
+        input_length_cache = []
+        input_word_length_cache = []
         self.logger.info("Generating shards")
         pbar = tqdm(total=int(self.file_len/self.shardsize)+1)
         for idx, sample in enumerate(dataset):
             # Identify the indices of specific keywords to mask
+            #if self.keyword_masking or self.word_masking:
+            word_tokens = sample["full_text"].split(" ")
+            encoded_word_length = len(word_tokens)
+            
             if self.keyword_masking:
-                word_tokens = sample["full_text"].split(" ")
                 keyword_idx = []
                 for widx,item in enumerate(word_tokens):
                     if sum([1 if kword in item else 0 for kword in self.keywords]) > 0:
                         keyword_idx.append(widx) # i.e. find word index for each keyword, if it exists
 
-
             encoded = self.tokenizer(sample["full_text"], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
-            enc_len = torch.sum(encoded["attention_mask"])
-            self.input_length_cache.append(enc_len)
+            encoded_token_length = torch.sum(encoded["attention_mask"])
+            encoded_word_ids = encoded.word_ids(0)
+            input_length_cache.append(encoded_token_length)
+            input_word_length_cache.append(encoded_word_length)
             # create a list of lists. Each sublist is a mask for each keyword. So, we can AND all sublists to get the overall mask.
             # Edge cases -- no keywords: 
+            merged_mask = encoded["attention_mask"]
             if self.keyword_masking:
-                match_idxs = torch.LongTensor([[wid != keyword_idx[kidx] for wid in encoded.word_ids(0)] for kidx in range(len(keyword_idx))])
+                match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in encoded_word_ids] for idx_of_keyword in keyword_idx])
                 if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
                     match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
-                    merged_mask = torch.where(match_idxs == 0, match_idxs, encoded["attention_mask"])
-                else:
-                    merged_mask = encoded["attention_mask"]
-            else:
-                merged_mask = encoded["attention_mask"]
-            
+                    merged_mask = torch.where(match_idxs == 0, match_idxs, merged_mask)
+
             if self.keytoken_masking:
                 # Dict with relevant keyword idxs...self.keytokens 
-                # TODO implement keytoken masking
+                # First set 1 for all tokens, and 0 for masking tokens
+                match_idxs = encoded["input_ids"].repeat((len(self.keytokens),1))
+                match_idxs = torch.all(match_idxs != self.keytokens_tensor, dim=0, keepdim=True)
+                merged_mask = torch.where(match_idxs == 0, match_idxs, merged_mask)
+
             
             features.append(
-                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], enc_len, 0)  # 0 used to be *sample[1:], i.e. the label
+                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], encoded_token_length, encoded_word_length, encoded_word_ids, 0)  # 0 used to be *sample[1:], i.e. the label
             )
 
             if (idx+1)%self.shardsize == 0: # we need to save this shard.
@@ -293,17 +299,20 @@ class HFDataset(torch.utils.data.Dataset):
                 all_attention_mask = torch.cat([f[1] for f in features])
                 all_token_type_ids = torch.cat([f[2] for f in features])
                 all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
-                all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
+                all_word_lens = torch.tensor([f[4] for f in features], dtype=torch.long)
+                all_word_ids = torch.tensor([f[5] for f in features], dtype=torch.long)
+                all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
                 all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
                 # Propagate input masking to output masking
                 for midx in range(all_attention_mask.shape[0]):
-                    masked_index = torch.where(all_attention_mask[midx][:self.input_length_cache[midx]]==0)[0]
+                    masked_index = torch.where(all_attention_mask[midx][:input_length_cache[midx]]==0)[0]
                     all_masklm[midx][masked_index] = all_input_ids[midx][masked_index] # Set the masking labels for these to the actual word index from all_input_ids
-                self.input_length_cache = []
+                input_length_cache = []
+                input_word_length_cache = []
 
                 # SAVE HERE
-                self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
+                self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels),
                         shard_index = shardsaveindex)
                 shardsaveindex += 1
                 features = []
@@ -314,7 +323,9 @@ class HFDataset(torch.utils.data.Dataset):
             all_attention_mask = torch.cat([f[1] for f in features])
             all_token_type_ids = torch.cat([f[2] for f in features])
             all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
-            all_labels = torch.tensor([f[4] for f in features], dtype=torch.long)
+            all_word_lens = torch.tensor([f[4] for f in features], dtype=torch.long)
+            all_word_ids = torch.tensor([f[5] for f in features], dtype=torch.long)
+            all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
             all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
             # Propagate input masking to output masking
@@ -324,7 +335,7 @@ class HFDataset(torch.utils.data.Dataset):
             self.input_length_cache = []
 
             # SAVE HERE
-            self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels),
+            self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels),
                     shard_index = shardsaveindex)
             shardsaveindex += 1
             features = []
@@ -368,13 +379,56 @@ class HFDataset(torch.utils.data.Dataset):
         # for each element, we get a set of indices that are randomly selected...
         # Also, -2 and +1 take care of [cls] and [sep] not being masked
         return [(torch.randperm(inplength-2)+1)[:int(inplength*self.mlm)]  for inplength in input_length_cache]
-
     
-    def sharded_refresh_mask_ids(self):
-        pass
+    def build_whole_word_mask_ids(self, input_length_cache, word_ids):
+        # for each element, we get a set of indices that are randomly selected...
+        # Also, -2 and +1 take care of [cls] and [sep] not being masked
+        return [(torch.randperm(word_length)+1)[:int(word_length*self.mlm)]  for word_length in input_length_cache]
+        
 
-    def sharded_build_mask_ids(self, input_length_cache):
-        pass
+        # So, given word_len, we can extract which ids need to be masked
+        # But, now we need a way to, given the ID that needs to be masked, get back the original words.
+    
+    def sharded_refresh_mask_ids(self, sharded_dataset: TensorDataset):
+        self.logger.debug("Refreshing mask ids")
+        #                   0               1                   2                 3           4           5             6            7
+        #TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels)
+        if self.token_masking or self.word_masking:
+            merged_masklm = sharded_dataset[3].clone()
+            all_attention_mask = sharded_dataset[1].clone()
+            if self.token_masking:
+                self.logger.debug("Performing random token masking")
+                mask_ids = self.build_mask_ids(sharded_dataset[4])
+                
+                
+                all_masklm = sharded_dataset[3].clone()
+                all_input_ids = sharded_dataset[0]
+
+                for idx in range(self.current_shardsize):
+                    all_attention_mask[idx][mask_ids[idx]] = 0 # Set the masking words to 0, so we do not attend to it during prediction
+                    all_masklm[idx][mask_ids[idx]] = all_input_ids[idx][mask_ids[idx]] # Set the masking labels for these to the actual word index from all_input_ids
+                merged_masklm *= all_masklm
+            if self.word_masking:
+                self.logger.debug("Performing random word masking")
+                # TODO
+                masking_words = self.build_whole_word_mask_ids(sharded_dataset[5])
+                
+                all_masklm = sharded_dataset[3].clone()
+                all_input_ids = sharded_dataset[0]
+                
+                for idx in range(self.current_shardsize):
+                
+                    match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in sharded_dataset[6]] for idx_of_keyword in masking_words[idx]])
+                    if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
+                        match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
+                        merged_mask = torch.where(match_idxs == 0, match_idxs, all_attention_mask)
+                        
+                        all_attention_mask[idx][merged_mask] = 0    # Set the masking words to 0, so we do not attend during prediction
+                        all_masklm[idx] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
+                merged_masklm *= all_masklm
+            return TensorDataset(all_input_ids, all_attention_mask, sharded_dataset[2], merged_masklm, sharded_dataset[4], sharded_dataset[5], sharded_dataset[6], sharded_dataset[7])
+        else:
+            return sharded_dataset
 
 
     def convert_to_features(self, dataset, tokenizer, maxlen):
@@ -428,44 +482,6 @@ class HFDataset(torch.utils.data.Dataset):
     def uncachedget(self, idx):
         return 
 
-        tokens = self.tokenizer.tokenize(self.dataset[idx][0])
-        if len(tokens) > maxlen - 2:
-            tokens = tokens[0:(maxlen - 2)]
-
-        finaltokens = ["[CLS]"]
-        token_type_ids = [0]
-        for token in tokens:
-            finaltokens.append(token)
-            token_type_ids.append(0)
-        finaltokens.append("[SEP]")
-        token_type_ids.append(0)
-
-        input_ids = self.tokenizer.convert_tokens_to_ids(finaltokens)
-        attention_mask = [1]*len(input_ids)
-        input_len = len(input_ids)
-
-        while len(input_ids) < max_seq_length:
-            input_ids.append(0)
-            attention_mask.append(0)
-            token_type_ids.append(0) 
-
-        assert len(input_ids) == max_seq_length
-        assert len(attention_mask) == max_seq_length
-        assert len(token_type_ids) == max_seq_length
-        
-        return (input_ids, attention_mask, token_type_ids, input_len, self.dataset[idx][1])
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -482,49 +498,49 @@ class HFGenerator(TextGenerator):
         TODO
     """
 
-  def build_transforms(self, transform, mode, **kwargs):  #<-- generator kwargs:
-    """Use the GENERATOR_KWARGS to identify the tokenizer
-    class. For now, only built-in tokenizers are supported.
+    def build_transforms(self, transform, mode, **kwargs):  #<-- generator kwargs:
+        """Use the GENERATOR_KWARGS to identify the tokenizer
+        class. For now, only built-in tokenizers are supported.
 
-    Args:
-        transform (_type_): Unused. It is necessary here as a dummy argument in 
-            constructor for the core ednaml.generator API.
-        mode (_type_): Whether to use train or test mode. Useful when selecting
-            the correct subset from crawler.
-    """
-    from ednaml.utils import locate_class
-    print("Building Transforms")
-    tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
-    self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
-    self.tokenizer = self.tokenizer(**kwargs) # vocab_file, do_lower_case, spm_model_file
+        Args:
+            transform (_type_): Unused. It is necessary here as a dummy argument in 
+                constructor for the core ednaml.generator API.
+            mode (_type_): Whether to use train or test mode. Useful when selecting
+                the correct subset from crawler.
+        """
+        from ednaml.utils import locate_class
+        print("Building Transforms")
+        tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
+        self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
+        self.tokenizer = self.tokenizer(**kwargs) # vocab_file, do_lower_case, spm_model_file
 
-  
-  def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
-    print("Building Dataset")
-    return HFDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
+    
+    def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
+        print("Building Dataset")
+        return HFDataset(self.logger, crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
 
-  def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
-    print("Building Dataloader")
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
-                                        shuffle=kwargs.get("shuffle", False), num_workers = self.workers, 
-                                       collate_fn=self.collate_fn)
+    def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
+        print("Building Dataloader")
+        return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
+                                            shuffle=kwargs.get("shuffle", False), num_workers = self.workers, 
+                                        collate_fn=self.collate_fn)
 
-  def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
-    label_dict = {
-        item: {"classes": crawler.metadata[mode]["classes"][item]}
-        for item in kwargs.get("classificationclass", ["color"])
-    }
-    return LabelMetadata(label_dict=label_dict)
+    def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
+        label_dict = {
+            item: {"classes": crawler.metadata[mode]["classes"][item]}
+            for item in kwargs.get("classificationclass", ["color"])
+        }
+        return LabelMetadata(label_dict=label_dict)
 
-  def collate_fn(self, batch):
-    all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
-    max_len = max(all_lens).item()
-    all_input_ids = all_input_ids[:, :max_len]
-    all_attention_mask = all_attention_mask[:, :max_len]
-    all_token_type_ids = all_token_type_ids[:, :max_len]
-    all_masklm = all_masklm[:, :max_len]
+    def collate_fn(self, batch):
+        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
+        max_len = max(all_lens).item()
+        all_input_ids = all_input_ids[:, :max_len]
+        all_attention_mask = all_attention_mask[:, :max_len]
+        all_token_type_ids = all_token_type_ids[:, :max_len]
+        all_masklm = all_masklm[:, :max_len]
 
-    return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
+        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
 
 
 
