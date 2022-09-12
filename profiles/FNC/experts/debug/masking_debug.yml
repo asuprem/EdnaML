@@ -22,8 +22,8 @@ EXECUTION:
       keytokens: []
       word_masking: False
       token_masking: False
-      shuffle: True
-      data_shuffle: True
+      shuffle: False
+      data_shuffle: False
     GENERATOR: HFGenerator
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
