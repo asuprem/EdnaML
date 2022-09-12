@@ -24,7 +24,7 @@ EXECUTION:
       token_masking: False
       shuffle: True
       data_shuffle: True
-      
+    GENERATOR: HFGenerator
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: albert-base-v2
