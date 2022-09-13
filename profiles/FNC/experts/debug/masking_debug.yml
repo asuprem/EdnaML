@@ -10,9 +10,9 @@ EXECUTION:
       maxlen: 512
       shardcache: True
       shardsize: 500
-      shard_replace: False
+      shard_replace: True
       shardpath: datashard-artifacts
-      shardname: efnd-shard
+      shardname: efnd-shard-debug
       mlm_probability: 0.15
       masking: True
       keyword_mask: True
