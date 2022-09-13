@@ -2,6 +2,7 @@ from glob import glob
 import random
 import torch, os, shutil
 from torch.utils.data import TensorDataset
+import numpy as np
 from tqdm import tqdm
 class HFDataset(torch.utils.data.Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
@@ -195,7 +196,7 @@ class HFDataset(torch.utils.data.Dataset):
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
             if self.masking:
                 self.logger.debug("Refreshing token masks for loaded shard")    # TODO
-                self.sharded_dataset = self.refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
+                self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
             self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:
@@ -258,7 +259,7 @@ class HFDataset(torch.utils.data.Dataset):
         for idx, sample in enumerate(dataset):
             # Identify the indices of specific keywords to mask
             #if self.keyword_masking or self.word_masking:
-            word_tokens = sample["full_text"].split(" ")
+            word_tokens = sample[0].split(" ")
             encoded_word_length = len(word_tokens)
             
             if self.keyword_masking:
@@ -267,7 +268,7 @@ class HFDataset(torch.utils.data.Dataset):
                     if sum([1 if kword in item else 0 for kword in self.keywords]) > 0:
                         keyword_idx.append(widx) # i.e. find word index for each keyword, if it exists
 
-            encoded = self.tokenizer(sample["full_text"], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
+            encoded = self.tokenizer(sample[0], return_tensors="pt", padding="max_length", max_length = maxlen, truncation = True, return_length = True)
             encoded_token_length = torch.sum(encoded["attention_mask"])
             encoded_word_ids = encoded.word_ids(0)
             input_length_cache.append(encoded_token_length)
@@ -300,7 +301,7 @@ class HFDataset(torch.utils.data.Dataset):
                 all_token_type_ids = torch.cat([f[2] for f in features])
                 all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
                 all_word_lens = torch.tensor([f[4] for f in features], dtype=torch.long)
-                all_word_ids = torch.tensor([f[5] for f in features], dtype=torch.long)
+                all_word_ids = torch.tensor(np.nan_to_num(np.array([f[5] for f in features], dtype=float),nan=-1),dtype=torch.long)
                 all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
                 all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
@@ -324,15 +325,15 @@ class HFDataset(torch.utils.data.Dataset):
             all_token_type_ids = torch.cat([f[2] for f in features])
             all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
             all_word_lens = torch.tensor([f[4] for f in features], dtype=torch.long)
-            all_word_ids = torch.tensor([f[5] for f in features], dtype=torch.long)
+            all_word_ids = torch.tensor(np.nan_to_num(np.array([f[5] for f in features], dtype=float),nan=-1),dtype=torch.long)
             all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
             all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
 
             # Propagate input masking to output masking
             for midx in range(all_attention_mask.shape[0]):
-                masked_index = torch.where(all_attention_mask[midx][:self.input_length_cache[midx]]==0)[0]
+                masked_index = torch.where(all_attention_mask[midx][:input_length_cache[midx]]==0)[0]
                 all_masklm[midx][masked_index] = all_input_ids[midx][masked_index] # Set the masking labels for these to the actual word index from all_input_ids
-            self.input_length_cache = []
+            input_length_cache = []
 
             # SAVE HERE
             self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels),

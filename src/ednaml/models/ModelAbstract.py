@@ -148,7 +148,7 @@ class ModelAbstract(nn.Module):
             secondary_outputs = (secondary_outputs, secondary_output_queue_pre, secondary_output_queue_post)
         return feature_logits, features, secondary_outputs
 
-    def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:
+    def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:   # Return Logits, Features, Secondary Outputs
 
         raise NotImplementedError()
 
