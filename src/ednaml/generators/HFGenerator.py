@@ -48,7 +48,7 @@ class HFDataset(torch.utils.data.Dataset):
             maxlen: The maximum length of the text to encode. Usually 512.
             mlm_probability: The probability of masking if using word and token masking.
                 Usually around 0.15
-            masking: Whether to use any masking. Specific masking options are next.
+            masking (bool): Whether to use any masking. Specific masking options are next. Can also be `train_only` for masking during training only.
             token_mask: Whether to use random token masking, with `mlm_probability`
             word_mask: Whether to use random word masking, with `mlm_probability`
             keytoken_mask: Whether to use specific token masking, with `keytokens`
@@ -134,6 +134,8 @@ class HFDataset(torch.utils.data.Dataset):
         self.maxlen = kwargs.get("maxlen")
         self.mlm = kwargs.get("mlm_probability", 0.2)
         self.masking = kwargs.get("masking", mode=="train")
+        if self.masking == "train_only":
+            self.masking = mode=="train"
 
 
         self.keywords = []
@@ -164,7 +166,6 @@ class HFDataset(torch.utils.data.Dataset):
         
         self.getter = self.uncachedget  # for each entry, directly convert to features and return
         if self.cache:
-            raise NotImplementedError()
             self.getter = self.diskget
         elif self.memcache:
             self.getter = self.memget
@@ -176,9 +177,11 @@ class HFDataset(torch.utils.data.Dataset):
             self.logger.debug("Started mem caching")
             self.input_length_cache = []
             self.logger.debug("Converting to features")
-            self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)
+            # For memcache, save dataset inside self.cached_dataset.
+            # Same for cache. Difference being, cached_dataset is either in memory or on disk!
+            self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen, cache=True)
             self.logger.debug("Masking")
-            self.memcached_dataset = self.refresh_mask_ids()
+            self.memcached_dataset = self.refresh_mask_ids(cache=True)
 
         if self.shardcache:
             self.input_length_cache = []
@@ -194,10 +197,10 @@ class HFDataset(torch.utils.data.Dataset):
                 self.logger.debug("Shuffling shard load order")
                 random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
+            self.current_shardsize = len(self.sharded_dataset)
             if self.masking:
                 self.logger.debug("Refreshing token masks for loaded shard")    # TODO
                 self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
-            self.current_shardsize = len(self.sharded_dataset)
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:
                 random.shuffle(self.shard_internal_shuffle)
@@ -263,7 +266,7 @@ class HFDataset(torch.utils.data.Dataset):
             word_tokens = sample[0].split(" ")
             encoded_word_length = len(word_tokens)
             
-            if self.keyword_masking:
+            if self.masking and self.keyword_masking:
                 keyword_idx = []
                 for widx,item in enumerate(word_tokens):
                     if sum([1 if kword in item else 0 for kword in self.keywords]) > 0:
@@ -277,13 +280,13 @@ class HFDataset(torch.utils.data.Dataset):
             # create a list of lists. Each sublist is a mask for each keyword. So, we can AND all sublists to get the overall mask.
             # Edge cases -- no keywords: 
             merged_mask = encoded["attention_mask"]
-            if self.keyword_masking:
+            if self.masking and self.keyword_masking:
                 match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in encoded_word_ids] for idx_of_keyword in keyword_idx])
                 if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
                     match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
                     merged_mask = torch.where(match_idxs == 0, match_idxs, merged_mask)
 
-            if self.keytoken_masking:
+            if self.masking and self.keytoken_masking:
                 # Dict with relevant keyword idxs...self.keytokens 
                 # First set 1 for all tokens, and 0 for masking tokens
                 match_idxs = encoded["input_ids"].repeat((len(self.keytokens),1))
@@ -382,7 +385,7 @@ class HFDataset(torch.utils.data.Dataset):
         # Also, -2 and +1 take care of [cls] and [sep] not being masked
         return [(torch.randperm(inplength-2)+1)[:int(inplength*self.mlm)]  for inplength in input_length_cache]
     
-    def build_whole_word_mask_ids(self, input_length_cache, word_ids):
+    def build_whole_word_mask_ids(self, input_length_cache):
         # for each element, we get a set of indices that are randomly selected...
         # Also, -2 and +1 take care of [cls] and [sep] not being masked
         return [(torch.randperm(word_length)+1)[:int(word_length*self.mlm)]  for word_length in input_length_cache]
@@ -392,32 +395,31 @@ class HFDataset(torch.utils.data.Dataset):
         # But, now we need a way to, given the ID that needs to be masked, get back the original words.
     
     def sharded_refresh_mask_ids(self, sharded_dataset: TensorDataset):
-        import pdb
-        pdb.set_trace()
         self.logger.debug("Refreshing mask ids")
         #                   0               1                   2                 3           4           5             6            7
         #TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels)
         if self.token_masking or self.word_masking:
-            merged_masklm =  torch.stack([shard[3] for shard in sharded_dataset])
+            #merged_masklm =  torch.stack([shard[3] for shard in sharded_dataset])
+            all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
             all_attention_mask = torch.stack([shard[1] for shard in sharded_dataset])
             if self.token_masking:
                 self.logger.debug("Performing random token masking")
-                mask_ids = self.build_mask_ids(sharded_dataset[4])
+                mask_ids = self.build_mask_ids(torch.stack([shard[4] for shard in sharded_dataset]))
                 
                 
-                all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
+                #all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
                 all_input_ids = torch.stack([shard[0] for shard in sharded_dataset])
 
                 for idx in range(self.current_shardsize):
                     all_attention_mask[idx][mask_ids[idx]] = 0 # Set the masking words to 0, so we do not attend to it during prediction
                     all_masklm[idx][mask_ids[idx]] = all_input_ids[idx][mask_ids[idx]] # Set the masking labels for these to the actual word index from all_input_ids
-                merged_masklm *= all_masklm
+                #merged_masklm *= all_masklm
             if self.word_masking:
                 self.logger.debug("Performing random word masking")
                 # TODO
                 masking_words = self.build_whole_word_mask_ids(torch.stack([shard[5] for shard in sharded_dataset]))
                 
-                all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
+                #all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
                 all_input_ids = torch.stack([shard[0] for shard in sharded_dataset])
                 all_word_ids = torch.stack([shard[6] for shard in sharded_dataset])
                 for idx in range(self.current_shardsize):
@@ -425,12 +427,13 @@ class HFDataset(torch.utils.data.Dataset):
                     match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in all_word_ids[idx]] for idx_of_keyword in masking_words[idx]])
                     if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
                         match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
-                        merged_mask = torch.where(match_idxs == 0, match_idxs, all_attention_mask)
+                        merged_mask = torch.where(match_idxs[0]==0)[0]
                         
                         all_attention_mask[idx][merged_mask] = 0    # Set the masking words to 0, so we do not attend during prediction
-                        all_masklm[idx] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
-                merged_masklm *= all_masklm
-            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[3] for shard in sharded_dataset]), merged_masklm, 
+                        all_masklm[idx][merged_mask] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
+                
+                #merged_masklm *= all_masklm
+            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[3] for shard in sharded_dataset]), all_masklm, 
                 torch.stack([shard[4] for shard in sharded_dataset]), 
                 torch.stack([shard[5] for shard in sharded_dataset]), 
                 torch.stack([shard[6] for shard in sharded_dataset]), 
@@ -439,7 +442,16 @@ class HFDataset(torch.utils.data.Dataset):
             return sharded_dataset
 
 
-    def convert_to_features(self, dataset, tokenizer, maxlen):
+    def convert_to_features(self, dataset, tokenizer, maxlen, cache=False):
+        """Preprocess the dataset into text features. If cache is True, save the preprocessed data into a local h5 file.
+        Else, save in memory.
+
+        Args:
+            dataset (_type_): _description_
+            tokenizer (_type_): _description_
+            maxlen (_type_): _description_
+            cache (bool, optional): _description_. Defaults to False.
+        """
         features = []
         self.input_length_cache = []
         for idx, sample in enumerate(dataset):
