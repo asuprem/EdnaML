@@ -33,3 +33,4 @@ class HFAutoModel(ModelAbstract):
         response = self.classifier(x,attention_mask = attention_mask, token_type_ids = token_type_ids, position_ids=position_ids, head_mask=head_mask )
 
         return response.logits, None, [response.attentions]
+        

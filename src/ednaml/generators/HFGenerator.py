@@ -534,12 +534,13 @@ class HFGenerator(TextGenerator):
         return LabelMetadata(label_dict=label_dict)
 
     def collate_fn(self, batch):
-        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_labels  = map(torch.stack, zip(*batch))
+        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels = map(torch.stack, zip(*batch))
         max_len = max(all_lens).item()
         all_input_ids = all_input_ids[:, :max_len]
         all_attention_mask = all_attention_mask[:, :max_len]
         all_token_type_ids = all_token_type_ids[:, :max_len]
         all_masklm = all_masklm[:, :max_len]
+        # Right now, we don't care that much about all_word_ids or all_word_lens
 
         return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
 
