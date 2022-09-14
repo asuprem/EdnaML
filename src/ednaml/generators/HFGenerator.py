@@ -230,6 +230,7 @@ class HFDataset(torch.utils.data.Dataset):
         """
         # get entry from already loaded shardcache. so idx is incremented one by one -- No shuffling in data loader.
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
+        self.last_idx = idx
         self.getcount += 1
         if self.getcount == self.current_shardsize:   # we have exhausted examples in this shard
             self.getcount = 0
@@ -391,19 +392,21 @@ class HFDataset(torch.utils.data.Dataset):
         # But, now we need a way to, given the ID that needs to be masked, get back the original words.
     
     def sharded_refresh_mask_ids(self, sharded_dataset: TensorDataset):
+        import pdb
+        pdb.set_trace()
         self.logger.debug("Refreshing mask ids")
         #                   0               1                   2                 3           4           5             6            7
         #TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels)
         if self.token_masking or self.word_masking:
-            merged_masklm = sharded_dataset[3].clone()
-            all_attention_mask = sharded_dataset[1].clone()
+            merged_masklm =  torch.stack([shard[3] for shard in sharded_dataset])
+            all_attention_mask = torch.stack([shard[1] for shard in sharded_dataset])
             if self.token_masking:
                 self.logger.debug("Performing random token masking")
                 mask_ids = self.build_mask_ids(sharded_dataset[4])
                 
                 
-                all_masklm = sharded_dataset[3].clone()
-                all_input_ids = sharded_dataset[0]
+                all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
+                all_input_ids = torch.stack([shard[0] for shard in sharded_dataset])
 
                 for idx in range(self.current_shardsize):
                     all_attention_mask[idx][mask_ids[idx]] = 0 # Set the masking words to 0, so we do not attend to it during prediction
@@ -412,14 +415,14 @@ class HFDataset(torch.utils.data.Dataset):
             if self.word_masking:
                 self.logger.debug("Performing random word masking")
                 # TODO
-                masking_words = self.build_whole_word_mask_ids(sharded_dataset[5])
+                masking_words = self.build_whole_word_mask_ids(torch.stack([shard[5] for shard in sharded_dataset]))
                 
-                all_masklm = sharded_dataset[3].clone()
-                all_input_ids = sharded_dataset[0]
-                
+                all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
+                all_input_ids = torch.stack([shard[0] for shard in sharded_dataset])
+                all_word_ids = torch.stack([shard[6] for shard in sharded_dataset])
                 for idx in range(self.current_shardsize):
                 
-                    match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in sharded_dataset[6]] for idx_of_keyword in masking_words[idx]])
+                    match_idxs = torch.LongTensor([[word_idx != idx_of_keyword for word_idx in all_word_ids[idx]] for idx_of_keyword in masking_words[idx]])
                     if match_idxs.shape[0] > 0: #i.e. we have a mask for keywords, so we will and everything
                         match_idxs = torch.all(match_idxs, dim=0, keepdim=True)
                         merged_mask = torch.where(match_idxs == 0, match_idxs, all_attention_mask)
@@ -427,7 +430,11 @@ class HFDataset(torch.utils.data.Dataset):
                         all_attention_mask[idx][merged_mask] = 0    # Set the masking words to 0, so we do not attend during prediction
                         all_masklm[idx] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
                 merged_masklm *= all_masklm
-            return TensorDataset(all_input_ids, all_attention_mask, sharded_dataset[2], merged_masklm, sharded_dataset[4], sharded_dataset[5], sharded_dataset[6], sharded_dataset[7])
+            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[3] for shard in sharded_dataset]), merged_masklm, 
+                torch.stack([shard[4] for shard in sharded_dataset]), 
+                torch.stack([shard[5] for shard in sharded_dataset]), 
+                torch.stack([shard[6] for shard in sharded_dataset]), 
+                torch.stack([shard[7] for shard in sharded_dataset]))
         else:
             return sharded_dataset
 

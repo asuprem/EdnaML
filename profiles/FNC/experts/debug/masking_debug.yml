@@ -19,8 +19,8 @@ EXECUTION:
       keywords: ["doll"]
       keytoken_mask: False
       keytokens: ["▁better", "▁blow"]
-      word_masking: False
-      token_masking: False
+      word_mask: False
+      token_mask: False
       shuffle: False
       data_shuffle: False
     GENERATOR: HFGenerator
