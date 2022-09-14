@@ -18,7 +18,7 @@ EXECUTION:
       keyword_mask: True
       keywords: ["doll"]
       keytoken_mask: False
-      keytokens: []
+      keytokens: ["▁better", "▁blow"]
       word_masking: False
       token_masking: False
       shuffle: False
