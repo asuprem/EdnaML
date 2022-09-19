@@ -1,0 +1,25 @@
+EXECUTION:
+  DATAREADER:
+    DATAREADER: HFReader
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-filtermask-shard
+      mlm_probability: 0.15
+      masking: False
+      shuffle: True
+      data_shuffle: True
+      keyword_mask: True
+      keywords: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
+        "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+
+TRANSFORMATION:
+  BATCH_SIZE: 16
+
