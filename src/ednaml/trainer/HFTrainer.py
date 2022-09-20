@@ -71,7 +71,7 @@ class HFTrainer(BaseTrainer):
                             token_type_ids=all_token_type_ids,
                             attention_mask=all_attention_mask,
                             output_attentions = True,
-                            secondary_inputs=all_annotations       # NOT for HFTrainer! because it only expects specific inputs!
+                            secondary_inputs=all_annotations
                         )
                 raw_logits = outputs[0]
                 raw_features = outputs[1]
