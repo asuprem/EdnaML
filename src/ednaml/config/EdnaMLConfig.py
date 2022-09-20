@@ -66,7 +66,12 @@ class EdnaMLConfig(BaseConfig):
                 inject_kwarg = inject[2]
             else:
                 inject_kwarg = None
-            self._setinject(ydict, inject_key.split("."), inject_value, inject_kwarg)
+            try:
+                self._setinject(ydict, inject_key.split("."), inject_value, inject_kwarg)
+                print("Injected key-value pair:  {key}, {value}".format(key=inject_key, value=inject_value))
+            except KeyError:
+                pass
+
 
     def _setinject(self, d, inject_key, inject_val, inject_kwarg = None):
         for elem in inject_key[:-1]:
@@ -198,7 +203,7 @@ class EdnaMLConfig(BaseConfig):
         elif mode == "dict":
             return dicta
 
-    def extend(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults()):
+    def extend(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults(), **kwargs):
         """Extends the existing config object with fields from the provided config
 
         Args:
@@ -209,14 +214,16 @@ class EdnaMLConfig(BaseConfig):
             config_path = [config_path]
         if type(config_path) is list:
             for cpath in config_path:
-                responses[cpath] = self._extend(cpath, defaults)
+                responses[cpath] = self._extend(cpath, defaults, **kwargs)
         else:
             raise ValueError("Expected `list`, got %s"%type(config_path))
 
         return responses
 
-    def _extend(self, config_path, defaults: ConfigDefaults):
+    def _extend(self, config_path, defaults: ConfigDefaults, **kwargs):
         ydict = self.read_path(config_path)
+        if config_inject is not None and type(config_inject) is list:
+            self.config_inject(ydict, config_inject)
         added_extensions = self._updateConfig(ydict, defaults, update_with_defaults=False)
         return "Extended with : %s"%", ".join([item[0] for item in added_extensions if len(item)>0])
 

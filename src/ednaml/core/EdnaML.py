@@ -93,7 +93,7 @@ class EdnaML(EdnaMLBase):
         if type(self.config) is list:
             self.cfg = EdnaMLConfig(config[0], **kwargs)
             for cfg_item in config[1:]:
-                msg = self.cfg.extend(cfg_item)
+                msg = self.cfg.extend(cfg_item, **kwargs)
                 print(str(msg))
         else:
             self.cfg = EdnaMLConfig(config, **kwargs) 
