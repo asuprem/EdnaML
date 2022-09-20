@@ -222,6 +222,7 @@ class EdnaMLConfig(BaseConfig):
 
     def _extend(self, config_path, defaults: ConfigDefaults, **kwargs):
         ydict = self.read_path(config_path)
+        config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
         added_extensions = self._updateConfig(ydict, defaults, update_with_defaults=False)
