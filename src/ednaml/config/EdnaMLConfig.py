@@ -51,6 +51,9 @@ class EdnaMLConfig(BaseConfig):
         self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
         ydict = self.read_path(config_path)
         config_inject = kwargs.get("config_inject", None)
+
+
+        
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
         self._updateConfig(ydict, defaults, update_with_defaults=True)
