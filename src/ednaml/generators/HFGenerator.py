@@ -596,7 +596,7 @@ class HFGenerator(TextGenerator):
         all_masklm = all_masklm[:, :max_len]
         # Right now, we don't care that much about all_word_ids or all_word_lens
 
-        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_annotations, all_labels, 
+        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_annotations, all_labels
 
 
 

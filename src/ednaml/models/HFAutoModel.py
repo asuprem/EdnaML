@@ -3,7 +3,7 @@ from typing import Any, List, Tuple
 import torch
 from ednaml.utils import layers, locate_class
 from torch import TensorType, nn
-from transformers import AutoModel
+
 
 class HFAutoModel(ModelAbstract):
     """For Sequence Classification only.
@@ -20,6 +20,12 @@ class HFAutoModel(ModelAbstract):
     Args:
         ModelAbstract (_type_): _description_
 
+    MODEL_KWARGS:
+        auto_class: Which of the HuggingFace AutoModels to use. Choose from:
+            AutoModel, AutoModelForPreTraining, AutoModelWithMLMHead, AutoModelForSequenceClassification, AutoModelForQuestionAnswering, AutoModelForTokenClassification
+        from_pretrained: The base for the model. If not provided, will default to value in MODEL_BASE
+        **kwargs: Any other HF kwargs for an AutoModel
+
     Model_Kwargs:
         NOTE: Since we are loading from pretrained, either MODEL_BASE or MODEL_KWARGS.from_pretrained MUST be passed
         NOTE: Do NOT use `pretrained_model_name_or_path` as a MODEL_KWARGS field, because this will conflict with passed arguments to AutoModel. 
@@ -30,13 +36,24 @@ class HFAutoModel(ModelAbstract):
 
     def model_attributes_setup(self, **kwargs):
         self.from_pretrained = kwargs.get("from_pretrained", self.model_base)
+        self.auto_class = kwargs.get("auto_class", "AutoModel")
 
 
     def model_setup(self, **kwargs):
-        self.encoder = AutoModel.from_pretrained(self.from_pretrained, **kwargs)
+        auto_class = locate_class(package="transformers", subpackage=self.auto_class)
+        self.encoder = auto_class.from_pretrained(self.from_pretrained, **kwargs)
 
-    def foward_impl(self, x, attention_mask=None, token_type_ids=None, position_ids=None, head_mask=None):
-        response = self.classifier(x,attention_mask = attention_mask, token_type_ids = token_type_ids, position_ids=position_ids, head_mask=head_mask )
+    def foward_impl(self, x, 
+                        attention_mask=None,
+                        token_type_ids=None,
+                        position_ids=None,
+                        head_mask=None,
+                        inputs_embeds=None,
+                        labels=None,
+                        output_attentions=None,
+                        output_hidden_states=None, **kwargs):
+        response = self.encoder(x,attention_mask = attention_mask, token_type_ids = token_type_ids, position_ids=position_ids, head_mask=head_mask, 
+                                    inputs_embeds = inputs_embeds, labels=labels, output_attentions=output_attentions, output_hidden_states=output_hidden_states)
 
         return response.logits, None, [response.attentions]
         
