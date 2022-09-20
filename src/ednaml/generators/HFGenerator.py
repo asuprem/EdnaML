@@ -56,6 +56,8 @@ class HFDataset(torch.utils.data.Dataset):
             keywords: What words to mask
             keytokens: What tokens to mask
             stopword_mask: Whether to use a stopword mask.
+            label_idxs: List of indices for labels. Defaults to [1].
+            annotation_idxs: List of indices for inputs. Defaults to [].
 
 
             
@@ -127,6 +129,9 @@ class HFDataset(torch.utils.data.Dataset):
         self.token_masking = kwargs.get("token_mask", False)
         self.keytoken_masking = kwargs.get("keytoken_mask", False)
         self.stopword_masking = kwargs.get("stopword_mask", False)
+
+        self.label_idxs = kwargs.get("label_idxs", [1])
+        self.annotation_idxs = kwargs.get("annotation_idxs", [])
         
         
         # Tokenizer and lengths
@@ -260,7 +265,19 @@ class HFDataset(torch.utils.data.Dataset):
         input_word_length_cache = []
         self.logger.info("Generating shards")
         pbar = tqdm(total=int(self.file_len/self.shardsize)+1)
-        for idx, sample in enumerate(dataset):
+        # TODO
+        # We basically need to deal with having multiple inputs and multiple labels...
+        # Ok, so, we already know the structure of the tuple that dataset gets
+        # Then, all we need is in config, specify additional_input_idx --> list | None
+        # if None, we don't need to do anything
+        # if a list, then our input is actually a tuple
+        # So, if a list, what do we do...?
+        # 
+        #
+        #
+        #
+        #
+        for idx, sample in enumerate(dataset):  # This is a tuple with (text, ..., stuff)
             # Identify the indices of specific keywords to mask
             #if self.keyword_masking or self.word_masking:
             word_tokens = sample[0].split(" ")
@@ -295,19 +312,33 @@ class HFDataset(torch.utils.data.Dataset):
 
             
             features.append(
-                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], encoded_token_length, encoded_word_length, encoded_word_ids, 0)  # 0 used to be *sample[1:], i.e. the label
+                (encoded["input_ids"], merged_mask, encoded["token_type_ids"], 
+                    encoded_token_length, encoded_word_length, encoded_word_ids, 
+                    [sample[label_idx] for label_idx in self.label_idxs],   # list of labels
+                    [sample[annot_idx] for annot_idx in self.annotation_idxs])   # list of secondary inputs. Defaults to empty.
             )
 
             if (idx+1)%self.shardsize == 0: # we need to save this shard.
                 # TODO need to handle multiple labels, later...
                 all_input_ids = torch.cat([f[0] for f in features])
+                # TODO
+                # Secondary inputs are other numeric inputs
+                # We check if secondary is provided by checking what is in  in features[7] (last element)
+                # if None, then secondary inputs are not provided. We can make it a matrix of zeros
+                # # if true, the secondary inputs are provided, in a list of numbers
+                # Then we convert then to a nxd matrix (n = shardsize, d = number of secondary inputs)
+                #all_secondary_inputs = None
                 all_attention_mask = torch.cat([f[1] for f in features])
                 all_token_type_ids = torch.cat([f[2] for f in features])
                 all_lens = torch.tensor([f[3] for f in features], dtype=torch.long)
                 all_word_lens = torch.tensor([f[4] for f in features], dtype=torch.long)
                 all_word_ids = torch.tensor(np.nan_to_num(np.array([f[5] for f in features], dtype=float),nan=-1),dtype=torch.long)
-                all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
+                all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)   # TODO -- implement multiple labels as a list, then squash here to one dim if single label.
                 all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+                if len(features[0][7]) > 0:
+                    all_annotations = torch.tensor([f[7] for f in features])
+                else:
+                    all_annotations = torch.zeros((self.shardsize,1))
 
                 # Propagate input masking to output masking
                 for midx in range(all_attention_mask.shape[0]):
@@ -317,7 +348,7 @@ class HFDataset(torch.utils.data.Dataset):
                 input_word_length_cache = []
 
                 # SAVE HERE
-                self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels),
+                self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels, all_annotations),
                         shard_index = shardsaveindex)
                 shardsaveindex += 1
                 features = []
@@ -332,6 +363,10 @@ class HFDataset(torch.utils.data.Dataset):
             all_word_ids = torch.tensor(np.nan_to_num(np.array([f[5] for f in features], dtype=float),nan=-1),dtype=torch.long)
             all_labels = torch.tensor([f[6] for f in features], dtype=torch.long)
             all_masklm = -1*torch.ones(all_input_ids.shape, dtype=torch.long)
+            if len(features[0][7]) > 0:
+                    all_annotations = torch.tensor([f[7] for f in features])
+            else:
+                all_annotations = torch.zeros((self.shardsize,1))
 
             # Propagate input masking to output masking
             for midx in range(all_attention_mask.shape[0]):
@@ -340,7 +375,7 @@ class HFDataset(torch.utils.data.Dataset):
             input_length_cache = []
 
             # SAVE HERE
-            self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels),
+            self.save_shard(shard=TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels, all_annotations),
                     shard_index = shardsaveindex)
             shardsaveindex += 1
             features = []
@@ -553,7 +588,7 @@ class HFGenerator(TextGenerator):
         return LabelMetadata(label_dict=label_dict)
 
     def collate_fn(self, batch):
-        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels = map(torch.stack, zip(*batch))
+        all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels, all_annotations = map(torch.stack, zip(*batch))
         max_len = max(all_lens).item()
         all_input_ids = all_input_ids[:, :max_len]
         all_attention_mask = all_attention_mask[:, :max_len]
@@ -561,7 +596,7 @@ class HFGenerator(TextGenerator):
         all_masklm = all_masklm[:, :max_len]
         # Right now, we don't care that much about all_word_ids or all_word_lens
 
-        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels
+        return all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_annotations, all_labels, 
 
 
 
