@@ -1,9 +1,6 @@
 from ednaml.models.ModelAbstract import ModelAbstract
-from typing import Any, List, Tuple
-import torch
-from ednaml.utils import layers, locate_class
-from torch import TensorType, nn
-
+from ednaml.utils import locate_class
+from transformers import AutoConfig
 
 class HFAutoModel(ModelAbstract):
     """For Sequence Classification only.
@@ -41,7 +38,8 @@ class HFAutoModel(ModelAbstract):
 
     def model_setup(self, **kwargs):
         auto_class = locate_class(package="transformers", subpackage=self.auto_class)
-        self.encoder = auto_class.from_pretrained(self.from_pretrained, **kwargs)
+        self.autoconfig = AutoConfig.from_pretrained(self.from_pretrained, **kwargs)
+        self.encoder = auto_class.from_pretrained(self.from_pretrained, config=self.autoconfig)
 
     def foward_impl(self, x, 
                         attention_mask=None,

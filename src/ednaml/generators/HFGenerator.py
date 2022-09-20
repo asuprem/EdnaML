@@ -194,7 +194,9 @@ class HFDataset(torch.utils.data.Dataset):
                 self.logger.debug("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
-                self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))-1   # TODO Bug fix if files do not have consistent numbering
+                self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))   # TODO Bug fix if files do not have consistent numbering
+            if self.shardsaveindex < 1:
+                raise ValueError("`shardsaveindex` is {val}, which is less than permissible minimum value of 1".format(val=self.shardsaveindex))
             self.logger.debug("Obtained %i shards"%self.shardsaveindex)
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
             self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
