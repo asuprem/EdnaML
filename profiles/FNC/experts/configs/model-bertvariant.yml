@@ -3,7 +3,7 @@ MODEL:
   MODEL_ARCH: HFAutoModel
   MODEL_BASE: albert-base-v2
   MODEL_KWARGS: 
-    model_type: AutoModelForSequenceClassification
+    auto_class: AutoModelForSequenceClassification
     hidden_act: gelu
     pooling: pooled
   MODEL_NORMALIZATION: bn

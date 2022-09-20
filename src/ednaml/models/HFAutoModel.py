@@ -41,7 +41,7 @@ class HFAutoModel(ModelAbstract):
         self.autoconfig = AutoConfig.from_pretrained(self.from_pretrained, **kwargs)
         self.encoder = auto_class.from_pretrained(self.from_pretrained, config=self.autoconfig)
 
-    def foward_impl(self, x, 
+    def forward_impl(self, x, 
                         attention_mask=None,
                         token_type_ids=None,
                         position_ids=None,

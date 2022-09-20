@@ -90,9 +90,9 @@ class HFTrainer(BaseTrainer):
 
 
         logit_labels = torch.argmax(logits, dim=1)
-        accuracy = (logit_labels == labels).sum().float() / float(labels.size(0))
-        micro_fscore = np.mean(f1_score(labels, logit_labels, average="micro"))
-        weighted_fscore = np.mean(f1_score(labels, logit_labels, average="weighted"))
+        accuracy = (logit_labels == labels[:,0]).sum().float() / float(labels[:,0].size(0))
+        micro_fscore = np.mean(f1_score(labels[:,0], logit_labels, average="micro"))
+        weighted_fscore = np.mean(f1_score(labels[:,0], logit_labels, average="weighted"))
         self.logger.info("\tAccuracy: {:.3%}".format(accuracy))
         self.logger.info("\tMicro F-score: {:.3f}".format(micro_fscore))
         self.logger.info("\tWeighted F-score: {:.3f}".format(weighted_fscore))
