@@ -10,7 +10,8 @@ class FakedditCrawler(Crawler):
         Assumes specific file construction: files are separated into splits 
         (train, test, and val), with label subsets fake and true, with naming convention:
 
-        <datasetname>-<labelsubset>-<split>.csv
+        Crawl yields lists with tuples of:
+        <text>, <shares>, <likes>, <label>, <label...s>
 
         """
         logger.info("Crawling %s"%(data_folder))
@@ -44,17 +45,17 @@ class FakedditCrawler(Crawler):
             fobj = csv.reader(fl, delimiter="\t")
             header = next(fobj)
             for row in fobj:
-                self.metadata["train"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]), int(row[12]))]
+                self.metadata["train"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]))]
         with open(self.valfile, "r") as fl:
             fobj = csv.reader(fl, delimiter="\t")
             header = next(fobj)
             for row in fobj:
-                self.metadata["val"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]), int(row[12]))]
+                self.metadata["val"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]))]
         with open(self.testfile, "r") as fl:
             fobj = csv.reader(fl, delimiter="\t")
             header = next(fobj)
             for row in fobj:
-                self.metadata["test"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]), int(row[12]))]
+                self.metadata["test"]["crawl"] += [(row[5], 0, int(row[13]), int(row[17]), int(row[-1]))]
         
 
         self.metadata["train"]["classes"] = self.classes

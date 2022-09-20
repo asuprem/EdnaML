@@ -10,7 +10,8 @@ class NELACrawler(Crawler):
     Assumes specific file construction: files are separated into splits 
     (train, test, and val), with label subsets fake and true, with naming convention:
 
-    <datasetname>-<labelsubset>-<split>.csv
+    Crawl yields lists with tuples of:
+    <text>, <shares>, <likes>, <label>, <label...s>
 
     """
     logger.info("Crawling %s"%(data_folder))
