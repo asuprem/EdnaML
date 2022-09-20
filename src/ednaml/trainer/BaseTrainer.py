@@ -118,6 +118,10 @@ class BaseTrainer:
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
+        self.init_setup(**kwargs)
+
+    def init_setup(self, **kwargs):
+        pass
 
     def downloadData(self): #TODO
         #storageinstance = AzureStorage(self.cfg.STORAGE)
