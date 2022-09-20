@@ -2,8 +2,7 @@ EXECUTION:
   DATAREADER:
     DATAREADER: HFReader
     CRAWLER_ARGS: 
-      data_folder: Data
-      include: ["cmu_miscov19"] # Adjust this to specific EFND dataset
+      data_folder: Data/Fakeddit
     DATASET_ARGS:
       classificationclass: ['fnews']
       maxlen: 512
@@ -11,7 +10,7 @@ EXECUTION:
       shardsize: 20000
       shard_replace: False
       shardpath: datashard-artifacts
-      shardname: fnc-efnd-shard
+      shardname: fnc-fakeddit-shard
       mlm_probability: 0.15
       shuffle: False
       data_shuffle: True
@@ -30,7 +29,7 @@ EXECUTION:
   OPTIMIZER_BUILDER: ClassificationOptimizer
   SKIPEVAL: False
   TEST_FREQUENCY: 1
-  TRAINER: HFTrainer
+  TRAINER: BaseTrainer
   TRAINER_ARGS: 
     accumulation_steps: 8
 
@@ -39,9 +38,9 @@ TRANSFORMATION:
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: fnc-expert-efnd
+  MODEL_CORE_NAME: fnc-expert-fakeddit
   MODEL_BACKBONE: albert
-  MODEL_QUALIFIER: cmu_miscov19
+  MODEL_QUALIFIER: fakeddit
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 3 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"

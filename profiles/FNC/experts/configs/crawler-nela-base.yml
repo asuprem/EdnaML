@@ -13,7 +13,7 @@ EXECUTION:
       shardpath: datashard-artifacts
       shardname: fnc-nela-shard
       mlm_probability: 0.15
-      shuffle: True
+      shuffle: False
       data_shuffle: True
       masking: False
       keyword_mask: True
@@ -41,7 +41,7 @@ SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: fnc-expert-nela
   MODEL_BACKBONE: albert
-  MODEL_QUALIFIER: all
+  MODEL_QUALIFIER: nela_covid_2020
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 3 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
