@@ -1,12 +1,9 @@
 LOSS: 
-  - LOSSES: ['TorchLoss']
-    KWARGS: 
-      - loss_class: CrossEntropyLoss
-        loss_kwargs:
-          ignore_index: -1
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
     LAMBDAS: [1.0]
-    NAME: mask_lm
-    LABEL: mask_lm
+    LABEL: fnews
+    NAME: classification
 
 OPTIMIZER:
   - OPTIMIZER: AdamW
