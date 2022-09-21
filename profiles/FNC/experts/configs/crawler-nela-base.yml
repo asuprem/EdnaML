@@ -30,7 +30,7 @@ EXECUTION:
   OPTIMIZER_BUILDER: ClassificationOptimizer
   SKIPEVAL: False
   TEST_FREQUENCY: 1
-  TRAINER: BaseTrainer
+  TRAINER: HFTrainer
   TRAINER_ARGS: 
     accumulation_steps: 8
 
