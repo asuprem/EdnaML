@@ -1,0 +1,95 @@
+EXECUTION:
+  DATAREADER:
+    crawler_comment: We will use one of the efnd datasets here.
+    CRAWLER_ARGS: 
+      data_folder: Data
+      include: ["kagglefn_long"]
+    DATAREADER: AlbertReader
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 500
+      shard_replace: True
+      shardpath: datashard-artifacts
+      shardname: efnd-shard-debug
+      mlm_probability: 0.15
+      masking: True
+      keyword_mask: True
+      keywords: ["doll"]
+      keytoken_mask: False
+      keytokens: ["▁better", "▁blow"]
+      word_mask: False
+      token_mask: False
+      shuffle: False
+      data_shuffle: False
+    GENERATOR: HFGenerator
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+  EPOCHS: 3
+  FP16: False
+  MODEL_SERVING: False
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  TRAINER: BaseTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 8
+
+
+TRANSFORMATION:
+  BATCH_SIZE: 16
+
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-debug
+  MODEL_BACKBONE: albert
+  MODEL_QUALIFIER: tweets-2020-01-22
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 1 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
+
+
+MODEL:
+  BUILDER: ednaml_model_builder
+  MODEL_ARCH: HFAutoModel
+  MODEL_BASE: Albert
+  MODEL_KWARGS: 
+    from_pretrained: albert-base-v2
+  MODEL_NORMALIZATION: bn
+  PARAMETER_GROUPS: [opt-1]
+
+
+LOSS: 
+  - LOSSES: ['TorchLoss']
+    KWARGS: 
+      - loss_class: CrossEntropyLoss
+        loss_kwargs:
+          ignore_index: -1
+    LAMBDAS: [1.0]
+    NAME: mask_lm
+    LABEL: mask_lm
+
+OPTIMIZER:
+  - OPTIMIZER: AdamW
+    BASE_LR: 1.0e-5
+    LR_BIAS_FACTOR: 1.0
+    OPTIMIZER_KWARGS: 
+      eps: 1.0e-6
+    OPTIMIZER_NAME: opt-1
+    WEIGHT_BIAS_FACTOR: 0.0005
+    WEIGHT_DECAY: 0.0005
+
+SCHEDULER:
+  - LR_KWARGS: 
+      step_size: 5
+      gamma: 0.5
+    LR_SCHEDULER: StepLR
+    SCHEDULER_NAME: opt-1
+
+LOGGING:
+  STEP_VERBOSE: 100
+  INPUT_SIZE: [16, 512]
+

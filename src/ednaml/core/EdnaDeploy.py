@@ -105,7 +105,8 @@ class EdnaDeploy(EdnaML):
         if self._testGeneratorInstanceQueueFlag:
             self.test_generator: Generator = self._testGeneratorInstanceQueue
         else:
-            self.test_generator: Generator = data_reader.GENERATOR(
+            self.logger.info("Generating dataloader `{dataloader}` with `{mode}` mode".format(mode=self.dataloader_mode, dataloader=data_reader.GENERATOR.__name__))
+            self.test_generator: Type[Generator] = data_reader.GENERATOR(
                 logger=self.logger,
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION,
@@ -189,6 +190,7 @@ class EdnaDeploy(EdnaML):
         return [self.resetDeploymentQueue]
 
     def addDeploymentClass(self, deployment_class: Type[BaseDeploy]):
+        self.logger.debug("Added deployment class: %s"%deployment_class.__name__)
         self._deploymentClassQueue = deployment_class
         self._deploymentClassQueueFlag = True
 

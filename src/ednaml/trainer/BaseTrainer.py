@@ -118,6 +118,10 @@ class BaseTrainer:
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
+        self.init_setup(**kwargs)
+
+    def init_setup(self, **kwargs):
+        pass
 
     def downloadData(self): #TODO
         #storageinstance = AzureStorage(self.cfg.STORAGE)
@@ -158,9 +162,10 @@ class BaseTrainer:
         self.gpus = gpus
 
         if self.gpus != 1:
-            raise NotImplementedError()
+            self.logger.warning("Multi-gpu or non-gpu not yet fully supported.")
 
-        self.model.cuda() # moves the model into GPU
+        if self.gpus:
+            self.model.cuda() # moves the model into GPU
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:

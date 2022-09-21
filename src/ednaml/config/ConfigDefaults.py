@@ -55,6 +55,7 @@ class ConfigDefaults(BaseConfig):
     LR_KWARGS: Dict[str, str]
 
     STEP_VERBOSE: int
+    INPUT_SIZE: List[int]
     PLUGIN: str
     PLUGIN_NAME: str
     PLUGIN_KWARGS: Dict[str, str]
@@ -127,6 +128,7 @@ class ConfigDefaults(BaseConfig):
         self.LR_KWARGS = kwargs.get("LR_KWARGS", {"step_size": 20})
 
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
+        self.INPUT_SIZE = kwargs.get("INPUT_SIZE", None)
 
         self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "BaseStorage")
         self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})

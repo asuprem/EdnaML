@@ -196,8 +196,8 @@ class MiDASGenerator(TextGenerator):
     self.tokenizer = self.tokenizer(**kwargs) # vocab_file, do_lower_case, spm_model_file
 
   
-  def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:
-    return MiDASDataset(crawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
+  def buildDataset(self, datacrawler, mode, transform, **kwargs): #<-- dataset args:
+    return MiDASDataset(datacrawler.metadata[mode]["crawl"], mode, tokenizer = self.tokenizer, **kwargs) # needs maxlen, memcache, mlm_probability
 
   def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
     return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,

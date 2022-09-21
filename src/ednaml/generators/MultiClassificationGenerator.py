@@ -18,7 +18,7 @@ class MultiClassificationDataset(TorchDataset):
         self.transform = transform
         self.pathidx = kwargs.get("pathidx", 0)
         self.annotationidx = kwargs.get(
-            "annotationidx", 1
+            "annotationidx", [1]
         )  # This should be a list...
         self.num_annotations = len(self.annotationidx)
 

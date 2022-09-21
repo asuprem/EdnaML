@@ -148,7 +148,7 @@ class ModelAbstract(nn.Module):
             secondary_outputs = (secondary_outputs, secondary_output_queue_pre, secondary_output_queue_post)
         return feature_logits, features, secondary_outputs
 
-    def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:
+    def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:   # Return Logits, Features, Secondary Outputs
 
         raise NotImplementedError()
 
@@ -221,6 +221,7 @@ class ModelAbstract(nn.Module):
         if plugin_name in self.plugins:
             raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
         else:
+            self._logger.info("Added plugin %s"%plugin_name)
             self.plugins[plugin_name] = plugin(**plugin_kwargs)
             self.plugins[plugin_name]._logger = self._logger
         
@@ -235,7 +236,7 @@ class ModelAbstract(nn.Module):
         elif self.plugin_hook == "activated":
             self.usable_plugins = [item for item in self.plugins if self.plugins[item].activated]
         else:
-            raise ValueError("Unknown calue for `plugin_hook`: %s"%self.plugin_hook)
+            raise ValueError("Unknown value for `plugin_hook`: %s"%self.plugin_hook)
 
     def pre_epoch_hook(self, epoch: int = 0):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK

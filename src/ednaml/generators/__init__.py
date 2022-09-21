@@ -125,3 +125,4 @@ from ednaml.generators.MultiClassificationGenerator import (
 from ednaml.generators.TorchvisionGeneratorWrapper import (
     TorchvisionGeneratorWrapper,
 )
+from ednaml.generators.HFGenerator import HFGenerator
