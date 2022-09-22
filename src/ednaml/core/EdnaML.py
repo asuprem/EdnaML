@@ -88,17 +88,27 @@ class EdnaML(EdnaMLBase):
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
-
         # Added configuration extentions
-        if type(self.config) is list:
+        # REMOVE THESE 
+        # Add extensions documentation later -- we should be able to write somewhere what changed exactly.
+        '''if type(self.config) is list:
             self.cfg = EdnaMLConfig(config[0], **kwargs)
+            print("config items ==== ",config)
+            print("Kwargs === ",str(**kwargs))
+            print("I am here")
+
             for cfg_item in config[1:]:
                 msg = self.cfg.extend(cfg_item, **kwargs)
                 print(str(msg))
+            print("loop got over")
         else:
-            self.cfg = EdnaMLConfig(config, **kwargs) 
-        
-        
+            self.cfg = EdnaMLConfig(config, **kwargs) '''
+        configs = []
+        if type(self.config) is str:
+            configs.append(self.config)
+            self.cfg = EdnaMLConfig(configs, **kwargs)
+        else:    
+            self.cfg = EdnaMLConfig(config, **kwargs)
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
