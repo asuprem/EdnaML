@@ -433,8 +433,9 @@ class HFDataset(torch.utils.data.Dataset):
     
     def sharded_refresh_mask_ids(self, sharded_dataset: TensorDataset):
         self.logger.debug("Refreshing mask ids")
-        #                   0               1                   2                 3           4           5             6            7
-        #TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels)
+        #                   0               1                   2                 3           4           5             6            7............8
+        #TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_lens, all_word_lens, all_word_ids, all_labels, all_annotations)
+                      
         if self.token_masking or self.word_masking:
             #merged_masklm =  torch.stack([shard[3] for shard in sharded_dataset])
             all_masklm = torch.stack([shard[3] for shard in sharded_dataset])
@@ -474,7 +475,8 @@ class HFDataset(torch.utils.data.Dataset):
                 torch.stack([shard[4] for shard in sharded_dataset]), 
                 torch.stack([shard[5] for shard in sharded_dataset]), 
                 torch.stack([shard[6] for shard in sharded_dataset]), 
-                torch.stack([shard[7] for shard in sharded_dataset]))
+                torch.stack([shard[7] for shard in sharded_dataset]),
+                torch.stack([shard[8] for shard in sharded_dataset]))
         else:
             return sharded_dataset
 
