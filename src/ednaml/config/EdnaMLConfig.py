@@ -3,6 +3,7 @@ import os
 import json
 from turtle import update
 from typing import Dict, List
+import warnings
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
@@ -46,13 +47,10 @@ class EdnaMLConfig(BaseConfig):
     extensions: List[str]
 
     def __init__(
-        self, config_path: Dict, defaults: ConfigDefaults = ConfigDefaults(), **kwargs
+        self, config_path: List[str], defaults: ConfigDefaults = ConfigDefaults(), **kwargs
     ):
         self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
-        all_paths = []
-        for i in config_path:
-            all_paths.append(self.read_path(i))
-        ydict = self.combine(all_paths)
+        ydict = self.combine([self.read_path(config_component) for config_component in config_path])
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
@@ -254,10 +252,10 @@ class EdnaMLConfig(BaseConfig):
                     ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
         return ydict
 
-    def combine_two(self,first_object: Dict[str,str], second_object: Dict[str,str], flag: int):
+    def _merge(self,base_config: Dict[str,str], extension: Dict[str,str], recursion_flag: bool = False):
         """Combines two config files
-        If capital lettered key is present it'll be replcase
-        If small lettered key is presend, it'll be deleted and considered the key in second object only
+        If capital lettered key is present it'll be replaced
+        If small lettered key is present, it'll be deleted and considered the key in second object only
 
         Args:
             first object: Dict (base config)
@@ -265,37 +263,44 @@ class EdnaMLConfig(BaseConfig):
         Returns:
             Dict[str,str]: Config as a combined python dictionary
         """   
-        if(flag == 1):
-            to_keep = lambda key: key.islower()
-            {k: v for k, v in first_object.items() if k not in keyfilter(to_keep, first_object)}
-        
-        for i in second_object.keys():
-            if i in first_object:
-                if i.islower():
-                    first_object.pop(i, None)
-                if isinstance(first_object[i], dict):
-                    if isinstance(second_object[i], dict):
-                        first_object[i] = self.combine_two(first_object[i], second_object[i],1)
-                    else:
-                        print("Something is wrong in config")
-                else:
-                    first_object[i]=second_object[i] 
-            else:
-                first_object[i] = second_object[i]
-        return first_object
+        #if(recursion_flag):
+        #    to_keep = lambda key: key.islower()
+        #    {k: v for k, v in base_config.items() if k not in keyfilter(to_keep, base_config)}
 
-    def combine(self,data_folders):
+        for extension_key in extension.keys():
+            if extension_key in base_config:
+                # If a top level key is lowercase, we remove it entirely. Do not care about sub-parts.
+                if extension_key.islower():
+                    base_config.pop(extension_key, None)
+                # If it is NOT lowercase, we check whether it is a Dict or something else (e.g. list)
+                if isinstance(base_config[extension_key], dict):
+                    if isinstance(extension[extension_key], dict):
+                        # Recurse if key is a Dictionary with elements inside.
+                        base_config[extension_key] = self.merge_(base_config[extension_key], extension[extension_key],recursion_flag=True)
+                    else:
+                        base_config[extension_key]=extension[extension_key]
+                        warnings.warn("Key {key}: Dict key in base configuration is not a dictionary in replacement extension. \n\tBase: {base_str}\n\tExtension: {ext_str}".format(
+                            key=extension_key,
+                            base_str = str(base_config(extension_key)),
+                            ext_str = str(base_config(extension_key)),
+                        ))
+                else:   # The base config key is not a dictionary...we just do replacement. Don't care if replacement is dictionary
+                    base_config[extension_key]=extension[extension_key] 
+            else:   # a key in extensionis NOT in base_config, so we don't really care...
+                base_config[extension_key] = extension[extension_key]
+        return base_config
+
+    def merge(self, config_paths: List[str]):
         """Combines multiple config files
         Args:
             first object: Dict array (base config as index 0)
         Returns:
             Dict[str,str]: Config as a combined python dictionary
         """  
-        first_object = data_folders[0]
-        for i in range (1,len(data_folders)):
-            second_object = data_folders[i]
-            first_object = self.combine_two(first_object,second_object,0)
-        return first_object
+        base_config = config_paths[0]
+        for extension_config in config_paths[1:]:
+            base_config = self._merge(base_config, extension_config)
+        return base_config
 
 
 
