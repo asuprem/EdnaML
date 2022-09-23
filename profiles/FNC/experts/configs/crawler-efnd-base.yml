@@ -23,7 +23,7 @@ EXECUTION:
       annotation_idxs: [1,2]  # this is shares and likes
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
-      from_pretrained: bert-base
+      from_pretrained: unknown
   EPOCHS: 10
   FP16: False
   MODEL_SERVING: False

@@ -22,7 +22,7 @@ EXECUTION:
       annotation_idxs: [1,2]  # this is shares and likes
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
+      from_pretrained: unknown
   EPOCHS: 10
   FP16: False
   MODEL_SERVING: False
@@ -39,7 +39,7 @@ TRANSFORMATION:
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: fnc-expert-fakeddit
-  MODEL_BACKBONE: albert
+  MODEL_BACKBONE: unknown
   MODEL_QUALIFIER: fakeddit
   DRIVE_BACKUP: False
   SAVE_FREQUENCY: 3 # Epoch

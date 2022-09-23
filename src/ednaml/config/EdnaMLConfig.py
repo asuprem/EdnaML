@@ -50,7 +50,7 @@ class EdnaMLConfig(BaseConfig):
         self, config_path: List[str], defaults: ConfigDefaults = ConfigDefaults(), **kwargs
     ):
         self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
-        ydict = self.combine([self.read_path(config_component) for config_component in config_path])
+        ydict = self.merge([self.read_path(config_component) for config_component in config_path])
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
@@ -266,28 +266,33 @@ class EdnaMLConfig(BaseConfig):
         #if(recursion_flag):
         #    to_keep = lambda key: key.islower()
         #    {k: v for k, v in base_config.items() if k not in keyfilter(to_keep, base_config)}
-
+        lower_flag = False
+        upper_flag = False
         for extension_key in extension.keys():
             if extension_key in base_config:
-                # If a top level key is lowercase, we remove it entirely. Do not care about sub-parts.
-                if extension_key.islower():
-                    base_config.pop(extension_key, None)
-                # If it is NOT lowercase, we check whether it is a Dict or something else (e.g. list)
-                if isinstance(base_config[extension_key], dict):
-                    if isinstance(extension[extension_key], dict):
-                        # Recurse if key is a Dictionary with elements inside.
-                        base_config[extension_key] = self.merge_(base_config[extension_key], extension[extension_key],recursion_flag=True)
-                    else:
-                        base_config[extension_key]=extension[extension_key]
-                        warnings.warn("Key {key}: Dict key in base configuration is not a dictionary in replacement extension. \n\tBase: {base_str}\n\tExtension: {ext_str}".format(
-                            key=extension_key,
-                            base_str = str(base_config(extension_key)),
-                            ext_str = str(base_config(extension_key)),
-                        ))
-                else:   # The base config key is not a dictionary...we just do replacement. Don't care if replacement is dictionary
-                    base_config[extension_key]=extension[extension_key] 
+                if extension_key.islower(): # If NOT a built-in key, we will do a full replacement of the parent...
+                    lower_flag = True
+                else:   # If it is a built-in key
+                    upper_flag = True
+                    if isinstance(base_config[extension_key], dict):    # If it is a dict
+                        if isinstance(extension[extension_key], dict):
+                            # Recurse if key is a Dictionary with elements inside.
+                            base_config[extension_key] = self._merge(base_config[extension_key], extension[extension_key],recursion_flag=True)
+                        else:
+                            base_config[extension_key]=extension[extension_key]
+                            warnings.warn("Key {key}: Dict key in base configuration is not a dictionary in replacement extension. \n\tBase: {base_str}\n\tExtension: {ext_str}".format(
+                                key=extension_key,
+                                base_str = str(base_config(extension_key)),
+                                ext_str = str(base_config(extension_key)),
+                            ))
+                    else:   # The base config key is not a dictionary...we just do replacement. Don't care if replacement is dictionary
+                        base_config[extension_key]=extension[extension_key] 
             else:   # a key in extensionis NOT in base_config, so we don't really care...
                 base_config[extension_key] = extension[extension_key]
+        if lower_flag and upper_flag:
+            raise ValueError("built-in and custom keys cannot mix")
+        if lower_flag:
+            return extension
         return base_config
 
     def merge(self, config_paths: List[str]):
