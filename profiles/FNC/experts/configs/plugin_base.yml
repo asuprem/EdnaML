@@ -17,17 +17,17 @@ MODEL_PLUGIN:
       iterations: 30
       batch_size: 256
       alpha: 0.6
-  - PLUGIN: RandomizedLipschitz
+  - PLUGIN: FastRandomizedLipschitz
     PLUGIN_NAME: RL-midas
     PLUGIN_KWARGS:
       proxies: 15
       dimensions: 768
       dist: euclidean
-      proxy_epochs: 5
+      proxy_epochs: 1
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
   - PLUGIN: LogitConfidence
     PLUGIN_NAME: logit-confidence
     PLUGIN_KWARGS:
-      proxies: 15
-      dimensions: 768
-      dist: euclidean
-      proxy_epochs: 5
+      num_classes: 
