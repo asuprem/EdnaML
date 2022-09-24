@@ -1,7 +1,5 @@
-from turtle import distance
 import ednaml.core.decorators as edna
 
-from typing import List
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.plugins import ModelPlugin
 import torch
@@ -10,8 +8,6 @@ from sklearn.neighbors import KDTree
 from sklearn.cluster import MiniBatchKMeans
 import h5py, os
 from ednaml.plugins.ModelPlugin import ModelPlugin
-from sortedcontainers import SortedKeyList
-import numpy as np
 
 @edna.register_model_plugin
 class FastKMP(ModelPlugin):
