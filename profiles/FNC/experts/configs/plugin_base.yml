@@ -30,6 +30,7 @@ MODEL_PLUGIN:
       iterations: 30
       batch_size: 256
       alpha: 0.6
+      classifier_access: encoder.classifier
   - PLUGIN: LogitConfidence
     PLUGIN_NAME: logit-confidence
     PLUGIN_KWARGS:

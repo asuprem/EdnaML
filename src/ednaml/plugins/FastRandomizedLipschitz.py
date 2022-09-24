@@ -16,11 +16,11 @@ class FastRandomizedLipschitz(ModelPlugin):
     def __init__(self, proxies=10, dimensions=768, dist="euclidean", 
                             rand_seed=12344, neighbors = 10, proxy_epochs=3, 
                             perturbation_neighbors = 10, iterations = 25, batch_size = 256, 
-                            alpha = 0.5, feature_file = None,**kwargs):
+                            alpha = 0.5, feature_file = None, classifier_access = None, **kwargs):
         super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, 
                             rand_seed = rand_seed, neighbors = neighbors, proxy_epochs=proxy_epochs, 
                             perturbation_neighbors=perturbation_neighbors, iterations = iterations, batch_size = batch_size, 
-                            alpha = alpha, feature_file = feature_file)
+                            alpha = alpha, feature_file = feature_file, classifier_access = classifier_access)
 
 
     def build_plugin(self, **kwargs):
@@ -56,7 +56,9 @@ class FastRandomizedLipschitz(ModelPlugin):
         self.proxy_stage = True
         self.lipschitz_stage = False
 
-        
+        self.classifier_access = kwargs.get("classifier_access", "classifier")
+        self._classifier_setup = False
+        self._classifier = None
 
         
         self._dist_func = self.build_dist(self.dist)
@@ -98,6 +100,9 @@ class FastRandomizedLipschitz(ModelPlugin):
 
 
     def post_forward(self, x, feature_logits, features, secondary_outputs, model, **kwargs):
+        if not self._classifier_setup:
+            self._classifier = {mname:mlayer for mname, mlayer in model.named_modules()}[self.classifier_access]
+            self._classifier_setup = True
         if not self.activated:
             # perform the training here
             if self.proxy_stage:
@@ -167,6 +172,7 @@ class FastRandomizedLipschitz(ModelPlugin):
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
                 self._logger.info("RandomizedLipschitz has completed Lipschitz stage. Computing L values.")
+                
                 with torch.no_grad():
                     for idx in range(len(self.cluster_means)):
                         raw_logits = model.classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()

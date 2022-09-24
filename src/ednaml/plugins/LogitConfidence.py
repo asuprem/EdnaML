@@ -36,7 +36,7 @@ class LogitConfidence(ModelPlugin):
 
     def add_to_average(self, feature_logits):
         # Basically, for each class, find the entries where they are the max, average those
-        softlogits = torch.nn.functional.softmax(feature_logits.cpu())
+        softlogits = torch.nn.functional.softmax(feature_logits.cpu(), dim=0)
         one_hot = torch.nn.functional.one_hot(torch.argmax(softlogits, dim=1))
         self.logit_confidence_logits += torch.sum(softlogits * one_hot, dim=0)
         self.logit_confidence_count += torch.sum(one_hot, dim=0)
@@ -53,7 +53,7 @@ class LogitConfidence(ModelPlugin):
         """Compute the cluster labels for dataset X given centers C.
         """
         # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        soft_maxes = torch.max(torch.nn.functional.softmax(feature_logits.cpu()),dim=1)
+        soft_maxes = torch.max(torch.nn.functional.softmax(feature_logits.cpu(), dim=0),dim=1)
         return soft_maxes[0], self.logit_confidence[0,soft_maxes[1]]
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
