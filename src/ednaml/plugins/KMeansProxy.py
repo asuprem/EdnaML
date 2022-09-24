@@ -6,7 +6,7 @@ from sklearn.neighbors import KDTree
 
 class KMeansProxy(ModelPlugin):
     name = "KMeansProxy"
-    def __init__(self, num_clusters=10, dimensions=768, dist="euclidean", rand_seed=145845, epochs=3):
+    def __init__(self, num_clusters=10, dimensions=768, dist="euclidean", rand_seed=145845, epochs=3, **kwargs):
         super().__init__(num_clusters = num_clusters, dimensions=dimensions, dist=dist, rand_seed = rand_seed, epochs=epochs)
 
 

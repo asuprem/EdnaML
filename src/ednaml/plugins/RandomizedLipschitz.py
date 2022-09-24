@@ -11,7 +11,7 @@ import numpy as np
 
 class RandomizedLipschitz(ModelPlugin):
     name = "RandomizedLipschitz"
-    def __init__(self, proxies=10, dimensions=768, dist="euclidean", rand_seed=12344, neighbors = 10, proxy_epochs=3, perturbation_neighbors = 10):
+    def __init__(self, proxies=10, dimensions=768, dist="euclidean", rand_seed=12344, neighbors = 10, proxy_epochs=3, perturbation_neighbors = 10, **kwargs):
         super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, rand_seed = rand_seed, neighbors = neighbors, proxy_epochs=proxy_epochs, perturbation_neighbors=perturbation_neighbors)
 
 

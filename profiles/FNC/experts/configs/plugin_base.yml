@@ -1,0 +1,33 @@
+MODEL_PLUGIN:
+  - PLUGIN: FastKMeansProxy
+    PLUGIN_NAME: FastKMP-l2
+    PLUGIN_KWARGS:
+      proxies: 20
+      dimensions: 768
+      dist: euclidean
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
+  - PLUGIN: FastKMeansProxy
+    PLUGIN_NAME: FastKMP-cos
+    PLUGIN_KWARGS:
+      proxies: 20
+      dimensions: 768
+      dist: cosine
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
+  - PLUGIN: RandomizedLipschitz
+    PLUGIN_NAME: RL-midas
+    PLUGIN_KWARGS:
+      proxies: 15
+      dimensions: 768
+      dist: euclidean
+      proxy_epochs: 5
+  - PLUGIN: LogitConfidence
+    PLUGIN_NAME: logit-confidence
+    PLUGIN_KWARGS:
+      proxies: 15
+      dimensions: 768
+      dist: euclidean
+      proxy_epochs: 5
