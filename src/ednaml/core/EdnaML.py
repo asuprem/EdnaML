@@ -82,6 +82,20 @@ class EdnaML(EdnaMLBase):
 
         """
 
+        if type(config) is str:
+            self.config = config
+        elif type(config) is list:
+            self.config = []
+            for cpath in config:
+                if type(cpath) is str:
+                    self.config.append(cpath)
+                elif type(cpath) is list:
+                    self.config += cpath
+                else:
+                    ValueError("config MUST be list or string")
+        else:
+            raise ValueError("config MUST be list or string")
+        
         self.config = config
         self.mode = mode
         self.weights = weights
