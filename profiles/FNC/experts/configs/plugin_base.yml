@@ -11,6 +11,7 @@ MODEL_PLUGIN:
       iterations: 30
       batch_size: 256
       alpha: 0.6
+      classifier_access: encoder.classifier
   - PLUGIN: FastKMeansProxy
     PLUGIN_NAME: FastKMP-cos
     PLUGIN_KWARGS:
@@ -20,6 +21,7 @@ MODEL_PLUGIN:
       iterations: 30
       batch_size: 256
       alpha: 0.6
+      classifier_access: encoder.classifier
   - PLUGIN: FastRandomizedLipschitz
     PLUGIN_NAME: FRL-midas
     PLUGIN_KWARGS:
