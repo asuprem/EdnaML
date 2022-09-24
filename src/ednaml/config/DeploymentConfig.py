@@ -20,8 +20,8 @@ class DeploymentConfig(BaseConfig):
         self.DEPLOYMENT_ARGS = deployment_dict.get(
             "DEPLOYMENT_ARGS", defaults.DEPLOYMENT_ARGS
         )
-        self.DEPLOYMENT = deployment_dict.get(
-            "DEPLOYMENT", defaults.DEPLOYMENT
+        self.DEPLOY = deployment_dict.get(
+            "DEPLOY", defaults.DEPLOY
         )
         self.DATAREADER = ExecutionDatareaderConfig(
             deployment_dict.get("DATAREADER", {})

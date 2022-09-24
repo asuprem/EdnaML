@@ -21,7 +21,7 @@ class ConfigDefaults(BaseConfig):
     CHECKPOINT_DIRECTORY: str
 
     OUTPUT_ARGS: Dict[str,str]
-    DEPLOYMENT: str
+    DEPLOY: str
     DEPLOYMENT_ARGS: Dict[str,str]
     DEPLOYMENT_EPOCHS: int
 
@@ -93,7 +93,7 @@ class ConfigDefaults(BaseConfig):
         )
 
         self.OUTPUT_ARGS = {}
-        self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
+        self.DEPLOY = kwargs.get("DEPLOY", "BaseDeploy")
         self.DEPLOYMENT_ARGS = kwargs.get("DEPLOYMENT_ARGS", {})
         self.DEPLOYMENT_EPOCHS = kwargs.get("DEPLOYMENT_EPOCHS", 1)
 
