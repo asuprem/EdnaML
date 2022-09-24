@@ -97,6 +97,7 @@ class FastRandomizedLipschitz(ModelPlugin):
         self.smooth_lipschitz_threshold = None
         self.smooth_lipschitz_threshold_mean = None
         self.epsilon = None
+        self.proxy_label = []
 
 
     def post_forward(self, x, feature_logits, features, secondary_outputs, model, **kwargs):
@@ -114,10 +115,13 @@ class FastRandomizedLipschitz(ModelPlugin):
                 
             return feature_logits, features, secondary_outputs, kwargs, {}
         else:
-            lscore, smoothlscore = self.compute_lscores(features, feature_logits, model)
+            lscore, smoothlscore, proxy_labels = self.compute_lscores(features, feature_logits, model)
             # here, we use the features, perturb them, compute the logits, then compute l_score, then compare, etc, etc
             #dist, labels = self.compute_labels(features)
-            return feature_logits, features, secondary_outputs, kwargs, {"l_score": lscore, "smooth_l_score": smoothlscore, "l_threshold": [self.lipschitz_threshold]*features.shape[0], "smooth_l_threshold": [self.smooth_lipschitz_threshold]*features.shape[0]}
+            return feature_logits, features, secondary_outputs, kwargs, {"l_score": lscore, "smooth_l_score": smoothlscore, 
+                                                                            "l_threshold": [self.lipschitz_threshold]*features.shape[0], 
+                                                                            "smooth_l_threshold": [self.smooth_lipschitz_threshold]*features.shape[0],
+                                                                            "proxy_label": proxy_labels}
 
 
     def compute_lscores(self, features, feature_logits, model):
@@ -141,7 +145,9 @@ class FastRandomizedLipschitz(ModelPlugin):
                 lscore[j] = torch.max(l_scores).cpu().item()
                 smooth_lscore[j] = torch.max(smooth_lscores).cpu().item()
         
-        return lscore, smooth_lscore
+        _, idx = self.kdcluster.query(self._preprocess(features.cpu()), k=1, return_distance=True)   #.squeeze()
+        
+        return lscore, smooth_lscore, self.proxy_label[idx[:,0]]
 
 
     def post_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
@@ -167,6 +173,10 @@ class FastRandomizedLipschitz(ModelPlugin):
                     
                     self.performkmeans()
                     self.highdensitybins(model)
+
+                    with torch.no_grad():
+                        self.proxy_label = torch.argmax(self._classifier(self.cluster_means.cuda()).cpu(), dim=1)
+                    self.high_density_thresholds  = torch.tensor(self.high_density_thresholds)
                     
                     self._logger.info("RandomizedLipschitz starting Lipschitz stage")
             elif self.lipschitz_stage:
@@ -290,15 +300,6 @@ class FastRandomizedLipschitz(ModelPlugin):
         self._closest_features = [SortedKeyList(feature_list[:self.neighbors], key=feature_list.key) for idx, feature_list in enumerate(self._closest_features)]
         
         # For each cluster center, we have a dict of closest features...
-
-    def compute_labels(self, batch):
-        """Compute the cluster labels for dataset X given centers C.
-        """
-        # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        q_batch = batch.cpu()
-        dist, idx = self.kdcluster.query(self._preprocess(q_batch), k=1, return_distance=True)   #.squeeze()
-        # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return torch.from_numpy(dist).squeeze(1), torch.stack([self.labels[item[0]] for item in idx])
 
     def generate_perturbation(self, epsilon, n_dims, n_samples):
         Y = np.random.multivariate_normal(mean=[0], cov=np.eye(1,1), size=(n_dims, n_samples))

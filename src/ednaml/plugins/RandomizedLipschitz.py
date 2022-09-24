@@ -204,15 +204,6 @@ class RandomizedLipschitz(ModelPlugin):
         
         # For each cluster center, we have a dict of closest features...
 
-    def compute_labels(self, batch):
-        """Compute the cluster labels for dataset X given centers C.
-        """
-        # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        q_batch = batch.cpu()
-        dist, idx = self.kdcluster.query(self._preprocess(q_batch), k=1, return_distance=True)   #.squeeze()
-        # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return torch.from_numpy(dist).squeeze(1), torch.stack([self.labels[item[0]] for item in idx])
-
     def generate_perturbation(self, epsilon, n_dims, n_samples):
         Y = np.random.multivariate_normal(mean=[0], cov=np.eye(1,1), size=(n_dims, n_samples))
         Y = np.squeeze(Y, -1)

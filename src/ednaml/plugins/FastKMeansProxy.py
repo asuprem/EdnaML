@@ -80,8 +80,8 @@ class FastKMeansProxy(ModelPlugin):
             
             return feature_logits, features, secondary_outputs, kwargs, {}
         else:
-            dist, labels, idx = self.compute_labels(features)
-            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist, "label": idx}
+            dist, labels, proxy_labels = self.compute_labels(features)
+            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist, "proxy_labels": proxy_labels}
 
     def save_features(self, features):
         feats = features.cpu().numpy()
@@ -168,8 +168,6 @@ class FastKMeansProxy(ModelPlugin):
         # TODO convert idx to the actual cluster means to the actual cluster labels...
         # Returns distance  | high-density-threshold    | index inside cluster_means. We will need to look up label later...
         #return torch.from_numpy(dist).squeeze(1), torch.tensor([self.high_density_thresholds[item[0]] for item in idx]), idx[:,0]
-        import pdb
-        pdb.set_trace()
         return torch.from_numpy(dist).squeeze(1), self.high_density_thresholds[idx[:,0]], self.proxy_label[idx[:,0]]
 
 
