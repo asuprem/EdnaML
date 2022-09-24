@@ -53,10 +53,8 @@ class LogitConfidence(ModelPlugin):
         """Compute the cluster labels for dataset X given centers C.
         """
         # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        feats = feature_logits.cpu()
-        import pdb
-        pdb.set_trace()
-        return torch.max(feats, dim=1), self.logit_confidence[torch.argmax(feats, dim=1)]
+        soft_maxes = torch.max(torch.nn.functional.softmax(feature_logits.cpu()),dim=1)
+        return soft_maxes[0], self.logit_confidence[0,soft_maxes[1]]
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
         self.pre_epoch_flag = True
