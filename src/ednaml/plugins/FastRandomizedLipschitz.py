@@ -16,7 +16,7 @@ class FastRandomizedLipschitz(ModelPlugin):
     def __init__(self, proxies=10, dimensions=768, dist="euclidean", 
                             rand_seed=12344, neighbors = 10, proxy_epochs=3, 
                             perturbation_neighbors = 10, iterations = 25, batch_size = 256, 
-                            alpha = 0.5, feature_file = None, classifier_access = None, **kwargs):
+                            alpha = 0.5, feature_file = None, classifier_access = "classifier", **kwargs):
         super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, 
                             rand_seed = rand_seed, neighbors = neighbors, proxy_epochs=proxy_epochs, 
                             perturbation_neighbors=perturbation_neighbors, iterations = iterations, batch_size = batch_size, 
@@ -39,7 +39,7 @@ class FastRandomizedLipschitz(ModelPlugin):
         output_file = kwargs.get("feature_file")
         if output_file is None:
             import uuid
-            output_file = "-".join(["FKMP", "features", uuid.uuid1().urn.split("-")[0].split(":")[-1]])
+            output_file = "-".join(["FRL", "features", uuid.uuid1().urn.split("-")[0].split(":")[-1]])
         self._output_file = output_file + ".h5"
         if os.path.exists(self._output_file):
             os.remove(self._output_file)
@@ -56,7 +56,7 @@ class FastRandomizedLipschitz(ModelPlugin):
         self.proxy_stage = True
         self.lipschitz_stage = False
 
-        self.classifier_access = kwargs.get("classifier_access", "classifier")
+        self.classifier_access = kwargs.get("classifier_access")
         self._classifier_setup = False
         self._classifier = None
 
