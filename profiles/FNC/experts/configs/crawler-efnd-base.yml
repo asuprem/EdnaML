@@ -17,8 +17,7 @@ EXECUTION:
       data_shuffle: True
       masking: False
       keyword_mask: True
-      keywords: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
-        "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
+      keywords: []
       label_idxs: [3] # This is the actual label...
       annotation_idxs: [1,2]  # this is shares and likes
     GENERATOR_ARGS: 
@@ -44,8 +43,7 @@ DEPLOYMENT:
       data_shuffle: True
       masking: False
       keyword_mask: True
-      keywords: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
-        "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci"]
+      keywords: []
       label_idxs: [3] # This is the actual label...
       annotation_idxs: [1,2]  # this is shares and likes
     GENERATOR_ARGS: 
