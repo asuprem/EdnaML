@@ -1,3 +1,14 @@
+EXECUTION:
+  EPOCHS: 10
+  FP16: False
+  MODEL_SERVING: False
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  TRAINER: HFTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 8
+    
 LOSS: 
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]

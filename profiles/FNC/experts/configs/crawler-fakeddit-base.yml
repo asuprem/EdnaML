@@ -23,16 +23,7 @@ EXECUTION:
     GENERATOR_ARGS: 
       tokenizer: HFAutoTokenizer
       from_pretrained: unknown
-  EPOCHS: 10
-  FP16: False
-  MODEL_SERVING: False
-  OPTIMIZER_BUILDER: ClassificationOptimizer
-  SKIPEVAL: False
-  TEST_FREQUENCY: 1
-  TRAINER: HFTrainer
-  TRAINER_ARGS: 
-    accumulation_steps: 8
-
+      
 TRANSFORMATION:
   BATCH_SIZE: 16
 
