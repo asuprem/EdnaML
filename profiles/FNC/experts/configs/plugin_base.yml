@@ -33,4 +33,4 @@ MODEL_PLUGIN:
   - PLUGIN: LogitConfidence
     PLUGIN_NAME: logit-confidence
     PLUGIN_KWARGS:
-      num_classes: 
+      num_classes: 2
