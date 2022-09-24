@@ -96,7 +96,6 @@ class EdnaML(EdnaMLBase):
         else:
             raise ValueError("config MUST be list or string")
         
-        self.config = config
         self.mode = mode
         self.weights = weights
         self.pretrained_weights = None

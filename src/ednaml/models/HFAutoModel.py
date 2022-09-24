@@ -52,6 +52,7 @@ class HFAutoModel(ModelAbstract):
                         output_hidden_states=None, **kwargs):
         response = self.encoder(x,attention_mask = attention_mask, token_type_ids = token_type_ids, position_ids=position_ids, head_mask=head_mask, 
                                     inputs_embeds = inputs_embeds, labels=labels, output_attentions=output_attentions, output_hidden_states=output_hidden_states)
-
-        return response.logits, None, [response.attentions]
+                                    
+        # https://stackoverflow.com/questions/61323621/how-to-understand-hidden-states-of-the-returns-in-bertmodelhuggingface-transfo
+        return response.logits, response.hidden_states[-1][:,0,:], [response.attentions]
         

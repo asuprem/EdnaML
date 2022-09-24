@@ -36,13 +36,9 @@ class LogitConfidence(ModelPlugin):
 
     def add_to_average(self, feature_logits):
         # Basically, for each class, find the entries where they are the max, average those
-        import pdb
-        pdb.set_trace()
-        logits = feature_logits.cpu().numpy()
-        max_idx = torch.argmax(logits, dim=1, keepdim=True)
-        one_hot = torch.zeros(logits.shape)
-        one_hot.scatter_(0, max_idx, 1)
-        self.logit_confidence_logits += torch.sum(logits * one_hot, dim=0)
+        softlogits = torch.nn.functional.softmax(feature_logits.cpu())
+        one_hot = torch.nn.functional.one_hot(torch.argmax(softlogits, dim=1))
+        self.logit_confidence_logits += torch.sum(softlogits * one_hot, dim=0)
         self.logit_confidence_count += torch.sum(one_hot, dim=0)
 
     def post_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
@@ -58,6 +54,8 @@ class LogitConfidence(ModelPlugin):
         """
         # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
         feats = feature_logits.cpu()
+        import pdb
+        pdb.set_trace()
         return torch.max(feats, dim=1), self.logit_confidence[torch.argmax(feats, dim=1)]
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
