@@ -240,8 +240,12 @@ class HFDataset(torch.utils.data.Dataset):
         """
         # get entry from already loaded shardcache. so idx is incremented one by one -- No shuffling in data loader.
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
+        import pdb
+        pdb.set_trace()
         self.last_idx = idx
+        response = self.sharded_dataset[self.shard_internal_shuffle[self.getcount]]
         self.getcount += 1
+
         if self.getcount == self.current_shardsize:   # we have exhausted examples in this shard
             self.getcount = 0
             self.shard_load_index += 1                  # increment the shard index that we will load
@@ -257,8 +261,8 @@ class HFDataset(torch.utils.data.Dataset):
                 random.shuffle(self.shard_internal_shuffle)
             if self.masking:
                 self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
-        #shardindex = idx % self.current_shardsize
-        return self.sharded_dataset[self.shard_internal_shuffle[self.getcount]]
+
+        return response
 
     def sharded_convert_to_features(self, dataset, tokenizer, maxlen):
         features = []
