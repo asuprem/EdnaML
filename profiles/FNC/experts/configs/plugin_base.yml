@@ -1,3 +1,6 @@
+DEPLOYMENT:
+  EPOCHS: 2
+  
 MODEL_PLUGIN:
   - PLUGIN: FastKMeansProxy
     PLUGIN_NAME: FastKMP-l2
@@ -18,7 +21,7 @@ MODEL_PLUGIN:
       batch_size: 256
       alpha: 0.6
   - PLUGIN: FastRandomizedLipschitz
-    PLUGIN_NAME: RL-midas
+    PLUGIN_NAME: FRL-midas
     PLUGIN_KWARGS:
       proxies: 15
       dimensions: 768
