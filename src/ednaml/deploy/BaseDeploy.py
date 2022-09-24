@@ -99,7 +99,6 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    
     def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
         if model_build or (model_build is None and not self.model_is_built):
             self.logger.info("Starting deployment")
