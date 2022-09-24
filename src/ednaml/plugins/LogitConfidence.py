@@ -36,6 +36,8 @@ class LogitConfidence(ModelPlugin):
 
     def add_to_average(self, feature_logits):
         # Basically, for each class, find the entries where they are the max, average those
+        import pdb
+        pdb.set_trace()
         logits = feature_logits.cpu().numpy()
         max_idx = torch.argmax(logits, dim=1, keepdim=True)
         one_hot = torch.zeros(logits.shape)
