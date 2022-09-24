@@ -127,7 +127,7 @@ class FastRandomizedLipschitz(ModelPlugin):
         for j,x in enumerate(features):
             perturbation = x+perturbed
             with torch.no_grad():
-                perturbed_logits = model.classifier(perturbation)
+                perturbed_logits = self._classifier(perturbation)
                 raw_logits = feature_logits[j].unsqueeze(0)
 
                 feature_lscore = torch.sqrt((perturbed**2).sum(1))
@@ -175,8 +175,8 @@ class FastRandomizedLipschitz(ModelPlugin):
                 
                 with torch.no_grad():
                     for idx in range(len(self.cluster_means)):
-                        raw_logits = model.classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()
-                        lipschitz_logits = model.classifier(torch.stack([item[0] for item in self._closest_features[idx]]).cuda()).cpu()
+                        raw_logits = self._classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()
+                        lipschitz_logits = self._classifier(torch.stack([item[0] for item in self._closest_features[idx]]).cuda()).cpu()
 
                         # use euclidean here, only!!!!!!
                         feature_lscore = torch.sqrt(((torch.stack([item[0] for item in self._closest_features[idx]])  - self.cluster_means[idx].unsqueeze(0))**2).sum(1))
