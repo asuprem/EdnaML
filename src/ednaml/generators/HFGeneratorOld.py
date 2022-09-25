@@ -1,7 +1,7 @@
 from glob import glob
 import random
 import torch, os, shutil
-from torch.utils.data import TensorDataset, IterableDataset, Dataset
+from torch.utils.data import TensorDataset, Dataset
 import numpy as np
 from tqdm import tqdm
 class HFDataset(Dataset):
@@ -551,7 +551,7 @@ class HFDataset(Dataset):
 
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.generators import TextGenerator
-class HFGenerator(TextGenerator):
+class HFGeneratorOld(TextGenerator):
     """HFGenerator is a generic text generator for HuggingFace-tokenizers
     and designed to work with HuggingFace style transformers.
 
