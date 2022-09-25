@@ -276,8 +276,8 @@ class FastRandomizedLipschitz(ModelPlugin):
         for i in range(0, data_size, self.batch_size):
             current_data = data['features'][i:i+self.batch_size]
             dist, indices = self.kdcluster.query(self._preprocess(torch.tensor(current_data)), k=1, return_distance=True)   #.squeeze()
-            for idx in indices[:,0]:
-                distance_bins[idx].append(dist[idx, 0])
+            for idx,val in enumerate(indices[:,0]):
+                distance_bins[val].append(dist[idx, 0])
         
         self.high_density_thresholds = [None]*self.proxies
         import numpy as np

@@ -245,8 +245,6 @@ class HFDataset(Dataset):
         """
         # get entry from already loaded shardcache. so idx is incremented one by one -- No shuffling in data loader.
         # This is a design choice, and we can't really do anything if user does shuffle + sharding
-        import pdb
-        pdb.set_trace()
         self.last_idx = idx
         response = self.sharded_dataset[self.shard_internal_shuffle[self.getcount]]
         self.getcount += 1
