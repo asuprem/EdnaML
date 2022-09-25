@@ -2,7 +2,7 @@ from glob import glob
 import random
 import torch, os, shutil
 from torch.utils.data import TensorDataset, IterableDataset, Dataset
-import numpy as np
+import numpy as np, h5py
 from tqdm import tqdm
 class HFDataset(Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
@@ -75,6 +75,37 @@ class HFDataset(Dataset):
         if int(self.cache) + int(self.memcache) + int(self.shardcache) > 1:
             raise RuntimeError("Use only one cache type")
 
+        self.word_masking = kwargs.get("word_mask", False)
+        self.keyword_masking = kwargs.get("keyword_mask", True)
+        self.token_masking = kwargs.get("token_mask", False)
+        self.keytoken_masking = kwargs.get("keytoken_mask", False)
+        self.stopword_masking = kwargs.get("stopword_mask", False)
+
+        self.label_idxs = kwargs.get("label_idxs", [1])
+        self.annotation_idxs = kwargs.get("annotation_idxs", [])
+        
+        
+        # Tokenizer and lengths
+        self.tokenizer = kwargs.get("tokenizer")
+        self.maxlen = kwargs.get("maxlen")
+        self.mlm = kwargs.get("mlm_probability", 0.2)
+        self.masking = kwargs.get("masking", mode=="train")
+        if self.masking == "train_only":
+            self.masking = mode=="train"
+
+
+        self.keywords = []
+        if self.keyword_masking:
+            self.keywords = kwargs.get("keywords", [])
+        self.keytokens = []
+        if self.keytoken_masking:
+            self.keytokens = kwargs.get("keytokens", [])
+        # Store indices corresponding to keytokens
+        vocab = self.tokenizer.get_vocab()
+        self.keytokens = {vocab[item]:1 for item in self.keytokens if item in vocab}
+        self.keytokens_tensor = torch.tensor(list(self.keytokens.keys())).unsqueeze(0).T
+
+
         # Cache options
         self.cache_replace = kwargs.get("cache_replace", False)
         self.cachepath = kwargs.get("cachepath", "artifacts")
@@ -82,17 +113,20 @@ class HFDataset(Dataset):
         self.cachename = kwargs.get("cachename", "h5-cache") + "-"  #the dash
         if self.cache:
             self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
-        self.base_cachepath = os.path.join(self.cachepath, self.cachename)
+        self.base_cachepath = os.path.join(self.cachepath, self.cachename) + ".h5"
         self.cache_exist = False
-        if os.path.exists(self.base_cachepath + ".h5"):
+        if os.path.exists(self.base_cachepath):
             if self.cache_replace:
                 self.logger.debug("Deleting existing cache")
-                shutil.rmtree(self.cachepath)   # TODO this will delete the entire tree!!!!!!
+                os.remove(self.cachepath)
             else:
                 self.cache_exist = True
                 self.logger.debug("Cache already exists and `cache_replace` is False")
         else:
           self.logger.debug("Cache does not exist and will be created.")
+          with h5py.File(self.base_cachepath, "w") as hfile:
+            hfile.create_dataset(name="all_input_ids", shape=(len(self.dataset),self.maxlen))
+
         if self.cache:
             self.logger.debug("Creating cachepath %s"%self.cachepath)
             os.makedirs(self.cachepath, exist_ok=True)
@@ -124,35 +158,7 @@ class HFDataset(Dataset):
         
         
         
-        self.word_masking = kwargs.get("word_mask", False)
-        self.keyword_masking = kwargs.get("keyword_mask", True)
-        self.token_masking = kwargs.get("token_mask", False)
-        self.keytoken_masking = kwargs.get("keytoken_mask", False)
-        self.stopword_masking = kwargs.get("stopword_mask", False)
-
-        self.label_idxs = kwargs.get("label_idxs", [1])
-        self.annotation_idxs = kwargs.get("annotation_idxs", [])
         
-        
-        # Tokenizer and lengths
-        self.tokenizer = kwargs.get("tokenizer")
-        self.maxlen = kwargs.get("maxlen")
-        self.mlm = kwargs.get("mlm_probability", 0.2)
-        self.masking = kwargs.get("masking", mode=="train")
-        if self.masking == "train_only":
-            self.masking = mode=="train"
-
-
-        self.keywords = []
-        if self.keyword_masking:
-            self.keywords = kwargs.get("keywords", [])
-        self.keytokens = []
-        if self.keytoken_masking:
-            self.keytokens = kwargs.get("keytokens", [])
-        # Store indices corresponding to keytokens
-        vocab = self.tokenizer.get_vocab()
-        self.keytokens = {vocab[item]:1 for item in self.keytokens if item in vocab}
-        self.keytokens_tensor = torch.tensor(list(self.keytokens.keys())).unsqueeze(0).T
 
         # This is for memcache and shardcache
         self.getcount = 0
@@ -585,7 +591,7 @@ class HFGenerator(TextGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         print("Building Dataloader")
         return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
-                                            shuffle=kwargs.get("shuffle", False), num_workers = self.workers, 
+                                            shuffle=False, num_workers = self.workers, 
                                         collate_fn=self.collate_fn)
 
     def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
