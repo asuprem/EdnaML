@@ -72,6 +72,7 @@ class HFTrainer(BaseTrainer):
                             token_type_ids=all_token_type_ids,
                             attention_mask=all_attention_mask,
                             output_attentions = True,
+                            output_hidden_states = True,
                             secondary_inputs=all_annotations
                         )
                 raw_logits = outputs[0]

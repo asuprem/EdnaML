@@ -85,12 +85,15 @@ class NELACrawler(Crawler):
     # Maybe we can extract it by looking up the status ID
     self.metadata["train"]["crawl"] += [(item, 0,0,1) for item in labelsets[0][:reliable_train]]
     self.metadata["train"]["crawl"] += [(item, 0,0,0) for item in labelsets[2][:unreliable_train]]
+    random.shuffle(self.metadata["train"]["crawl"])
 
     self.metadata["val"]["crawl"] += [(item, 0,0,1) for item in labelsets[0][reliable_train:reliable_train+reliable_val]]
     self.metadata["val"]["crawl"] += [(item, 0,0,0) for item in labelsets[2][unreliable_train:unreliable_train+unreliable_val]]
+    random.shuffle(self.metadata["val"]["crawl"])
 
     self.metadata["test"]["crawl"] += [(item, 0,0,1) for item in labelsets[0][reliable_train+reliable_val:]]
     self.metadata["test"]["crawl"] += [(item, 0,0,0) for item in labelsets[2][unreliable_train+unreliable_val:]]
+    random.shuffle(self.metadata["test"]["crawl"])
       
 
     self.metadata["train"]["classes"] = self.classes
