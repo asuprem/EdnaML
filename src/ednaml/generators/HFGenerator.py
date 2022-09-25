@@ -113,23 +113,22 @@ class HFDataset(Dataset):
         self.cachename = kwargs.get("cachename", "h5-cache") + "-"  #the dash
         if self.cache:
             self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
-        self.base_cachepath = os.path.join(self.cachepath, self.cachename) + ".h5"
-        self.cache_exist = False
-        if os.path.exists(self.base_cachepath):
-            if self.cache_replace:
-                self.logger.debug("Deleting existing cache")
-                os.remove(self.cachepath)
+            self.base_cachepath = os.path.join(self.cachepath, self.cachename) + ".h5"
+            self.cache_exist = False
+            if os.path.exists(self.base_cachepath):
+                if self.cache_replace:
+                    self.logger.debug("Deleting existing cache")
+                    os.remove(self.cachepath)
+                else:
+                    self.cache_exist = True
+                    self.logger.debug("Cache already exists and `cache_replace` is False")
             else:
-                self.cache_exist = True
-                self.logger.debug("Cache already exists and `cache_replace` is False")
-        else:
-          self.logger.debug("Cache does not exist and will be created.")
-          with h5py.File(self.base_cachepath, "w") as hfile:
-            hfile.create_dataset(name="all_input_ids", shape=(len(self.dataset),self.maxlen))
-
-        if self.cache:
-            self.logger.debug("Creating cachepath %s"%self.cachepath)
-            os.makedirs(self.cachepath, exist_ok=True)
+                self.logger.debug("Cache does not exist and will be created.")
+                self.logger.debug("Creating cachepath %s"%self.cachepath)
+                os.makedirs(self.cachepath, exist_ok=True)
+                with h5py.File(self.base_cachepath, "w") as hfile:
+                    hfile.create_dataset(name="all_input_ids", shape=(len(self.dataset),self.maxlen))
+            
 
 
         # Shardcache options
