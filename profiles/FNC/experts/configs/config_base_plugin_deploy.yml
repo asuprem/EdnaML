@@ -4,7 +4,7 @@ DEPLOYMENT:
   EPOCHS: 1
   PLUGIN:
     HOOKS: warmup
-    RESET: True
+    RESET: False
 
 
 LOGGING:
