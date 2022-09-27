@@ -182,7 +182,10 @@ class FastRandomizedLipschitz(ModelPlugin):
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
                 self._logger.info("RandomizedLipschitz has completed Lipschitz stage. Computing L values.")
-                
+                lthresh = [0]*len(self.cluster_means)
+                lthreshmean = [0]*len(self.cluster_means)
+                smooththresh = [0]*len(self.cluster_means)
+                smooththreshmean = [0]*len(self.cluster_means)
                 with torch.no_grad():
                     for idx in range(len(self.cluster_means)):
                         raw_logits = self._classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()
@@ -197,14 +200,19 @@ class FastRandomizedLipschitz(ModelPlugin):
                         l_scores = logit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
                         smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
 
-                        self.lipschitz_threshold = torch.max(l_scores).item()
-                        self.lipschitz_threshold_mean = torch.mean(l_scores).item()
-                        self.smooth_lipschitz_threshold = torch.max(smooth_lscores).item()
-                        self.smooth_lipschitz_threshold_mean = torch.mean(smooth_lscores).item()
+                        lthresh[idx] = torch.max(l_scores).item()
+                        lthreshmean[idx] = torch.mean(l_scores).item()
+                        smooththresh[idx] = torch.max(smooth_lscores).item()
+                        smooththreshmean[idx] = torch.mean(smooth_lscores).item()
+                
+                self.lipschitz_threshold = max(lthresh)
+                self.lipschitz_threshold_mean = max(lthreshmean)
+                self.smooth_lipschitz_threshold = max(smooththresh)
+                self.smooth_lipschitz_threshold_mean = max(smooththreshmean)
 
-                        self.epsilon = 1. / self.smooth_lipschitz_threshold
+                self.epsilon = 1. / self.smooth_lipschitz_threshold
 
-                        self.activated = True
+                self.activated = True
 
                 # So we are done settng up neighbors...
                 # here, we have access to the model. We can not pass all our features and stuff through the model, get the logits, compute L, etc, etc
