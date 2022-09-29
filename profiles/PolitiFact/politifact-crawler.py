@@ -65,8 +65,10 @@ class PolitifactCrawler(Crawler):
         random.shuffle(self.metadata["train"]["crawl"])
         random.shuffle(self.metadata["test"]["crawl"])
 
-        self.metadata["train"]["classes"] = 2
-        self.metadata["test"]["classes"] = 2
-
         self.classes = {}
         self.classes["fnews"] = 2
+        
+        self.metadata["train"]["classes"] = self.classes
+        self.metadata["test"]["classes"] = self.classes
+
+        
