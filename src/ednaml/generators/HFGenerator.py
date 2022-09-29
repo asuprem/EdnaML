@@ -82,7 +82,7 @@ class HFDataset(Dataset):
         self.stopword_masking = kwargs.get("stopword_mask", False)
 
         self.label_idxs = kwargs.get("label_idxs", [1])
-        self.annotation_idxs = kwargs.get("annotation_idxs", [])
+        self.annotation_idxs = kwargs.get("annotation_idxs", self.label_idxs)
         
         
         # Tokenizer and lengths

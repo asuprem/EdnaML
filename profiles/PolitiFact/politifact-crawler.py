@@ -1,11 +1,12 @@
-import ednaml, torch, csv
+import ednaml, torch, csv, ctypes as ct
 import ednaml.core.decorators as edna
 from ednaml.crawlers import Crawler
 from ednaml.utils.web import download
 
-@edna.register_crawler()
+@edna.register_crawler
 class PolitifactCrawler(Crawler):
     def __init__(self, logger = None, split = 0.9, true_url = None, fake_url = None):
+        csv.field_size_limit(int(ct.c_ulong(-1).value // 2))
         self.true_url = true_url
         self.fake_url = fake_url
         
@@ -29,7 +30,7 @@ class PolitifactCrawler(Crawler):
             header = next(fobj)
             for row in fobj:
                 all_fakes.append(
-                    row[2], 0
+                    (row[2], 0)
                 )
         
         with open(self.true_file, "r") as ffile:
@@ -37,7 +38,7 @@ class PolitifactCrawler(Crawler):
             header = next(fobj)
             for row in fobj:
                 all_true.append(
-                    row[2], 1
+                    (row[2], 1)
                 )
 
         import random
