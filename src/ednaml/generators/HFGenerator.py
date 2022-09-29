@@ -375,7 +375,7 @@ class HFDataset(Dataset):
             if len(features[0][7]) > 0:
                     all_annotations = torch.tensor([f[7] for f in features])
             else:
-                all_annotations = torch.zeros((self.shardsize,1))
+                all_annotations = torch.zeros((len(features),1))
 
             # Propagate input masking to output masking
             for midx in range(all_attention_mask.shape[0]):
