@@ -1,11 +1,11 @@
-import ednaml, torch, csv, ctypes as ct
+import ednaml, torch, csv, ctypes as ct, os
 import ednaml.core.decorators as edna
 from ednaml.crawlers import Crawler
 from ednaml.utils.web import download
 
 @edna.register_crawler
 class PolitifactCrawler(Crawler):
-    def __init__(self, logger = None, split = 0.9, true_url = None, fake_url = None):
+    def __init__(self, logger = None, split = 0.9, true_url = None, fake_url = None, true_file = "politifact_real.csv", fake_file = "politifact_fake.csv"):
         csv.field_size_limit(int(ct.c_ulong(-1).value // 2))
         self.true_url = true_url
         self.fake_url = fake_url
@@ -15,11 +15,13 @@ class PolitifactCrawler(Crawler):
         if self.true_url is None:
             self.true_url = "https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/politifact_real.csv"
         
-        self.fake_file = "politifact_fake.csv"
-        self.true_file = "politifact_real.csv"
-
-        download(self.fake_file, self.fake_url)
-        download(self.true_file, self.true_url)
+        self.fake_file = fake_file
+        self.true_file = true_file
+        
+        if not os.path.exists(self.fake_file):
+            download(self.fake_file, self.fake_url)
+        if not os.path.exists(self.true_file):
+            download(self.true_file, self.true_url)
 
         all_fakes = []
         all_true = []

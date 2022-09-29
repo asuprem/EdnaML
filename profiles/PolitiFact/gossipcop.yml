@@ -14,6 +14,8 @@ EXECUTION:
       split: 0.9
       true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
       fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
+      true_file: gossipcop_real.csv
+      fake_file: gossipcop_fake.csv
     DATASET_ARGS:
       classificationclass: ['fnews']
       maxlen: 512
@@ -47,6 +49,8 @@ DEPLOYMENT:
       split: 0.9
       true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
       fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
+      true_file: gossipcop_real.csv
+      fake_file: gossipcop_fake.csv
     DATASET_ARGS:
       classificationclass: ['fnews']
       maxlen: 512
