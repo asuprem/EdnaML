@@ -12,6 +12,8 @@ EXECUTION:
     DATAREADER: HFReader
     CRAWLER_ARGS: 
       split: 0.9
+      true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
+      fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
     DATASET_ARGS:
       classificationclass: ['fnews']
       maxlen: 512
@@ -19,7 +21,7 @@ EXECUTION:
       shardsize: 20000
       shard_replace: False
       shardpath: datashard-artifacts
-      shardname: fnc-politifact-shard
+      shardname: fnc-gossipcop-shard
       mlm_probability: 0.15
       shuffle: False
       data_shuffle: True
@@ -43,6 +45,8 @@ DEPLOYMENT:
     DATAREADER: HFReader
     CRAWLER_ARGS: 
       split: 0.9
+      true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
+      fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
     DATASET_ARGS:
       classificationclass: ['fnews']
       maxlen: 512
@@ -50,7 +54,7 @@ DEPLOYMENT:
       shardsize: 20000
       shard_replace: False
       shardpath: datashard-artifacts
-      shardname: fnc-politifact-shard
+      shardname: fnc-gossipcop-shard
       mlm_probability: 0.15
       shuffle: False
       data_shuffle: True
@@ -97,7 +101,7 @@ TRANSFORMATION:
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: fnc-politifact
+  MODEL_CORE_NAME: fnc-gossipcop
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: base
   DRIVE_BACKUP: False
