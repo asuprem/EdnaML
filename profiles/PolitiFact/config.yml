@@ -70,6 +70,7 @@ SAVE:
   MODEL_BACKBONE: albert
   MODEL_QUALIFIER: base
   DRIVE_BACKUP: False
+  LOG_BACKUP: False
   SAVE_FREQUENCY: 2 # Epoch
   CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
 
