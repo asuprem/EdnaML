@@ -528,8 +528,6 @@ class BaseTrainer:
                 self.loss_scheduler[lossname].step()
 
     def printOptimizerLearningRates(self):
-        import pdb
-        pdb.set_trace()
         for param_group_name in self.optimizer:
             lrs = self.scheduler[param_group_name].get_last_lr()
             lrs = sum(lrs) / float(len(lrs))
