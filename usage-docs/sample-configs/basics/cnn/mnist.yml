@@ -61,6 +61,7 @@ MODEL:
   EMBEDDING_DIMENSIONS:
   MODEL_NORMALIZATION: bn
   MODEL_KWARGS:
+    initial_channels: 1
   PARAMETER_GROUPS: 
     - opt-1
 

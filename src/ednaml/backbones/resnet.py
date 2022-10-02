@@ -69,6 +69,7 @@ class resnet(nn.Module):
         self.secondary_attention = secondary_attention
         self.block = block
         self.inplanes = 64
+        self.initial_channels = kwargs.get("initial_channels", 3)
         if norm_layer is None:
             self._norm_layer = nn.BatchNorm2d
         # elif norm_layer == "ln":
@@ -85,7 +86,7 @@ class resnet(nn.Module):
         self.base_width = width_per_group
 
         self.conv1 = nn.Conv2d(
-            3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
+            self.initial_channels, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
         )
         # if norm_layer == "gn":
         #    self.bn1 = nn.GroupNorm2d
