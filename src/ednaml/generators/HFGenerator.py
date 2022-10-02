@@ -478,7 +478,7 @@ class HFDataset(Dataset):
                         all_masklm[idx][merged_mask] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
                 
                 #merged_masklm *= all_masklm
-            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[3] for shard in sharded_dataset]), all_masklm, 
+            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[2] for shard in sharded_dataset]), all_masklm, 
                 torch.stack([shard[4] for shard in sharded_dataset]), 
                 torch.stack([shard[5] for shard in sharded_dataset]), 
                 torch.stack([shard[6] for shard in sharded_dataset]), 
