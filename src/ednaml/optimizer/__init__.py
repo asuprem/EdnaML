@@ -62,7 +62,7 @@ class BaseOptimizer:
                     learning_rate = self.base_lr * self.lr_bias
                     weight_decay = self.weight_decay * self.weight_bias
                 else:
-                    learning_rate = self.base_lr * self.gpus
+                    learning_rate = self.base_lr * max(1,self.gpus)
                     weight_decay = self.weight_decay
                 params += [
                     {
