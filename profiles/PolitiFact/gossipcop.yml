@@ -3,7 +3,7 @@ EXECUTION:
   FP16: False
   MODEL_SERVING: False
   OPTIMIZER_BUILDER: ClassificationOptimizer
-  SKIPEVAL: False
+  SKIPEVAL: True
   TEST_FREQUENCY: 1
   TRAINER: HFTrainer
   TRAINER_ARGS: 
