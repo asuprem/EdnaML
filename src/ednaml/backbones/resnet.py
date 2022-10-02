@@ -280,6 +280,11 @@ class resnet(nn.Module):
             weights_path (str): Path to the weights file
         """
         param_dict = torch.load(weights_path)
+        if self.initial_channels == 1:
+            conv1_weight = param_dict['conv1.weight']
+            param_dict['conv1.weight'] = conv1_weight.sum(dim=1, keepdim=True)
+        elif self.initial_channels != 3:
+            raise RuntimeError("Invalid number of input channels for pretrained weights. Need 1 or 3 channels, got %i"%self.initial_channels)
         for i in param_dict:
             if "fc" in i and self.top_only:
                 continue
