@@ -289,7 +289,8 @@ class HFDataset(Dataset):
         for idx, sample in enumerate(dataset):  # This is a tuple with (text, ..., stuff)
             # Identify the indices of specific keywords to mask
             #if self.keyword_masking or self.word_masking:
-            word_tokens = sample[0].split(" ")
+            # NOTE: we assume that text is at index 0!!!!!
+            word_tokens = sample[0].lower().split(" ")
             encoded_word_length = len(word_tokens)
             
             if self.masking and self.keyword_masking:
