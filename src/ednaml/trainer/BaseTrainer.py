@@ -1,6 +1,6 @@
 import json, logging, os, shutil
 from logging import Logger
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from ednaml.config.StorageConfig import StorageConfig
 
 import torch
@@ -164,8 +164,12 @@ class BaseTrainer:
         if self.gpus != 1:
             self.logger.warning("Multi-gpu or non-gpu not yet fully supported.")
 
+
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if self.gpus:
-            self.model.cuda() # moves the model into GPU
+            #self.model.cuda() # moves the model into GPU
+            self.logger.info("%i GPUs available"%self.gpus)
+        self.model.to(self.device)
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
@@ -395,7 +399,7 @@ class BaseTrainer:
                 self.printOptimizerLearningRates()
 
             self.model.train() #train == we are tracking all numbers and computation graph
-
+            batch = self.move_to_device(batch)
             loss: torch.Tensor = self.step(batch) #perform function and returns loss
             loss = loss / self.accumulation_steps
             loss.backward()
@@ -447,10 +451,14 @@ class BaseTrainer:
             else:
                 self.save()
         self.global_epoch += 1
+    
+    def move_to_device(self, batch) -> Tuple[torch.Tensor]:
+        return (item.to(self.device) for item in batch)
 
     def step(self, batch) -> torch.Tensor:
         # compute the loss, and return it
         # print("!!!!!!!!!! batch !!!!!!!!!!!!!!!",batch)
+
         raise NotImplementedError()
 
     def updateGradients(self):

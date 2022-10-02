@@ -3,7 +3,7 @@ from ednaml.deploy.BaseDeploy import BaseDeploy
 
 class HFDeploy(BaseDeploy):
   def deploy_step(self, batch):
-    batch = tuple(item.cuda() for item in batch)
+    #batch = tuple(item.cuda() for item in batch)
     (
         all_input_ids,
         all_attention_mask,

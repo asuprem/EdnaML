@@ -14,7 +14,7 @@ class HFTrainer(BaseTrainer):
     def step(self, batch):
         import pdb
         pdb.set_trace()
-        batch = tuple(item.cuda() for item in batch)
+        #batch = tuple(item.cuda() for item in batch)
         (
             all_input_ids,
             all_attention_mask,

@@ -862,7 +862,10 @@ class EdnaML(EdnaMLBase):
         # add bookkeeping
         # does config has input size? if it does use that, but prepend batch size .
         # if it doesn't have it, use input size in arguments
-        self.model.cuda()
+        # TODO possibly move this into trainer...?
+        # or at least deal with potential mlti-gpu scenario...
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.to(device)
         # change below statement according to line 722
         # default for input size is None/null
         try:
