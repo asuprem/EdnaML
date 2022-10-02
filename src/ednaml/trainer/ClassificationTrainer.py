@@ -56,7 +56,7 @@ class ClassificationTrainer(BaseTrainer):
                 self.test_loader, total=len(self.test_loader), leave=False
             ):
                 data, label = batch
-                data = data.cuda()
+                data = data.to(self.device)
                 logit, feature, _ = self.model(data)
                 feature = feature.detach().cpu()
                 logit = logit.detach().cpu()

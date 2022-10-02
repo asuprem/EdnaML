@@ -53,7 +53,7 @@ TRANSFORMATION:
   BATCH_SIZE: 32
   WORKERS: 2
   ARGS:
-    i_shape: [28,28]
+    i_shape: [32,32]
     normalization_mean: 0.1307
     normalization_std: 0.3081
     normalization_scale: 0.5

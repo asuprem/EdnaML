@@ -34,7 +34,7 @@ TRANSFORMATION:
   BATCH_SIZE: 32
   WORKERS: 2
   ARGS:
-    i_shape: [28,28]
+    i_shape: [32,32]
     normalization_mean: 0.1307
     normalization_std: 0.3081
     normalization_scale: 0.5
@@ -72,7 +72,7 @@ OPTIMIZER:
   - OPTIMIZER: Adam
     OPTIMIZER_NAME: opt-1
     OPTIMIZER_KWARGS: {}
-    BASE_LR: 1.0e-4
+    BASE_LR: 1.0e-3
     LR_BIAS_FACTOR: 1.0
     WEIGHT_DECAY: 0.0005
     WEIGHT_BIAS_FACTOR: 0.0005

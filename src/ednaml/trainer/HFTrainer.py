@@ -56,7 +56,7 @@ class HFTrainer(BaseTrainer):
             for batch in tqdm.tqdm(
                 self.test_loader, total=len(self.test_loader), leave=False
             ):
-                batch = tuple(item.cuda() for item in batch)
+                batch = tuple(item.to(self.device) for item in batch)
                 (
                     all_input_ids,
                     all_attention_mask,
