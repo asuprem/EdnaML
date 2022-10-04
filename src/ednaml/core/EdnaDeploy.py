@@ -49,7 +49,7 @@ class EdnaDeploy(EdnaML):
         data_reader: Type[DataReader] = locate_class(
             package="ednaml",
             subpackage="datareaders",
-            classpackage=self.cfg.DEPLOYMENT.DATAREADER.DATAREADER,
+            classpackage=self.cfg.DATAREADER.DATAREADER,
         )
         data_reader_instance = data_reader()
         self.logger.info("Reading data with DataReader %s" % data_reader_instance.name)
@@ -61,25 +61,25 @@ class EdnaDeploy(EdnaML):
             self.logger.info("Updating GENERATOR to queued class %s"%self._generatorClassQueue.__name__)
             data_reader_instance.GENERATOR = self._generatorClassQueue
             if self._generatorArgsQueueFlag:
-                self.cfg.DEPLOYMENT.DATAREADER.GENERATOR_ARGS = (
+                self.cfg.DATAREADER.GENERATOR_ARGS = (
                     self._generatorArgsQueue
                 )
         else:
             if (
-                self.cfg.DEPLOYMENT.DATAREADER.GENERATOR is not None
+                self.cfg.DATAREADER.GENERATOR is not None
             ):
-                self.logger.info("Updating GENERATOR using config specification to %s"%self.cfg.DEPLOYMENT.DATAREADER.GENERATOR)
+                self.logger.info("Updating GENERATOR using config specification to %s"%self.cfg.DATAREADER.GENERATOR)
                 data_reader_instance.GENERATOR = locate_class(
                     package="ednaml",
                     subpackage="generators",
-                    classpackage=self.cfg.DEPLOYMENT.DATAREADER.GENERATOR,
+                    classpackage=self.cfg.DATAREADER.GENERATOR,
                 )
 
         if self._crawlerClassQueueFlag: #here it checkes whether class flag is set, if it is then replace the build in class with custom class
             self.logger.info("Updating CRAWLER to %s"%self._crawlerClassQueue.__name__)
             data_reader_instance.CRAWLER = self._crawlerClassQueue
             if self._crawlerArgsQueueFlag: #check args also
-                self.cfg.DEPLOYMENT.DATAREADER.CRAWLER_ARGS = (
+                self.cfg.DATAREADER.CRAWLER_ARGS = (
                     self._crawlerArgsQueue
                 )
 
@@ -111,13 +111,13 @@ class EdnaDeploy(EdnaML):
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION,
                 mode=self.dataloader_mode,  # TODO convert this to better options: i.e. which mode to use, and which transformations to use, as an option in data_reader, specifically for deployments
-                **self.cfg.DEPLOYMENT.DATAREADER.GENERATOR_ARGS
+                **self.cfg.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build( 
                 crawler_instance,
                 batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
                 workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
-                **self.cfg.DEPLOYMENT.DATAREADER.DATASET_ARGS
+                **self.cfg.DATAREADER.DATASET_ARGS
             )
 
         if self.mode == "test":
@@ -134,7 +134,7 @@ class EdnaDeploy(EdnaML):
             Crawler: A Crawler instanece for this experiment
         """
         return data_reader.CRAWLER(
-            logger=self.logger, **self.cfg.DEPLOYMENT.DATAREADER.CRAWLER_ARGS
+            logger=self.logger, **self.cfg.DATAREADER.CRAWLER_ARGS
         )
 
     def deploy(self, **kwargs):

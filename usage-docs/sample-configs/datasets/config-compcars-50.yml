@@ -4,22 +4,23 @@ EXECUTION:
   EPOCHS: 10
   SKIPEVAL: True
   TEST_FREQUENCY: 5
-  DATAREADER: 
-    DATAREADER: CompCars
-    CRAWLER_ARGS:
-      data_folder: "Data/CompCars"
-      train_folder: "image"
-      trainfile: "trainlarge.txt"
-      testfile: "testlarge.txt"
-    DATASET_ARGS: 
-      pathidx: 4
-      annotationidx: 3
-      classificationclass: type
-    GENERATOR_ARGS: {}      
-    DATALOADER_ARGS: {}
   TRAINER: ClassificationTrainer
   TRAINER_ARGS: 
     accumulation_steps: 4
+
+DATAREADER: 
+  DATAREADER: CompCars
+  CRAWLER_ARGS:
+    data_folder: "Data/CompCars"
+    train_folder: "image"
+    trainfile: "trainlarge.txt"
+    testfile: "testlarge.txt"
+  DATASET_ARGS: 
+    pathidx: 4
+    annotationidx: 3
+    classificationclass: type
+  GENERATOR_ARGS: {}      
+  DATALOADER_ARGS: {}
 
 SAVE:
   MODEL_VERSION: 1

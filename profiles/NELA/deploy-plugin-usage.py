@@ -70,7 +70,7 @@ def main(config, deploy, mode):
     ed.addModelClass(main.NELAModel)
     ed.addDeploymentClass(NELADeploy)
 
-    ed.apply(input_size=(ed.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,ed.cfg.EXECUTION.DATAREADER.DATASET_ARGS["maxlen"]),
+    ed.apply(input_size=(ed.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,ed.cfg.DATAREADER.DATASET_ARGS["maxlen"]),
           dtypes=[torch.long])
 
     ed.deploy()

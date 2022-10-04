@@ -4,20 +4,22 @@ DEPLOYMENT:
     unfiltered_output: unfiltered
     basename: tweets-2020-01-22
   DEPLOY: BaseDeploy
-  DATAREADER:
-    CRAWLER_ARGS: 
-      azstorage: ednadatasets
-      azcontainer: edna-covid-raw
-      azfile: tweets-2020-01-22.json.gz
-    DATAREADER: AlbertReader
-    DATASET_ARGS:
-      classificationclass: ['fn_label']
-      shard_replace: False
-      shardpath: datashard-artifacts
-      shardname: fnc-raw-shard
-      shardsize: 20000
-      shuffle: False
   FP16: False
+
+DATAREADER:
+  CRAWLER_ARGS: 
+    azstorage: ednadatasets
+    azcontainer: edna-covid-raw
+    azfile: tweets-2020-01-22.json.gz
+  DATAREADER: AlbertReader
+  DATASET_ARGS:
+    classificationclass: ['fn_label']
+    shard_replace: False
+    shardpath: datashard-artifacts
+    shardname: fnc-raw-shard
+    shardsize: 20000
+    shuffle: False
+
 
 SAVE:
   MODEL_VERSION: 1

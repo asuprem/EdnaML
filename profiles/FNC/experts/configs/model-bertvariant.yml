@@ -1,14 +1,7 @@
-EXECUTION:
-  DATAREADER:
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
-
-DEPLOYMENT:
-  DATAREADER:
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
+DATAREADER:
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: albert-base-v2
 
 MODEL:
   BUILDER: ednaml_model_builder
