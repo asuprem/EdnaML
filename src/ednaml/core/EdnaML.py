@@ -1002,7 +1002,7 @@ class EdnaML(EdnaMLBase):
         data_reader: Type[DataReader] = locate_class(
             package="ednaml",
             subpackage="datareaders",
-            classpackage=self.cfg.EXECUTION.DATAREADER.DATAREADER,
+            classpackage=self.cfg.DATAREADER.DATAREADER,
         )
         data_reader_instance = data_reader()
         self.logger.info("Reading data with DataReader %s" % data_reader_instance.name)
@@ -1014,25 +1014,25 @@ class EdnaML(EdnaMLBase):
             self.logger.info("Updating GENERATOR to queued class %s"%self._generatorClassQueue.__name__)
             data_reader_instance.GENERATOR = self._generatorClassQueue
             if self._generatorArgsQueueFlag:
-                self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS = (
+                self.cfg.DATAREADER.GENERATOR_ARGS = (
                     self._generatorArgsQueue
                 )
         else:
             if (
-                self.cfg.EXECUTION.DATAREADER.GENERATOR is not None
+                self.cfg.DATAREADER.GENERATOR is not None
             ):
-                self.logger.info("Updating GENERATOR using config specification to %s"%self.cfg.EXECUTION.DATAREADER.GENERATOR)
+                self.logger.info("Updating GENERATOR using config specification to %s"%self.cfg.DATAREADER.GENERATOR)
                 data_reader_instance.GENERATOR = locate_class(
                     package="ednaml",
                     subpackage="generators",
-                    classpackage=self.cfg.EXECUTION.DATAREADER.GENERATOR,
+                    classpackage=self.cfg.DATAREADER.GENERATOR,
                 )
 
         if self._crawlerClassQueueFlag: #here it checkes whether class flag is set, if it is then replace the build in class with custom class
             self.logger.info("Updating CRAWLER to %s"%self._crawlerClassQueue.__name__)
             data_reader_instance.CRAWLER = self._crawlerClassQueue
             if self._crawlerArgsQueueFlag: #check args also
-                self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS = (
+                self.cfg.DATAREADER.CRAWLER_ARGS = (
                     self._crawlerArgsQueue
                 )
 
@@ -1056,7 +1056,7 @@ class EdnaML(EdnaMLBase):
             Crawler: A Crawler instanece for this experiment
         """
         return data_reader.CRAWLER(
-            logger=self.logger, **self.cfg.EXECUTION.DATAREADER.CRAWLER_ARGS
+            logger=self.logger, **self.cfg.DATAREADER.CRAWLER_ARGS
         )
 
     def buildTrainDataloader(
@@ -1078,14 +1078,14 @@ class EdnaML(EdnaMLBase):
                     gpus=self.gpus,
                     transforms=self.cfg.TRAIN_TRANSFORMATION,# train_transforms.args ## not imp.. all arguments are in args -- args is attribute which is storoing a dictionary
                     mode="train",
-                    **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+                    **self.cfg.DATAREADER.GENERATOR_ARGS
                 )
 
                 self.train_generator.build( ## imp -- calls build method inside generator class
                     crawler_instance, 
                     batch_size=self.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE, 
                     workers=self.cfg.TRAIN_TRANSFORMATION.WORKERS,
-                    **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+                    **self.cfg.DATAREADER.DATASET_ARGS
                 )
             else:
                 self.logger.info(
@@ -1125,13 +1125,13 @@ class EdnaML(EdnaMLBase):
                 gpus=self.gpus,
                 transforms=self.cfg.TEST_TRANSFORMATION,
                 mode="test",
-                **self.cfg.EXECUTION.DATAREADER.GENERATOR_ARGS
+                **self.cfg.DATAREADER.GENERATOR_ARGS
             )
             self.test_generator.build( 
                 crawler_instance,
                 batch_size=self.cfg.TEST_TRANSFORMATION.BATCH_SIZE,
                 workers=self.cfg.TEST_TRANSFORMATION.WORKERS,
-                **self.cfg.EXECUTION.DATAREADER.DATASET_ARGS
+                **self.cfg.DATAREADER.DATASET_ARGS
             )
 
         if self.mode == "test":

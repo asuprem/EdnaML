@@ -2,20 +2,20 @@
 EXECUTION:
   EPOCHS: 5  # We will execute for 10 epochs
   TEST_FREQUENCY: 1 # We will test the model every 1 epoch
-  DATAREADER: 
-    DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
-    GENERATOR_ARGS:
-      tv_dataset: MNIST   # This tells our datareader that we want MNIST
-      tv_args: 
-        root: "Data/"     # This tells where to download the dataset
-        args:
-          download: true
-    DATASET_ARGS:
-      label_name: mnist_digits
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
     accumulation_steps: 2         # Number of steps for gradient accumulation
 
+DATAREADER: 
+  DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
+  GENERATOR_ARGS:
+    tv_dataset: MNIST   # This tells our datareader that we want MNIST
+    tv_args: 
+      root: "Data/"     # This tells where to download the dataset
+      args:
+        download: true
+  DATASET_ARGS:
+    label_name: mnist_digits
 
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
@@ -59,7 +59,7 @@ LOSS:
     KWARGS: [{}]
     LAMBDAS: [1.0]
     NAME: digit_out                 # The name for this loss
-    LABEL: mnist_digits             # The label this loss is targeting. This MUST match the EXECUTION.DATAREADER.DATASET_ARGS["label_name"] above
+    LABEL: mnist_digits             # The label this loss is targeting. This MUST match the DATAREADER.DATASET_ARGS["label_name"] above
 
 OPTIMIZER:
   - OPTIMIZER: Adam                 # We use the standard Adam optimizer

@@ -7,7 +7,7 @@ DataReaders perform 3 tasks:
 2. They build a TorchDataset for this data
 3. They build a generator using TorchDataloader to yield batches
 
-`EXECUTION.DATAREADERS` is a dictionary. It looks like:
+`DATAREADERS` is a dictionary. It looks like:
 
 
 ```
@@ -27,16 +27,16 @@ EXECUTION:
         DATALOADER_ARGS: {}
 ```
 
-`EXECUTION.DATAREADER.DATAREADER` determines which datareader we will use. In turn, this determines what arguments exist for `CRAWLER_ARGS`, `DATASET_ARGS`, `GENERATOR_ARGS`, and `DATALOADER_ARGS`.
+`DATAREADER.DATAREADER` determines which datareader we will use. In turn, this determines what arguments exist for `CRAWLER_ARGS`, `DATASET_ARGS`, `GENERATOR_ARGS`, and `DATALOADER_ARGS`.
 
-The following values for `EXECUTION.DATAREADER.DATAREADER` are available:
+The following values for `DATAREADER.DATAREADER` are available:
 
 - `CompCars`
 - `VehicleColor`
 - `VehicleID`
 - `VeRi`
 
-Subsequent parameters for each `EXECUTION.DATAREADER.DATAREADER` is provided below.
+Subsequent parameters for each `DATAREADER.DATAREADER` is provided below.
 
 
 ## `CompCars`

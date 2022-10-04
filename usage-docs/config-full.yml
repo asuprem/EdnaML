@@ -17,22 +17,6 @@ EXECUTION:
   TEST_FREQUENCY: 1
   # Unused
   FP16: False
-  # DATAREADER is the data-ingest unit that determines the data source. 
-  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
-  # Crawler that yields raw samples, and a Generator that yields batches
-  # to a classifier. A generator may contain an associated 
-  # Dataset to manage sample preprocessing.
-  DATAREADER: 
-    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
-    DATAREADER: DataReader
-    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
-    CRAWLER_ARGS: {}
-    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
-    DATASET_ARGS: 
-    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
-    GENERATOR: 
-    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
-    GENERATOR_ARGS: 
   # PLUGIN manages how plugins are used. Unused for EXECUTION
   PLUGIN:
     # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
@@ -51,28 +35,30 @@ DEPLOYMENT:
   DEPLOYMENT_ARGS: {}
   # The number of epochs to run this Deployment.
   EPOCHS: 1
-  # DATAREADER is the data-ingest unit that determines the data source. 
-  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
-  # Crawler that yields raw samples, and a Generator that yields batches
-  # to a classifier. A generator may contain an associated 
-  # Dataset to manage sample preprocessing.
-  DATAREADER: 
-    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
-    DATAREADER: DataReader
-    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
-    CRAWLER_ARGS: {}
-    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
-    DATASET_ARGS: 
-    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
-    GENERATOR: 
-    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
-    GENERATOR_ARGS: 
   # PLUGIN manages how plugins are used in this Deployment
   PLUGIN:
     # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
     # `activated` means only plugins that are ready are used.
     HOOKS: always # always | warmup | activated
     # Whether to reset already generated PLUGINS.
+
+# DATAREADER is the data-ingest unit that determines the data source. 
+# It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
+# Crawler that yields raw samples, and a Generator that yields batches
+# to a classifier. A generator may contain an associated 
+# Dataset to manage sample preprocessing.
+DATAREADER: 
+  # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
+  DATAREADER: DataReader
+  # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
+  CRAWLER_ARGS: {}
+  # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
+  DATASET_ARGS: 
+  # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
+  GENERATOR: 
+  # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
+  GENERATOR_ARGS: 
+
 
 # Manages the SAVE configuration of the EXECUTION or DEPLOYMENT, as well as file names. SAVE is essentially a readable unique identifier for a model
 # All entries in SAVE are purely for information purposes.

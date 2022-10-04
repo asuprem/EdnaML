@@ -7,6 +7,7 @@ import warnings
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
+from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
 from ednaml.config.ModelPluginConfig import ModelPluginConfig
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
@@ -24,6 +25,7 @@ from ednaml.utils import merge_dictionary_on_key_with_copy
 
 class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
+    DATAREADER: ExecutionDatareaderConfig
     DEPLOYMENT: DeploymentConfig
     SAVE: SaveConfig
     TRAIN_TRANSFORMATION: TransformationConfig
@@ -49,7 +51,7 @@ class EdnaMLConfig(BaseConfig):
     def __init__(
         self, config_path: List[str], defaults: ConfigDefaults = ConfigDefaults(), **kwargs
     ):
-        self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
+        self.extensions = ["EXECUTION", "DATAREADER", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
         ydict = self.merge([self.read_path(config_component) for config_component in config_path])
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
@@ -106,6 +108,11 @@ class EdnaMLConfig(BaseConfig):
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
                     self.SAVE = SaveConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            elif extension == "DATAREADER":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.DATAREADER = ExecutionDatareaderConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
             elif extension == "TRANSFORMATION":
                 has_extension = self._has_extension_verifier(ydict, extension, {})

@@ -1,6 +1,7 @@
 from typing import Dict
 
 from ednaml.config import BaseConfig
+from ednaml.config.ConfigDefaults import ConfigDefaults
 
 
 class ExecutionDatareaderConfig(BaseConfig):
@@ -11,7 +12,7 @@ class ExecutionDatareaderConfig(BaseConfig):
     GENERATOR_ARGS: Dict[str, str]
     
 
-    def __init__(self, datareader_dict):
+    def __init__(self, datareader_dict, defaults: ConfigDefaults):
         self.DATAREADER = datareader_dict.get("DATAREADER", "DataReader")
         self.CRAWLER_ARGS = datareader_dict.get("CRAWLER_ARGS", {})
         self.DATASET_ARGS = datareader_dict.get("DATASET_ARGS", {})
