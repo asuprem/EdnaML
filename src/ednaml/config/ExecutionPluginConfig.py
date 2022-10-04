@@ -10,5 +10,5 @@ class ExecutionPluginConfig(BaseConfig):
 
     def __init__(self, ep_dict):
         #self.EPOCHS = datareader_dict.get("PLUGIN_EPOCHS", 1)
-        self.HOOKS = ep_dict.get("PLUGIN_HOOKS", 'always')
-        self.RESET = ep_dict.get("PLUGIN_RESET", False)
+        self.HOOKS = ep_dict.get("HOOKS", 'always')
+        self.RESET = ep_dict.get("RESET", False) # TODO

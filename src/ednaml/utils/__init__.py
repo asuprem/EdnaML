@@ -8,15 +8,18 @@ import importlib.util
 def locate_class(
     package="ednaml",
     subpackage="core",
-    classpackage="EdnaML",
+    classpackage=None,
     classfile=None,
     forceload=0,
 ):
     """Locate an object by name or dotted path, importing as necessary."""
-    if classfile is None:
-        parts = package.split(".") + [subpackage, classpackage]
+    if classpackage is None:
+        parts = package.split(".") + [subpackage]
     else:
-        parts = package.split(".") + [subpackage, classfile, classpackage]
+        if classfile is None:
+            parts = package.split(".") + [subpackage, classpackage]
+        else:
+            parts = package.split(".") + [subpackage, classfile, classpackage]
     module, n = None, 0
     while n < len(parts):
         nextmodule = safeimport(".".join(parts[: n + 1]), forceload)

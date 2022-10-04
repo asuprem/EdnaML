@@ -7,7 +7,7 @@ class Crawler:
 
     classes: Dict[str, int]
 
-    def __init__(self):
+    def __init__(self, logger):
         self.classes = {}
 
     def __verify(self, folder):
@@ -19,20 +19,4 @@ class Crawler:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
 
 
-# Vehicle Re-ID Crawlers
-from ednaml.crawlers.VeRiDataCrawler import VeRiDataCrawler
-from ednaml.crawlers.VRICDataCrawler import VRICDataCrawler
-from ednaml.crawlers.VehicleIDDataCrawler import VehicleIDDataCrawler
 
-# Carzam crawlers
-from ednaml.crawlers.Cars196DataCrawler import Cars196DataCrawler
-
-# CoLabelCrawlers
-from ednaml.crawlers.VehicleColorCrawler import VehicleColorCrawler
-from ednaml.crawlers.CoLabelIntegratedDatasetCrawler import (
-    CoLabelIntegratedDatasetCrawler,
-)
-
-KnowledgeIntegratedDatasetCrawler = CoLabelIntegratedDatasetCrawler
-
-from ednaml.crawlers.CoLabelCompCarsCrawler import CoLabelCompCarsCrawler

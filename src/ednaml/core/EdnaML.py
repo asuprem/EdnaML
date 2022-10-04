@@ -82,23 +82,31 @@ class EdnaML(EdnaMLBase):
 
         """
 
-        self.config = config
+        if type(config) is str:
+            self.config = config
+        elif type(config) is list:
+            self.config = []
+            for cpath in config:
+                if type(cpath) is str:
+                    self.config.append(cpath)
+                elif type(cpath) is list:
+                    self.config += cpath
+                else:
+                    ValueError("config MUST be list or string")
+        else:
+            raise ValueError("config MUST be list or string")
+        
         self.mode = mode
         self.weights = weights
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
-
-        # Added configuration extentions
-        if type(self.config) is list:
-            self.cfg = EdnaMLConfig(config[0])
-            for cfg_item in config[1:]:
-                msg = self.cfg.extend(cfg_item)
-                print(str(msg))
+        # TODO Deal with extensions
+        if type(self.config) is str:
+            self.cfg = EdnaMLConfig([self.config], **kwargs)
         else:
-            self.cfg = EdnaMLConfig(config) 
-        
-        
+            self.cfg = EdnaMLConfig(self.config, **kwargs)
+
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
@@ -176,6 +184,7 @@ class EdnaML(EdnaMLBase):
 
     def resetQueues(self):
         """Resets the `apply()` queue"""
+        self.logger.debug("Resetting declarative queues.")
         for queue_function in self.resetQueueArray:
             queue_function()
 
@@ -252,6 +261,9 @@ class EdnaML(EdnaMLBase):
         self.buildModel()
         self.loadWeights()
         if not kwargs.get("skip_model_summary", False):
+            if self.cfg.LOGGING.INPUT_SIZE is not None:
+                if kwargs.get("input_size", None) is None:
+                    kwargs["input_size"] = self.cfg.LOGGING.INPUT_SIZE
             self.getModelSummary(**kwargs) 
         self.buildOptimizer()
         self.buildScheduler()
@@ -266,10 +278,12 @@ class EdnaML(EdnaMLBase):
         self.resetQueues()
 
     def addStorage(self, storage: BaseStorage):
+        self.logger.debug("Added storage: %s"%storage.__class__.__name__)
         self._storageInstanceQueue = storage
         self._storageInstanceQueueFlag = True
     
     def addStorageClass(self, storage_class: Type[BaseStorage]):
+        self.logger.debug("Added storage class: %s"%storage_class.__name__)
         self._storageClassQueue = storage_class
         self._storageClassQueueFlag = True
 
@@ -308,6 +322,7 @@ class EdnaML(EdnaMLBase):
         return self.trainer.evaluate()
 
     def addTrainerClass(self, trainerClass: Type[BaseTrainer]):
+        self.logger.debug("Added trainer class: %s"%trainerClass.__name__)
         self._trainerClassQueue = trainerClass
         self._trainerClassQueueFlag = True
 
@@ -728,6 +743,7 @@ class EdnaML(EdnaMLBase):
         it will never be added into Edna/Deploy...
         """
         for plugin in plugin_class_list:
+            self.logger.debug("Added custom plugin: %s"%plugin.__name__)
             self.plugins[plugin.__name__] = plugin  # order matters; can replace...though shouldn't matter too much...
         
         # The follow will not happen, logically, i think, because model is ONLY defined in self.buildModel(), and by that point, one is already calling apply()
@@ -758,10 +774,10 @@ class EdnaML(EdnaMLBase):
                 plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin_save_name].PLUGIN_KWARGS
             )
 
-        for plugin in self.plugins:
-            self.model.addPlugin(plugin, 
-                            plugin_name = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_NAME, 
-                            plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_KWARGS)
+        #for plugin in self.plugins:
+        #    self.model.addPlugin(plugin, 
+        #                    plugin_name = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_NAME, 
+        #                    plugin_kwargs = self.cfg.MODEL_PLUGIN[plugin.name].PLUGIN_KWARGS)
             
     def addModelBuilder(
         self, model_builder: Type[Callable], model_config: ModelConfig = None
@@ -777,6 +793,7 @@ class EdnaML(EdnaMLBase):
         self._modelQueueFlag = True
 
     def addModelClass(self, model_class: Type[ModelAbstract], **kwargs):
+        self.logger.debug("Added model class: %s"%model_class.__name__)
         self._modelClassQueue = model_class
         self._modelClassQueueFlag = True
         self._modelArgsQueue = kwargs
@@ -845,7 +862,10 @@ class EdnaML(EdnaMLBase):
         # add bookkeeping
         # does config has input size? if it does use that, but prepend batch size .
         # if it doesn't have it, use input size in arguments
-        self.model.cuda()
+        # TODO possibly move this into trainer...?
+        # or at least deal with potential mlti-gpu scenario...
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.to(device)
         # change below statement according to line 722
         # default for input size is None/null
         try:
@@ -888,6 +908,19 @@ class EdnaML(EdnaMLBase):
         lookup_path = os.path.abspath(file_or_module_path)
         for keyvalue in ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path]:
             if keyvalue in self.decorator_reference:
+                if type(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]) is list:
+                  for i in range(len(ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue])):
+                    self.logger.info("Adding a {ftype}, from {src}, with inferred name {inf}".format(
+                    ftype=keyvalue,
+                    src = lookup_path,
+                    inf = ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue][i].__name__
+                ))
+                else:
+                  self.logger.info("Adding a {ftype}, from {src}, with inferred name {inf}".format(
+                      ftype=keyvalue,
+                      src = lookup_path,
+                      inf = ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue].__name__
+                  ))
                 self.decorator_reference[keyvalue](
                     ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS[lookup_path][keyvalue]
                 )
@@ -1061,7 +1094,7 @@ class EdnaML(EdnaMLBase):
                 self.train_generator = Generator(logger=self.logger)
         if self.mode != "test":
             self.logger.info(
-                "Generated training data generator with %i trainnig data points"
+                "Generated training data generator with %i training data points"
                 % len(self.train_generator.dataset)
             )
             self.labelMetadata = self.train_generator.num_entities

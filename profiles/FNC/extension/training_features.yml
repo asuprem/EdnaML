@@ -1,0 +1,28 @@
+DEPLOYMENT:
+  OUTPUT_ARGS:
+    feature_file: training_features
+  DEPLOY: BaseDeploy
+  DATAREADER:
+    CRAWLER_ARGS: 
+      azstorage: ednadatasets
+      azcontainer: edna-covid-raw
+      azfile: tweets-2020-01-22.json.gz
+    DATAREADER: AlbertReader
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-unmasked-shard
+      mlm_probability: 0.15
+      masking: False
+      shuffle: False
+      data_shuffle: False
+      keyword_mask: False
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+  FP16: False
+  EPOCHS: 1

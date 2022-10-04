@@ -1,5 +1,5 @@
 import json, logging, os, shutil
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import tqdm
 import torch
 from torch.utils.data import DataLoader
@@ -86,9 +86,13 @@ class BaseDeploy:
         self.gpus = gpus
 
         if self.gpus != 1:
-            raise NotImplementedError()
+            self.logger.warning("Multi-gpu or non-gpu not yet fully supported.")
 
-        self.model.cuda() # moves the model into GPU
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if self.gpus:
+            #self.model.cuda() # moves the model into GPU
+            self.logger.info("%i GPUs available"%self.gpus)
+        self.model.to(self.device)
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
@@ -97,7 +101,6 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    
     def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
         if model_build or (model_build is None and not self.model_is_built):
             self.logger.info("Starting deployment")
@@ -139,6 +142,9 @@ class BaseDeploy:
                 self.global_epoch = epoch + 1
                 if self.global_epoch % self.save_frequency == 0:
                     self.save()
+                self.logger.info("Executing end of epoch steps")
+                self.end_of_epoch(epoch=epoch)
+            self.end_of_deployment()
             self.logger.info("Completed deployment task.")
         else:
             self.logger.info("Skipping execution of deployment task due to `execute = False`.")
@@ -148,13 +154,16 @@ class BaseDeploy:
             for batch in tqdm.tqdm(
                 self.data_loader, total=len(self.data_loader), leave=False
             ):    
+                batch = self.move_to_device(batch)
                 feature_logits, features, secondary_outputs = self.deploy_step(batch)
 
                 self.output_step(feature_logits, features, secondary_outputs)
                 # Log Metrics here and inside the model TODO
                 self.global_batch += 1
 
-
+    def move_to_device(self, batch) -> Tuple[torch.Tensor]:
+        return (item.to(self.device) for item in batch)
+        
     def deploy_step(self, batch):   # USER IMPLEMENTS
         batch = tuple(item.cuda() for item in batch)
         data, labels = batch    # TODO move plugins here to allow labels as well!!!!!!!!
@@ -162,7 +171,11 @@ class BaseDeploy:
 
         return feature_logits, features, secondary_outputs
 
-
+    def end_of_epoch(self, epoch: int):
+        pass
+    
+    def end_of_deployment(self):
+        pass
 
     def output_setup(self, **kwargs): # USER IMPLEMENTS; kwargs from config.DEPLOYMENT.OUTPUT_ARGS
         self.logger.info("Warning: No output setup is performed")

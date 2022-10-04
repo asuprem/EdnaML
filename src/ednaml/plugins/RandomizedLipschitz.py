@@ -1,5 +1,4 @@
 
-import pdb
 from typing import List
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.plugins import ModelPlugin
@@ -12,7 +11,7 @@ import numpy as np
 
 class RandomizedLipschitz(ModelPlugin):
     name = "RandomizedLipschitz"
-    def __init__(self, proxies=10, dimensions=768, dist="euclidean", rand_seed=12344, neighbors = 10, proxy_epochs=3, perturbation_neighbors = 10):
+    def __init__(self, proxies=10, dimensions=768, dist="euclidean", rand_seed=12344, neighbors = 10, proxy_epochs=3, perturbation_neighbors = 10, **kwargs):
         super().__init__(proxies = proxies, dimensions=dimensions, dist=dist, rand_seed = rand_seed, neighbors = neighbors, proxy_epochs=proxy_epochs, perturbation_neighbors=perturbation_neighbors)
 
 
@@ -131,6 +130,10 @@ class RandomizedLipschitz(ModelPlugin):
             elif self.lipschitz_stage:
                 # check if we are done and can activate 
                 self._logger.info("RandomizedLipschitz has completed Lipschitz stage. Computing L values.")
+                lthresh = [0]*len(self.cluster_means)
+                lthreshmean = [0]*len(self.cluster_means)
+                smooththresh = [0]*len(self.cluster_means)
+                smooththreshmean = [0]*len(self.cluster_means)
                 with torch.no_grad():
                     for idx in range(len(self.cluster_means)):
                         raw_logits = model.classifier(self.cluster_means[idx].unsqueeze(0).cuda()).cpu()
@@ -144,15 +147,20 @@ class RandomizedLipschitz(ModelPlugin):
 
                         l_scores = logit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
                         smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
+                        
+                        lthresh[idx] = torch.max(l_scores).item()
+                        lthreshmean[idx] = torch.mean(l_scores).item()
+                        smooththresh[idx] = torch.max(smooth_lscores).item()
+                        smooththreshmean[idx] = torch.mean(smooth_lscores).item()
+                
+                self.lipschitz_threshold = max(lthresh)
+                self.lipschitz_threshold_mean = max(lthreshmean)
+                self.smooth_lipschitz_threshold = max(smooththresh)
+                self.smooth_lipschitz_threshold_mean = max(smooththreshmean)
 
-                        self.lipschitz_threshold = torch.max(l_scores).item()
-                        self.lipschitz_threshold_mean = torch.mean(l_scores).item()
-                        self.smooth_lipschitz_threshold = torch.max(smooth_lscores).item()
-                        self.smooth_lipschitz_threshold_mean = torch.mean(smooth_lscores).item()
+                self.epsilon = 1. / self.smooth_lipschitz_threshold
 
-                        self.epsilon = 1. / self.smooth_lipschitz_threshold
-
-                        self.activated = True
+                self.activated = True
 
                 # So we are done settng up neighbors...
                 # here, we have access to the model. We can not pass all our features and stuff through the model, get the logits, compute L, etc, etc
@@ -204,15 +212,6 @@ class RandomizedLipschitz(ModelPlugin):
         self._closest_features = [SortedKeyList(feature_list[:self.neighbors], key=feature_list.key) for idx, feature_list in enumerate(self._closest_features)]
         
         # For each cluster center, we have a dict of closest features...
-
-    def compute_labels(self, batch):
-        """Compute the cluster labels for dataset X given centers C.
-        """
-        # labels = np.argmin(pairwise_distances(C, X), axis=0) # THIS REQUIRES TOO MUCH MEMORY FOR LARGE X
-        q_batch = batch.cpu()
-        dist, idx = self.kdcluster.query(self._preprocess(q_batch), k=1, return_distance=True)   #.squeeze()
-        # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return torch.from_numpy(dist).squeeze(1), torch.stack([self.labels[item[0]] for item in idx])
 
     def generate_perturbation(self, epsilon, n_dims, n_samples):
         Y = np.random.multivariate_normal(mean=[0], cov=np.eye(1,1), size=(n_dims, n_samples))

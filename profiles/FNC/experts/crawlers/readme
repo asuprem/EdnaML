@@ -1,0 +1,80 @@
+Each crawler should yield a list of tuples, with the following entries:
+
+
+( full_text, share/retweet, like, label, *data)
+
+We have:
+
+EFND
+Fakeddit
+MiDAS
+
+
+Here, *data are any other labels provided by the 
+dataset. For example, EFND yields a dataset label
+tied to the dataset index. 
+
+
+Generator:
+We will use the HFGenerator. So we need to finish the following options:
+
+No masking
+Token masking (Live generated)
+Word masking (Live generated)
+Keyword masking (pregenerated)
+Keytoken masking (pregenerated)
+
+Verify they all work!!!!
+
+
+----------------------------------------------------------
+Models
+
+
+-----------------------------------------------------------
+Deployments
+
+TF-IDF determiner
+Attention Determiner
+----------------------------------------------------------
+
+Generalization: 
+
+datasets contain complete knowledge
+
+
+datasets contain timeless knowledge
+
+
+B1 -- KO with BERT
+
+July 2021
+
+Introduction --> face recognition and car evolution for KO (people aging)
+
+Artificial Aging
+>>>
+Explicit  <<Charles Isbell>>
+<<<
+
+
+PR solution -- detect bias before it happens
+
+CarZam -->
+
+ADM 
+
+------------------------------------------------
+
+Finding Matching context...?????
+
+
+------------------------------------------------
+
+
+CVPR masking...?
+
+<key is to tell people about the difference between true novelty and stationary changes>
+
+rejuvenation adds new knowledge
+adaptation uses only stationary models

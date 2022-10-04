@@ -9,7 +9,7 @@ class ExecutionDatareaderConfig(BaseConfig):
     DATASET_ARGS: Dict[str, str]
     GENERATOR: str
     GENERATOR_ARGS: Dict[str, str]
-    DATALOADER_ARGS: Dict[str, str]
+    
 
     def __init__(self, datareader_dict):
         self.DATAREADER = datareader_dict.get("DATAREADER", "DataReader")
@@ -19,4 +19,3 @@ class ExecutionDatareaderConfig(BaseConfig):
             "GENERATOR", None
         )
         self.GENERATOR_ARGS = datareader_dict.get("GENERATOR_ARGS", {})
-        self.DATALOADER_ARGS = datareader_dict.get("DATALOADER_ARGS", {})

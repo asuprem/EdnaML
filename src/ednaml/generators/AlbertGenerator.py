@@ -31,7 +31,9 @@ class AlbertDataset(torch.utils.data.Dataset):
             else:
                 self.shards_exist = True
                 self.logger.debug("Shards already exist and `shard_replace` is False")
-        os.makedirs(self.shardpath, exist_ok=True)
+        if self.shardcache:
+            self.logger.debug("Creating shardpath %s"%self.shardpath)
+            os.makedirs(self.shardpath, exist_ok=True)
         
 
 
@@ -119,8 +121,8 @@ class AlbertDataset(torch.utils.data.Dataset):
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:
                 random.shuffle(self.shard_internal_shuffle)
-        shardindex = idx % self.current_shardsize
-        return self.sharded_dataset[self.shard_internal_shuffle[shardindex]]
+        #shardindex = idx % self.current_shardsize
+        return self.sharded_dataset[self.shard_internal_shuffle[self.getcount]]
 
     def sharded_convert_to_features(self, dataset, tokenizer, maxlen):
         features = []
