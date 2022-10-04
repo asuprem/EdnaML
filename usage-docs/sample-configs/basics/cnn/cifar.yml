@@ -1,9 +1,9 @@
 EXECUTION:
   OPTIMIZER_BUILDER: ClassificationOptimizer
   MODEL_SERVING: False
-  EPOCHS: 10
+  EPOCHS: 5
   SKIPEVAL: True
-  TEST_FREQUENCY: 5
+  TEST_FREQUENCY: 1
   FP16: False
   DATAREADER: 
     DATAREADER: TorchvisionDatareader
@@ -22,7 +22,7 @@ EXECUTION:
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: configtest
+  MODEL_CORE_NAME: cifar10_resnet
   MODEL_BACKBONE: res18
   MODEL_QUALIFIER: cifar
   DRIVE_BACKUP: False
@@ -86,3 +86,4 @@ SCHEDULER:
 
 LOGGING:
   STEP_VERBOSE: 100 # Batch
+  INPUT_SIZE: [32, 1, 28, 28] 
