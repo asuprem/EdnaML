@@ -1,0 +1,26 @@
+EXECUTION:
+  DATAREADER:
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+
+DEPLOYMENT:
+  DATAREADER:
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+
+MODEL:
+  BUILDER: ednaml_model_builder
+  MODEL_ARCH: HFAutoModel
+  MODEL_BASE: albert-base-v2
+  MODEL_KWARGS: 
+    auto_class: AutoModelForSequenceClassification
+    hidden_act: gelu
+    pooling: pooled
+  MODEL_NORMALIZATION: bn
+  PARAMETER_GROUPS: [opt-1]
+
+SAVE:
+  MODEL_BACKBONE: albert
+  MODEL_VERSION: 2  # to deal with other bugs...

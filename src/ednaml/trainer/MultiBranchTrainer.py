@@ -102,9 +102,9 @@ class MultiBranchTrainer(BaseTrainer):
             # Check if this is a loss for a soft target
             if lossname in self.model.soft_names:
                 # we need to adjust the labels...otherwise, we do not need to adjust labels...
-                akwargs["labels"] = batch_kwargs["logits"][
+                akwargs["labels"] = torch.argmax(batch_kwargs["logits"][
                     self.model_nameorder[self.model.soft_target_output_source]
-                ]
+                ], dim=1)
             else:
                 akwargs["labels"] = batch_kwargs["labels"][
                     :, self.data_labelorder[self.model_name_label_map[lossname]]

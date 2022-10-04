@@ -39,36 +39,21 @@ class ClassificationDataset(TorchDataset):
 
 
 class ClassificationGenerator(ImageGenerator):
-    def __init__(self, logger = None, gpus=1, **kwargs):
-        """Data generator for training and testing. Works with the <>. Should work with any crawler working on VeRi-like data. Not yet tested with VehicleID. Only  use with VeRi.
 
-        Generates batches of batch size CONFIG.TRANSFORMATION.BATCH_SIZE, with CONFIG.TRANSFORMATION.INSTANCE unique ids. So if BATCH_SIZE=36 and INSTANCE=6, then generate batch of 36 images, with 6 identities, 6 image per identity. See arguments of setup function for INSTANCE.
-
-        Args:
-            gpus (int): Number of GPUs
-            i_shape (int, int): 2D Image shape
-            normalization_mean (float): Value to pass as mean normalization parameter to pytorch Normalization
-            normalization_std (float): Value to pass as std normalization parameter to pytorch Normalization
-            normalization_scale (float): Value to pass as scale normalization parameter. Not used.
-            h_flip (float): Probability of horizontal flip for image
-            t_crop (bool): Whether to include random cropping
-            rea (bool): Whether to include random erasing augmentation (at 0.5 prob)
-
-        """
-        super().__init__(logger, gpus=gpus, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs
     ) -> TorchDataset:
-        if mode == "train":
+        if mode in ["train", "val", "test"]:
             return ClassificationDataset(
-                datacrawler.metadata[mode]["crawl"], transform, **kwargs
-            )
-        elif mode == "test":
+                datacrawler.metadata[mode]["crawl"],
+                transform,
+                **kwargs
+            )    
+        elif mode == "testval":
             # For testing, we combine images in the query and testing set to generate batches
             return ClassificationDataset(
-                datacrawler.metadata["val"]["crawl"]
-                + datacrawler.metadata[mode]["crawl"],
+                datacrawler.metadata["val"]["crawl"]+datacrawler.metadata["test"]["crawl"],
                 transform,
                 **kwargs
             )
@@ -92,11 +77,11 @@ class ClassificationGenerator(ImageGenerator):
                 num_workers=self.workers,
                 collate_fn=self.collate_simple,
             )
-        elif mode == "test":
+        elif mode in ["test", "val"]:
             return TorchDataLoader(
                 dataset,
                 batch_size=batch_size * self.gpus,
-                shuffle=kwargs.get("shuffle", True),
+                shuffle=kwargs.get("shuffle", False),
                 num_workers=self.workers,
                 collate_fn=self.collate_simple,
             )
@@ -112,7 +97,7 @@ class ClassificationGenerator(ImageGenerator):
             raise NotImplementedError()
 
     def getNumEntities(self, datacrawler, mode, **kwargs):
-        if mode in ["train", "test", "full"]:
+        if mode in ["train", "test", "full", "val"]:
             label_dict = {
                 item: {"classes": datacrawler.metadata[mode]["classes"][item]}
                 for item in [kwargs.get("classificationclass", "color")]

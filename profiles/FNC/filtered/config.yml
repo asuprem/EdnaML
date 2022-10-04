@@ -1,0 +1,45 @@
+DEPLOYMENT:
+  OUTPUT_ARGS:
+    filtered_output: filtered
+    unfiltered_output: unfiltered
+    basename: tweets-2020-01-22
+  DEPLOY: BaseDeploy
+  DATAREADER:
+    CRAWLER_ARGS: 
+      azstorage: ednadatasets
+      azcontainer: edna-covid-raw
+      azfile: tweets-2020-01-22.json.gz
+    DATAREADER: AlbertReader
+    DATASET_ARGS:
+      classificationclass: ['fn_label']
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-raw-shard
+      shardsize: 20000
+      shuffle: False
+  FP16: False
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-filter
+  MODEL_BACKBONE: offshelf
+  MODEL_QUALIFIER: raw
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 5 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
+
+TRANSFORMATION:
+  BATCH_SIZE: 128
+
+MODEL:
+  BUILDER: ednaml_model_builder
+  MODEL_ARCH: FNCFilter
+  MODEL_BASE: NoBase
+  MODEL_KWARGS: 
+    filter_list: ["covid", "corona", "mask", "wuhan", "n95", "sars", "monkey", "pandemic", "social", "quarantin", "virus", "infect", "lock", "ppe", "variant", "vaccine", "travel", "omicron", "ivermectin", 
+      "plandemic", "5g", "gates", "hoax", "bioweapon", "bat", "fauci", ]
+  MODEL_NORMALIZATION: bn
+  PARAMETER_GROUPS: [opt-1]
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch

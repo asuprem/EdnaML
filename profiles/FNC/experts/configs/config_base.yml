@@ -1,0 +1,38 @@
+EXECUTION:
+  EPOCHS: 10
+  FP16: False
+  MODEL_SERVING: False
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  TRAINER: HFTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 8
+    
+LOSS: 
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: fnews
+    NAME: classification
+
+OPTIMIZER:
+  - OPTIMIZER: AdamW
+    BASE_LR: 1.0e-5
+    LR_BIAS_FACTOR: 1.0
+    OPTIMIZER_KWARGS: 
+      eps: 1.0e-6
+    OPTIMIZER_NAME: opt-1
+    WEIGHT_BIAS_FACTOR: 0.0005
+    WEIGHT_DECAY: 0.0005
+
+SCHEDULER:
+  - LR_KWARGS: 
+      step_size: 5
+      gamma: 0.5
+    LR_SCHEDULER: StepLR
+    SCHEDULER_NAME: opt-1
+
+LOGGING:
+  STEP_VERBOSE: 100
+  INPUT_SIZE: [16, 512]

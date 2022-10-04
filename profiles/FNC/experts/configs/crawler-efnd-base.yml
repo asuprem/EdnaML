@@ -1,0 +1,64 @@
+EXECUTION:
+  DATAREADER:
+    DATAREADER: HFReader
+    CRAWLER_ARGS: 
+      data_folder: Data
+      include: ["cmu_miscov19"] # Adjust this to specific EFND dataset
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-efnd-shard
+      mlm_probability: 0.15
+      shuffle: False
+      data_shuffle: True
+      masking: False
+      keyword_mask: True
+      keywords: []
+      label_idxs: [3] # This is the actual label...
+      annotation_idxs: [1,2]  # this is shares and likes
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: unknown
+
+DEPLOYMENT:
+  DATAREADER:
+    DATAREADER: HFReader
+    CRAWLER_ARGS: 
+      data_folder: Data
+      include: ["cmu_miscov19"] # Adjust this to specific EFND dataset
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-efnd-shard
+      mlm_probability: 0.15
+      shuffle: False
+      data_shuffle: True
+      masking: False
+      keyword_mask: True
+      keywords: []
+      label_idxs: [3] # This is the actual label...
+      annotation_idxs: [1,2]  # this is shares and likes
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: unknown
+
+TRANSFORMATION:
+  BATCH_SIZE: 16
+  WORKERS: 1
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-expert-efnd
+  MODEL_BACKBONE: unknown
+  MODEL_QUALIFIER: cmu_miscov19
+  DRIVE_BACKUP: False
+  SAVE_FREQUENCY: 3 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"

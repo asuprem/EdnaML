@@ -1,7 +1,7 @@
 from ednaml.config import BaseConfig
 from ednaml.config.ConfigDefaults import ConfigDefaults
 from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
-
+from ednaml.config.ExecutionPluginConfig import ExecutionPluginConfig
 
 class ExecutionConfig(BaseConfig):
     OPTIMIZER_BUILDER: str
@@ -11,6 +11,7 @@ class ExecutionConfig(BaseConfig):
     TEST_FREQUENCY: int
     TRAINER: str
     DATAREADER: ExecutionDatareaderConfig
+    PLUGIN: ExecutionPluginConfig
 
     def __init__(self, execution_dict, defaults: ConfigDefaults):
         self.OPTIMIZER_BUILDER = execution_dict.get(
@@ -33,3 +34,4 @@ class ExecutionConfig(BaseConfig):
         self.TRAINER_ARGS = execution_dict.get(
             "TRAINER_ARGS", defaults.TRAINER_ARGS
         )
+        self.PLUGIN = ExecutionPluginConfig(execution_dict.get("PLUGIN", {}))

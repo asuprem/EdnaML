@@ -9,7 +9,8 @@ requires = [
         "torchvision>=0.11.*",
         "Pillow>=7.1.2",    #9.0.x, this is for colab...
         "tqdm>=4.63.*",
-        "sentencepiece>=0.1.96"
+        "sentencepiece>=0.1.96",
+        "sortedcontainers>=2.4.0"
     ]
 
 
@@ -20,3 +21,6 @@ setup(
     install_requires=requires,
     keywords=["deep learning", "pytorch", "AI"],
 )
+
+# Azure :
+# Install azure-storage>=0.30.0

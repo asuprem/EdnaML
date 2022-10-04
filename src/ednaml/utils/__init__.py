@@ -3,20 +3,23 @@ import os, builtins
 import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
-
+import importlib.util
 
 def locate_class(
     package="ednaml",
     subpackage="core",
-    classpackage="EdnaML",
+    classpackage=None,
     classfile=None,
     forceload=0,
 ):
     """Locate an object by name or dotted path, importing as necessary."""
-    if classfile is None:
-        parts = package.split(".") + [subpackage, classpackage]
+    if classpackage is None:
+        parts = package.split(".") + [subpackage]
     else:
-        parts = package.split(".") + [subpackage, classfile, classpackage]
+        if classfile is None:
+            parts = package.split(".") + [subpackage, classpackage]
+        else:
+            parts = package.split(".") + [subpackage, classfile, classpackage]
     module, n = None, 0
     while n < len(parts):
         nextmodule = safeimport(".".join(parts[: n + 1]), forceload)
@@ -82,6 +85,14 @@ def safeimport(path, forceload=0, cache={}):
         except AttributeError:
             return None
     return module
+
+def path_import(absolute_path):
+   '''implementation taken from https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly'''
+   """And from https://stackoverflow.com/questions/41861427/python-3-5-how-to-dynamically-import-a-module-given-the-full-file-path-in-the"""
+   spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
+   module = importlib.util.module_from_spec(spec)
+   spec.loader.exec_module(module)
+   return module
 
 
 def extend_mean_arguments(

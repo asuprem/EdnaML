@@ -4,61 +4,20 @@ import shutil
 import os
 import torch
 import numpy as np
-import ednaml.loss.builders
-from typing import List
-from ednaml.crawlers import Crawler
 from ednaml.trainer import BaseTrainer
-from ednaml.utils.LabelMetadata import LabelMetadata
 
 
 class ClassificationTrainer(BaseTrainer):
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        loss_fn: List[ednaml.loss.builders.LossBuilder],
-        optimizer: torch.optim.Optimizer,
-        loss_optimizer: List[torch.optim.Optimizer],
-        scheduler: torch.optim.lr_scheduler._LRScheduler,
-        loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler],
-        train_loader,
-        test_loader,
-        epochs: int,
-        skipeval,
-        logger,
-        crawler: Crawler,
-        config,
-        labels: LabelMetadata,
-        **kwargs
-    ):
-
-        super().__init__(
-            model,
-            loss_fn,
-            optimizer,
-            loss_optimizer,
-            scheduler,
-            loss_scheduler,
-            train_loader,
-            test_loader,
-            epochs,
-            skipeval,
-            logger,
-            crawler,
-            config,
-            labels,
-            **kwargs
-        )
-
+    def init_setup(self, **kwargs):
         self.softaccuracy = []
 
     # Steps through a batch of data
-    def step(self, batch): # Sanjyot --- simplify this
+    def step(self, batch): 
         batch_kwargs = {}
         (
             img,
             batch_kwargs["labels"],
-        ) = batch  # This is the tensor response from collate_fn
-        img, batch_kwargs["labels"] = img.cuda(), batch_kwargs["labels"].cuda()
+        ) = batch  
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
@@ -97,7 +56,7 @@ class ClassificationTrainer(BaseTrainer):
                 self.test_loader, total=len(self.test_loader), leave=False
             ):
                 data, label = batch
-                data = data.cuda()
+                data = data.to(self.device)
                 logit, feature, _ = self.model(data)
                 feature = feature.detach().cpu()
                 logit = logit.detach().cpu()
@@ -125,7 +84,7 @@ class ClassificationTrainer(BaseTrainer):
         self.logger.info("Accuracy: {:.3%}".format(accuracy))
         self.logger.info("Micro F-score: {:.3f}".format(micro_fscore))
         self.logger.info("Weighted F-score: {:.3f}".format(weighted_fscore))
-        return logit_labels, labels, features
+        return logit_labels, labels, logits
 
     def saveMetadata(
         self,

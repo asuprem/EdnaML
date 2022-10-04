@@ -1,6 +1,7 @@
 import json, logging, os, shutil
 from logging import Logger
-from typing import Dict, List
+from typing import Dict, List, Tuple
+from ednaml.config.StorageConfig import StorageConfig
 
 import torch
 from torch.utils.data import DataLoader
@@ -9,7 +10,7 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
-
+from ednaml.storage.BaseStorage import BaseStorage
 
 class BaseTrainer:
     model: ModelAbstract
@@ -34,6 +35,7 @@ class BaseTrainer:
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
+    storage: BaseStorage
 
     def __init__(
         self,
@@ -51,9 +53,9 @@ class BaseTrainer:
         crawler: Crawler,
         config: EdnaMLConfig,
         labels: LabelMetadata,
+        storage: BaseStorage,
         **kwargs
     ):
-
         self.model = model
         self.parameter_groups = list(self.model.parameter_groups.keys())
         self.loss_fn_order = {
@@ -102,6 +104,9 @@ class BaseTrainer:
         self.labelMetadata = labels
         self.crawler = crawler
         self.config = config
+        self.storage = storage
+        # Add later -- download data from Azure/other file instance
+        #self.downloadData()
 
         self.buildMetadata(
             # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
@@ -113,12 +118,21 @@ class BaseTrainer:
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
+        self.init_setup(**kwargs)
+
+    def init_setup(self, **kwargs):
+        pass
+
+    def downloadData(self): #TODO
+        #storageinstance = AzureStorage(self.cfg.STORAGE)
+        self.storage.read()
+
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
 
-    def setup(
+    def apply(
         self,
         step_verbose: int = 5,
         save_frequency: int = 5,
@@ -148,9 +162,14 @@ class BaseTrainer:
         self.gpus = gpus
 
         if self.gpus != 1:
-            raise NotImplementedError()
+            self.logger.warning("Multi-gpu or non-gpu not yet fully supported.")
 
-        self.model.cuda() # moves the model into GPU
+
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if self.gpus:
+            #self.model.cuda() # moves the model into GPU
+            self.logger.info("%i GPUs available"%self.gpus)
+        self.model.to(self.device)
 
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
@@ -197,6 +216,9 @@ class BaseTrainer:
             )
             for lossname in self.loss_scheduler
         }
+        # TODO need to check if ModelAbstract contains the plugins that came with it...
+        # if not, we will need to save plugins in a plugins artifact.
+        # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
 
         # save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
         # save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
@@ -227,11 +249,16 @@ class BaseTrainer:
         
         if self.config.SAVE.LOG_BACKUP:
             LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
+            #appending the logs to azure
+            #self.storage.copy(os.path.join(self.save_directory, self.logger_file)) # TODO
+            # This is the local path where we are copying data . This can be commented/removed later
             if os.path.exists(LOGGER_SAVE):
                 os.remove(LOGGER_SAVE)
             shutil.copy2(
                 os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE
             )
+
+                
 
     def load(self, load_epoch):
         self.logger.info(
@@ -339,14 +366,16 @@ class BaseTrainer:
             self.initial_evaluate()
         else:
             self.logger.info("Skipping initial evaluation.")
-
+        
         self.logger.info("Starting training from %i" % continue_epoch)
         self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
         for epoch in range(self.epochs + 1):
             if epoch >= continue_epoch:
+                # TODO pre epoch
                 self.epoch_step(epoch)
+                # TODO post epoch
             else:
                 self.global_epoch = epoch + 1
 
@@ -370,7 +399,7 @@ class BaseTrainer:
                 self.printOptimizerLearningRates()
 
             self.model.train() #train == we are tracking all numbers and computation graph
-
+            batch = self.move_to_device(batch)
             loss: torch.Tensor = self.step(batch) #perform function and returns loss
             loss = loss / self.accumulation_steps
             loss.backward()
@@ -422,10 +451,14 @@ class BaseTrainer:
             else:
                 self.save()
         self.global_epoch += 1
+    
+    def move_to_device(self, batch) -> Tuple[torch.Tensor]:
+        return (item.to(self.device) for item in batch)
 
     def step(self, batch) -> torch.Tensor:
         # compute the loss, and return it
         # print("!!!!!!!!!! batch !!!!!!!!!!!!!!!",batch)
+
         raise NotImplementedError()
 
     def updateGradients(self):

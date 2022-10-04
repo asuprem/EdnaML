@@ -1,89 +1,197 @@
+# EXECUTION manages ML training and evaluation. Use with EdnaML
 EXECUTION:
-  OPTIMIZER_BUILDER: ClassificationOptimizer
-  MODEL_SERVING: None
-  EPOCHS: 10
-  SKIPEVAL: True
-  TEST_FREQUENCY: 5
-  FP16: False
-  DATAREADER: 
-    DATAREADER: VehicleColor
-    CRAWLER_ARGS: {}
-    DATASET_ARGS: 
-      pathidx: 0
-      annotationidx: 1
-      classificationclass: color
-    GENERATOR: 
-    GENERATOR_ARGS: 
-    DATALOADER_ARGS: {}
-  TRAINER: ClassificationTrainer
+  # A trainer to use, from ednaml.trainers. A custom trainer can be implicitly added
+  TRAINER: BaseTrainer
+  # Arguments for the trainer
   TRAINER_ARGS: 
-    accumulation_steps: 4
+    accumulation_steps: 1
+  # An optimizer builder from ednaml.optimizers
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  # Unused for now
+  MODEL_SERVING: Unused
+  # Number of epochs to train with 
+  EPOCHS: 10
+  # Whether to skip the initial evaluation
+  SKIPEVAL: False
+  # The frequency, in epochs, for model testing
+  TEST_FREQUENCY: 1
+  # Unused
+  FP16: False
+  # DATAREADER is the data-ingest unit that determines the data source. 
+  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
+  # Crawler that yields raw samples, and a Generator that yields batches
+  # to a classifier. A generator may contain an associated 
+  # Dataset to manage sample preprocessing.
+  DATAREADER: 
+    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
+    DATAREADER: DataReader
+    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
+    CRAWLER_ARGS: {}
+    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
+    DATASET_ARGS: 
+    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
+    GENERATOR: 
+    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
+    GENERATOR_ARGS: 
+  # PLUGIN manages how plugins are used. Unused for EXECUTION
+  PLUGIN:
+    # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
+    # `activated` means only plugins that are ready are used.
+    HOOKS: always # always | warmup | activated
+    # Whether to reset already generated PLUGINS. Unused.
+    RESET: False
 
+# DEPLOYMENT manages ML model deployment or prediction. Use with EdnaDeploy
+DEPLOYMENT:
+  # A Deploy to use, from ednaml.deploy
+  DEPLOY: BaseDeploy
+  # Arguments for any output details for the Deploy. Refer to Deploy's documentation for specifics
+  OUTPUT_ARGS:  {}
+  # Arguments for the Deploy itself. Refer to Deploy's documentation for specifics.
+  DEPLOYMENT_ARGS: {}
+  # The number of epochs to run this Deployment.
+  EPOCHS: 1
+  # DATAREADER is the data-ingest unit that determines the data source. 
+  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
+  # Crawler that yields raw samples, and a Generator that yields batches
+  # to a classifier. A generator may contain an associated 
+  # Dataset to manage sample preprocessing.
+  DATAREADER: 
+    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
+    DATAREADER: DataReader
+    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
+    CRAWLER_ARGS: {}
+    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
+    DATASET_ARGS: 
+    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
+    GENERATOR: 
+    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
+    GENERATOR_ARGS: 
+  # PLUGIN manages how plugins are used in this Deployment
+  PLUGIN:
+    # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
+    # `activated` means only plugins that are ready are used.
+    HOOKS: always # always | warmup | activated
+    # Whether to reset already generated PLUGINS.
+
+# Manages the SAVE configuration of the EXECUTION or DEPLOYMENT, as well as file names. SAVE is essentially a readable unique identifier for a model
+# All entries in SAVE are purely for information purposes.
 SAVE:
+  # The version for this model
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: "colabel_devel"
-  MODEL_BACKBONE: "res18"
+  # The name for this model
+  MODEL_CORE_NAME: "model"
+  # The backbone used for this model
+  MODEL_BACKBONE: "backbone"
+  # Any additional qualifiers for this model
   MODEL_QUALIFIER: "all"
+  # Whether to backup this model in a remote storage
   DRIVE_BACKUP: False
+  # Whether to backup this model's log files in a remote storage
+  LOG_BACKUP: False
+  # How often to perform a local save and backup for this model
   SAVE_FREQUENCY: 5 # Epoch
-  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CoLabeler/Models/"
+  # The URL where the backup will be conducted.
+  CHECKPOINT_DIRECTORY: "checkpoint"
 
+# TRANSFORMATION manages data transformation for both training and testing subsets
 TRANSFORMATION:
-  BATCH_SIZE: 8
-  WORKERS: 1
-  ARGS:
-    i_shape: [100,100]
-    normalization_mean: 0.5
-    normalization_std: 0.5
-    normalization_scale: 0.5
-    random_erase: False
-    random_erase_value: 0.5
-    channels: 3
+  # The number of samples in each batch
+  BATCH_SIZE: 32
+  # The number of workers to use in loading data
+  WORKERS: 2
+  # Arguments for The DATAREADER's Generator's transformations. See Generator's documentation for specifics.
+  ARGS: {}
 
+# TRAIN_TRANSFORMATION overwrites the TRANSFORMATION content for training data
 TRAIN_TRANSFORMATION:
-  ARGS:
-    h_flip: 0.5
-    t_crop: True
-
+  # The number of samples in each batch
+  BATCH_SIZE: 32
+  # The number of workers to use in loading data
+  WORKERS: 2
+  # Arguments for The DATAREADER's Generator's transformations. See Generator's documentation for specifics.
+  ARGS: {}
+  
+# TEST_TRANSFORMATION overwrites the TRANSFORMATION content for test data
 TEST_TRANSFORMATION:
-  ARGS:
-    h_flip: 0
+  # The number of samples in each batch
+  BATCH_SIZE: 32
+  # The number of workers to use in loading data
+  WORKERS: 2
+  # Arguments for The DATAREADER's Generator's transformations. See Generator's documentation for specifics.
+  ARGS: {}
 
+# MODEL manages model configuration
 MODEL:
-  BUILDER: classification_model_builder
-  MODEL_ARCH: 'ClassificationResnet'
-  MODEL_BASE: 'resnet18'
-  EMBEDDING_DIMENSIONS:
-  MODEL_NORMALIZATION: 'bn'
+  # Which model_builder to use. A custom model builder can be implicitly added. A model_builder simple generates a model from the provided arguments.
+  BUILDER: ednaml_model_builder
+  # What architecture to use for the model, e.g. HFAutoModel for a HuggingFace model, or a custom architecture. Architectures should inherit from ModelAbstract, 
+  # and use the remaining arguments.
+  MODEL_ARCH: ModelAbstract
+  # Argument for a ModelAbstract class that controls the feature extractor backbone, if used. For example, a MODEL_ARCH of ClassificationResnet accepts `resnet18` as a MODEL_BASE
+  MODEL_BASE: base
+  # The feature normalization, if used
+  MODEL_NORMALIZATION: bn
+  # Additional keyword arguments for the MODEL_ARCH provided. 
   MODEL_KWARGS:
+  # ModelAbstract models can be split into groups for more controlled optimization. A list of parameter groups can be provided here if your specific ModelAbstract, e.g. a GAN, supports it.
   PARAMETER_GROUPS: 
     - opt-1
 
-COLABEL:
-  COMPRESSION: 5
-  ENSEMBLE: "majority"
-  CONFIDENCE: "decay"
-
+# LOSS manages the losses used in the model training. Unused with EdnaDeploy. LOSS is a list of losses, 
+# one for each output or label of a model. LOSSes are indexed with their name. Each entry in LOSS can be a sum of multiple loss functions.
 LOSS:
-  - LOSSES: ['SoftmaxLogitsLoss']
+    # A list of LOSSES. Each entry is a string reference to an implemented Loss in EdnaML. PyTorch's built-in losses are accessed as TorchLoss.
+  - LOSSES: ['TorchLoss']
+    # Keyword arguments for each Loss.
     KWARGS: [{}]
+    # Weight for each loss
     LAMBDAS: [1.0]
+    # The label in the Crawler this Loss is targeting. Used when necessary
+    LABEL: 
+    # The name for this loss.
     NAME: out1
 
+# OPTIMIZER managers parameters for the training optimizer. Unused with EdnaDeploy. It contains a list of Optimizers, one for each parameter ground in a ModelAbstract
 OPTIMIZER:
-  OPTIMIZER_NAME: "Adam"
-  OPTIMIZER_KWARGS: '{}'
-  BASE_LR: 0.00001
-  LR_BIAS_FACTOR: 1.0
-  WEIGHT_DECAY: 0.0005
-  WEIGHT_BIAS_FACTOR: 0.0005
-  FP16: True
+    # Name of optimizer. This should match a parameter group in the ModelAbstract
+  - OPTIMIZER_NAME: opt-1
+    # Optimizer class. This should match a built-in Pytorch optimizer (see torch.optim), e.g. Adam, or Adagrad, etc
+    OPTIMIZER: Adam
+    # Arguments for the Optimizer class. 
+    OPTIMIZER_KWARGS: {}
+    # The Base learning rate for the Optimizer
+    BASE_LR: 0.00001
+    # The learning rate multiplier for bias terms in parameters
+    LR_BIAS_FACTOR: 1.0
+    # Weight decay factor, especially with Adam and variants
+    WEIGHT_DECAY: 0.0005
+    # Weight decay multiplier for bias terms in parameters
+    WEIGHT_BIAS_FACTOR: 0.0005
   
+# SCHEDULER managers parameters for optimizer learning rate scheduling
 SCHEDULER:
-  - LR_SCHEDULER: 'StepLR'
+    # A scheduler class, either from torch's built-in schedulers, or an EdnaML scheduler, such as FineGrainedSteppedLR
+  - LR_SCHEDULER: StepLR
+    # The name for this Scheduler. This should correspond to a parameter group in ModelAbstract, and match up with a corresponding Optimizer
+    SCHEDULER_NAME: opt-1
+    # Keyword arguments for the Scheduler
     LR_KWARGS: 
       step_size: 20
-      gamma: 0.1
 
+# MODEL_PLUGIN manages plugins that may be attached to a trained model.
+MODEL_PLUGIN:
+    # The name for this PLUGIN. This will be used as its identifier for this model
+  - PLUGIN_NAME: mp-1
+    # The PLUGIN class. Either a built-in plugin from ednaml.plugins or a Custom PLUGINS. For Custom PLUGINS, they must be stated here explicitly, NOT implicitly.
+    PLUGIN: ModelPlugin
+    # Keyword arguments for this PLUGIN
+    PLUGIN_KWARGS: {}
+
+
+# LOGGING manages any additional parameters, especially for logging
 LOGGING:
+  # The number of training steps before printing intermediate losses and training accuracy.
   STEP_VERBOSE: 100 # Batch
+  # The size for the input when estimating the Model's forward pass and getting the Model Summary. Should correspond with the expected input size.
+  INPUT_SIZE: Null

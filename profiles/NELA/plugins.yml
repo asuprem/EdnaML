@@ -1,0 +1,22 @@
+MODEL_PLUGIN:
+  - PLUGIN: KMeansProxy
+    PLUGIN_NAME: KMP-l2
+    PLUGIN_KWARGS:
+      num_clusters: 20
+      dimensions: 768
+      dist: euclidean
+      epochs: 5
+  - PLUGIN: KMeansProxy
+    PLUGIN_NAME: KMP-cos
+    PLUGIN_KWARGS:
+      num_clusters: 20
+      dimensions: 768
+      dist: cosine
+      epochs: 5
+  - PLUGIN: RandomizedLipschitz
+    PLUGIN_NAME: RL-midas
+    PLUGIN_KWARGS:
+      proxies: 15
+      dimensions: 768
+      dist: euclidean
+      proxy_epochs: 5
