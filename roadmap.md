@@ -1,5 +1,23 @@
 🟢🟡
 
+datareaders have been moved out...
+
+What next...?
+
+Crawlers for NELA others
+Experiment for cross domain NELA others (should be much easier now!!!!)
+
+Retrain classifiers all classifiers, build their plugins
+Write TFIDF code
+Write Attention Code...
+
+
+Semantic Masking for Adversarial Vaccination
+
+
+
+
+
 Deploy also needs to deal with storage classes
 
 Roadmap
