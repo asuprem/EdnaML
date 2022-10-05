@@ -28,9 +28,6 @@ class ExecutionConfig(BaseConfig):
         self.FP16 = execution_dict.get("FP16", defaults.FP16)
         self.TRAINER = execution_dict.get("TRAINER", defaults.TRAINER)
 
-        self.DATAREADER = ExecutionDatareaderConfig(
-            execution_dict.get("DATAREADER", {})
-        )
         self.TRAINER_ARGS = execution_dict.get(
             "TRAINER_ARGS", defaults.TRAINER_ARGS
         )

@@ -23,8 +23,5 @@ class DeploymentConfig(BaseConfig):
         self.DEPLOY = deployment_dict.get(
             "DEPLOY", defaults.DEPLOY
         )
-        self.DATAREADER = ExecutionDatareaderConfig(
-            deployment_dict.get("DATAREADER", {})
-        )
         self.EPOCHS = deployment_dict.get("EPOCHS", defaults.DEPLOYMENT_EPOCHS)
         self.PLUGIN = ExecutionPluginConfig(deployment_dict.get("PLUGIN", {}))
