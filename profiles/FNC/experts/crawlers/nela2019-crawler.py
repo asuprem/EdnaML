@@ -44,7 +44,8 @@ class NELA2018Crawler(Crawler):
       labelobj = csv.reader(lfile)
       header = next(labelobj)
       for row in labelobj:
-        sourcelabels[row[0]] = (int(row[1]) + 1) % 3
+        if len(row[1]):
+          sourcelabels[row[0]] = (int(row[1]) + 1) % 3
 
 
     # set up content metadata

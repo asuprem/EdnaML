@@ -26,9 +26,9 @@ class NELA2018Crawler(Crawler):
     # set up paths
     self.data_folder = os.path.join(data_folder , sub_folder)
     
-    truefile = "nela_true.jsonl"
-    fakefile = "nela_fake.jsonl"
-    unsuerfile = "nela_unsure.jsonl"
+    truefile = os.path.join(self.data_folder, "nela_true.jsonl")
+    fakefile = os.path.join(self.data_folder, "nela_fake.jsonl")
+    unsuerfile = os.path.join(self.data_folder, "nela_unsure.jsonl")
     
     # set up content metadata
     self.metadata = {}
