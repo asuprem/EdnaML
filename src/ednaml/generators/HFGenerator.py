@@ -1,11 +1,12 @@
 from glob import glob
 import random
+from typing import Any, List, Tuple
 import torch, os, shutil
 from torch.utils.data import TensorDataset, IterableDataset, Dataset
 import numpy as np, h5py
 from tqdm import tqdm
 class HFDataset(Dataset):
-    def __init__(self, logger, dataset, mode, transform=None, **kwargs):
+    def __init__(self, logger, dataset: List[Tuple[Any]], mode: str, transform=None, **kwargs):
         """Initializes the HFDataset object.
 
        Args:
@@ -199,7 +200,7 @@ class HFDataset(Dataset):
                 self.logger.debug("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
-                self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))   # TODO Bug fix if files do not have consistent numbering
+                self.shardsaveindex = len(glob(os.path.join(self.base_shardpath, "*.pt")))
             if self.shardsaveindex < 1:
                 raise ValueError("`shardsaveindex` is {val}, which is less than permissible minimum value of 1".format(val=self.shardsaveindex))
             self.logger.debug("Obtained %i shards"%self.shardsaveindex)
