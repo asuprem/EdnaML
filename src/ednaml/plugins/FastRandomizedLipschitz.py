@@ -97,6 +97,7 @@ class FastRandomizedLipschitz(ModelPlugin):
         self.smooth_lipschitz_threshold = None
         self.smooth_lipschitz_threshold_mean = None
         self.epsilon = None
+        self.l_epsilon = None
         self.proxy_label = []
 
 
@@ -126,6 +127,8 @@ class FastRandomizedLipschitz(ModelPlugin):
 
     def compute_lscores(self, features, feature_logits, model):
         perturbed = self.generate_perturbation(self.epsilon,self.dimensions,self.perturbation_neighbors).T.cuda()
+        if self.epsilon != self.l_epsilon:
+            l_perturbed = self.generate_perturbation(self.l_epsilon,self.dimensions,self.perturbation_neighbors).T.cuda()
         lscore = [None]*features.shape[0]
         smooth_lscore = [None]*features.shape[0]
         for j,x in enumerate(features):
@@ -135,16 +138,19 @@ class FastRandomizedLipschitz(ModelPlugin):
                 raw_logits = feature_logits[j].unsqueeze(0)
 
                 feature_lscore = torch.sqrt((perturbed**2).sum(1))
-                logit_lscore = torch.sqrt(((perturbed_logits - raw_logits)**2).sum(1))
-
-                smoothlogit_lscore = perturbed_logits[:,torch.argmax(raw_logits)] - raw_logits[:,torch.argmax(raw_logits)]
-
+                
+                if self.epsilon != self.l_epsilon:
+                    l_perturbed_logits = self._classifier(x+l_perturbed)
+                    logit_lscore = torch.sqrt(((l_perturbed_logits - raw_logits)**2).sum(1))
+                else:
+                    logit_lscore = torch.sqrt(((perturbed_logits - raw_logits)**2).sum(1))
                 l_scores = logit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
-                smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
-
                 lscore[j] = torch.max(l_scores).cpu().item()
+                smoothlogit_lscore = perturbed_logits[:,torch.argmax(raw_logits)] - raw_logits[:,torch.argmax(raw_logits)]
+                smooth_lscores = smoothlogit_lscore[feature_lscore > 0] / feature_lscore[feature_lscore > 0]
                 smooth_lscore[j] = torch.max(smooth_lscores).cpu().item()
-        
+
+
         _, idx = self.kdcluster.query(self._preprocess(features.cpu()), k=1, return_distance=True)   #.squeeze()
         
         return lscore, smooth_lscore, self.proxy_label[idx[:,0]]
@@ -206,11 +212,12 @@ class FastRandomizedLipschitz(ModelPlugin):
                         smooththreshmean[idx] = torch.mean(smooth_lscores).item()
                 
                 self.lipschitz_threshold = max(lthresh)
-                self.lipschitz_threshold_mean = max(lthreshmean)
+                self.lipschitz_threshold_mean = sum(lthreshmean)/len(lthreshmean)
                 self.smooth_lipschitz_threshold = max(smooththresh)
-                self.smooth_lipschitz_threshold_mean = max(smooththreshmean)
+                self.smooth_lipschitz_threshold_mean = sum(smooththreshmean)/len(smooththreshmean)
 
                 self.epsilon = 1. / self.smooth_lipschitz_threshold
+                self.l_epsilon = 1. / self.lipschitz_threshold
 
                 self.activated = True
 
