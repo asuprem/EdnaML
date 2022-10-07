@@ -200,7 +200,7 @@ class HFDataset(Dataset):
                 self.logger.debug("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
-                self.shardsaveindex = len(glob(os.path.join(self.base_shardpath, "*.pt")))
+                self.shardsaveindex = len(glob(self.base_shardpath+"*.pt"))
             if self.shardsaveindex < 1:
                 raise ValueError("`shardsaveindex` is {val}, which is less than permissible minimum value of 1".format(val=self.shardsaveindex))
             self.logger.debug("Obtained %i shards"%self.shardsaveindex)
