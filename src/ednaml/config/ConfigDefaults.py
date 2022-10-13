@@ -60,9 +60,14 @@ class ConfigDefaults(BaseConfig):
     PLUGIN_NAME: str
     PLUGIN_KWARGS: Dict[str, str]
 
-    STORAGE_TYPE: str
-    STORAGE_ARGS: Dict
+    STORAGE_NAME: str
+    STORAGE_CLASS: str
     STORAGE_URL: str
+    STORAGE_ARGS: Dict[str,str]
+
+    BACKUP_PERFORM = bool
+    BACKUP_LOCATION = str
+    BACKUP_FREQUENCY = int
 
     def __init__(self, **kwargs):
 
@@ -130,10 +135,15 @@ class ConfigDefaults(BaseConfig):
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
         self.INPUT_SIZE = kwargs.get("INPUT_SIZE", None)
 
-        self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "BaseStorage")
-        self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
-        self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
-        
+        self.STORAGE_NAME: kwargs.get("STORAGE_NAME", "storage-1")
+        self.STORAGE_CLASS: kwargs.get("STORAGE_CLASS", "BaseStorage")
+        self.STORAGE_URL: kwargs.get("STORAGE_URL", "./")
+        self.STORAGE_ARGS: kwargs.get("STORAGE_ARGS", {})
+
+        self.BACKUP_PERFORM = kwargs.get("BACKUP_PERFORM", False)
+        self.BACKUP_LOCATION = kwargs.get("BACKUP_LOCATION", "")
+        self.BACKUP_FREQUENCY = kwargs.get("BACKUP_FREQUENCY", 0)
+
         self.PLUGIN_NAME = "mp-1"
         self.PLUGIN = "ModelPlugin"
         self.PLUGIN_KWARGS = {}

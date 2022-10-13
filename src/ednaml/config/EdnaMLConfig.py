@@ -100,9 +100,10 @@ class EdnaMLConfig(BaseConfig):
                     self.DEPLOYMENT = DeploymentConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
             elif extension == "STORAGE":
-                has_extension = self._has_extension_verifier(ydict, extension, {})
+                has_extension = self._has_extension_verifier(ydict, extension, [])
                 if has_extension or update_with_defaults:
-                    self.STORAGE = StorageConfig(ydict.get(extension, {}), defaults)
+                    storage_list: List[StorageConfig] = [StorageConfig(storage_item, defaults) for storage_item in ydict.get(extension, [])]
+                    self.STORAGE = {item.STORAGE_NAME: item for item in storage_list}
                     added_extensions.append([extension])
             elif extension == "SAVE":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
@@ -144,7 +145,7 @@ class EdnaMLConfig(BaseConfig):
             elif extension == "MODEL_PLUGIN":
                 has_extension = self._has_extension_verifier(ydict, extension, [])
                 if has_extension or update_with_defaults:
-                    mp_list = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [])]
+                    mp_list: List[ModelPluginConfig] = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [])]
                     self.MODEL_PLUGIN = {item.PLUGIN_NAME: item for item in mp_list}
                     added_extensions.append([extension])
             elif extension == "LOSS":

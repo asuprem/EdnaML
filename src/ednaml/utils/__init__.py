@@ -131,7 +131,7 @@ def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     logger.addHandler(cs)
     return logger
 
-
+# TODO handle tuple return
 def generate_save_names(cfg):
     MODEL_SAVE_NAME = "%s-v%i" % (
         cfg.get("SAVE.MODEL_CORE_NAME"),
@@ -149,20 +149,11 @@ def generate_save_names(cfg):
         cfg.get("SAVE.MODEL_BACKBONE"),
         cfg.get("SAVE.MODEL_QUALIFIER"),
     )
-    if cfg.get("SAVE.DRIVE_BACKUP"):
-        CHECKPOINT_DIRECTORY = (
-            cfg.get(
-                "SAVE.CHECKPOINT_DIRECTORY", "./drive/My Drive/Vehicles/Models/"
-            )
-            + MODEL_SAVE_FOLDER
-        )
-    else:
-        CHECKPOINT_DIRECTORY = ""
     return (
         MODEL_SAVE_NAME,
         MODEL_SAVE_FOLDER,
         LOGGER_SAVE_NAME,
-        CHECKPOINT_DIRECTORY,
+        "",
     )
 
 

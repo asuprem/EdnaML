@@ -167,6 +167,7 @@ class EdnaDeploy(EdnaML):
                 labels=self.labelMetadata,
                 **self.cfg.DEPLOYMENT.DEPLOYMENT_ARGS
             )
+            # TODO -- change save_backup, backup_directory stuff. These are all in Storage.... We just need the model save name...
             self.deployment.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,

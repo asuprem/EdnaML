@@ -365,6 +365,7 @@ class EdnaML(EdnaMLBase):
                 storage=self.storage,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
+            # TODO -- change save_backup, backup_directory stuff. These are all in Storage.... We just need the model save name...
             self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
@@ -382,6 +383,7 @@ class EdnaML(EdnaMLBase):
         """Sets the previous stop"""
         self.previous_stop = self.getPreviousStop()
 
+    # TODO -- Harmonize this change -- we do not need it because we need to implement the previous stop somewhere else, maybe. Discuss...
     def getPreviousStop(self) -> int:
         """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory."""
         if self.cfg.SAVE.DRIVE_BACKUP:
@@ -1166,6 +1168,7 @@ class EdnaML(EdnaMLBase):
             self.saveMetadata.LOGGER_SAVE_NAME,
         )
         # Check for backup logger
+        # TODO -- Need to query the LogStorage for the log file...
         if self.cfg.SAVE.LOG_BACKUP:
             backup_logger = os.path.join(
                 self.saveMetadata.CHECKPOINT_DIRECTORY,
@@ -1241,6 +1244,7 @@ class EdnaML(EdnaMLBase):
         self.logger.info("")
         self.logger.info("*" * 40)
 
+    # TODO fix this i.e. harmonize
     def getModelWeightsFromEpoch(self, epoch=0):
         model_load = (
             self.saveMetadata.MODEL_SAVE_NAME + "_epoch%i" % epoch + ".pth"
