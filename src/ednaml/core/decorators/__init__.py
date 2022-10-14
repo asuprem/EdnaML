@@ -1,8 +1,5 @@
 import inspect, os
 
-import ednaml
-
-
 REGISTERED_EDNA_COMPONENTS = {}
 
 

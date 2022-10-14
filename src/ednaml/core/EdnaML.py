@@ -254,6 +254,7 @@ class EdnaML(EdnaMLBase):
         self.printConfiguration()
         self.downloadModelWeights()
         self.setPreviousStop()
+        self.buildBackupOptions()
         self.buildStorage() # this is where -- same as other build things...  
 
         self.buildDataloaders()

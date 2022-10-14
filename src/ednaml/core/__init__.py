@@ -3,6 +3,7 @@ from typing import Any, Dict, Type
 from ednaml.crawlers import Crawler
 from ednaml.generators import Generator
 import logging
+import ednaml.core.decorators
 
 class EdnaMLBase:
     logLevels = {
@@ -19,6 +20,10 @@ class EdnaMLBase:
     _generatorClassQueue = Type[Generator]
     _generatorArgsQueue = Dict[str, Any]
     _generatorClassQueueFlag = bool
+
+    @staticmethod
+    def clear_registrations():
+        ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS = {}
 
 
 from ednaml.core.EdnaML import EdnaML
