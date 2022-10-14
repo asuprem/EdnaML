@@ -287,8 +287,11 @@ class BaseTrainer:
             training_load_path = os.path.join(
                 self.save_directory, training_load
             )
-
-        self.model.load_state_dict(torch.load(model_load_path))
+        # TODO replace with ModelAbstract's own loader?????
+        if self.gpus == 0:
+          self.model.load_state_dict(torch.load(model_load_path), map_location=self.device)
+        else:
+          self.model.load_state_dict(torch.load(model_load_path))
         self.logger.info(
             "Finished loading model state_dict from %s" % model_load_path
         )
