@@ -1,9 +1,14 @@
 from glob import glob
-import random
+import random, warnings
 from typing import Any, List, Tuple
 import torch, os, shutil
 from torch.utils.data import TensorDataset, IterableDataset, Dataset
-import numpy as np, h5py
+import numpy as np
+try:
+    import h5py
+except ImportError:
+    h5py = None
+    warnings.warn("h5py not installed. This may cause issues with caching in HFGenerator.")
 from tqdm import tqdm
 class HFDataset(Dataset):
     def __init__(self, logger, dataset: List[Tuple[Any]], mode: str, transform=None, **kwargs):
