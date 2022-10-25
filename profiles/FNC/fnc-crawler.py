@@ -93,7 +93,7 @@ class FNCCrawler(Crawler):
 
         # set up class metadata
         self.classes = {}
-        self.classes["fn_label"] = 2
+        self.classes["fnews"] = 2
 
         # set up content metadata
         self.metadata = {}

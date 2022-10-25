@@ -1,8 +1,8 @@
 from glob import glob
 import random
 import torch, os, shutil
-from torch.utils.data import TensorDataset, IterableDataset, Dataset
-import numpy as np, h5py
+from torch.utils.data import TensorDataset, Dataset
+import numpy as np
 from tqdm import tqdm
 class HFDataset(Dataset):
     def __init__(self, logger, dataset, mode, transform=None, **kwargs):
@@ -75,6 +75,55 @@ class HFDataset(Dataset):
         if int(self.cache) + int(self.memcache) + int(self.shardcache) > 1:
             raise RuntimeError("Use only one cache type")
 
+        # Cache options
+        self.cache_replace = kwargs.get("cache_replace", False)
+        self.cachepath = kwargs.get("cachepath", "artifacts")
+        self.cachepath = mode+"-"+self.cachepath
+        self.cachename = kwargs.get("cachename", "h5-cache") + "-"  #the dash
+        if self.cache:
+            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
+        self.base_cachepath = os.path.join(self.cachepath, self.cachename)
+        self.cache_exist = False
+        if os.path.exists(self.base_cachepath + ".h5"):
+            if self.cache_replace:
+                self.logger.debug("Deleting existing cache")
+                shutil.rmtree(self.cachepath)   # TODO this will delete the entire tree!!!!!!
+            else:
+                self.cache_exist = True
+                self.logger.debug("Cache already exists and `cache_replace` is False")
+        else:
+          self.logger.debug("Cache does not exist and will be created.")
+        if self.cache:
+            self.logger.debug("Creating cachepath %s"%self.cachepath)
+            os.makedirs(self.cachepath, exist_ok=True)
+
+
+        # Shardcache options
+        self.shardsize = kwargs.get("shardsize", 0)
+        self.shardsaveindex = 0
+        self.shard_replace = kwargs.get("shard_replace", False)
+        self.shardpath = kwargs.get("shardpath", "datashard-artifacts")
+        self.shardpath = mode+"-"+self.shardpath
+        self.shardname = kwargs.get("shardname", "fnc-filtermask-shard") + "-"  #the dash
+        if self.shardcache:
+            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.shardpath, shards=self.shardname, mode=mode))
+        self.base_shardpath = os.path.join(self.shardpath, self.shardname)
+        self.shards_exist = False
+        if os.path.exists(self.base_shardpath + "0.pt"):
+            if self.shard_replace:
+                self.logger.debug("Deleting existing shards")
+                shutil.rmtree(self.shardpath)
+            else:
+                self.shards_exist = True
+                self.logger.debug("Shards already exist and `shard_replace` is False")
+        else:
+          self.logger.debug("Shards do not exist and will be created.")
+        if self.shardcache:
+            self.logger.debug("Creating shardpath %s"%self.shardpath)
+            os.makedirs(self.shardpath, exist_ok=True)
+        
+        
+        
         self.word_masking = kwargs.get("word_mask", False)
         self.keyword_masking = kwargs.get("keyword_mask", True)
         self.token_masking = kwargs.get("token_mask", False)
@@ -82,7 +131,7 @@ class HFDataset(Dataset):
         self.stopword_masking = kwargs.get("stopword_mask", False)
 
         self.label_idxs = kwargs.get("label_idxs", [1])
-        self.annotation_idxs = kwargs.get("annotation_idxs", self.label_idxs)
+        self.annotation_idxs = kwargs.get("annotation_idxs", [])
         
         
         # Tokenizer and lengths
@@ -104,78 +153,6 @@ class HFDataset(Dataset):
         vocab = self.tokenizer.get_vocab()
         self.keytokens = {vocab[item]:1 for item in self.keytokens if item in vocab}
         self.keytokens_tensor = torch.tensor(list(self.keytokens.keys())).unsqueeze(0).T
-
-
-        # Cache options
-        self.cache_replace = kwargs.get("cache_replace", False)
-        self.cachepath = kwargs.get("cachepath", "artifacts")
-        self.cachepath = mode+"-"+self.cachepath
-        self.cachename = kwargs.get("cachename", "h5-cache") + "-"  #the dash
-        if self.cache:
-<<<<<<< HEAD
-            self.logger.info("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
-        self.base_cachepath = os.path.join(self.cachepath, self.cachename)
-        self.cache_exist = False
-        if os.path.exists(self.base_cachepath + ".h5"):
-            if self.cache_replace:
-                self.logger.info("Deleting existing cache")
-                shutil.rmtree(self.cachepath)   # TODO this will delete the entire tree!!!!!!
-            else:
-                self.cache_exist = True
-                self.logger.info("Cache already exists and `cache_replace` is False")
-        else:
-          self.logger.info("Cache does not exist and will be created.")
-        if self.cache:
-            self.logger.info("Creating cachepath %s"%self.cachepath)
-            os.makedirs(self.cachepath, exist_ok=True)
-=======
-            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
-            self.base_cachepath = os.path.join(self.cachepath, self.cachename) + ".h5"
-            self.cache_exist = False
-            if os.path.exists(self.base_cachepath):
-                if self.cache_replace:
-                    self.logger.debug("Deleting existing cache")
-                    os.remove(self.cachepath)
-                else:
-                    self.cache_exist = True
-                    self.logger.debug("Cache already exists and `cache_replace` is False")
-            else:
-                self.logger.debug("Cache does not exist and will be created.")
-                self.logger.debug("Creating cachepath %s"%self.cachepath)
-                os.makedirs(self.cachepath, exist_ok=True)
-                with h5py.File(self.base_cachepath, "w") as hfile:
-                    hfile.create_dataset(name="all_input_ids", shape=(len(self.dataset),self.maxlen))
-            
->>>>>>> 904b5a69f22780c34062e9652dc87b6898f22f36
-
-
-        # Shardcache options
-        self.shardsize = kwargs.get("shardsize", 0)
-        self.shardsaveindex = 0
-        self.shard_replace = kwargs.get("shard_replace", False)
-        self.shardpath = kwargs.get("shardpath", "datashard-artifacts")
-        self.shardpath = mode+"-"+self.shardpath
-        self.shardname = kwargs.get("shardname", "fnc-filtermask-shard") + "-"  #the dash
-        if self.shardcache:
-            self.logger.info("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.shardpath, shards=self.shardname, mode=mode))
-        self.base_shardpath = os.path.join(self.shardpath, self.shardname)
-        self.shards_exist = False
-        if os.path.exists(self.base_shardpath + "0.pt"):
-            if self.shard_replace:
-                self.logger.info("Deleting existing shards")
-                shutil.rmtree(self.shardpath)
-            else:
-                self.shards_exist = True
-                self.logger.info("Shards already exist and `shard_replace` is False")
-        else:
-          self.logger.info("Shards do not exist and will be created.")
-        if self.shardcache:
-            self.logger.info("Creating shardpath %s"%self.shardpath)
-            os.makedirs(self.shardpath, exist_ok=True)
-        
-        
-        
-        
 
         # This is for memcache and shardcache
         self.getcount = 0
@@ -202,34 +179,34 @@ class HFDataset(Dataset):
 
         if self.cache or self.memcache:
         # The actual cache-ing
-            self.logger.info("Started mem caching")
+            self.logger.debug("Started mem caching")
             self.input_length_cache = []
-            self.logger.info("Converting to features")
+            self.logger.debug("Converting to features")
             # For memcache, save dataset inside self.cached_dataset.
             # Same for cache. Difference being, cached_dataset is either in memory or on disk!
             self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen, cache=True)
-            self.logger.info("Masking")
+            self.logger.debug("Masking")
             self.memcached_dataset = self.refresh_mask_ids(cache=True)
 
         if self.shardcache:
             self.input_length_cache = []
             if not self.shards_exist:
-                self.logger.info("Generating shards")
+                self.logger.debug("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
                 self.shardsaveindex = len(glob(os.path.join(self.shardpath, "*.pt")))   # TODO Bug fix if files do not have consistent numbering
             if self.shardsaveindex < 1:
                 raise ValueError("`shardsaveindex` is {val}, which is less than permissible minimum value of 1".format(val=self.shardsaveindex))
-            self.logger.info("Obtained %i shards"%self.shardsaveindex)
+            self.logger.debug("Obtained %i shards"%self.shardsaveindex)
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
             self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
             if self.data_shuffle:
-                self.logger.info("Shuffling shard load order")
+                self.logger.debug("Shuffling shard load order")
                 random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
             self.current_shardsize = len(self.sharded_dataset)
             if self.masking:
-                self.logger.info("Refreshing token masks for loaded shard")    # TODO
+                self.logger.debug("Refreshing token masks for loaded shard")    # TODO
                 self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:
@@ -307,8 +284,7 @@ class HFDataset(Dataset):
         for idx, sample in enumerate(dataset):  # This is a tuple with (text, ..., stuff)
             # Identify the indices of specific keywords to mask
             #if self.keyword_masking or self.word_masking:
-            # NOTE: we assume that text is at index 0!!!!!
-            word_tokens = sample[0].lower().split(" ")
+            word_tokens = sample[0].split(" ")
             encoded_word_length = len(word_tokens)
             
             if self.masking and self.keyword_masking:
@@ -394,7 +370,7 @@ class HFDataset(Dataset):
             if len(features[0][7]) > 0:
                     all_annotations = torch.tensor([f[7] for f in features])
             else:
-                all_annotations = torch.zeros((len(features),1))
+                all_annotations = torch.zeros((self.shardsize,1))
 
             # Propagate input masking to output masking
             for midx in range(all_attention_mask.shape[0]):
@@ -497,7 +473,7 @@ class HFDataset(Dataset):
                         all_masklm[idx][merged_mask] = all_input_ids[idx][merged_mask] # Set the masking labels for these to the actual word index from all_input_ids
                 
                 #merged_masklm *= all_masklm
-            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[2] for shard in sharded_dataset]), all_masklm, 
+            return TensorDataset(all_input_ids, all_attention_mask, torch.stack([shard[3] for shard in sharded_dataset]), all_masklm, 
                 torch.stack([shard[4] for shard in sharded_dataset]), 
                 torch.stack([shard[5] for shard in sharded_dataset]), 
                 torch.stack([shard[6] for shard in sharded_dataset]), 
@@ -573,7 +549,7 @@ class HFDataset(Dataset):
 
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.generators import TextGenerator
-class HFGenerator(TextGenerator):
+class HFGeneratorOld(TextGenerator):
     """HFGenerator is a generic text generator for HuggingFace-tokenizers
     and designed to work with HuggingFace style transformers.
 
@@ -607,7 +583,7 @@ class HFGenerator(TextGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         print("Building Dataloader")
         return torch.utils.data.DataLoader(dataset, batch_size=batch_size*self.gpus,
-                                            shuffle=False, num_workers = self.workers, 
+                                            shuffle=kwargs.get("shuffle", False), num_workers = self.workers, 
                                         collate_fn=self.collate_fn)
 
     def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args

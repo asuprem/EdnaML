@@ -1,0 +1,117 @@
+EXECUTION:
+  EPOCHS: 10
+  FP16: False
+  MODEL_SERVING: False
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  TRAINER: HFTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 8
+  DATAREADER:
+    DATAREADER: HFReader
+    CRAWLER_ARGS: 
+      split: 0.9
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-politifact-shard
+      mlm_probability: 0.15
+      shuffle: False
+      data_shuffle: True
+      masking: False
+      keyword_mask: True
+      keywords: []
+      label_idxs: [1] # This is the actual label...
+      annotation_idxs: []  # this is shares and likes
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+
+DEPLOYMENT:
+  DEPLOY: HFDeploy
+  FP16: False
+  EPOCHS: 1
+  PLUGIN:
+    HOOKS: warmup
+    RESET: False
+  DATAREADER:
+    DATAREADER: HFReader
+    CRAWLER_ARGS: 
+      split: 0.9
+    DATASET_ARGS:
+      classificationclass: ['fnews']
+      maxlen: 512
+      shardcache: True
+      shardsize: 20000
+      shard_replace: False
+      shardpath: datashard-artifacts
+      shardname: fnc-politifact-shard
+      mlm_probability: 0.15
+      shuffle: False
+      data_shuffle: True
+      masking: False
+      keyword_mask: True
+      keywords: []
+      label_idxs: [1] # This is the actual label...
+      annotation_idxs: []  # this is shares and likes
+    GENERATOR_ARGS: 
+      tokenizer: HFAutoTokenizer
+      from_pretrained: albert-base-v2
+    
+LOSS: 
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: fnews
+    NAME: classification
+
+OPTIMIZER:
+  - OPTIMIZER: AdamW
+    BASE_LR: 1.0e-5
+    LR_BIAS_FACTOR: 1.0
+    OPTIMIZER_KWARGS: 
+      eps: 1.0e-6
+    OPTIMIZER_NAME: opt-1
+    WEIGHT_BIAS_FACTOR: 0.0005
+    WEIGHT_DECAY: 0.0005
+
+SCHEDULER:
+  - LR_KWARGS: 
+      step_size: 5
+      gamma: 0.5
+    LR_SCHEDULER: StepLR
+    SCHEDULER_NAME: opt-1
+
+LOGGING:
+  STEP_VERBOSE: 100
+  INPUT_SIZE: [16, 512]
+
+TRANSFORMATION:
+  BATCH_SIZE: 16
+  WORKERS: 1
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-politifact
+  MODEL_BACKBONE: albert
+  MODEL_QUALIFIER: base
+  DRIVE_BACKUP: False
+  LOG_BACKUP: False
+  SAVE_FREQUENCY: 2 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"
+
+MODEL:
+  BUILDER: ednaml_model_builder
+  MODEL_ARCH: HFAutoModel
+  MODEL_BASE: albert-base-v2
+  MODEL_KWARGS: 
+    auto_class: AutoModelForSequenceClassification
+    hidden_act: gelu
+    pooling: pooled
+  MODEL_NORMALIZATION: bn
+  PARAMETER_GROUPS: [opt-1]

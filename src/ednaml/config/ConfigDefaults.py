@@ -21,7 +21,7 @@ class ConfigDefaults(BaseConfig):
     CHECKPOINT_DIRECTORY: str
 
     OUTPUT_ARGS: Dict[str,str]
-    DEPLOYMENT: str
+    DEPLOY: str
     DEPLOYMENT_ARGS: Dict[str,str]
     DEPLOYMENT_EPOCHS: int
 
@@ -72,7 +72,7 @@ class ConfigDefaults(BaseConfig):
         self.MODEL_SERVING = kwargs.get("MODEL_SERVING", False)
         self.EPOCHS = kwargs.get("EPOCHS", 10)
         self.SKIPEVAL = kwargs.get("SKIPEVAL", False)
-        self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 5)
+        self.TEST_FREQUENCY = kwargs.get("TEST_FREQUENCY", 1)
         self.TRAINER = kwargs.get("TRAINER", "BaseTrainer")
         self.TRAINER_ARGS = kwargs.get(
             "TRAINER_ARGS",
@@ -83,17 +83,17 @@ class ConfigDefaults(BaseConfig):
 
         self.MODEL_VERSION = kwargs.get("MODEL_VERSION", 1)
         self.MODEL_CORE_NAME = kwargs.get("MODEL_CORE_NAME", "model")
-        self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "")
+        self.MODEL_BACKBONE = kwargs.get("MODEL_BACKBONE", "backbone")
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")
         self.DRIVE_BACKUP = kwargs.get("DRIVE_BACKUP", False)
-        self.LOG_BACKUP = kwargs.get("LOG_BACKUP", True)
+        self.LOG_BACKUP = kwargs.get("LOG_BACKUP", False)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
         self.CHECKPOINT_DIRECTORY = kwargs.get(
             "CHECKPOINT_DIRECTORY", "checkpoint"
         )
 
         self.OUTPUT_ARGS = {}
-        self.DEPLOYMENT = kwargs.get("DEPLOYMENT", "BaseDeploy")
+        self.DEPLOY = kwargs.get("DEPLOY", "BaseDeploy")
         self.DEPLOYMENT_ARGS = kwargs.get("DEPLOYMENT_ARGS", {})
         self.DEPLOYMENT_EPOCHS = kwargs.get("DEPLOYMENT_EPOCHS", 1)
 

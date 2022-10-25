@@ -50,7 +50,12 @@ class Generator:
         self.transformer = self.build_transforms(
             self.transforms, self.mode, **kwargs
         )
-
+        self.buildGeneratorAttributes(**kwargs)	
+    
+    
+    def buildGeneratorAttributes(self, **kwargs):	
+        pass
+    
     def build_transforms(self, transforms: Dict[str, Any], mode, **kwargs):
         return None
 

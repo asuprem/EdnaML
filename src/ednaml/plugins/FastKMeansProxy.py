@@ -1,5 +1,3 @@
-import ednaml.core.decorators as edna
-
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.plugins import ModelPlugin
 import torch
@@ -9,11 +7,12 @@ from sklearn.cluster import MiniBatchKMeans
 import h5py, os
 from ednaml.plugins.ModelPlugin import ModelPlugin
 
-@edna.register_model_plugin
-class FastKMP(ModelPlugin):
-    name = "FastKMP"
-    def __init__(self, proxies = 10, dimensions = 768, dist = "euclidean", rand_seed = 34623498, iterations = 25, batch_size = 256, alpha = 0.5, feature_file = None):
-        super().__init__(proxies = proxies, dimensions = dimensions, dist = dist, rand_seed = rand_seed, iterations = iterations, batch_size = batch_size, alpha = alpha, feature_file = feature_file)
+class FastKMeansProxy(ModelPlugin):
+    name = "FastKMeansProxy"
+    def __init__(self, proxies = 10, dimensions = 768, dist = "euclidean", rand_seed = 34623498, iterations = 25, batch_size = 256, alpha = 0.5, 
+                        feature_file = None, classifier_access = "classifier", **kwargs):
+        super().__init__(proxies = proxies, dimensions = dimensions, dist = dist, rand_seed = rand_seed, iterations = iterations, batch_size = batch_size, 
+                        alpha = alpha, feature_file = feature_file, classifier_access = classifier_access)
 
 
     def build_plugin(self, **kwargs):
@@ -31,6 +30,11 @@ class FastKMP(ModelPlugin):
             self._preprocess = lambda x:x
         elif self.dist == "cosine":
             self._preprocess = torch.nn.functional.normalize
+
+        self.classifier_access = kwargs.get("classifier_access")
+        self._classifier_setup = False
+        self._classifier = None
+
 
         output_file = kwargs.get("feature_file")
         if output_file is None:
@@ -62,17 +66,21 @@ class FastKMP(ModelPlugin):
         self.cluster_counts = torch.zeros(self.proxies)
         self.kdcluster = None
         self.high_density_thresholds = []
+        self.proxy_label = []
 
 
     def post_forward(self, x, feature_logits, features, secondary_outputs, model, **kwargs):
+        if not self._classifier_setup:
+            self._classifier = {mname:mlayer for mname, mlayer in model.named_modules()}[self.classifier_access]
+            self._classifier_setup = True
         if not self.activated:
             # perform the training here
             self.save_features(features)
             
             return feature_logits, features, secondary_outputs, kwargs, {}
         else:
-            dist, labels, idx = self.compute_labels(features)
-            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist, "label": idx}
+            dist, labels, proxy_labels = self.compute_labels(features)
+            return feature_logits, features, secondary_outputs, kwargs, {"threshold": labels, "distance": dist, "proxy_labels": proxy_labels}
 
     def save_features(self, features):
         feats = features.cpu().numpy()
@@ -97,7 +105,9 @@ class FastKMP(ModelPlugin):
             
             self.performkmeans()
             self.highdensitybins(model)
-            
+            with torch.no_grad():
+                self.proxy_label = torch.argmax(self._classifier(self.cluster_means.cuda()).cpu(), dim=1)
+            self.high_density_thresholds  = torch.tensor(self.high_density_thresholds)
             self.activated = True
 
     def performkmeans(self):
@@ -138,8 +148,8 @@ class FastKMP(ModelPlugin):
         for i in range(0, data_size, self.batch_size):
             current_data = data['features'][i:i+self.batch_size]
             dist, indices = self.kdcluster.query(self._preprocess(torch.tensor(current_data)), k=1, return_distance=True)   #.squeeze()
-            for idx in indices[:,0]:
-                distance_bins[idx].append(dist[idx, 0])
+            for idx,val in enumerate(indices[:,0]):
+                distance_bins[val].append(dist[idx, 0])
         
         self.high_density_thresholds = [None]*self.proxies
         import numpy as np
@@ -155,24 +165,11 @@ class FastKMP(ModelPlugin):
         feats = features.cpu()
         dist, idx = self.kdcluster.query(self._preprocess(feats), k=1, return_distance=True)   #.squeeze()
         # TODO convert idx to the actual cluster means to the actual cluster labels...
-        return torch.from_numpy(dist).squeeze(1), torch.tensor([self.high_density_thresholds[item[0]] for item in idx]), idx[:,0]
+        # Returns distance  | high-density-threshold    | index inside cluster_means. We will need to look up label later...
+        #return torch.from_numpy(dist).squeeze(1), torch.tensor([self.high_density_thresholds[item[0]] for item in idx]), idx[:,0]
+        return torch.from_numpy(dist).squeeze(1), self.high_density_thresholds[idx[:,0]], self.proxy_label[idx[:,0]]
 
 
     def pre_epoch(self, model: ModelAbstract, epoch: int = 0, **kwargs):
         self.pre_epoch_flag = True
         self.pre_epoch_num = epoch
-
-from ednaml.deploy import BaseDeploy
-
-@edna.register_deployment
-class FNCPluginDeployment(BaseDeploy):
-  def deploy_step(self, batch):
-    batch = tuple(item.cuda() for item in batch)
-    all_input_ids, all_attention_mask, all_token_type_ids, all_masklm, all_labels = batch
-    prediction_scores, pooled_out, outputs = self.model(all_input_ids, token_type_ids = all_token_type_ids, attention_mask=all_attention_mask)
-    
-    return prediction_scores, pooled_out, outputs
-  def output_setup(self, **kwargs):
-    pass
-  def output_step(self, logits, features, secondary):
-    pass

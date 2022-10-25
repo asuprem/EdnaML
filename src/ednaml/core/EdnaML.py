@@ -82,23 +82,31 @@ class EdnaML(EdnaMLBase):
 
         """
 
-        self.config = config
+        if type(config) is str:
+            self.config = config
+        elif type(config) is list:
+            self.config = []
+            for cpath in config:
+                if type(cpath) is str:
+                    self.config.append(cpath)
+                elif type(cpath) is list:
+                    self.config += cpath
+                else:
+                    ValueError("config MUST be list or string")
+        else:
+            raise ValueError("config MUST be list or string")
+        
         self.mode = mode
         self.weights = weights
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
-
-        # Added configuration extentions
-        if type(self.config) is list:
-            self.cfg = EdnaMLConfig(config[0], **kwargs)
-            for cfg_item in config[1:]:
-                msg = self.cfg.extend(cfg_item, **kwargs)
-                print(str(msg))
+        # TODO Deal with extensions
+        if type(self.config) is str:
+            self.cfg = EdnaMLConfig([self.config], **kwargs)
         else:
-            self.cfg = EdnaMLConfig(config, **kwargs) 
-        
-        
+            self.cfg = EdnaMLConfig(self.config, **kwargs)
+
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
@@ -854,7 +862,10 @@ class EdnaML(EdnaMLBase):
         # add bookkeeping
         # does config has input size? if it does use that, but prepend batch size .
         # if it doesn't have it, use input size in arguments
-        self.model.cuda()
+        # TODO possibly move this into trainer...?
+        # or at least deal with potential mlti-gpu scenario...
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.to(device)
         # change below statement according to line 722
         # default for input size is None/null
         try:

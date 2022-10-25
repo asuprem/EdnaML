@@ -242,14 +242,14 @@ class ModelAbstract(nn.Module):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
         # we do this check before, and after...
         self.set_usable_plugins()   # dealing with a plugin-load
-        for plugin in self.plugins:
+        for plugin in self.usable_plugins:
             self.plugins[plugin].pre_epoch(model = self, epoch=epoch)
         self.set_usable_plugins()   # post plugin usage
     def post_epoch_hook(self, epoch: int = 0):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
         # we do this check before, and after...
         #self.set_usable_plugins()  # unneeded
-        for plugin in self.plugins:
+        for plugin in self.usable_plugins:
             self.plugins[plugin].post_epoch(model = self, epoch=epoch)
         self.set_usable_plugins()   # post plugin usage
 
@@ -257,7 +257,7 @@ class ModelAbstract(nn.Module):
         # For example, L-Score will perturb the input, then itself call self.forward_impl with the perturbed input (i.e. itself very 
         # hacky under our own framework), then provide results to secondary_outputs
         secondaries: Dict[str, Any] = {}
-        for plugin in self.plugins:
+        for plugin in self.usable_plugins:
             x, kwargs, secondary_output_pre = self.plugins[plugin].pre_forward(x, **kwargs)
             secondaries[plugin] = secondary_output_pre
         return x, kwargs, secondaries
@@ -266,7 +266,7 @@ class ModelAbstract(nn.Module):
         # For ModelPlugins.
         # For example, KMP, after forward pass, provides distance to nearest proxy as well as nearest proxy in the secondary_outputs
         secondaries: Dict[str, Any] = {}
-        for plugin in self.plugins:
+        for plugin in self.usable_plugins:
             feature_logits, features, secondary_outputs, kwargs, secondary_output_post = self.plugins[plugin].post_forward(x,feature_logits, features, secondary_outputs,self, **kwargs)
             secondaries[plugin] = secondary_output_post
         return feature_logits, features, secondary_outputs, secondaries

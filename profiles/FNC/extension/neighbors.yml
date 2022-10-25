@@ -12,7 +12,7 @@ DEPLOYMENT:
       azfile: tweets-2020-01-22.json.gz
     DATAREADER: AlbertReader
     DATASET_ARGS:
-      classificationclass: ['fn_label']
+      classificationclass: ['fnews']
       maxlen: 512
       shardcache: True
       shardsize: 20000

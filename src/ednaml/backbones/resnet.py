@@ -69,6 +69,7 @@ class resnet(nn.Module):
         self.secondary_attention = secondary_attention
         self.block = block
         self.inplanes = 64
+        self.initial_channels = kwargs.get("initial_channels", 3)
         if norm_layer is None:
             self._norm_layer = nn.BatchNorm2d
         # elif norm_layer == "ln":
@@ -85,7 +86,7 @@ class resnet(nn.Module):
         self.base_width = width_per_group
 
         self.conv1 = nn.Conv2d(
-            3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
+            self.initial_channels, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False
         )
         # if norm_layer == "gn":
         #    self.bn1 = nn.GroupNorm2d
@@ -279,6 +280,11 @@ class resnet(nn.Module):
             weights_path (str): Path to the weights file
         """
         param_dict = torch.load(weights_path)
+        if self.initial_channels == 1:
+            conv1_weight = param_dict['conv1.weight']
+            param_dict['conv1.weight'] = conv1_weight.sum(dim=1, keepdim=True)
+        elif self.initial_channels != 3:
+            raise RuntimeError("Invalid number of input channels for pretrained weights. Need 1 or 3 channels, got %i"%self.initial_channels)
         for i in param_dict:
             if "fc" in i and self.top_only:
                 continue

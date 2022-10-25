@@ -1,0 +1,12 @@
+DEPLOYMENT:
+  DEPLOY: HFDeploy
+  FP16: False
+  EPOCHS: 1
+  PLUGIN:
+    HOOKS: warmup
+    RESET: False
+
+
+LOGGING:
+  STEP_VERBOSE: 100
+  INPUT_SIZE: [16, 512]

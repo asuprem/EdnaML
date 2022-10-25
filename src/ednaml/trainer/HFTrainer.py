@@ -12,7 +12,7 @@ class HFTrainer(BaseTrainer):
         self.softaccuracy = []
 
     def step(self, batch):
-        batch = tuple(item.cuda() for item in batch)
+        #batch = tuple(item.cuda() for item in batch)
         (
             all_input_ids,
             all_attention_mask,
@@ -26,6 +26,7 @@ class HFTrainer(BaseTrainer):
             token_type_ids=all_token_type_ids,
             attention_mask=all_attention_mask,
             output_attentions = True,
+            output_hidden_states = True,
             secondary_inputs=all_annotations       # NOT for HFTrainer! because it only expects specific inputs!
         )
 
@@ -47,9 +48,7 @@ class HFTrainer(BaseTrainer):
         self.softaccuracy.append(softmax_accuracy.cpu().item())
         
         return logits_loss
-    
-    def evaluate_impl(self):
-        return super().evaluate_impl()
+
 
     def evaluate_impl(self):
         logits, labels = [],[]
@@ -57,7 +56,7 @@ class HFTrainer(BaseTrainer):
             for batch in tqdm.tqdm(
                 self.test_loader, total=len(self.test_loader), leave=False
             ):
-                batch = tuple(item.cuda() for item in batch)
+                batch = tuple(item.to(self.device) for item in batch)
                 (
                     all_input_ids,
                     all_attention_mask,
@@ -71,6 +70,7 @@ class HFTrainer(BaseTrainer):
                             token_type_ids=all_token_type_ids,
                             attention_mask=all_attention_mask,
                             output_attentions = True,
+                            output_hidden_states = True,
                             secondary_inputs=all_annotations
                         )
                 raw_logits = outputs[0]

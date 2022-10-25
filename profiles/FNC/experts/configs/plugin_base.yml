@@ -1,0 +1,39 @@
+DEPLOYMENT:
+  EPOCHS: 2
+  
+MODEL_PLUGIN:
+  - PLUGIN: FastKMeansProxy
+    PLUGIN_NAME: FastKMP-l2
+    PLUGIN_KWARGS:
+      proxies: 20
+      dimensions: 768
+      dist: euclidean
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
+      classifier_access: encoder.classifier
+  - PLUGIN: FastKMeansProxy
+    PLUGIN_NAME: FastKMP-cos
+    PLUGIN_KWARGS:
+      proxies: 20
+      dimensions: 768
+      dist: cosine
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
+      classifier_access: encoder.classifier
+  - PLUGIN: FastRandomizedLipschitz
+    PLUGIN_NAME: FRL-midas
+    PLUGIN_KWARGS:
+      proxies: 15
+      dimensions: 768
+      dist: euclidean
+      proxy_epochs: 1
+      iterations: 30
+      batch_size: 256
+      alpha: 0.6
+      classifier_access: encoder.classifier
+  - PLUGIN: LogitConfidence
+    PLUGIN_NAME: logit-confidence
+    PLUGIN_KWARGS:
+      num_classes: 2

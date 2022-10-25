@@ -20,7 +20,6 @@ The `EXECUTION` section contains parameters for EdnaML pipeline execution. They 
     - `CRAWLER_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's crawler. Documentation is provided in [`datareaders.md`](config-reference/datareaders.md).
     - `DATASET_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's TorchDataset. Documentation is provided in [`datareaders.md`](config-reference/datareaders.md).
     - `GENERATOR_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's Generator. Documentation is provided in [`datareaders.md`](config-reference/datareaders.md).
-    - `DATALOADER_ARGS`: A key-value dictionary or keyword arguments to pass into the datareader's TorchDataloader. Documentation is provided in [`datareaders.md`](config-reference/datareaders.md).
 
 
 ## Sample
