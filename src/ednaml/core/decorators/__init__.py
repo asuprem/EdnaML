@@ -12,7 +12,7 @@ def register(func, functype):
     if fname not in REGISTERED_EDNA_COMPONENTS:
         REGISTERED_EDNA_COMPONENTS[fname] = {}
     # TODO also add in some type of lookup for the file basename...?
-    if functype is "model_plugin":
+    if functype == "model_plugin":
         if "model_plugin" not in REGISTERED_EDNA_COMPONENTS[fname]:
             REGISTERED_EDNA_COMPONENTS[fname]["model_plugin"] = []
         REGISTERED_EDNA_COMPONENTS[fname]["model_plugin"].append(func)
