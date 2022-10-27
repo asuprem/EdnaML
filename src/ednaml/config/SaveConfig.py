@@ -31,14 +31,14 @@ class SaveConfig(BaseConfig):
             "MODEL_QUALIFIER", defaults.MODEL_QUALIFIER
         )
 
-        self.BACKUP = BackupOptionsConfig(save_dict.get("BACKUP", {}, defaults))
+        self.BACKUP = BackupOptionsConfig(save_dict.get("BACKUP", {}), defaults)
         #self.DRIVE_BACKUP = BackupOptionsConfig(save_dict.get("BACKUP", {}, defaults)
-        self.LOG_BACKUP = BackupOptionsConfig(save_dict.get("LOG_BACKUP", save_dict.get("BACKUP", {}), defaults))
-        self.MODEL_BACKUP = BackupOptionsConfig(save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {}), defaults))
-        self.ARTIFACTS_BACKUP = BackupOptionsConfig(save_dict.get("ARTIFACTS_BACKUP", save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {})), defaults))
-        self.CONFIG_BACKUP = BackupOptionsConfig(save_dict.get("CONFIG_BACKUP", save_dict.get("BACKUP", {}), defaults))
-        self.PLUGIN_BACKUP = BackupOptionsConfig(save_dict.get("PLUGIN_BACKUP", save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {})), defaults))
-        self.METRICS_BACKUP = BackupOptionsConfig(save_dict.get("METRICS_BACKUP", save_dict.get("BACKUP", {}), defaults))
+        self.LOG_BACKUP = BackupOptionsConfig(save_dict.get("LOG_BACKUP", save_dict.get("BACKUP", {})), defaults)
+        self.MODEL_BACKUP = BackupOptionsConfig(save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {})), defaults)
+        self.ARTIFACTS_BACKUP = BackupOptionsConfig(save_dict.get("ARTIFACTS_BACKUP", save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {}))), defaults)
+        self.CONFIG_BACKUP = BackupOptionsConfig(save_dict.get("CONFIG_BACKUP", save_dict.get("BACKUP", {})), defaults)
+        self.PLUGIN_BACKUP = BackupOptionsConfig(save_dict.get("PLUGIN_BACKUP", save_dict.get("MODEL_BACKUP", save_dict.get("BACKUP", {}))), defaults)
+        self.METRICS_BACKUP = BackupOptionsConfig(save_dict.get("METRICS_BACKUP", save_dict.get("BACKUP", {})), defaults)
 
         #self.DRIVE_BACKUP = save_dict.get("DRIVE_BACKUP", defaults.DRIVE_BACKUP)
         #self.LOG_BACKUP = save_dict.get("LOG_BACKUP", defaults.LOG_BACKUP)
