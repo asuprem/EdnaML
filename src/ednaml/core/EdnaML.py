@@ -19,7 +19,7 @@ from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.trainer.BaseTrainer import BaseTrainer
-from ednaml.storage import BaseStorage
+from ednaml.storage import BaseStorage, StorageManager
 from ednaml.utils import locate_class, path_import
 import ednaml.utils
 import torch
@@ -53,6 +53,7 @@ class EdnaML(EdnaMLBase):
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
     plugins: Dict[str, ModelPlugin] = {}
+    storageManager: StorageManager
 
     def __init__(
         self,
@@ -111,6 +112,7 @@ class EdnaML(EdnaMLBase):
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
         os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
+        self.storageManager = None
 
         self.logger = self.buildLogger(logger=logger, **kwargs)
         self.previous_stop = -1
@@ -252,6 +254,7 @@ class EdnaML(EdnaMLBase):
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML"""
         self.printConfiguration()
+        self.buildStorageManager()
         self.downloadModelWeights()
         self.setPreviousStop()
         self.buildBackupOptions()
@@ -278,7 +281,14 @@ class EdnaML(EdnaMLBase):
 
         self.resetQueues()
 
-    def addStorage(self, storage: BaseStorage):
+    def buildStorageManager(self):
+        self.storageManager = StorageManager(
+            self.saveMetadata,
+            self.cfg.SAVE
+        )
+
+
+    def addStorage(self, storage: BaseStorage): # TODO fix this to add Storage to a list of storages...
         self.logger.debug("Added storage: %s"%storage.__class__.__name__)
         self._storageInstanceQueue = storage
         self._storageInstanceQueueFlag = True
