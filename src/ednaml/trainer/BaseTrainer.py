@@ -5,6 +5,7 @@ from ednaml.config.StorageConfig import StorageConfig
 
 import torch
 from torch.utils.data import DataLoader
+from ednaml.core import EdnaMLContextInformation
 import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
@@ -37,6 +38,13 @@ class BaseTrainer:
     logger: logging.Logger
     storage: BaseStorage
 
+    save_frequency: int
+    step_save_frequency: int
+
+    edna_context: EdnaMLContextInformation
+    saveFlag_epoch = 0
+    saveFlag_step = 0
+
     def __init__(
         self,
         model: ModelAbstract,
@@ -54,6 +62,7 @@ class BaseTrainer:
         config: EdnaMLConfig,
         labels: LabelMetadata,
         storage: BaseStorage,
+        context: EdnaMLContextInformation,
         **kwargs
     ):
         self.model = model
@@ -118,6 +127,7 @@ class BaseTrainer:
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
+        self.edna_context = context
         self.init_setup(**kwargs)
 
     def init_setup(self, **kwargs):
@@ -136,6 +146,7 @@ class BaseTrainer:
         self,
         step_verbose: int = 5,
         save_frequency: int = 5,
+        step_save_frequency: int = 0,
         test_frequency: int = 5,
         save_directory: str = "./checkpoint/",
         save_backup: bool = False,
@@ -147,6 +158,7 @@ class BaseTrainer:
     ):
         self.step_verbose = step_verbose
         self.save_frequency = save_frequency
+        self.step_save_frequency = step_save_frequency
         self.test_frequency = test_frequency
         self.save_directory = save_directory
         self.backup_directory = None
@@ -178,13 +190,15 @@ class BaseTrainer:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def save(self, save_epoch: int = None):
+    def save(self, save_epoch: int = None, save_step : int = None):
         if save_epoch is None:
             save_epoch = self.global_epoch
+        if save_step is None:
+            save_step = self.global_batch
         self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = self.model_save_name + "_epoch%i" % save_epoch + ".pth"
+        MODEL_SAVE = "".join([self.model_save_name, "_epoch%i" % save_epoch, "_step%i" % save_step, ".pth"])
         TRAINING_SAVE = (
-            self.model_save_name + "_epoch%i" % save_epoch + "_training.pth"
+            "".join([self.model_save_name, "_epoch%i" % save_epoch, "_step%i" % save_step, "_training.pth"])
         )
 
         save_dict = {}
@@ -260,15 +274,26 @@ class BaseTrainer:
 
                 
 
-    def load(self, load_epoch):
+    def load(self, load_epoch, load_step: int = 0):
         self.logger.info(
             "Resuming training from epoch %i. Loading saved state from %i"
             % (load_epoch + 1, load_epoch)
         )
-        model_load = self.model_save_name + "_epoch%i" % load_epoch + ".pth"
+
+        model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, ".pth"])
         training_load = (
-            self.model_save_name + "_epoch%i" % load_epoch + "_training.pth"
+            "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, "_training.pth"])
         )
+        
+        if not (os.path.exists(model_load) and os.path.exists(training_load)):
+            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
+            
+            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
+            training_load = (
+                "".join([self.model_save_name, "_epoch%i" % load_epoch, "_training.pth"])
+            )
+
+        
 
         if self.save_backup:
             self.logger.info(
@@ -331,7 +356,7 @@ class BaseTrainer:
         #    if self.loss_scheduler[idx] is not None:
         #        self.loss_scheduler[idx].load_state_dict(checkpoint["loss_scheduler"][idx])
 
-    def train(self, continue_epoch=0):
+    def train(self, continue_epoch = 0, continue_step = 0):
         self.logger.info("Starting training")
         self.logger.info("Logging to:\t%s" % self.logger_file)
         self.logger.info(
@@ -360,9 +385,12 @@ class BaseTrainer:
             % self.model_save_name
         )
 
-        if continue_epoch > 0:
-            load_epoch = continue_epoch - 1
-            self.load(load_epoch)
+        if continue_epoch or continue_step:
+            load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
+            if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
+            else:
+                self.load(load_epoch, continue_step)
 
         if not self.skipeval:
             self.logger.info("Performing initial evaluation...")
@@ -388,7 +416,7 @@ class BaseTrainer:
             self.evaluateFlag = False
         if self.saveFlag:
             self.logger.info("Final: Saving model at save-frequency")
-            self.save(self.global_epoch - 1)
+            self.save(self.saveFlag_epoch, self.saveFlag_step)
             self.saveFlag = False
 
     def initial_evaluate(self):
@@ -423,6 +451,8 @@ class BaseTrainer:
             self.global_batch += 1
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
+            if self.step_save_frequency and self.global_batch % self.step_save_frequency == 0:
+                self.set_save_flag()
 
         self.global_batch = 0
         self.stepSchedulers()
@@ -450,11 +480,19 @@ class BaseTrainer:
                     "Model save triggered, but gradients still need"
                     " accumulation. Will save after accumulation."
                 )
-                self.saveFlag = True
+                self.set_save_flag()
             else:
                 self.save()
         self.global_epoch += 1
     
+    def set_save_flag(self):
+        self.saveFlag = True
+        self.saveFlag_epoch = self.global_epoch
+        self.saveFlag_step = self.global_batch
+    
+    def set_evaluate_flag(self):
+        pass
+
     def move_to_device(self, batch) -> Tuple[torch.Tensor]:
         return (item.to(self.device) for item in batch)
 
