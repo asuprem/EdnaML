@@ -410,14 +410,14 @@ class EdnaML(EdnaMLBase):
             return -1, 0
         else:
             max_epoch = max(previous_stop, key=lambda x:x[0])
-            max_epoch_pairs = [item for item in previous_stop if item[0] == max_epoch]
+            max_epoch_pairs = [item for item in previous_stop if item[0] == max_epoch[0]]
             max_step = max(max_epoch_pairs, key=lambda x:x[1])
 
             self.logger.info(
                 "Previous stop detected. Will attempt to resume from epoch %i, step %i"
-                % (max_epoch, max_step)
+                % (max_epoch[0], max_step[1])
             )
-            return max_epoch, max_step
+            return max_epoch[0], max_step[1]
 
     def addOptimizer(
         self, optimizer: torch.optim.Optimizer, parameter_group="opt-1"
