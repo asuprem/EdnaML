@@ -284,16 +284,7 @@ class BaseTrainer:
         training_load = (
             "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, "_training.pth"])
         )
-        
-        if not (os.path.exists(model_load) and os.path.exists(training_load)):
-            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
-            
-            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
-            training_load = (
-                "".join([self.model_save_name, "_epoch%i" % load_epoch, "_training.pth"])
-            )
-
-        
+               
 
         if self.save_backup:
             self.logger.info(
@@ -312,6 +303,34 @@ class BaseTrainer:
             training_load_path = os.path.join(
                 self.save_directory, training_load
             )
+      
+        if not (os.path.exists(model_load_path) and os.path.exists(training_load_path)):
+            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load_path)
+            
+            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
+            training_load = (
+                "".join([self.model_save_name, "_epoch%i" % load_epoch, "_training.pth"])
+            )
+
+        if self.save_backup:
+            self.logger.info(
+                "Loading model, optimizer, and scheduler from drive backup."
+            )
+            model_load_path = os.path.join(self.backup_directory, model_load)
+            training_load_path = os.path.join(
+                self.backup_directory, training_load
+            )
+
+        else:
+            self.logger.info(
+                "Loading model, optimizer, and scheduler from local backup."
+            )
+            model_load_path = os.path.join(self.save_directory, model_load)
+            training_load_path = os.path.join(
+                self.save_directory, training_load
+            )
+
+        
         # TODO replace with ModelAbstract's own loader?????
         if self.gpus == 0:
           self.model.load_state_dict(torch.load(model_load_path), map_location=self.device)
@@ -444,8 +463,8 @@ class BaseTrainer:
                     self.evaluate()
                     self.evaluateFlag = False
                 if self.saveFlag:
-                    self.logger.info("Saving model at save-frequency")
-                    self.save(self.global_epoch - 1)
+                    self.logger.info("Saving model at save-frequency, at epoch %i, step %i"%(self.saveFlag_epoch, self.saveFlag_step))
+                    self.save(self.saveFlag_epoch, self.saveFlag_step)
                     self.saveFlag = False
 
             self.global_batch += 1
