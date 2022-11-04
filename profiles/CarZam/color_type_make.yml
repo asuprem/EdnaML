@@ -2,8 +2,8 @@ EXECUTION:
   DATAREADER:
     DATASET_ARGS:
       pathidx: 0
-      annotationidx: [2, 1]
-      classificationclass: ['color','vtype']
+      annotationidx: [2, 1, 4]
+      classificationclass: ['color','vtype', 'make']
     GENERATOR: MultiClassificationGenerator
   TRAINER: MultiClassificationTrainer
 
@@ -12,7 +12,7 @@ SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "origtoolimgs"
   MODEL_BACKBONE: "multiclass"
-  MODEL_QUALIFIER: "color-vtype"
+  MODEL_QUALIFIER: "color-vtype-make"
   DRIVE_BACKUP: False
   LOG_BACKUP: False
   SAVE_FREQUENCY: 1 # Epoch
@@ -25,7 +25,7 @@ MODEL:
   MODEL_BASE: 'resnet18'
   MODEL_NORMALIZATION: 'bn'
   MODEL_KWARGS: 
-    number_outputs: 2
+    number_outputs: 3
     outputs:
       - dimensions:
         name: type
@@ -33,6 +33,9 @@ MODEL:
       - dimensions:
         name: out2
         label: color
+      - dimensions:
+        name: makeout
+        label: make
 
 LOSS:
   - LOSSES: ['SoftmaxLogitsLoss']
@@ -45,3 +48,8 @@ LOSS:
     LAMBDAS: [1.0]
     LABEL: vtype
     NAME: typeloss
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: makeloss
