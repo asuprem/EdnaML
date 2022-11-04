@@ -30,7 +30,7 @@ TRANSFORMATION:
   BATCH_SIZE: 32
   WORKERS: 2
   ARGS: 
-    shape: [200,200]
+    i_shape: [200,200]
     normalization_mean: 0.5
     normalization_std: 0.5
     normalization_scale: 0.5
