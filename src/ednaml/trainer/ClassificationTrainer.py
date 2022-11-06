@@ -20,7 +20,7 @@ class ClassificationTrainer(BaseTrainer):
                     # Note, this is just a check to map the string 'TorchAccuracyMetric' in metric_config['metric_name']
                     # to the TorchAccuracyMetric class constructor. So the name is NOT metric_config['metric_name']
                     # but actually the key in the key-value pair being iterated upon (.items() call above)
-                    metric = TorchAccuracyMetric(metric_name,metric_config)
+                    metric = TorchAccuracyMetric(metric_name,metric_params=metric_config['metric_params'])
                     self.metrics.append(metric)
         print(self.metrics)
         print('Init complete!')
@@ -63,7 +63,12 @@ class ClassificationTrainer(BaseTrainer):
             print('Metrics API entry point')
             for metric in self.metrics:
                 metric.print_info()
-                metric.update(preds=[0,0],target=[0,1]) # data insertion/handoff needed here!
+                metric.update(
+                    epoch=self.global_epoch,
+                    preds=torch.tensor([0,0]),
+                    target=torch.tensor(target=[0,1])
+                ) # actual data insertion/handoff needed here!
+                metric.save()
             print('Metrics API Exit point')
         return lossbackward
 

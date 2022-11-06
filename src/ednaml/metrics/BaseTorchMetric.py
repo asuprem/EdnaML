@@ -3,22 +3,21 @@ import torchmetrics
 
 class BaseTorchMetric(BaseMetric):
     """Wrapper class for TorchMetrics metrics for use in EdnaML."""
-    def __init__(self, metric_name, torch_metric, metric_args):
+    def __init__(self, metric_name, torch_metric, metric_params):
         self.metric = torch_metric
-        self.metric_args = metric_args
-        self.results = None
+        self.metric_params=metric_params
+        self.required_args = []
         super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
 
     def build_module(self, **kwargs):
-        self.metric_obj = self.metric(**self.metric_args) if self.metric_args else self.metric()
-        self.results = []
-
-    def build_params(self, **kwargs):
-        pass # TODO how to implement? How do we know which member objects eg. depth for sklearn tree
+        # Define Metric Object
+        self.metric_obj = self.metric(**self.metric_params) if self.metric_params else self.metric()
+        # Itemize list of required kwargs
+        for arg in self.metric_params.keys():
+            self.required_args.append(arg)
 
     def post_init_val(self):
         assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
 
-    def update(self, **kwargs):
-        result = self.metric_obj(**kwargs)
-        self.results.append(result)
+    def update(self,epoch,**kwargs):
+        raise NotImplementedError

@@ -19,7 +19,11 @@ EXECUTION:
       CustomNamedMetric:                     # An example of a tracked metric. Name is user-specified
         metric_name: TorchAccuracyMetric     # but definition, as seen here, lies in ednaml.metrics
         metric_type: EdnaML_TorchMetric
-        metric_args: None
+        metric_params:
+          preds:
+            type: torch.tensor
+          target:
+            type: torch.tensor
 
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment

@@ -13,16 +13,13 @@ class BaseMetric:
     def __init__(self, metric_name, metric_type):
         self.metric_name = metric_name
         self.metric_type = metric_type
-        self.build_module()
-        #self.metric_params =  self.build_params() turning off
-        #self.post_init_val() turning off
+        self.metric_params = None
+        self.state ={}
+        self.build_module() # Builds module using params
+        self.post_init_val()
 
     def build_module(self, **kwargs):
         """Set up necessary object computation parameters."""
-        raise NotImplementedError
-
-    def build_params(self):
-        """Return metric parameters for the BaseMetric."""
         raise NotImplementedError
 
     def post_init_val(self):
@@ -35,12 +32,11 @@ class BaseMetric:
 
     def clear(self, **kwargs):
         """Clear/reset object computation memory."""
-        for param in self.metric_params:
-            self.metric_params[param] = []
+        self.state = {}
 
     def save(self, **kwargs):
         """Perform a save routine - either local or remote."""
-        raise NotImplementedError
+        print(self.state)
 
     def backup(self, **kwargs):
         """Perform backup/sync to cloud."""
