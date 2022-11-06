@@ -16,11 +16,13 @@ class ClassificationTrainer(BaseTrainer):
         self.metrics = []
         for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
             if metric_config['metric_type'] == 'EdnaML_TorchMetric':
-                if metric_config['metric_name'] == 'TorchAccuracyMetric':
-                    self.metrics.append(
-                        TorchAccuracyMetric(metric_config['metric_name'],
-                                            metric_config)
-                    ) # Create only TorchAccuracyMetrics for now
+                if metric_config['metric_name'] == 'TorchAccuracyMetric': # Create only TorchAccuracyMetrics for now
+                    # Note, this is just a check to map the string 'TorchAccuracyMetric' in metric_config['metric_name']
+                    # to the TorchAccuracyMetric class constructor. So the name is NOT metric_config['metric_name']
+                    # but actually the key in the key-value pair being iterated upon (.items() call above)
+                    metric = TorchAccuracyMetric(metric_name,metric_config)
+                    metric.build_module()
+                    self.metrics.append(metric)
         print(self.metrics)
         print('Init complete!')
 

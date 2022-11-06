@@ -18,7 +18,7 @@ class BaseTorchMetric(BaseMetric):
         pass # TODO how to implement? How do we know which member objects eg. depth for sklearn tree
 
     def post_init_val(self):
-        assert isinstance(self.metric_obj, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
+        assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
 
     def update(self, **kwargs):
         result = self.metric_obj(**kwargs)
