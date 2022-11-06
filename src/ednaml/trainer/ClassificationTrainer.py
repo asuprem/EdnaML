@@ -65,8 +65,8 @@ class ClassificationTrainer(BaseTrainer):
                 metric.print_info()
                 metric.update(
                     epoch=self.global_epoch,
-                    preds=torch.tensor([0,0]),
-                    target=torch.tensor([0,1])
+                    preds=batch_kwargs['logits'],
+                    target=batch_kwargs['labels']
                 ) # actual data insertion/handoff needed here!
                 metric.save()
             print('Metrics API Exit point')
