@@ -118,19 +118,19 @@ class HFDataset(Dataset):
         self.cachepath = mode+"-"+self.cachepath
         self.cachename = kwargs.get("cachename", "h5-cache") + "-"  #the dash
         if self.cache:
-            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
+            self.logger.info("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.cachepath, shards=self.cachename, mode=mode))
             self.base_cachepath = os.path.join(self.cachepath, self.cachename) + ".h5"
             self.cache_exist = False
             if os.path.exists(self.base_cachepath):
                 if self.cache_replace:
-                    self.logger.debug("Deleting existing cache")
+                    self.logger.info("Deleting existing cache")
                     os.remove(self.cachepath)
                 else:
                     self.cache_exist = True
-                    self.logger.debug("Cache already exists and `cache_replace` is False")
+                    self.logger.info("Cache already exists and `cache_replace` is False")
             else:
-                self.logger.debug("Cache does not exist and will be created.")
-                self.logger.debug("Creating cachepath %s"%self.cachepath)
+                self.logger.info("Cache does not exist and will be created.")
+                self.logger.info("Creating cachepath %s"%self.cachepath)
                 os.makedirs(self.cachepath, exist_ok=True)
                 with h5py.File(self.base_cachepath, "w") as hfile:
                     hfile.create_dataset(name="all_input_ids", shape=(len(self.dataset),self.maxlen))
@@ -145,20 +145,20 @@ class HFDataset(Dataset):
         self.shardpath = mode+"-"+self.shardpath
         self.shardname = kwargs.get("shardname", "fnc-filtermask-shard") + "-"  #the dash
         if self.shardcache:
-            self.logger.debug("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.shardpath, shards=self.shardname, mode=mode))
+            self.logger.info("[Mode `{mode}`] Will look in path [{path}] for shards `{shards}[e].pt`".format(path=self.shardpath, shards=self.shardname, mode=mode))
         self.base_shardpath = os.path.join(self.shardpath, self.shardname)
         self.shards_exist = False
         if os.path.exists(self.base_shardpath + "0.pt"):
             if self.shard_replace:
-                self.logger.debug("Deleting existing shards")
+                self.logger.info("Deleting existing shards")
                 shutil.rmtree(self.shardpath)
             else:
                 self.shards_exist = True
-                self.logger.debug("Shards already exist and `shard_replace` is False")
+                self.logger.info("Shards already exist and `shard_replace` is False")
         else:
-          self.logger.debug("Shards do not exist and will be created.")
+          self.logger.info("Shards do not exist and will be created.")
         if self.shardcache:
-            self.logger.debug("Creating shardpath %s"%self.shardpath)
+            self.logger.info("Creating shardpath %s"%self.shardpath)
             os.makedirs(self.shardpath, exist_ok=True)
         
         
@@ -190,34 +190,34 @@ class HFDataset(Dataset):
 
         if self.cache or self.memcache:
         # The actual cache-ing
-            self.logger.debug("Started mem caching")
+            self.logger.info("Started mem caching")
             self.input_length_cache = []
-            self.logger.debug("Converting to features")
+            self.logger.info("Converting to features")
             # For memcache, save dataset inside self.cached_dataset.
             # Same for cache. Difference being, cached_dataset is either in memory or on disk!
             self.convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen, cache=True)
-            self.logger.debug("Masking")
+            self.logger.info("Masking")
             self.memcached_dataset = self.refresh_mask_ids(cache=True)
 
         if self.shardcache:
             self.input_length_cache = []
             if not self.shards_exist:
-                self.logger.debug("Generating shards")
+                self.logger.info("Generating shards")
                 self.shardsaveindex = self.sharded_convert_to_features(self.dataset, self.tokenizer, maxlen=self.maxlen)    # save shards and get numshards
             else:
                 self.shardsaveindex = len(glob(os.path.join(self.base_shardpath, "*.pt")))
             if self.shardsaveindex < 1:
                 raise ValueError("`shardsaveindex` is {val}, which is less than permissible minimum value of 1".format(val=self.shardsaveindex))
-            self.logger.debug("Obtained %i shards"%self.shardsaveindex)
+            self.logger.info("Obtained %i shards"%self.shardsaveindex)
             self.shard_load_index = 0   # self.shardsaveindex is the maximum number of shards
             self.shard_shuffle = list(range(self.shardsaveindex))    # count started from 0
             if self.data_shuffle:
-                self.logger.debug("Shuffling shard load order")
+                self.logger.info("Shuffling shard load order")
                 random.shuffle(self.shard_shuffle)
             self.sharded_dataset = self.load_shard(self.shard_shuffle[self.shard_load_index])
             self.current_shardsize = len(self.sharded_dataset)
             if self.masking:
-                self.logger.debug("Refreshing token masks for loaded shard")    # TODO
+                self.logger.info("Refreshing token masks for loaded shard")    # TODO
                 self.sharded_dataset = self.sharded_refresh_mask_ids(self.sharded_dataset)  # TODO implement masking (and input_length_cache) for sharding
             self.shard_internal_shuffle = list(range(self.current_shardsize))    #count started from 0
             if self.data_shuffle:

@@ -4,6 +4,7 @@ import tqdm
 import torch
 from torch.utils.data import DataLoader
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from ednaml.core import EdnaMLContextInformation
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils.LabelMetadata import LabelMetadata
@@ -20,6 +21,10 @@ class BaseDeploy:
     labelMetadata: LabelMetadata
     logger: logging.Logger
 
+    edna_context: EdnaMLContextInformation
+    save_frequency: int
+    step_save_frequency: int
+
     def __init__(
         self,
         model: ModelAbstract,
@@ -29,6 +34,7 @@ class BaseDeploy:
         crawler: Crawler,
         config: EdnaMLConfig,
         labels: LabelMetadata,
+        context: EdnaMLContextInformation,
         **kwargs
     ):
 
@@ -53,6 +59,7 @@ class BaseDeploy:
         )
 
         self.model_is_built = False
+        self.edna_context = context
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
@@ -64,6 +71,7 @@ class BaseDeploy:
         save_directory: str = "./checkpoint/",
         save_backup: bool = False,
         save_frequency: int = 1,
+        step_save_frequency: int = 0,
         backup_directory: str = None,
         gpus: int = 1,
         fp16: bool = False,
@@ -73,6 +81,7 @@ class BaseDeploy:
         self.step_verbose = step_verbose
         self.save_directory = save_directory
         self.save_frequency = save_frequency
+        self.step_save_frequency = step_save_frequency
         self.backup_directory = None
         self.model_save_name = model_save_name
         self.logger_file = logger_file
@@ -101,7 +110,7 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def deploy(self, continue_epoch=0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
+    def deploy(self, continue_epoch=0, continue_step = 0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
         if model_build or (model_build is None and not self.model_is_built):
             self.logger.info("Starting deployment")
             self.logger.info("Logging to:\t%s" % self.logger_file)
@@ -112,9 +121,12 @@ class BaseDeploy:
                 )
             
             #self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
-            if continue_epoch > 0:
-                load_epoch = continue_epoch - 1
-                self.load(load_epoch, ignore_plugins=ignore_plugins)
+            if continue_epoch or continue_step:
+                load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
+                if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                    self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
+                else:
+                    self.load(load_epoch, continue_step, ignore_plugins=ignore_plugins)
 
             if inference:
                 self.model.inference()
@@ -160,6 +172,7 @@ class BaseDeploy:
                 self.output_step(feature_logits, features, secondary_outputs)
                 # Log Metrics here and inside the model TODO
                 self.global_batch += 1
+            # No saving state in the middle of a deployment...
 
     def move_to_device(self, batch) -> Tuple[torch.Tensor]:
         return (item.to(self.device) for item in batch)
@@ -184,13 +197,17 @@ class BaseDeploy:
         if self.global_batch % self.config.LOGGING.STEP_VERBOSE == 0:
             self.logger.info("Warning: No output is generated at step %i"%self.global_batch)
 
-    def load(self, load_epoch, ignore_plugins: List[str] = []):
+    def load(self, load_epoch, load_step = 0, ignore_plugins: List[str] = []):
         self.logger.info(
-            "Loading a model from saved epoch %i"
-            % (load_epoch)
+            "Loading a model from saved epoch %i, step %i"
+            % (load_epoch, load_step)
         )
-        model_load = self.model_save_name + "_epoch%i" % load_epoch + ".pth"
-
+        model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, ".pth"])
+        if not (os.path.exists(model_load) and os.path.exists(training_load)):
+            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
+            
+            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
+            
         if self.save_backup:
             self.logger.info(
                 "Loading model from drive backup."

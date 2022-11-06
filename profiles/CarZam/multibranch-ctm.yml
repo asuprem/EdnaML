@@ -1,0 +1,77 @@
+EXECUTION:
+  DATAREADER:
+    DATASET_ARGS:
+      pathidx: 0
+      annotationidx: [2, 1, 4]
+      classificationclass: ['color','vtype', 'make']
+    GENERATOR: MultiClassificationGenerator
+  TRAINER: MultiBranchTrainer
+
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "origtoolimgs"
+  MODEL_BACKBONE: "multibranch"
+  MODEL_QUALIFIER: "color-vtype-make"
+  DRIVE_BACKUP: False
+  LOG_BACKUP: False
+  SAVE_FREQUENCY: 1 # Epoch
+  CHECKPOINT_DIRECTORY: "checkpoint"
+
+
+MODEL:
+  BUILDER: multibranch_model_builder
+  MODEL_ARCH: MultiBranchResnet
+  MODEL_BASE: 'resnet18'
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS: 
+    number_branches: 2
+    branches:
+      - name: colorbranch
+        number_outputs: 1
+        outputs: 
+          - dimensions:
+            name: color-fc
+            label: color
+      - name: typebranch
+        number_outputs: 1
+        outputs: 
+          - dimensions:
+            name: type-fc
+            label: vtype
+    fuse: True
+    fuse_outputs: ['colorbranch', 'typebranch']
+    fuse_dimensions:
+    fuse_label: make
+    fuse_name: fuse
+    shared_block: 2
+    soft_targets: true
+    soft_target_branch: ['colorbranch', 'typebranch']
+    soft_target_output_source: fuse
+
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: color
+    NAME: color-fc
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: vtype
+    NAME: type-fc
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: fuse
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: colorbranch
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: make
+    NAME: typebranch
