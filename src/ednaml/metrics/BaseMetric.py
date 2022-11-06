@@ -14,8 +14,8 @@ class BaseMetric:
         self.metric_name = metric_name
         self.metric_type = metric_type
         self.build_module()
-        #self.metric_params =  self.build_params() holding off
-        self.post_init_val()
+        #self.metric_params =  self.build_params() turning off
+        #self.post_init_val() turning off
 
     def build_module(self, **kwargs):
         """Set up necessary object computation parameters."""

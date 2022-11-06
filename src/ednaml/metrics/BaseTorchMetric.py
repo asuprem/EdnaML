@@ -4,11 +4,10 @@ import torchmetrics
 class BaseTorchMetric(BaseMetric):
     """Wrapper class for TorchMetrics metrics for use in EdnaML."""
     def __init__(self, metric_name, torch_metric, metric_args):
-        super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
         self.metric = torch_metric
         self.metric_args = metric_args
-        self.metric_obj = None
         self.results = None
+        super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
 
     def build_module(self, **kwargs):
         self.metric_obj = self.metric(**self.metric_args) if self.metric_args else self.metric()
