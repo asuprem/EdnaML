@@ -19,8 +19,8 @@ EXECUTION:
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "origtoolimgs"
-  MODEL_BACKBONE: "backbone"
-  MODEL_QUALIFIER: "singlelabel"
+  MODEL_BACKBONE: "singleclass"
+  MODEL_QUALIFIER: "color"
   DRIVE_BACKUP: False
   LOG_BACKUP: False
   SAVE_FREQUENCY: 1 # Epoch
@@ -30,7 +30,7 @@ TRANSFORMATION:
   BATCH_SIZE: 32
   WORKERS: 2
   ARGS: 
-    shape: [200,200]
+    i_shape: [200,200]
     normalization_mean: 0.5
     normalization_std: 0.5
     normalization_scale: 0.5
