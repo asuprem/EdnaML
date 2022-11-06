@@ -450,7 +450,7 @@ class BaseTrainer:
 
             self.model.train() #train == we are tracking all numbers and computation graph
             batch = self.move_to_device(batch)
-            loss: torch.Tensor = self.step(batch) #perform function and returns loss
+            loss = self.step(batch) #perform function and returns loss
             loss = loss / self.accumulation_steps
             loss.backward()
             self.accumulation_count += 1
