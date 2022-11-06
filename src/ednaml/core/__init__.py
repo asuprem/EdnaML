@@ -25,6 +25,8 @@ class EdnaMLBase:
     def clear_registrations():
         ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS = {}
 
+class EdnaMLContextInformation:
+    MODEL_HAS_LOADED_WEIGHTS = False
 
 from ednaml.core.EdnaML import EdnaML
 from ednaml.core.EdnaDeploy import EdnaDeploy

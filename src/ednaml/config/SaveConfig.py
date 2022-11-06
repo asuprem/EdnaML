@@ -49,4 +49,6 @@ class SaveConfig(BaseConfig):
         self.SAVE_FREQUENCY = save_dict.get(
             "SAVE_FREQUENCY", defaults.SAVE_FREQUENCY
         )
-        
+        self.STEP_SAVE_FREQUENCY = save_dict.get(
+            "STEP_SAVE_FREQUENCY", defaults.STEP_SAVE_FREQUENCY
+        )

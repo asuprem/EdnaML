@@ -82,7 +82,8 @@ SAVE:
   BACKUP:
     BACKUP: False # False | True
     STORAGE_NAME: storage-1  # A storage name defined in the STORAGE section, corresponding to STORAGE_NAME there as well
-    FREQUENCY: 0  # Frequency of backup, in epochs
+    FREQUENCY: 1  # Frequency of backup, in epochs
+    FREQUENCY_STEP: 0 # Frequency of backup, in steps, per epoch. Default 0
   # Log backup options, with alternative examples for options
   LOG_BACKUP:
     BACKUP: True  # Overrides False in BACKUP.BACKUP
