@@ -61,13 +61,11 @@ class ClassificationTrainer(BaseTrainer):
 
         if self.metrics: # Execute if metrics API usage is specified
             print('Metrics API entry point')
-            """
             for metric in self.metrics:
                 metric.print_info()
-                metric.update(epoch=self.global_epoch,preds=batch_kwargs['logits'],target=batch_kwargs['labels'])
+                metric.update(epoch=self.global_epoch,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
                 metric.save()
             print('Metrics API Exit point')
-            """
         return lossbackward
 
     def evaluate_impl(self):
