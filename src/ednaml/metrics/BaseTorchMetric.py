@@ -19,7 +19,7 @@ class BaseTorchMetric(BaseMetric):
             self.required_args.append(arg)
 
     def post_init_val(self):
-        assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
+        pass#assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
 
     def update(self,epoch,**kwargs):
         raise NotImplementedError
