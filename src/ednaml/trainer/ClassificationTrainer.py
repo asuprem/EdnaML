@@ -14,8 +14,13 @@ class ClassificationTrainer(BaseTrainer):
         print(kwargs)
         # Initialize all metrics specified in config
         self.metrics = []
-        for metric_name, metric_config in kwargs['EXECUTION']['TRAINER']['METRICS'].items(): # Iterate over all metrics
-            self.metrics.append(TorchAccuracyMetric(metric_name,metric_config)) # Create them
+        for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
+            if metric_config['metric_type'] == 'EdnaML_TorchMetric':
+                if metric_config['metric_name'] == 'TorchAccuracyMetric':
+                    self.metrics.append(
+                        TorchAccuracyMetric(metric_config['metric_name'],
+                                            metric_config)
+                    ) # Create only TorchAccuracyMetrics for now
         print(self.metrics)
         print('Init complete!')
 

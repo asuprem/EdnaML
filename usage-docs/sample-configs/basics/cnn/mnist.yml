@@ -15,10 +15,12 @@ EXECUTION:
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
     accumulation_steps: 2       # Number of steps for gradient accumulation
-  METRICS:                      # Defining metrics to be tracked
-    CustomNamedMetric:          # An example of a tracked metric. Name is user-specified
-      metric_name: Accuracy     # but definition, as seen here, lies in ednaml.metrics
-      metric_args: None
+    METRICS:                      # Defining metrics to be tracked. This needs to be made top-level
+      CustomNamedMetric:                     # An example of a tracked metric. Name is user-specified
+        metric_name: TorchAccuracyMetric     # but definition, as seen here, lies in ednaml.metrics
+        metric_type: EdnaML_TorchMetric
+        metric_args: None
+
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
