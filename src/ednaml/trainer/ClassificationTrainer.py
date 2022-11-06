@@ -5,11 +5,19 @@ import os
 import torch
 import numpy as np
 from ednaml.trainer import BaseTrainer
-
+from ednaml.metrics.training.Accuracy import TorchAccuracyMetric
 
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
         self.softaccuracy = []
+        print('printing kwargs')
+        print(kwargs)
+        # Initialize all metrics specified in config
+        self.metrics = []
+        for metric_name, metric_config in kwargs['EXECUTION']['TRAINER']['METRICS'].items(): # Iterate over all metrics
+            self.metrics.append(TorchAccuracyMetric(metric_name,metric_config)) # Create them
+        print(self.metrics)
+        print('Init complete!')
 
     # Steps through a batch of data
     def step(self, batch): 
@@ -22,7 +30,6 @@ class ClassificationTrainer(BaseTrainer):
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
 
-        # TODO fix this with info about how many output are in the model...from the config file!!!!!
         loss = {loss_name: None for loss_name in self.loss_fn}
         for lossname in self.loss_fn:
             loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
@@ -46,6 +53,12 @@ class ClassificationTrainer(BaseTrainer):
         else:
             self.softaccuracy.append(0)
 
+        if self.metrics: # Execute if metrics API usage is specified
+            print('Metrics API entry point')
+            for metric in self.metrics:
+                metric.print_info()
+                metric.update(preds=[0,0],target=[0,1]) # data insertion/handoff needed here!
+            print('Metrics API Exit point')
         return lossbackward
 
     def evaluate_impl(self):

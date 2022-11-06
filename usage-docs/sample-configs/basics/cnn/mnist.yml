@@ -1,6 +1,6 @@
 # Here, we set up the EXECUTION cell, which controls the EdnaML experiment itself
 EXECUTION:
-  EPOCHS: 5  # We will execute for 10 epochs
+  EPOCHS: 2  # We will execute for 10 epochs
   TEST_FREQUENCY: 1 # We will test the model every 1 epoch
   DATAREADER: 
     DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
@@ -14,9 +14,11 @@ EXECUTION:
       label_name: mnist_digits
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
-    accumulation_steps: 2         # Number of steps for gradient accumulation
-
-
+    accumulation_steps: 2       # Number of steps for gradient accumulation
+  METRICS:                      # Defining metrics to be tracked
+    CustomNamedMetric:          # An example of a tracked metric. Name is user-specified
+      metric_name: Accuracy     # but definition, as seen here, lies in ednaml.metrics
+      metric_args: None
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
