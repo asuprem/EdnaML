@@ -69,6 +69,7 @@ class ConfigDefaults(BaseConfig):
     BACKUP_PERFORM = bool
     BACKUP_LOCATION = str
     BACKUP_FREQUENCY = int
+    BACKUP_FREQUENCY_STEP = int
 
     def __init__(self, **kwargs):
 
@@ -145,6 +146,7 @@ class ConfigDefaults(BaseConfig):
         self.BACKUP_PERFORM = kwargs.get("BACKUP_PERFORM", False)
         self.BACKUP_LOCATION = kwargs.get("BACKUP_LOCATION", "")
         self.BACKUP_FREQUENCY = kwargs.get("BACKUP_FREQUENCY", 0)
+        self.BACKUP_FREQUENCY_STEP = kwargs.get("BACKUP_FREQUENCY_STEP", 0)
 
         self.PLUGIN_NAME = "mp-1"
         self.PLUGIN = "ModelPlugin"

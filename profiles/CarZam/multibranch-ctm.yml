@@ -1,12 +1,12 @@
 EXECUTION:
-  DATAREADER:
-    DATASET_ARGS:
-      pathidx: 0
-      annotationidx: [2, 1, 4]
-      classificationclass: ['color','vtype', 'make']
-    GENERATOR: MultiClassificationGenerator
   TRAINER: MultiBranchTrainer
 
+DATAREADER:
+  DATASET_ARGS:
+    pathidx: 0
+    annotationidx: [2, 1, 4]
+    classificationclass: ['color','vtype', 'make']
+  GENERATOR: MultiClassificationGenerator
 
 SAVE:
   MODEL_VERSION: 1

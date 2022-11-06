@@ -17,3 +17,6 @@ class BackupOptionsConfig(BaseConfig):
         self.FREQUENCY = save_dict.get(
             "FREQUENCY", defaults.BACKUP_FREQUENCY
         )
+        self.FREQUENCY_STEP = save_dict.get(
+            "FREQUENCY_STEP", defaults.BACKUP_FREQUENCY_STEP
+        )
