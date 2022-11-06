@@ -2,7 +2,7 @@
 Module containing training metrics for use in EdnaML
 """
 
-from endaml.metrics import BaseTorchMetric
+from ednaml.metrics import BaseTorchMetric
 from torchmetrics import Accuracy as Torch_Accuracy
 
 class TorchAccuracyMetric(BaseTorchMetric):
