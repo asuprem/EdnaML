@@ -21,9 +21,9 @@ EXECUTION:
         metric_type: EdnaML_TorchMetric
         metric_params:
           preds:
-            type: torch.tensor
+            type: torch tensor
           target:
-            type: torch.tensor
+            type: torch tensor
 
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
