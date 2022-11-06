@@ -91,6 +91,8 @@ SAVE:
   LOG_BACKUP: False
   # How often to perform a local save and backup for this model
   SAVE_FREQUENCY: 5 # Epoch
+  # Number of steps to wait before saving in the middle of epoch. 0 means no saving within epochs.
+  STEP_SAVE_FREQUENCY: 0  
   # The URL where the backup will be conducted.
   CHECKPOINT_DIRECTORY: "checkpoint"
 
