@@ -13,7 +13,6 @@ class BaseMetric:
     def __init__(self, metric_name, metric_type):
         self.metric_name = metric_name
         self.metric_type = metric_type
-        self.metric_params = None
         self.state ={}
         self.build_module() # Builds module using params
         self.post_init_val()
@@ -53,4 +52,7 @@ class BaseMetric:
     def print_info(self):
         print(f'INFO for metric {self.metric_name}:')
         print(f'Metric Type: {self.metric_type}')
-        print(f'Parameters: {self.metric_params}')
+        try:
+            print(f'Parameters: {self.metric_params}')
+        except NameError:
+            print('WARNING: build_module has not set up metric params.')
