@@ -42,12 +42,12 @@ LOSS:
     KWARGS: [{}]
     LAMBDAS: [1.0]
     LABEL: color
-    NAME: color
+    NAME: colorloss
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]
     LAMBDAS: [1.0]
     LABEL: vtype
-    NAME: vtype
+    NAME: typeloss
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]
     LAMBDAS: [1.0]

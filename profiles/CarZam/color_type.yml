@@ -4,7 +4,7 @@ EXECUTION:
       pathidx: 0
       annotationidx: [2, 1]
       classificationclass: ['color','vtype']
-    GENERATOR: MultiClassificationGenerator
+      GENERATOR: MultiClassificationGenerator
   TRAINER: MultiClassificationTrainer
 
 
@@ -39,9 +39,9 @@ LOSS:
     KWARGS: [{}]
     LAMBDAS: [1.0]
     LABEL: color
-    NAME: color
+    NAME: colorloss
   - LOSSES: ['SoftmaxLogitsLoss']
     KWARGS: [{}]
     LAMBDAS: [1.0]
     LABEL: vtype
-    NAME: vtype
+    NAME: typeloss
