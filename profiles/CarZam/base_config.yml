@@ -19,8 +19,8 @@ EXECUTION:
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "origtoolimgs"
-  MODEL_BACKBONE: "backbone"
-  MODEL_QUALIFIER: "singlelabel"
+  MODEL_BACKBONE: "singleclass"
+  MODEL_QUALIFIER: "color"
   DRIVE_BACKUP: False
   LOG_BACKUP: False
   SAVE_FREQUENCY: 1 # Epoch
