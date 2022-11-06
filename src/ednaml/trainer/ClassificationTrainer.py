@@ -66,7 +66,7 @@ class ClassificationTrainer(BaseTrainer):
                 metric.update(
                     epoch=self.global_epoch,
                     preds=torch.tensor([0,0]),
-                    target=torch.tensor(target=[0,1])
+                    target=torch.tensor([0,1])
                 ) # actual data insertion/handoff needed here!
                 metric.save()
             print('Metrics API Exit point')
