@@ -35,7 +35,7 @@ SAVE:
   SAVE_FREQUENCY: 5             # How often to save the model locally, and perform backups, if desired
 
 TRANSFORMATION:
-  BATCH_SIZE: 32                # The size of batches to provide to the model during training
+  BATCH_SIZE: 8                # The size of batches to provide to the model during training
   WORKERS: 2                    # The number of workers to use during training
   ARGS:                         # Additional args for this Generator (e.g. ednaml.generators.TorchvisionGeneratorWrapper)
     i_shape: [28,28]
@@ -80,7 +80,7 @@ OPTIMIZER:
 SCHEDULER:
   - LR_SCHEDULER: StepLR            # The basic optimizer scheduler to adynamically adjust learning rate
     LR_KWARGS: 
-      step_size: 5
+      step_size: 2
       gamma: 0.1
 
 LOGGING:
