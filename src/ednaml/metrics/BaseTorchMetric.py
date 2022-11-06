@@ -7,12 +7,14 @@ class BaseTorchMetric(BaseMetric):
         self.metric = torch_metric
         self.metric_params=metric_params
         self.required_args = []
+        self.metric_obj = None
         super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
 
     def build_module(self, **kwargs):
         # Define Metric Object
         self.metric_obj = self.metric(**self.metric_params) if self.metric_params else self.metric()
         # Itemize list of required kwargs
+        print(f'Setting metric params: {self.metric_params}')
         for arg in self.metric_params.keys():
             self.required_args.append(arg)
 

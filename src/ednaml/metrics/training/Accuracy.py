@@ -6,7 +6,7 @@ from ednaml.metrics import BaseTorchMetric
 from torchmetrics import Accuracy as Torch_Accuracy
 
 class TorchAccuracyMetric(BaseTorchMetric):
-    def __init__(self,metric_name, metric_params=None):
+    def __init__(self,metric_name, metric_params):
         super().__init__(metric_name,Torch_Accuracy,metric_params=metric_params)
 
     def update(self,epoch,**kwargs):
