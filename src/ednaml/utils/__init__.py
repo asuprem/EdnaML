@@ -4,6 +4,88 @@ import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
 import importlib.util
+import enum
+class StorageArtifactType(enum.Enum):
+    MODEL = "model"
+    LOG = "log"
+    CONFIG = "config"
+    PLUGIN = "plugin"
+    METRIC = "metric"
+    ARTIFACT = "artifact"
+
+
+class ExperimentKey:
+    model_core_name: str
+    model_version: str
+    model_backbone: str
+    model_qualifier: str
+    def __init__(self, model_core_name, model_version, model_backbone, model_qualifier):
+        self.model_backbone = model_backbone
+        self.model_version = model_version
+        self.model_core_name = model_core_name
+        self.model_qualifier = model_qualifier
+
+    def getKey(self):
+        return (self.model_core_name, self.model_version, self.model_backbone, self.model_qualifier)
+
+    def getExperimentName(self):
+        return "_".join([
+            self.model_core_name,
+            self.model_version,
+            self.model_backbone,
+            self.model_qualifier
+        ])
+
+class RunKey:
+    run: str
+    def __init__(self, run):
+        self.run = run
+
+class StorageKey:
+    epoch: str
+    step: str
+    artifact: StorageArtifactType
+    def __init__(self, epoch, step, artifact):
+        self.epoch = epoch
+        self.step = step
+        self.artifact = artifact
+
+class ERSKey:
+    experiment: ExperimentKey
+    run: RunKey
+    storage: StorageKey
+
+    def __init__(self, experiment, run, storage):
+        self.experiment = experiment
+        self.run = run
+        self.storage = storage
+
+class StorageNameStruct:
+    model_core_name: str
+    model_version: str
+    model_backbone: str
+    model_qualifier: str
+    run: str
+    epoch: str
+    step: str
+    artifact_type: StorageArtifactType
+    def __init__(self, model_core_name, model_version, model_backbone, model_qualifier,
+        run, epoch, step, artifact_type):
+        self.model_core_name = model_core_name
+        self.model_version = model_version
+        self.model_backbone = model_backbone
+        self.model_qualifier = model_qualifier
+        self.run = run
+        self.epoch = epoch
+        self.step = step
+        self.artifact_type = artifact_type
+
+    def getKey(self):
+        return (self.model_core_name, self.model_version, self.model_backbone, self.model_qualifier,
+            self.run, self.epoch, self.step, self.artifact_type)
+    
+
+
 
 def locate_class(
     package="ednaml",
