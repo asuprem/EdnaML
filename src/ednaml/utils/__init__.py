@@ -20,10 +20,10 @@ class ExperimentKey:
     model_backbone: str
     model_qualifier: str
     def __init__(self, model_core_name, model_version, model_backbone, model_qualifier):
-        self.model_backbone = model_backbone
-        self.model_version = model_version
-        self.model_core_name = model_core_name
-        self.model_qualifier = model_qualifier
+        self.model_backbone = str(model_backbone)
+        self.model_version = str(model_version)
+        self.model_core_name = str(model_core_name)
+        self.model_qualifier = str(model_qualifier)
 
     def getKey(self):
         return (self.model_core_name, self.model_version, self.model_backbone, self.model_qualifier)

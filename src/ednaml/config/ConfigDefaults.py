@@ -138,10 +138,10 @@ class ConfigDefaults(BaseConfig):
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
         self.INPUT_SIZE = kwargs.get("INPUT_SIZE", None)
 
-        self.STORAGE_NAME: kwargs.get("STORAGE_NAME", "storage-1")
-        self.STORAGE_CLASS: kwargs.get("STORAGE_CLASS", "BaseStorage")
-        self.STORAGE_URL: kwargs.get("STORAGE_URL", "./")
-        self.STORAGE_ARGS: kwargs.get("STORAGE_ARGS", {})
+        self.STORAGE_NAME = kwargs.get("STORAGE_NAME", "storage-1")
+        self.STORAGE_CLASS = kwargs.get("STORAGE_CLASS", "BaseStorage")
+        self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
+        self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
 
         self.BACKUP_PERFORM = kwargs.get("BACKUP_PERFORM", False)
         self.BACKUP_LOCATION = kwargs.get("BACKUP_LOCATION", "")

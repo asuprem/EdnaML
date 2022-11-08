@@ -17,14 +17,22 @@ DATAREADER:
   DATASET_ARGS:
     label_name: mnist_digits
 
+STORAGE:
+  - STORAGE_NAME: local
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./backup
+    STORAGE_ARGS: {}
+
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
   MODEL_BACKBONE: res18         # What backbone we are using here
   MODEL_QUALIFIER: mnist        # Any other details we want to capture in the name
-  DRIVE_BACKUP: False           # Whether we are performing remote backup of the model
-  LOG_BACKUP: False             # Whether we are performing remote backup of the log files
-  SAVE_FREQUENCY: 5             # How often to save the model locally, and perform backups, if desired
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: local
+    FREQUENCY: 1
+    FREQUENCY_STEP: 0
 
 TRANSFORMATION:
   BATCH_SIZE: 32                # The size of batches to provide to the model during training
