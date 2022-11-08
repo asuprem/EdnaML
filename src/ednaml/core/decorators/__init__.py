@@ -16,6 +16,10 @@ def register(func, functype):
         if "model_plugin" not in REGISTERED_EDNA_COMPONENTS[fname]:
             REGISTERED_EDNA_COMPONENTS[fname]["model_plugin"] = []
         REGISTERED_EDNA_COMPONENTS[fname]["model_plugin"].append(func)
+    elif functype == "storage":
+        if "storage" not in REGISTERED_EDNA_COMPONENTS[fname]:
+            REGISTERED_EDNA_COMPONENTS[fname]["storage"] = []
+        REGISTERED_EDNA_COMPONENTS[fname]["storage"].append(func)
     else:
         REGISTERED_EDNA_COMPONENTS[fname][functype] = func
 
