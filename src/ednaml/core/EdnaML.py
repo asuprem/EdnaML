@@ -1,8 +1,7 @@
 import importlib
-import os, shutil, logging, glob, re
+import os, logging, glob, re
 from types import MethodType
 from typing import Callable, Dict, List, Type, Union
-from urllib.error import URLError
 import warnings
 from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
@@ -20,7 +19,7 @@ from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.storage import BaseStorage, StorageManager
-from ednaml.utils import locate_class, path_import
+from ednaml.utils import ExperimentKey, StorageArtifactType, locate_class, path_import
 import ednaml.utils
 import torch
 from torchinfo import summary
@@ -53,7 +52,10 @@ class EdnaML(EdnaMLBase):
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
     plugins: Dict[str, ModelPlugin] = {}
+    storage: Dict[str, BaseStorage] = {}
+    storage_classes: Dict[str, Type[BaseStorage]] = {}
     storageManager: StorageManager
+    experiment_key: ExperimentKey
 
     context_information: EdnaMLContextInformation
 
@@ -113,10 +115,17 @@ class EdnaML(EdnaMLBase):
         self.saveMetadata = SaveMetadata(
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
-        os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
+        self.experiment_key = ExperimentKey(self.cfg.SAVE.MODEL_CORE_NAME, 
+                                                                self.cfg.SAVE.MODEL_VERSION,
+                                                                self.cfg.SAVE.MODEL_BACKBONE,
+                                                                self.cfg.SAVE.MODEL_QUALIFIER)
+        # Handled by storage manager
+        #os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
+        # We create a cached directory for temporary logs while EdnaML starts up...
+        # Or maybe we create the logger inside storage...!
         self.storageManager = None
 
-        self.logger = self.buildLogger(logger=logger, **kwargs)
+        self.logger = self.buildLogger(logger=logger, add_filehandler=False, **kwargs)
         self.previous_stop = -1
         self.load_epoch = kwargs.get("load_epoch", None)
         self.test_only = kwargs.get("test_only", False)
@@ -133,7 +142,7 @@ class EdnaML(EdnaMLBase):
             "crawler": self.addCrawlerClass,
             "model": self.addModelClass,
             "trainer": self.addTrainerClass,
-            #"storage": self.addStorageClass,
+            "storage": self.addStorageClass,
             "generator": self.addGeneratorClass,
             "model_plugin": self.addPlugins,
         }
@@ -201,7 +210,6 @@ class EdnaML(EdnaMLBase):
         self.epochs = self.cfg.EXECUTION.EPOCHS
         self.skipeval = self.cfg.EXECUTION.SKIPEVAL
         self.step_verbose = self.cfg.LOGGING.STEP_VERBOSE
-        self.save_frequency = self.cfg.SAVE.SAVE_FREQUENCY
         self.test_frequency = self.cfg.EXECUTION.TEST_FREQUENCY
         self.fp16 = self.cfg.EXECUTION.FP16
 
@@ -256,78 +264,126 @@ class EdnaML(EdnaMLBase):
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML"""
+        # Print the current configuration state
         self.printConfiguration()
+        # Build the Storage Manager
         self.buildStorageManager()
+        # Build the storage backends that StorageManager can use
+        self.buildStorage()
+        # Update the StorageManager with the prior stopping point <run-epoch-step>
+        # Here, we can use a new_run parameter to create a new run for this experiment, instead of appending to existing run
+        # This should be getPreviousStop(), technically
+        # We can also control which specific epoch-step to retrieve;
+        # new_run = False; nothing provided: use most recent <run-epoch-step>. If run provided, use specific run, and son on
+        # new_run = True; anything provided: throw error or warning. We are technically starting from scratch.
+        self.setCurrentRun(**kwargs)
+        # Transfer temporary log to StorageManager. That is, switch out the cached log file with the actual log file, if there is a backup
+        # This requires some creative accounting with the logging object
+        self.initializeLog()
+        # Download pre-trained weights, if such a link is provided in built-in model paths
         self.downloadModelWeights()
-        self.setPreviousStop()
-        self.buildBackupOptions()
-        self.buildStorage() # this is where -- same as other build things...  
-
+        # Build the data loaders
         self.buildDataloaders()
-
+        # Build the model
         self.buildModel()
+        # Load the most recent weights from <run-epoch-step>, according to previousStop(), using the StorageManager()
         self.loadWeights()
+        # Generate a model summary
         if not kwargs.get("skip_model_summary", False):
             if self.cfg.LOGGING.INPUT_SIZE is not None:
                 if kwargs.get("input_size", None) is None:
                     kwargs["input_size"] = self.cfg.LOGGING.INPUT_SIZE
             self.getModelSummary(**kwargs) 
+        # Build the optimizer
         self.buildOptimizer()
+        # Build the scheduler
         self.buildScheduler()
-
+        # Build the loss array
         self.buildLossArray()
+        # Build the Loss optimizers, for learnable losses
         self.buildLossOptimizer()
+        # Build the loss schedulers, for learnable losses
         self.buildLossScheduler()
-
-        self.buildStorage()
+        # Build the trainer
         self.buildTrainer()
-
+        # Reset the queues. Maybe clear the plugins and storage queues as well??
         self.resetQueues()
 
-    def buildStorageManager(self):
+    def buildStorageManager(self):  # TODO after I get a handle on the rest...
         self.storageManager = StorageManager(
+            self.logger,
             self.saveMetadata,
-            self.cfg.SAVE
+            self.cfg.SAVE,
+            storage_manager_mode="loose"
         )
 
+    def addStorage(self, storage_class_dict: Dict[str, BaseStorage]):
+        """Adds a list of already instantiated storages classes, with their storage names
+        to the internal storage dictionary. The dictionary should be of the form:
 
-    def addStorage(self, storage: BaseStorage): # TODO fix this to add Storage to a list of storages...
-        self.logger.debug("Added storage: %s"%storage.__class__.__name__)
-        self._storageInstanceQueue = storage
-        self._storageInstanceQueueFlag = True
+        {
+            storage_name: InstantiatedStorageClassObject, ...
+        }
+
+        `storage_name` MUST match referenced storage in the configuration.
+
+        """
+        
+        for storage_name in storage_class_dict:
+            self.logger.debug("Added custom storage %s with `storage_name` %s"%(storage_class_dict[storage_name].__class__.__name__, storage_name))
+            self.storage[storage_name] = storage_class_dict[storage_name]
+        # We don't need queues here because Storages are instantiated lazily, 
+        # i.e. only if they are needed from the configuration
     
-    def addStorageClass(self, storage_class: Type[BaseStorage]):
-        self.logger.debug("Added storage class: %s"%storage_class.__name__)
-        self._storageClassQueue = storage_class
-        self._storageClassQueueFlag = True
+    def addStorageClass(self, storage_class_list: List[Type[BaseStorage]]):
+        """Adds a list of storage classes to the queue.
+        Storage classes are in a list due to how decorators themselves work.
+
+        We can extract the storage name directly from the class.
+
+        Args:
+            storage_class_list (List[Type[BaseStorage]]): List of storage classes inherited from BaseStorage
+        """
+        
+        for storage in storage_class_list:
+            self.logger.debug("Added custom storage: %s"%storage.__name__)
+            self.storage_classes[storage.__name__] = storage
+        # We don't need queues here because Storages are instantiated lazily, 
+        # i.e. only if they are needed from the configuration
 
     def buildStorage(self):  
-        # Options: a class was passed through the edna add functionality
-        # Alternatively, we have specified a specific class in the storage.type section
-        # Alternatively, we have specified a type, but that does bot exist as a built in
+        # We look at config to see what storages we need to load
+        # Then we check their classes: if they are first, we check in decorated loaded list.
+        # Then we check built-in
+
+        # Load them into a dictionary
 
         # So, first we check if a class or instance was directly passed.
         # If nothing has been passed, then we try to locate a built-in version based on storage.type
         # If that doesn't work, then we can throw an error...
+        for storage_element in self.cfg.STORAGE:
+            if self.cfg.STORAGE[storage_element].STORAGE_NAME in self.storage:
+                self.logger.debug("Skipping storage with name %s, already exists"%storage_element)
+            else:
+                storage_class_name = self.cfg.STORAGE[storage_element].STORAGE_CLASS
+                if storage_class_name in self.storage_classes:
+                    storage_class_reference: Type[BaseStorage] = self.storage_classes[storage_class_name]
+                    self.logger.info(
+                    "Loaded {} from {} to build Storage".format(
+                        self.cfg.STORAGE[storage_element].STORAGE_CLASS, "storage-list"
+                    )
+                    )
+                else:
+                    storage_class_reference: Type[BaseStorage] = locate_class(subpackage="storage", classpackage=storage_class_name)
+                    self.logger.info(
+                    "Loaded {} from {} to build Storage".format(
+                        self.cfg.STORAGE[storage_element].STORAGE_CLASS, "ednaml.storage"
+                    )
+                    )
+                self.storage[self.cfg.STORAGE[storage_element].STORAGE_NAME] = storage_class_reference(storage_name=self.cfg.STORAGE[storage_element].STORAGE_NAME,
+                                                                                                            storage_url=self.cfg.STORAGE[storage_element].STORAGE_URL,
+                                                                                                            **self.cfg.STORAGE[storage_element].STORAGE_ARGS)
 
-        if self._storageClassQueueFlag:
-            storage = self._storageClassQueue
-        else:
-            storage: Type[BaseStorage] = locate_class(
-                subpackage="storage", classpackage=self.cfg.STORAGE.TYPE
-            )
-            self.logger.info(
-                "Loaded {} from {} to build Storage".format(
-                    self.cfg.STORAGE.TYPE, "ednaml.storage"
-                )
-            )
-
-        if self._storageInstanceQueueFlag:
-            self.storage = self._storageInstanceQueue
-        else:
-            self.storage = storage(type=self.cfg.STORAGE.TYPE,
-                                    url=self.cfg.STORAGE.URL,
-                                    **self.cfg.STORAGE.STORAGE_ARGS)
 
     def train(self, **kwargs):
         self.trainer.train(continue_epoch=self.previous_stop + 1, continue_step = self.previous_step, **kwargs)  #
@@ -383,17 +439,39 @@ class EdnaML(EdnaMLBase):
             # TODO -- change save_backup, backup_directory stuff. These are all in Storage.... We just need the model save name...
             self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
-                save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
-                step_save_frequency = self.cfg.SAVE.STEP_SAVE_FREQUENCY,
+                #save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
+                #step_save_frequency = self.cfg.SAVE.STEP_SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
-                save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
-                save_backup=self.cfg.SAVE.DRIVE_BACKUP,
-                backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+                #save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+                #save_backup=self.cfg.SAVE.DRIVE_BACKUP,
+                #backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+                storage_manager = self.storageManager,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,
                 model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
                 logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
+
+    def setCurrentRun(self, **kwargs):
+        self.storageManager.setTrackingRun(storage_dict=self.storage,new_run = kwargs.get("new_run", False))
+
+    # TODO Move this to a LogManager API, with LocalLogManager, LogstashLogManager, GrafanaLokiManager
+    # Each of these will add a handler to the log to allow for proper logging, plus a file handler (i.e. LocalLogManager will only add a file handler)
+    # Then our custom log manager can either upload the file, or do nothing because LogstashLogManager and GrafanaLokiManager (or others) are already handling it.
+    def initializeLog(self):
+        self.logger.info("Initializing logfile")
+        if self.storageManager.performBackup(StorageArtifactType.LOG):
+            # We are performing log backups.
+            # We will use Storage to download the current log state
+            # Note: not every log will do this ! Remote loggers can just ignore...
+            self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.LOG)].download(
+                file_struct = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG), 
+                destination_file_name = self.storageManager.path_ends[StorageArtifactType.LOG]((0, 0)) # epoch and step do not matter for logs...
+            )
+
+        self.buildLogger(
+            self.logger, add_filehandler=True,add_streamhandler=False,logger_save_path = self.storageManager.path_ends[StorageArtifactType.LOG]((0, 0))
+        )
 
     def setPreviousStop(self):
         """Sets the previous stop"""
@@ -1168,6 +1246,8 @@ class EdnaML(EdnaMLBase):
         logger: logging.Logger = None,
         add_filehandler: bool = True,
         add_streamhandler: bool = True,
+        logger_save_path: str = "",
+        log_level = logging.DEBUG,
         **kwargs
     ) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to
@@ -1183,32 +1263,8 @@ class EdnaML(EdnaMLBase):
         """
         loggerGiven = True
         if logger is None:
-            logger = logging.Logger(self.saveMetadata.MODEL_SAVE_FOLDER)
+            logger = logging.Logger(self.experiment_key.getExperimentName())
             loggerGiven = False
-
-        logger_save_path = os.path.join(
-            self.saveMetadata.MODEL_SAVE_FOLDER,
-            self.saveMetadata.LOGGER_SAVE_NAME,
-        )
-        # Check for backup logger
-        # TODO -- Need to query the LogStorage for the log file...
-        if self.cfg.SAVE.LOG_BACKUP:
-            backup_logger = os.path.join(
-                self.saveMetadata.CHECKPOINT_DIRECTORY,
-                self.saveMetadata.LOGGER_SAVE_NAME,
-            )
-            if os.path.exists(backup_logger) and add_filehandler:
-                print(
-                    "Existing log file exists at network backup %s. Will"
-                    " attempt to copy to local directory %s."
-                    % (backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
-                )
-                shutil.copy2(backup_logger, self.saveMetadata.MODEL_SAVE_FOLDER)
-        if os.path.exists(logger_save_path) and add_filehandler:
-            print(
-                "Log file exists at %s. Will attempt to append there."
-                % logger_save_path
-            )
 
         streamhandler = False
         filehandler = False
@@ -1217,14 +1273,12 @@ class EdnaML(EdnaMLBase):
             for handler in logger.handlers():
                 if isinstance(handler, logging.StreamHandler):
                     streamhandler = True
-                if isinstance(handler, logging.FileHandler):
-                    if handler.baseFilename == os.path.abspath(
-                        logger_save_path
-                    ):
+                if isinstance(handler, logging.FileHandler) and add_filehandler:
+                    if os.path.splitext(os.path.basename(handler.baseFilename))[0] == os.path.splitext(os.path.basename(logger_save_path))[0]:
                         filehandler = True
 
         if not loggerGiven:
-            logger.setLevel(logging.DEBUG)
+            logger.setLevel(log_level)
 
         if not filehandler and add_filehandler:
             fh = logging.FileHandler(
@@ -1244,8 +1298,9 @@ class EdnaML(EdnaMLBase):
                 logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
             )
             logger.addHandler(cs)
-
-        return logger
+        if not loggerGiven:
+            return logger
+        return None
 
     def log(self, message: str, verbose: int = 3):
         """Logs a message. TODO needs to be fixed.
