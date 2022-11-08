@@ -15,7 +15,6 @@ class SaveConfig(BaseConfig):
     ARTIFACTS_BACKUP: BackupOptionsConfig
     METRICS_BACKUP: BackupOptionsConfig
     CONFIG_BACKUP: BackupOptionsConfig
-    SAVE_FREQUENCY: int
 
     def __init__(self, save_dict, defaults: ConfigDefaults):
         self.MODEL_VERSION = save_dict.get(
@@ -42,13 +41,3 @@ class SaveConfig(BaseConfig):
 
         #self.DRIVE_BACKUP = save_dict.get("DRIVE_BACKUP", defaults.DRIVE_BACKUP)
         #self.LOG_BACKUP = save_dict.get("LOG_BACKUP", defaults.LOG_BACKUP)
-
-
-
-
-        self.SAVE_FREQUENCY = save_dict.get(
-            "SAVE_FREQUENCY", defaults.SAVE_FREQUENCY
-        )
-        self.STEP_SAVE_FREQUENCY = save_dict.get(
-            "STEP_SAVE_FREQUENCY", defaults.STEP_SAVE_FREQUENCY
-        )
