@@ -1,8 +1,6 @@
 import json, logging, os, shutil
 from logging import Logger
 from typing import Dict, List, Tuple
-from ednaml.config.StorageConfig import StorageConfig
-
 import torch
 from torch.utils.data import DataLoader
 from ednaml.core import EdnaMLContextInformation
@@ -10,8 +8,9 @@ import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
+from ednaml.utils import StorageArtifactType
 from ednaml.utils.LabelMetadata import LabelMetadata
-from ednaml.storage.BaseStorage import BaseStorage
+from ednaml.storage import BaseStorage, StorageManager
 
 class BaseTrainer:
     model: ModelAbstract
@@ -36,7 +35,9 @@ class BaseTrainer:
     metadata: Dict[str, str]
     labelMetadata: LabelMetadata
     logger: logging.Logger
-    storage: BaseStorage
+    storage: Dict[str,BaseStorage]
+    storage_manager: StorageManager
+    storage_mode_strict: bool
 
     save_frequency: int
     step_save_frequency: int
@@ -61,7 +62,7 @@ class BaseTrainer:
         crawler: Crawler,
         config: EdnaMLConfig,
         labels: LabelMetadata,
-        storage: BaseStorage,
+        storage: Dict[str,BaseStorage],
         context: EdnaMLContextInformation,
         **kwargs
     ):
@@ -133,10 +134,6 @@ class BaseTrainer:
     def init_setup(self, **kwargs):
         pass
 
-    def downloadData(self): #TODO
-        #storageinstance = AzureStorage(self.cfg.STORAGE)
-        self.storage.read()
-
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
@@ -145,30 +142,35 @@ class BaseTrainer:
     def apply(
         self,
         step_verbose: int = 5,
-        save_frequency: int = 5,
-        step_save_frequency: int = 0,
+        #save_frequency: int = 5,
+        #step_save_frequency: int = 0,
         test_frequency: int = 5,
-        save_directory: str = "./checkpoint/",
-        save_backup: bool = False,
-        backup_directory: str = None,
+        #save_directory: str = "./checkpoint/",
+        #save_backup: bool = False,
+        #backup_directory: str = None,
+        storage_manager: StorageManager = None,
+        storage_mode: str = "loose",    # loose | strict
         gpus: int = 1,
         fp16: bool = False,
         model_save_name: str = None,
         logger_file: str = None,
     ):
         self.step_verbose = step_verbose
-        self.save_frequency = save_frequency
-        self.step_save_frequency = step_save_frequency
+        #self.save_frequency = save_frequency
+        #self.step_save_frequency = step_save_frequency
+        
         self.test_frequency = test_frequency
-        self.save_directory = save_directory
-        self.backup_directory = None
+        #self.save_directory = save_directory
+        #self.backup_directory = None
         self.model_save_name = model_save_name
         self.logger_file = logger_file
-        self.save_backup = save_backup
-        if self.save_backup or self.config.SAVE.LOG_BACKUP:
-            self.backup_directory = backup_directory
-            os.makedirs(self.backup_directory, exist_ok=True)
-        os.makedirs(self.save_directory, exist_ok=True)
+        #self.save_backup = save_backup
+        #if self.save_backup or self.config.SAVE.LOG_BACKUP:
+        #    self.backup_directory = backup_directory
+        #    os.makedirs(self.backup_directory, exist_ok=True)
+        #os.makedirs(self.save_directory, exist_ok=True)
+        self.storage_manager = storage_manager
+        self.storage_mode_strict = True if storage_mode == "strict" else False
         self.saveMetadata()
 
         self.gpus = gpus
@@ -190,91 +192,103 @@ class BaseTrainer:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def save(self, save_epoch: int = None, save_step : int = None):
+    def save(self, save_epoch: int = None, save_step : int = None, artifact: StorageArtifactType = StorageArtifactType.MODEL):
         if save_epoch is None:
             save_epoch = self.global_epoch
         if save_step is None:
             save_step = self.global_batch
-        self.logger.info("Saving model, optimizer, and scheduler.")
-        MODEL_SAVE = "".join([self.model_save_name, "_epoch%i" % save_epoch, "_step%i" % save_step, ".pth"])
-        TRAINING_SAVE = (
-            "".join([self.model_save_name, "_epoch%i" % save_epoch, "_step%i" % save_step, "_training.pth"])
+        
+        # For whatever the artifact is, we will first perform a local save,
+        # then perform a backup IF backup_perform is true...
+        storage_key = self.storage_manager.getStorageKey(
+            epoch = save_epoch,
+            run=0,
+            step=save_step,
+            artifact_type = artifact
         )
+        local_storage_savepath = self.storage_manager.getLocalSavePath(storage_key)
 
-        save_dict = {}
-        save_dict["optimizer"] = {
-            pgn: self.optimizer[pgn].state_dict()
-            for pgn in self.parameter_groups
-        }
-        save_dict["scheduler"] = {
-            pgn: self.scheduler[pgn].state_dict()
-            for pgn in self.parameter_groups
-        }
-        save_dict["loss_fn"] = {
-            lossname: self.loss_fn[lossname].state_dict()
-            for lossname in self.loss_fn
-        }
-        save_dict["loss_optimizer"] = {
-            lossname: (
-                self.loss_optimizer[lossname].state_dict()
-                if self.loss_optimizer[lossname] is not None
-                else None
+        if artifact == StorageArtifactType.MODEL:
+            save_dict = {}
+            save_dict["optimizer"] = {
+                pgn: self.optimizer[pgn].state_dict()
+                for pgn in self.parameter_groups
+            }
+            save_dict["scheduler"] = {
+                pgn: self.scheduler[pgn].state_dict()
+                for pgn in self.parameter_groups
+            }
+            save_dict["loss_fn"] = {
+                lossname: self.loss_fn[lossname].state_dict()
+                for lossname in self.loss_fn
+            }
+            save_dict["loss_optimizer"] = {
+                lossname: (
+                    self.loss_optimizer[lossname].state_dict()
+                    if self.loss_optimizer[lossname] is not None
+                    else None
+                )
+                for lossname in self.loss_optimizer
+            }
+            save_dict["loss_scheduler"] = {
+                lossname: (
+                    self.loss_scheduler[lossname].state_dict()
+                    if self.loss_scheduler[lossname] is not None
+                    else None
+                )
+                for lossname in self.loss_scheduler
+            }
+
+            torch.save(
+                self.model.state_dict(),
+                local_storage_savepath,
             )
-            for lossname in self.loss_optimizer
-        }
-        save_dict["loss_scheduler"] = {
-            lossname: (
-                self.loss_scheduler[lossname].state_dict()
-                if self.loss_scheduler[lossname] is not None
-                else None
-            )
-            for lossname in self.loss_scheduler
-        }
+
+            artifact_storage_key = self.storage_manager.getStorageKey(
+                epoch = save_epoch,
+                run=0,
+                step=save_step,
+                artifact_type = StorageArtifactType.ARTIFACT
+                )
+            artifact_local_storage_savepath = self.storage_manager.getLocalSavePath(artifact_storage_key)
+            torch.save(save_dict, artifact_local_storage_savepath)
+
+        if self.storage_manager.performBackup(artifact):
+            self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].upload(local_storage_savepath,storage_key)
+            self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.ARTIFACT)].upload(artifact_local_storage_savepath,artifact_storage_key)
+
+        elif artifact == StorageArtifactType.ARTIFACT:
+            raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
+        elif artifact == StorageArtifactType.PLUGIN:
+            pass
+        elif artifact == StorageArtifactType.LOG:
+            # Log file already exists...but where...???
+            # So, storage_manager has created the log file...it should be the same name
+            self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].upload(local_storage_savepath,storage_key)
+            
+        elif artifact == StorageArtifactType.CONFIG:
+            self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].upload(local_storage_savepath,storage_key)
+        elif artifact == StorageArtifactType.METRIC:
+            self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].upload(local_storage_savepath,storage_key)
+        else:
+            raise ValueError("Unexpected value for artifact type %s"%artifact)
+
+
+
+
+        
         # TODO need to check if ModelAbstract contains the plugins that came with it...
         # if not, we will need to save plugins in a plugins artifact.
         # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
 
-        # save_dict["loss_optimizer"] = [self.loss_optimizer[idx].state_dict() if self.loss_optimizer[idx] is not None else None for idx in range(self.num_losses)]
-        # save_dict["loss_scheduler"] = [self.loss_scheduler[idx].state_dict() if self.loss_scheduler[idx] is not None else None for idx in range(self.num_losses)]
-        
-        # TODO
-        # Have a Save Class that stores methods, 
-        # .save(object)
-
-        torch.save(
-            self.model.state_dict(),
-            os.path.join(self.save_directory, MODEL_SAVE),
-        )
-        torch.save(save_dict, os.path.join(self.save_directory, TRAINING_SAVE))
-
-        if self.save_backup:
-            shutil.copy2(
-                os.path.join(self.save_directory, MODEL_SAVE),
-                self.backup_directory,
-            )
-            shutil.copy2(
-                os.path.join(self.save_directory, TRAINING_SAVE),
-                self.backup_directory,
-            )
-
-            self.logger.info(
-                "Performing drive backup of model, optimizer, and scheduler."
-            )
-        
-        if self.config.SAVE.LOG_BACKUP:
-            LOGGER_SAVE = os.path.join(self.backup_directory, self.logger_file)
-            #appending the logs to azure
-            #self.storage.copy(os.path.join(self.save_directory, self.logger_file)) # TODO
-            # This is the local path where we are copying data . This can be commented/removed later
-            if os.path.exists(LOGGER_SAVE):
-                os.remove(LOGGER_SAVE)
-            shutil.copy2(
-                os.path.join(self.save_directory, self.logger_file), LOGGER_SAVE
-            )
-
-                
-
+    # load is called by self.train() when being initialized...
     def load(self, load_epoch, load_step: int = 0):
+        """_summary_
+
+        Args:
+            load_epoch (_type_): _description_
+            load_step (int, optional): _description_. Defaults to 0.
+        """
         self.logger.info(
             "Resuming training from epoch %i. Loading saved state from %i"
             % (load_epoch + 1, load_epoch)
@@ -407,6 +421,19 @@ class BaseTrainer:
         if continue_epoch or continue_step:
             load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
             if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                # TODO if weights are already loaded, we should load the other things, right?
+                # We need a few more controls here
+                # When we load weights, we should also store what run-epoch-step weights have been loaded
+                # Then, here, we check if they match the continue_epoch / continue_step
+                # If they do, all good. (NOTE: artifact weights are loaded WITH model weights...)
+                # If they do not, then perform a load again.
+                # Regardless of whether model weights have been loaded, we still need to load other things
+                # CONFIG need not be loaded
+                # LOG already set up in EdnaML
+                # METRICS  need not be loaded, we only ever write metrics...
+                # PLUGINS need not be loaded, they are handled in BaseDeploy for now
+                # So, in effect, for load, we are only checking if weights have already been loaded
+                # If not, then load the weights...
                 self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
             else:
                 self.load(load_epoch, continue_step)
@@ -468,10 +495,18 @@ class BaseTrainer:
                     self.saveFlag = False
 
             self.global_batch += 1
+            if self.storage_mode_strict:
+                self.check_step_save()
+            else:   # We check every steo_verbose steps
+                if (self.global_batch + 1) % self.step_verbose == 0:
+                    self.check_step_save()
+            
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
-            if self.step_save_frequency and self.global_batch % self.step_save_frequency == 0:
-                self.set_save_flag()
+            
+            # if self.step_save_frequency and self.global_batch % self.step_save_frequency == 0:
+            #     self.set_save_flag()
+            
 
         self.global_batch = 0
         self.stepSchedulers()
@@ -492,18 +527,44 @@ class BaseTrainer:
                 self.evaluateFlag = True
             else:
                 self.evaluate()
-
-        if self.global_epoch % self.save_frequency == 0:
-            if self.accumulation_steps > 0:
-                self.logger.info(
-                    "Model save triggered, but gradients still need"
-                    " accumulation. Will save after accumulation."
-                )
-                self.set_save_flag()
-            else:
-                self.save()
+        
+        self.check_epoch_save()
+        # if self.global_epoch % self.save_frequency == 0:
+        #     if self.accumulation_steps > 0:
+        #         self.logger.info(
+        #             "Model save triggered, but gradients still need"
+        #             " accumulation. Will save after accumulation."
+        #         )
+        #         self.set_save_flag()
+        #     else:
+        #         self.save()
         self.global_epoch += 1
     
+    # Check whether to save each of the artifacts at the current global_batch step.
+    # If so, perform a save (or in case of model, plugin, and artifact, perform a setSaveFlag() for the accumulation_step bit)
+    # TODO need to check whether accumulation_step < step_frequency for model stuff, because that will cause issues
+    # Additional notes: for model and artifact saving, we need a way to tie their frequency together
+    # That is, we will completely ignore whatever frequency is for ARTIFACT, because we save artifacts WHEN
+    # we save model; we just save it in the artifact location, rather than the model location
+    def check_step_save(self):
+        # MODEL and MODEL_ARTIFACTS
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.MODEL):
+            # For gradient accumulation
+            self.set_save_flag()
+
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.PLUGIN):
+            self.save(artifact=StorageArtifactType.PLUGIN)
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.LOG):
+            self.save(artifact=StorageArtifactType.LOG)
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.METRIC):
+            self.save(artifact=StorageArtifactType.METRIC)
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
+            self.save(artifact=StorageArtifactType.CONFIG)
+
+    def check_epoch_save(self):
+        pass
+
+
     def set_save_flag(self):
         self.saveFlag = True
         self.saveFlag_epoch = self.global_epoch
