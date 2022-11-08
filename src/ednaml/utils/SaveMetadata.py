@@ -23,12 +23,27 @@ class SaveMetadata:
             self.LOGGER_SAVE_NAME,
         ) = SaveMetadata.generate_save_names_from_config(cfg, **kwargs)
 
-        self.MODEL_VERSION = cfg.SAVE.MODEL_VERSION
-        self.MODEL_CORE_NAME = cfg.SAVE.MODEL_CORE_NAME
-        self.MODEL_BACKBONE = cfg.SAVE.MODEL_BACKBONE
-        self.MODEL_QUALIFIER = cfg.SAVE.MODEL_QUALIFIER
+        self.save_ref = cfg.SAVE
 
-    @staticmethod
+
+    @property
+    def MODEL_VERSION(self):
+        return self.save_ref.MODEL_VERSION
+
+    @property
+    def MODEL_CORE_NAME(self):
+        return self.save_ref.MODEL_CORE_NAME
+
+    @property
+    def MODEL_BACKBONE(self):
+        return self.save_ref.MODEL_BACKBONE
+
+    @property
+    def MODEL_QUALIFIER(self):
+        return self.save_ref.MODEL_QUALIFIER
+
+
+    @staticmethod   # We will need to not use this anymore...
     def generate_save_names_from_config(
         cfg: EdnaMLConfig, **kwargs
     ) -> Tuple[str]:
