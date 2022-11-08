@@ -1,22 +1,61 @@
+
+from ednaml.utils import ExperimentKey, StorageArtifactType, StorageNameStruct
+from ednaml.utils.SaveMetadata import SaveMetadata
+
 class BaseStorage:
-    storage_type: str
+    storage_name: str
     storage_url: str
-    def __init__(self, type, url, **kwargs):
-        self.storage_type = type
-        self.storage_url = url
-        self.build_params(**kwargs)
+    experiment_key: ExperimentKey
+    def __init__(self, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs):
+        self.storage_name = storage_name
+        self.storage_url = storage_url
+        self.experiment_key = experiment_key
+        self.apply(self.storage_url, **storage_kwargs)
         
-    def build_params(self, **kwargs):
-        pass
+    def apply(self, save_metadata: SaveMetadata, storage_url: str, **kwargs):
+        """Builds the internal state of the Storage module
 
-    def read(self):
-        print("Base read call")
+        Args:
+            url (str): The URL for the storage endpoint
 
-    def write(self, data):
-        print("Base write call",data)
+        Kwargs:
+            As neeeded
+        """
+        raise NotImplementedError()
 
-    def append(self,data):
-        print("Append call",data)
+    def download(self, file_struct: StorageNameStruct, destination_file_name: str):
+        """Use the storage backend to download a file with the `file_struct` key into a destination file
 
-    def copy(self,src):
-        print("Copy call ",src)
+        Args:
+            file_struct (StorageNameStruct): Key of file to retrieve
+            destination_file_name (str): Destination file name to save retrieved file in
+        """
+        raise NotImplementedError()
+
+    def upload(self, source_file_name: str, file_struct: StorageNameStruct):
+        """Upload a local file into the storage backend
+
+        Args:
+            source_file_name (str): The file to upload
+            file_struct (StorageNameStruct): The key for the file to upload
+        """
+        raise NotImplementedError()
+
+
+    def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:
+        """Returns the maximum run for this Storage with the current `self.experiment_key`.
+
+        If `artifact` is provided, return the maximum run that contains a saved `artifact`.
+
+        If `artifact` is not provided, return the maximum run overall.
+
+        Args:
+            artifact (StorageArtifactType, optional): _description_. Defaults to None.
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            int: _description_
+        """
+        raise NotImplementedError()
