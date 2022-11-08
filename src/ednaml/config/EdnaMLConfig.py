@@ -44,7 +44,7 @@ class EdnaMLConfig(BaseConfig):
         SchedulerConfig
     ]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
-    STORAGE: StorageConfig
+    STORAGE: Dict[str, StorageConfig]
 
     extensions: List[str]
 
