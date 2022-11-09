@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, Union
+from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.SaveConfig import SaveConfig
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.AzureStorage import AzureStorage
@@ -17,11 +18,11 @@ class StorageManager:
     3. Provide a trigger-mechanism for checking upload requirements given the configuration file and current epoch and step
     4. Provide the storage name for a given upload type (e.g. config, logfile, model, etc)
     """
-    def __init__(self, logger: logging.Logger, saveMetadata: SaveMetadata, saveOptions: SaveConfig, storage_manager_mode = "loose"):
+    def __init__(self, logger: logging.Logger, cfg: EdnaMLConfig, saveMetadata: SaveMetadata, saveOptions: SaveConfig, storage_manager_mode = "loose"):
         self.metadata = saveMetadata
         self.saveoptions = saveOptions
         self.storage_manager_mode = storage_manager_mode    # strict or loose
-        
+        self.cfg = cfg
         self.experiment_key: ExperimentKey = ExperimentKey(self.metadata.MODEL_CORE_NAME,
                                                             self.metadata.MODEL_VERSION,
                                                             self.metadata.MODEL_BACKBONE,
@@ -135,7 +136,7 @@ class StorageManager:
             raise NotImplementedError()
 
 
-    def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType) -> StorageNameStruct:
+    def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType) -> ERSKey:
         """Given epoch, run, step, and artifact type, we will construct a StorageKey
         (a StorageNameStruct) and return it.
 
@@ -162,6 +163,14 @@ class StorageManager:
         return self.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
     
     def getLocalSavePath(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
+        """Provides the complete path to the file name for the provided StorageKey
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Returns:
+            Union[str, os.PathLike]: _description_
+        """
         return os.path.join(self.local_save_directory, self.getLocalFileName(ers_key=ers_key))
 
     def getUploadTriggerForEpoch(self, epoch: int, artifact_type: StorageArtifactType) -> bool:
@@ -187,7 +196,7 @@ class StorageManager:
         return self.artifact_references[artifact_type].STORAGE_NAME
 
 
-    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False):
+    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False, config_mode = "flexible"):
         if tracking_run is None:
             max_run_list = [storage_dict[self.getStorageNameForArtifact(artifact_key)].getMaximumRun() if self.performBackup(artifact_key) else -1 for artifact_key in self.artifact_references]
             max_run = max(max_run_list)
@@ -195,8 +204,47 @@ class StorageManager:
                 tracking_run = 0
             else:
                 tracking_run = max_run + int(new_run)
-            
+        
+        # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
+        # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
+        # Then, the provided config is uploaded
         self._setTrackingRun(tracking_run)
+
+        ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
+        self.cfg.save(self.getLocalSavePath(ers_key=ers_key))
+        storage_dict[self.getStorageNameForArtifact(StorageArtifactType.CONFIG)].uploadConfig(ers_key = ers_key, 
+                                                                                                local_file_name = self.getLocalSavePath(ers_key=ers_key)) 
+        
+        # TODO Code upload by zipping files. Skip for now...
+        
+        
+        
+        # TODO
+        # Now we need to handle the case where the existing config in the run and the current config do not match
+        """
+        if not new_run:
+            # First check config difference.
+            # Strict: Use current max tracking_run iff remote and local configurations match exactly
+            # Loose: Use current max tracking_run regardless of different between local and remote configurations. When saving, replace config
+            # Flexible: Use current max tracking_run iff only in case of specific key differences (e.g. batch size, workers). For other differences, 
+            #           generate a new run, BUT we want to keep a back-reference in the saved config to the chained ExperimentKey
+            # That is, config should have a new section, for tracking when we start off from another experiment itself
+            # That way, if we are requesting a specific epoch-step, and it does not exist, we can look back in the chain to see if it exists
+            # in the parent ExperimentKey. But, this is super duper complicated.
+            pass
+            
+            ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
+            storage_dict[self.getStorageNameForArtifact(StorageArtifactType.CONFIG)].downloadConfig(ers_key = ers_key, local_file_name = os.path.join(self.local_save_directory, "configuration_remote.yml")) 
+            self.cfg.save(os.path.join(self.local_save_directory, "configuration_current.yml"))
+            require_new_run = EdnaMLConfig.compare(
+                os.path.join(self.local_save_directory, "configuration_current.yml"),
+                os.path.join(self.local_save_directory, "configuration_remote.yml"),
+                mode = config_mode 
+            )
+            if require_new_run
+        """
+
+        
 
     def _setTrackingRun(self, tracking_run: int):
         self.run_key = RunKey(run=tracking_run)
