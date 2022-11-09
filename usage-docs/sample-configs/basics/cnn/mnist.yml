@@ -61,7 +61,12 @@ MODEL:                              # These are model-specific details
   MODEL_BASE: resnet18              # The base we are using for the architecture. For example, ClassificationResnet accepts resnet18, resnet34, resnet50, etc
   MODEL_KWARGS:
     initial_channels: 1             # Since MNIST is black and white with 1 channel, we use the `initial_channels` parameter of ClassificationResnet to set this
-  
+
+METRICS:
+  MANAGER: JSONMetricsManager
+  MANAGER_ARGS: {}
+  METRICS:
+
 LOSS:
   - LOSSES: ['SoftmaxLogitsLoss']   # We use the basic softmax loss here
     KWARGS: [{}]
@@ -84,5 +89,7 @@ SCHEDULER:
       gamma: 0.1
 
 LOGGING:
+  MANAGER: LocalLogManager
+  MANAGER_ARGS: {}
   STEP_VERBOSE: 100                 # How often to print intermediate results
   INPUT_SIZE: [32, 1, 28, 28]       # The estimated shape of the input. 
