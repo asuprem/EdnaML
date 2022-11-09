@@ -1,6 +1,5 @@
-
-from ednaml.utils import ExperimentKey, StorageArtifactType, StorageNameStruct
-from ednaml.utils.SaveMetadata import SaveMetadata
+import os
+from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType
 
 class BaseStorage:
     storage_name: str
@@ -9,10 +8,12 @@ class BaseStorage:
     def __init__(self, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs):
         self.storage_name = storage_name
         self.storage_url = storage_url
-        self.experiment_key = experiment_key
-        self.apply(self.storage_url, **storage_kwargs)
+        self.experiment_key = experiment_key        
         
-    def apply(self, save_metadata: SaveMetadata, storage_url: str, **kwargs):
+        self.apply(self.storage_url, **storage_kwargs)
+
+        
+    def apply(self, storage_url: str, **kwargs):
         """Builds the internal state of the Storage module
 
         Args:
@@ -23,22 +24,29 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def download(self, file_struct: StorageNameStruct, destination_file_name: str):
+    def download(self, ers_key: ERSKey, destination_file_name: str):
         """Use the storage backend to download a file with the `file_struct` key into a destination file
 
         Args:
             file_struct (StorageNameStruct): Key of file to retrieve
             destination_file_name (str): Destination file name to save retrieved file in
         """
+        self.helper_lookup[ers_key.storage.artifact]["download"](
+            ers_key, destination_file_name
+        )
         raise NotImplementedError()
 
-    def upload(self, source_file_name: str, file_struct: StorageNameStruct):
+    def upload(self, source_file_name: str, ers_key: ERSKey):
         """Upload a local file into the storage backend
 
         Args:
             source_file_name (str): The file to upload
             file_struct (StorageNameStruct): The key for the file to upload
         """
+        self.helper_lookup[ers_key.storage.artifact]["upload"](
+            source_file_name, ers_key
+        )
+
         raise NotImplementedError()
 
 
@@ -59,3 +67,79 @@ class BaseStorage:
             int: _description_
         """
         raise NotImplementedError()
+
+    def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
+        """Returns the latest model's ERSKey created (using the step as the comparator) with the provided Epoch. If there is no model, return None.
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Returns:
+            ERSKey: _description_
+        """
+        raise NotImplementedError()
+
+    def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
+        """Return the latest epoch of the model given ERS key. If no models exist, return None
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            ERSKey: _description_
+        """
+        raise NotImplementedError()
+
+    def getKey(self, ers_key: ERSKey) -> ERSKey:
+        """Returns the key if it exists in the Storage, else return None
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Returns:
+            ERSKey: _description_
+        """
+        raise NotImplementedError()
+
+    def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadConfig(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+
+    def uploadLog(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadLog(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+
+    def uploadModel(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadModel(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+
+    def uploadModelArtifact(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadModelArtifact(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+
+    def uploadModelPlugin(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadModelPlugin(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    
+    def uploadMetric(self, source_file_name: os.PathLike, ers_key: ERSKey):
+        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+
+    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+
+
+
+    
