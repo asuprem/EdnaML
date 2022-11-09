@@ -1,10 +1,12 @@
 from glob import glob
 import os, shutil
+import re
 from typing import Union
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.utils import ExperimentKey, StorageArtifactType, StorageNameStruct
+from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageNameStruct
 from ednaml.utils.SaveMetadata import SaveMetadata
 
+# TODO take care of runs...
 class LocalStorage(BaseStorage):
     def apply(self, storage_url: str, **kwargs):
         # storage_url is the desination directory
@@ -52,14 +54,48 @@ class LocalStorage(BaseStorage):
             raise NotImplementedError()
 
 
-    def upload(self, source_file_name: str, file_struct: StorageNameStruct):
+    def upload(self, source_file_name: str, ers_key: ERSKey):
         shutil.copy2(source_file_name, 
-            os.path.join(self.storage_path, self.convert_struct_to_file(file_struct)))
+            os.path.join(self.storage_path, self.convert_key_to_file(ers_key)))
 
-    def download(self, file_struct: StorageNameStruct, destination_file_name: str):
-        shutil.copy2(os.path.join(self.storage_path, self.convert_struct_to_file(file_struct)), 
+    def download(self, ers_key: ERSKey, destination_file_name: str):
+        shutil.copy2(os.path.join(self.storage_path, self.convert_key_to_file(ers_key)), 
             destination_file_name)
+        
+
+    def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
+        model_paths = os.path.join(self.storage_path, self.path_ends[StorageArtifactType.MODEL]((ers_key.run.run, ers_key.storage.epoch, "*")))
+        model_list = glob(model_paths)
+        model_basenames = [os.path.basename(item) for item in model_list]
+        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
+        max_step = [int(item[2]) for item in [_re.search(item) for item in model_basenames]]
+
+        if len(max_step) == 0:
+            return None
+        else:
+            ers_key.storage.step = max(max_step)
+            return ers_key
+
+    def getKey(self, ers_key: ERSKey) -> ERSKey:
+        if os.path.exists(self.convert_key_to_file(ers_key=ers_key)):
+            return ers_key
+        return None
+
+    def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
+        # TODO modify or fix this in case of errors...?
+        model_paths = os.path.join(self.storage_path, self.path_ends[StorageArtifactType.MODEL]((ers_key.run.run, "*", "*")))
+        model_list = glob(model_paths)
+        model_basenames = [os.path.basename(item) for item in model_list]
+        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
+        max_epoch = [int(item[1]) for item in [_re.search(item) for item in model_basenames]]
+
+        if len(max_epoch) == 0:
+            return None
+        else:
+            ers_key.storage.epoch = max(max_epoch)
+            return ers_key
 
 
-    def convert_struct_to_file(self, file_struct: StorageNameStruct) -> Union[str, os.PathLike]:
-        return self.path_ends[file_struct.artifact_type]((file_struct.run, file_struct.epoch, file_struct.step))
+
+    def convert_key_to_file(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
+        return self.path_ends[ers_key.storage.artifact]((ers_key.run.run, ers_key.storage.epoch, ers_key.storage.step))
