@@ -26,7 +26,9 @@ class EdnaMLBase:
         ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS = {}
 
 class EdnaMLContextInformation:
-    MODEL_HAS_LOADED_WEIGHTS = False
+    MODEL_HAS_LOADED_WEIGHTS: bool = False
+    LOADED_EPOCH: int = -1
+    LOADED_STEP: int = -1
 
 from ednaml.core.EdnaML import EdnaML
 from ednaml.core.EdnaDeploy import EdnaDeploy
