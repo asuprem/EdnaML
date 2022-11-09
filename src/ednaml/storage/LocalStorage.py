@@ -11,29 +11,31 @@ class LocalStorage(BaseStorage):
     def apply(self, storage_url: str, **kwargs):
         # storage_url is the desination directory
         os.makedirs(storage_url, exist_ok=True)
-        self.storage_directory = "%s-v%s-%s-%s" % (
-            self.experiment_key.model_core_name,
-            self.experiment_key.model_version,
-            self.experiment_key.model_backbone,
-            self.experiment_key.model_qualifier,
-        )
+        self.storage_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
         self.storage_path = os.path.join(storage_url, self.storage_directory)
+        self.run_dir: str = None
         # TODO This is where Runs come into effect, perhaps...
         # For runs, we need to integrate this into StorageManager
         os.makedirs(self.storage_path, exist_ok=True)
-        self.file_basename = "_".join([self.experiment_key.model_core_name, 
-                            "v%s"%self.experiment_key.model_version,
-                            self.experiment_key.model_backbone,
-                            self.experiment_key.model_qualifier])
+        self.file_basename = kwargs.get("file_basename", "_".join([self.experiment_key.model_core_name, 
+                                                                        "v%s"%self.experiment_key.model_version,
+                                                                        self.experiment_key.model_backbone,
+                                                                        self.experiment_key.model_qualifier]))
 
         self.path_ends = {
-            StorageArtifactType.MODEL: lambda x : "_".join([self.file_basename,"run"+x[0],"epoch"+x[1],"step"+x[2],"model.pth"]),
-            StorageArtifactType.ARTIFACT: lambda x : "_".join([self.file_basename,"run"+x[0],"epoch"+x[1],"step"+x[2],"artifact.pth"]),
+            StorageArtifactType.MODEL: lambda x : "_".join([self.file_basename,"epoch"+str(x[0]),"step"+str(x[1]),"model.pth"]),
+            StorageArtifactType.ARTIFACT: lambda x : "_".join([self.file_basename,"epoch"+str(x[0]),"step"+str(x[1]),"artifact.pth"]),
             StorageArtifactType.PLUGIN: lambda x: "_".join([self.file_basename, "plugin.pth"]),
             StorageArtifactType.METRIC: lambda x: "".join([self.file_basename, ".json"]),
             StorageArtifactType.CONFIG: lambda x: "".join([self.file_basename, ".yml"]),
             StorageArtifactType.LOG: lambda x: "".join([self.file_basename, ".log"]),
         }
+
+    def setTrackingRun(self, tracking_run: int):
+        
+        self.run_dir = str(tracking_run)
+        os.makedirs(os.path.join(self.storage_path, self.run_dir), exist_ok=True)
+
 
     def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:
         """Return the maximum run for this Storage with the saved ExperimentKey
@@ -56,15 +58,15 @@ class LocalStorage(BaseStorage):
 
     def upload(self, source_file_name: str, ers_key: ERSKey):
         shutil.copy2(source_file_name, 
-            os.path.join(self.storage_path, self.convert_key_to_file(ers_key)))
+            os.path.join(self.storage_path, self.run_dir, self.convert_key_to_file(ers_key)))
 
     def download(self, ers_key: ERSKey, destination_file_name: str):
-        shutil.copy2(os.path.join(self.storage_path, self.convert_key_to_file(ers_key)), 
+        shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.convert_key_to_file(ers_key)), 
             destination_file_name)
         
 
     def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
-        model_paths = os.path.join(self.storage_path, self.path_ends[StorageArtifactType.MODEL]((ers_key.run.run, ers_key.storage.epoch, "*")))
+        model_paths = os.path.join(self.storage_path, self.run_dir, self.path_ends[StorageArtifactType.MODEL]((ers_key.storage.epoch, "*")))
         model_list = glob(model_paths)
         model_basenames = [os.path.basename(item) for item in model_list]
         _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
@@ -83,7 +85,7 @@ class LocalStorage(BaseStorage):
 
     def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
         # TODO modify or fix this in case of errors...?
-        model_paths = os.path.join(self.storage_path, self.path_ends[StorageArtifactType.MODEL]((ers_key.run.run, "*", "*")))
+        model_paths = os.path.join(self.storage_path, self.run_dir,  self.path_ends[StorageArtifactType.MODEL](("*", "*")))
         model_list = glob(model_paths)
         model_basenames = [os.path.basename(item) for item in model_list]
         _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
@@ -98,4 +100,4 @@ class LocalStorage(BaseStorage):
 
 
     def convert_key_to_file(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
-        return self.path_ends[ers_key.storage.artifact]((ers_key.run.run, ers_key.storage.epoch, ers_key.storage.step))
+        return self.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))

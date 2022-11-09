@@ -43,7 +43,7 @@ class ExperimentKey:
 
 
 class RunKey:
-    run: str
+    run: int
     def __init__(self, run):
         self.run = run
 
@@ -53,8 +53,8 @@ class RunKey:
         return yaml.dump(dicta)
 
 class StorageKey:
-    epoch: str
-    step: str
+    epoch: int
+    step: int
     artifact: StorageArtifactType
 
     def __init__(self, epoch, step, artifact):

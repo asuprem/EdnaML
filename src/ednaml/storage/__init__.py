@@ -52,18 +52,7 @@ class StorageManager:
         #                     self.metadata.MODEL_QUALIFIER])
         self.file_basename = "experiment"
         self.local_storage = LocalStorage(experiment_key=self.experiment_key,
-            storage_name = "ednaml-local-storage", storage_url="./")
-
-        # Built-in default extensions for each artifact type
-        # The partial StorageKey constructor is : <run-epoch-step>
-        self.path_ends = {
-            StorageArtifactType.MODEL: lambda x : "_".join([self.file_basename,"epoch"+x[1],"step"+x[2],"model.pth"]),
-            StorageArtifactType.ARTIFACT: lambda x : "_".join([self.file_basename,"epoch"+x[1],"step"+x[2],"artifact.pth"]),
-            StorageArtifactType.PLUGIN: lambda x: "_".join([self.file_basename, "plugin.pth"]),
-            StorageArtifactType.METRIC: lambda x: "_".join([self.file_basename, "metrics.json"]),
-            StorageArtifactType.CONFIG: lambda x: "_".join([self.file_basename, "config.yml"]),
-            StorageArtifactType.LOG: lambda x: "_".join([self.file_basename, "logfile.log"]),
-        }
+            storage_name = "ednaml-local-storage-reserved", storage_url="./", file_basename = self.file_basename)
 
         # We create a fast, O(1) reference for each of the save-options to avoid switch statements later
         self.artifact_references = {
@@ -159,7 +148,7 @@ class StorageManager:
         Returns:
             Union[str,os.PathLike]: The constructed file name that combines attributes of the StorageKey
         """
-        return self.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
+        return self.local_storage.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
     
     def getLocalSavePath(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
         """Provides the complete path to the file name for the provided StorageKey
@@ -170,7 +159,7 @@ class StorageManager:
         Returns:
             Union[str, os.PathLike]: _description_
         """
-        return os.path.join(self.local_save_directory, self.getLocalFileName(ers_key=ers_key))
+        return os.path.join(self.local_storage.storage_path, self.local_storage.run_dir, self.getLocalFileName(ers_key=ers_key))
 
     def getUploadTriggerForEpoch(self, epoch: int, artifact_type: StorageArtifactType) -> bool:
         """Determines whether an upload should occur at this epoch given the 
@@ -207,7 +196,7 @@ class StorageManager:
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
         # Then, the provided config is uploaded
-        self._setTrackingRun(tracking_run)
+        self._setTrackingRun(storage_dict, tracking_run)
 
         ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
         self.cfg.save(self.getLocalSavePath(ers_key=ers_key))
@@ -245,8 +234,22 @@ class StorageManager:
 
         
 
-    def _setTrackingRun(self, tracking_run: int):
+    def _setTrackingRun(self, storage_dict: Dict[str, BaseStorage], tracking_run: int):
         self.run_key = RunKey(run=tracking_run)
+
+        # Create the run directory locally.
+        self.local_storage.setTrackingRun(tracking_run)
+
+
+        # Inform the storages that we have a run:
+
+        tracking_runs = [storage_dict[self.getStorageNameForArtifact(artifact_key)].setTrackingRun(tracking_run) if self.performBackup(artifact_key) else None for artifact_key in self.artifact_references]
+
+        # Copy the files over??? Or save that for other methods to perform...
+
+
+        
+
 
     def initializeLog(self, storage_dict: Dict[str, BaseStorage]):
         """Initialize a log file (or append to an existing one / log-server)

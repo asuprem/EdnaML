@@ -315,7 +315,9 @@ class EdnaMLConfig(BaseConfig):
             base_config = self._merge(base_config, extension_config)
         return base_config
 
-
+    def save(self, path: os.PathLike):
+        with open(path, "w") as write_file:
+            write_file.write(self.export())
 
 """
 Notes for LOSS_OPTIMIZER and LOSS_SCHEDULER
