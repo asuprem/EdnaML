@@ -4,6 +4,7 @@ from types import MethodType
 from typing import Callable, Dict, List, Type, Union
 import warnings
 from torchinfo import ModelStatistics
+from ednaml import storage
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
 from ednaml.config.ModelConfig import ModelConfig
@@ -11,6 +12,7 @@ from ednaml.core import EdnaMLBase, EdnaMLContextInformation
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
+from ednaml.logging import LogManager
 from ednaml.loss.builders import LossBuilder
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.optimizer import BaseOptimizer
@@ -19,7 +21,7 @@ from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.storage import BaseStorage, StorageManager
-from ednaml.utils import ExperimentKey, StorageArtifactType, locate_class, path_import
+from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey, locate_class, path_import
 import ednaml.utils
 import torch
 from torchinfo import summary
@@ -50,11 +52,14 @@ class EdnaML(EdnaMLBase):
     train_generator: Generator
     test_generator: Generator
     cfg: EdnaMLConfig
+    config: Union[str,List[str]]    # list of paths to configuration files
     decorator_reference: Dict[str,Type[MethodType]]
     plugins: Dict[str, ModelPlugin] = {}
     storage: Dict[str, BaseStorage] = {}
     storage_classes: Dict[str, Type[BaseStorage]] = {}
     storageManager: StorageManager
+    logManager: LogManager
+    logger: logging.Logger
     experiment_key: ExperimentKey
 
     context_information: EdnaMLContextInformation
@@ -67,7 +72,7 @@ class EdnaML(EdnaMLBase):
         logger: logging.Logger = None,
         verbose: int = 2,
         **kwargs
-    ):
+    ) -> None:
         """Initializes the EdnaML object with the associated config, mode, weights, and verbosity.
         Sets up the logger, as well as local logger save directory.
 
@@ -80,6 +85,8 @@ class EdnaML(EdnaMLBase):
 
         Kwargs:
             load_epoch: If you want EdnaML to load a model from a specific saved epoch. The path construction will be inferred from the config file
+            load_step: If you want EdnaML to load a model from a specific saved step. Epoch must be provided. The path construction will be inferred from the config file
+            load_run: If you want EdnaML to use a specific run, instead of the most recent one
             add_filehandler: If you want logger to write to log file
             add_streamhandler: If you want logger to write to stdout
             logger_save_name: If you want logger name to be something other than default constructed name from config
@@ -124,11 +131,19 @@ class EdnaML(EdnaMLBase):
         # We create a cached directory for temporary logs while EdnaML starts up...
         # Or maybe we create the logger inside storage...!
         self.storageManager = None
-
-        self.logger = self.buildLogger(logger=logger, add_filehandler=False, **kwargs)
+        
+        log_manager_class = "FileLogManager"
+        log_kwargs = {"log_level": 10}  # 10 is DEBUG
+        log_manager_class: Type[LogManager] = locate_class(subpackage="logging", classpackage=log_manager_class)
+        self.logManager = log_manager_class(experiment_key=self.experiment_key, **log_kwargs)
+        self.logManager.apply()
+        self.logger = self.logManager.logger
+        
         self.previous_stop = -1
-        self.load_epoch = kwargs.get("load_epoch", None)
-        self.test_only = kwargs.get("test_only", False)
+        self.load_run: int = kwargs.get("load_run", None)
+        self.load_epoch: int = kwargs.get("load_epoch", None)
+        self.load_step: int = kwargs.get("load_step", None)
+        self.test_only: bool = kwargs.get("test_only", False)
         if self.test_only and self.mode == "train":
             raise ValueError(
                 "Cannot have `test_only` and be in training mode. Switch to"
@@ -270,23 +285,21 @@ class EdnaML(EdnaMLBase):
         self.buildStorageManager()
         # Build the storage backends that StorageManager can use
         self.buildStorage()
-        # Update the StorageManager with the prior stopping point <run-epoch-step>
-        # Here, we can use a new_run parameter to create a new run for this experiment, instead of appending to existing run
-        # This should be getPreviousStop(), technically
-        # We can also control which specific epoch-step to retrieve;
-        # new_run = False; nothing provided: use most recent <run-epoch-step>. If run provided, use specific run, and son on
-        # new_run = True; anything provided: throw error or warning. We are technically starting from scratch.
-        self.setCurrentRun(**kwargs)
-        # Transfer temporary log to StorageManager. That is, switch out the cached log file with the actual log file, if there is a backup
-        # This requires some creative accounting with the logging object
-        self.initializeLog()
+        # Set the RunKey for this ExperimentKey
+        # Upload the configuration for this Run
+        self.setTrackingRunAndUploadConfig(**kwargs)
+        # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
+        ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
+        self.logManager.updateERSKey(ers_key=ers_key,file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
         # Download pre-trained weights, if such a link is provided in built-in model paths
         self.downloadModelWeights()
         # Build the data loaders
         self.buildDataloaders()
         # Build the model
         self.buildModel()
-        # Load the most recent weights from <run-epoch-step>, according to previousStop(), using the StorageManager()
+        # For test mode, load the most recent weights unless provided
+        # For train mode, most recent weights are loaded by BaseTrainer, not here...
+        # For EdnaDeploy, lost the most recent weights unless provided.
         self.loadWeights()
         # Generate a model summary
         if not kwargs.get("skip_model_summary", False):
@@ -452,8 +465,11 @@ class EdnaML(EdnaMLBase):
                 logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
 
-    def setCurrentRun(self, **kwargs):
-        self.storageManager.setTrackingRun(storage_dict=self.storage,new_run = kwargs.get("new_run", False))
+    def setTrackingRunAndUploadConfig(self, **kwargs):
+        self.storageManager.setTrackingRun(storage_dict=self.storage, 
+                                            tracking_run = kwargs.get("tracking_run"), 
+                                            new_run = kwargs.get("new_run", False),
+                                            config_mode=kwargs.get("config_mode", "flexible"))
 
     # TODO Move this to a LogManager API, with LocalLogManager, LogstashLogManager, GrafanaLokiManager
     # Each of these will add a handler to the log to allow for proper logging, plus a file handler (i.e. LocalLogManager will only add a file handler)
@@ -904,35 +920,23 @@ class EdnaML(EdnaMLBase):
         """If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
         Note that for training mode, weights are downloaded from pytorch to be loaded if pretrained weights are desired.
         """
+        epoch, step = None, None
         if self.mode == "test":
             if self.weights is None:
                 self.logger.info(
                     "No saved model weights provided. Inferring weights path."
                 )
-                if self.load_epoch is not None and type(self.load_epoch) is int:
-                    self.weights = self.getModelWeightsFromEpoch(
-                        self.load_epoch
-                    )
-                    self.logger.info(
-                        "Using weights from provided epoch %i, at path %s."
-                        % (self.load_epoch, self.weights)
-                    )
-                else:
-                    if self.previous_stop < 0:
-                        self.logger.info(
-                            "No previous stop exists. Not loading weights."
-                        )
-                    else:
-                        self.weights = self.getModelWeightsFromEpoch(
-                            self.previous_stop
-                        )
-                        self.logger.info(
-                            "Using weights from last saved epoch %i, at"
-                            " path %s." % (self.previous_stop, self.weights)
-                        )
+                # Load the weights from the provided load_epoch, with the latest step value
+                # This takes care of step not provided, load_epoch not provided, new run with no weights existing
+                self.weights, epoch, step = self.getModelWeightsFromStorageKey(epoch = self.load_epoch, step = self.load_step)
+            # Then perform the actual loading of the weights...
+            # Then we need to save the epoch and step information of this load into the context_information
+            
             if self.weights is not None:    # we have this, because previous if-block might update weights path
                 self.model.load_state_dict(torch.load(self.weights))
                 self.context_information.MODEL_HAS_LOADED_WEIGHTS
+                self.context_information.LOADED_EPOCH = int(epoch)
+                self.context_information.LOADED_STEP = int(step)
                 
         else:
             if self.weights is None:
@@ -1241,67 +1245,6 @@ class EdnaML(EdnaMLBase):
             self.labelMetadata = self.test_generator.num_entities
         self.logger.info("Generated test data/query generator")
 
-    def buildLogger(
-        self,
-        logger: logging.Logger = None,
-        add_filehandler: bool = True,
-        add_streamhandler: bool = True,
-        logger_save_path: str = "",
-        log_level = logging.DEBUG,
-        **kwargs
-    ) -> logging.Logger:
-        """Builds a new logger or adds the correct file and stream handlers to
-        existing logger if it does not already have them.
-
-        Args:
-            logger (logging.Logger, optional): A logger.. Defaults to None.
-            add_filehandler (bool, optional): Whether to add a file handler to the logger. If False, no file is created or appended to. Defaults to True.
-            add_streamhandler (bool, optional): Whether to add a stream handler to the logger. If False, logger will not stream to stdout. Defaults to True.
-
-        Returns:
-            logging.Logger: A logger with file and stream handlers.
-        """
-        loggerGiven = True
-        if logger is None:
-            logger = logging.Logger(self.experiment_key.getExperimentName())
-            loggerGiven = False
-
-        streamhandler = False
-        filehandler = False
-
-        if logger.hasHandlers():
-            for handler in logger.handlers():
-                if isinstance(handler, logging.StreamHandler):
-                    streamhandler = True
-                if isinstance(handler, logging.FileHandler) and add_filehandler:
-                    if os.path.splitext(os.path.basename(handler.baseFilename))[0] == os.path.splitext(os.path.basename(logger_save_path))[0]:
-                        filehandler = True
-
-        if not loggerGiven:
-            logger.setLevel(log_level)
-
-        if not filehandler and add_filehandler:
-            fh = logging.FileHandler(
-                logger_save_path, mode="a", encoding="utf-8"
-            )
-            fh.setLevel(self.logLevels[self.verbose])
-            formatter = logging.Formatter(
-                "%(asctime)s %(message)s", datefmt="%H:%M:%S"
-            )
-            fh.setFormatter(formatter)
-            logger.addHandler(fh)
-
-        if not streamhandler and add_streamhandler:
-            cs = logging.StreamHandler()
-            cs.setLevel(self.logLevels[self.verbose])
-            cs.setFormatter(
-                logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
-            )
-            logger.addHandler(cs)
-        if not loggerGiven:
-            return logger
-        return None
-
     def log(self, message: str, verbose: int = 3):
         """Logs a message. TODO needs to be fixed.
 
@@ -1322,6 +1265,47 @@ class EdnaML(EdnaMLBase):
         self.logger.info("")
         self.logger.info("*" * 40)
 
+    def getModelWeightsFromStorageKey(self, epoch: int = None, step: int = None, storage_key: StorageKey = None):
+        if storage_key is not None:
+            epoch = storage_key.epoch
+            step = storage_key.step
+
+        if step is None:
+            step = -1
+        if epoch is None:
+            epoch = -1
+        ers_key: ERSKey = self.storageManager.getERSKey(epoch = epoch, step = step)
+
+        final_ers_key: ERSKey = None
+        # First, if epoch is 0, we get the highest epoch value
+        if epoch == -1:
+            self.logger.info("No epoch value provided. Searching for latest saved epoch.")
+            final_ers_key = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getLatestModelEpoch(ers_key)
+        else:
+            self.logger.info("Using provided `load_epoch` of %s"%ers_key.storage.epoch)
+            final_ers_key = ers_key # i.e. preserve the epoch value from the ers_key, since it was not -1
+        if final_ers_key is None:   # No models with any epoch exist...
+            self.logger.info("No models exist. Not loading any models.")
+            return None, None, None
+        
+        # Next, if there *was* a model, but step is -1, we get the maximum step valued model
+        if step == -1:
+            self.logger.info("No step value provided. Searching for latest saved step with epoch %s."%final_ers_key.storage.epoch)
+            final_ers_key = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getLatestModelWithEpoch(final_ers_key)
+        else:
+            self.logger.info("Searching for model with provided `load_epoch` %s and `load_step` %s"%(final_ers_key.storage.epoch, final_ers_key.storage.step))
+            final_ers_key = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(final_ers_key)
+
+        # i.e. no weights provided.
+        if final_ers_key is None:
+            self.logger.info("No models exist at provided `load_epoch` and `load_step`. Not loading any models.")
+            return None, None, None
+        else:
+            model_path = self.storageManager.getLocalSavePath(final_ers_key)
+            self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(final_ers_key, model_path)
+        self.logger.info("Found `model_path` at provided `load_epoch` and `load_step`: %s"%os.path.basename(model_path))
+        return model_path, final_ers_key.storage.epoch, final_ers_key.storage.step
+    
     # TODO fix this i.e. harmonize
     def getModelWeightsFromEpoch(self, epoch=0):
         model_load = (
