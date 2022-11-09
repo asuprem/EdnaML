@@ -18,15 +18,14 @@ class StorageManager:
     3. Provide a trigger-mechanism for checking upload requirements given the configuration file and current epoch and step
     4. Provide the storage name for a given upload type (e.g. config, logfile, model, etc)
     """
-    def __init__(self, logger: logging.Logger, cfg: EdnaMLConfig, saveMetadata: SaveMetadata, saveOptions: SaveConfig, storage_manager_mode = "loose"):
-        self.metadata = saveMetadata
-        self.saveoptions = saveOptions
+    def __init__(self,  logger: logging.Logger, 
+                        cfg: EdnaMLConfig, 
+                        experiment_key: ExperimentKey, 
+                        storage_manager_mode = "loose"):
+        self.experiment_key = experiment_key
         self.storage_manager_mode = storage_manager_mode    # strict or loose
         self.cfg = cfg
-        self.experiment_key: ExperimentKey = ExperimentKey(self.metadata.MODEL_CORE_NAME,
-                                                            self.metadata.MODEL_VERSION,
-                                                            self.metadata.MODEL_BACKBONE,
-                                                            self.metadata.MODEL_QUALIFIER)
+
         self.run_key: RunKey = None
         self.last_storage_key: StorageKey = None
         # Add options here for where to save local files, i.e. not directly in ./
@@ -68,12 +67,12 @@ class StorageManager:
 
         # We create a fast, O(1) reference for each of the save-options to avoid switch statements later
         self.artifact_references = {
-            StorageArtifactType.MODEL: self.saveoptions.MODEL_BACKUP,
-            StorageArtifactType.ARTIFACT: self.saveoptions.ARTIFACTS_BACKUP,
-            StorageArtifactType.PLUGIN: self.saveoptions.PLUGIN_BACKUP,
-            StorageArtifactType.METRIC: self.saveoptions.METRICS_BACKUP,
-            StorageArtifactType.CONFIG: self.saveoptions.CONFIG_BACKUP,
-            StorageArtifactType.LOG: self.saveoptions.LOG_BACKUP,
+            StorageArtifactType.MODEL: self.cfg.SAVE.MODEL_BACKUP,
+            StorageArtifactType.ARTIFACT: self.cfg.SAVE.ARTIFACTS_BACKUP,
+            StorageArtifactType.PLUGIN: self.cfg.SAVE.PLUGIN_BACKUP,
+            StorageArtifactType.METRIC: self.cfg.SAVE.METRICS_BACKUP,
+            StorageArtifactType.CONFIG: self.cfg.SAVE.CONFIG_BACKUP,
+            StorageArtifactType.LOG: self.cfg.SAVE.LOG_BACKUP,
         }
 
         class LooseTriggerMethod:
@@ -91,22 +90,22 @@ class StorageManager:
         if self.storage_manager_mode == "strict":
         # We create a fast O(1) reference to the trigger checking methods here for epochs
             self.epoch_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.saveoptions.MODEL_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.MODEL_BACKUP.FREQUENCY == 0)),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY == 0)),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.saveoptions.PLUGIN_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.PLUGIN_BACKUP.FREQUENCY == 0)),
-                StorageArtifactType.METRIC: (lambda x: False) if self.saveoptions.METRICS_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.METRICS_BACKUP.FREQUENCY == 0)),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.saveoptions.CONFIG_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.CONFIG_BACKUP.FREQUENCY == 0)),
-                StorageArtifactType.LOG: (lambda x: False) if self.saveoptions.LOG_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.saveoptions.LOG_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.METRICS_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY == 0)),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0)),
             }
 
         elif self.storage_manager_mode == "loose":
             self.epoch_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.saveoptions.MODEL_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.MODEL_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.saveoptions.PLUGIN_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.PLUGIN_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.METRIC: (lambda x: False) if self.saveoptions.METRICS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.METRICS_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.saveoptions.CONFIG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.CONFIG_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.LOG: (lambda x: False) if self.saveoptions.LOG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.saveoptions.LOG_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY, initial_state=0),
             }
         else:
             raise NotImplementedError()
@@ -115,22 +114,22 @@ class StorageManager:
         if self.storage_manager_mode == "strict":
         # We create a fast O(1) reference to the trigger checking methods here for epochs
             self.step_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.saveoptions.MODEL_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.MODEL_BACKUP.FREQUENCY_STEP == 0)),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0)),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.saveoptions.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.PLUGIN_BACKUP.FREQUENCY_STEP == 0)),
-                StorageArtifactType.METRIC: (lambda x: False) if self.saveoptions.METRICS_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.METRICS_BACKUP.FREQUENCY_STEP == 0)),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.saveoptions.CONFIG_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.CONFIG_BACKUP.FREQUENCY_STEP == 0)),
-                StorageArtifactType.LOG: (lambda x: False) if self.saveoptions.LOG_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.saveoptions.LOG_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP == 0)),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0)),
             }
 
         elif self.storage_manager_mode == "loose":
             self.step_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.saveoptions.MODEL_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.MODEL_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.ARTIFACTS_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.saveoptions.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.PLUGIN_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.METRIC: (lambda x: False) if self.saveoptions.METRICS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.METRICS_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.saveoptions.CONFIG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.CONFIG_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.LOG: (lambda x: False) if self.saveoptions.LOG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.saveoptions.LOG_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP),
             }
         else:
             raise NotImplementedError()

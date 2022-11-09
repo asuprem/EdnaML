@@ -5,6 +5,13 @@ from ednaml.utils import ERSKey
 
 
 class FileLogManager(LogManager):
+    logLevels = {
+        0: logging.NOTSET,
+        1: logging.ERROR,
+        2: logging.INFO,
+        3: logging.DEBUG,
+    }
+    verbose: int = 3
     def apply(self, **kwargs):
         self.logger = logging.Logger(self.experiment_key.getExperimentName())
         self.buildLogger(
@@ -58,24 +65,23 @@ class FileLogManager(LogManager):
                         filehandler = True
 
         if not logger_given:
-            logger.setLevel(log_level)
+            logger.setLevel(self.logLevels[self.verbose])
 
         if not filehandler and add_filehandler:
             fh = logging.FileHandler(
                 logger_save_path, mode="a", encoding="utf-8"
             )
-            fh.setLevel(self.logLevels[self.verbose])
-            formatter = logging.Formatter(
-                "%(asctime)s %(message)s", datefmt="%H:%M:%S"
-            )
-            fh.setFormatter(formatter)
+            fh.setLevel(log_level)
+            fh.setFormatter(logging.Formatter("[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S"))
             logger.addHandler(fh)
 
         if not streamhandler and add_streamhandler:
             cs = logging.StreamHandler()
-            cs.setLevel(self.logLevels[self.verbose])
+            cs.setLevel(log_level)
             cs.setFormatter(
-                logging.Formatter("%(asctime)s %(message)s", datefmt="%H:%M:%S")
+                logging.Formatter("[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S")
             )
             logger.addHandler(cs)
         return None
+
+        

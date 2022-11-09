@@ -69,8 +69,6 @@ class EdnaML(EdnaMLBase):
         config: Union[List[str], str] = "",
         mode: str = "train",
         weights: str = None,
-        logger: logging.Logger = None,
-        verbose: int = 2,
         **kwargs
     ) -> None:
         """Initializes the EdnaML object with the associated config, mode, weights, and verbosity.
@@ -111,7 +109,6 @@ class EdnaML(EdnaMLBase):
         self.mode = mode
         self.weights = weights
         self.pretrained_weights = None
-        self.verbose = verbose
         self.gpus = torch.cuda.device_count()
         # TODO Deal with extensions
         if type(self.config) is str:
@@ -123,9 +120,9 @@ class EdnaML(EdnaMLBase):
             self.cfg, **kwargs
         )  # <-- for changing the logger name...
         self.experiment_key = ExperimentKey(self.cfg.SAVE.MODEL_CORE_NAME, 
-                                                                self.cfg.SAVE.MODEL_VERSION,
-                                                                self.cfg.SAVE.MODEL_BACKBONE,
-                                                                self.cfg.SAVE.MODEL_QUALIFIER)
+                                                self.cfg.SAVE.MODEL_VERSION,
+                                                self.cfg.SAVE.MODEL_BACKBONE,
+                                                self.cfg.SAVE.MODEL_QUALIFIER)
         # Handled by storage manager
         #os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
         # We create a cached directory for temporary logs while EdnaML starts up...
@@ -134,7 +131,7 @@ class EdnaML(EdnaMLBase):
         
         log_manager_class = "FileLogManager"
         log_kwargs = {"log_level": 10}  # 10 is DEBUG
-        log_manager_class: Type[LogManager] = locate_class(subpackage="logging", classpackage=log_manager_class)
+        log_manager_class: Type[LogManager] = locate_class(subpackage="logging", classfile=log_manager_class, classpackage=log_manager_class)
         self.logManager = log_manager_class(experiment_key=self.experiment_key, **log_kwargs)
         self.logManager.apply()
         self.logger = self.logManager.logger
@@ -324,9 +321,9 @@ class EdnaML(EdnaMLBase):
 
     def buildStorageManager(self):  # TODO after I get a handle on the rest...
         self.storageManager = StorageManager(
-            self.logger,
-            self.saveMetadata,
-            self.cfg.SAVE,
+            logger = self.logger,
+            cfg = self.cfg,
+            experiment_key = self.experiment_key,
             storage_manager_mode="loose"
         )
 
@@ -395,6 +392,7 @@ class EdnaML(EdnaMLBase):
                     )
                 self.storage[self.cfg.STORAGE[storage_element].STORAGE_NAME] = storage_class_reference(storage_name=self.cfg.STORAGE[storage_element].STORAGE_NAME,
                                                                                                             storage_url=self.cfg.STORAGE[storage_element].STORAGE_URL,
+                                                                                                            experiment_key=self.experiment_key,
                                                                                                             **self.cfg.STORAGE[storage_element].STORAGE_ARGS)
 
 
@@ -467,7 +465,7 @@ class EdnaML(EdnaMLBase):
 
     def setTrackingRunAndUploadConfig(self, **kwargs):
         self.storageManager.setTrackingRun(storage_dict=self.storage, 
-                                            tracking_run = kwargs.get("tracking_run"), 
+                                            tracking_run = kwargs.get("tracking_run", None), 
                                             new_run = kwargs.get("new_run", False),
                                             config_mode=kwargs.get("config_mode", "flexible"))
 
@@ -1245,23 +1243,11 @@ class EdnaML(EdnaMLBase):
             self.labelMetadata = self.test_generator.num_entities
         self.logger.info("Generated test data/query generator")
 
-    def log(self, message: str, verbose: int = 3):
-        """Logs a message. TODO needs to be fixed.
-
-        Args:
-            message (str): Message to log
-            verbose (int, optional): Logging verbosity. Defaults to 3.
-        """
-        self.logger.log(self.logLevels[verbose], message)
-
     def printConfiguration(self):
         """Prints the EdnaML configuration"""
         self.logger.info("*" * 40)
         self.logger.info("")
-        self.logger.info("")
-        self.logger.info("Using the following configuration:")
-        self.logger.info(self.cfg.export())
-        self.logger.info("")
+        self.logger.info("Using the following configuration:\n" + self.cfg.export())
         self.logger.info("")
         self.logger.info("*" * 40)
 

@@ -22,7 +22,7 @@ class LocalStorage(BaseStorage):
         # For runs, we need to integrate this into StorageManager
         os.makedirs(self.storage_path, exist_ok=True)
         self.file_basename = "_".join([self.experiment_key.model_core_name, 
-                            "v%i"%self.experiment_key.model_version,
+                            "v%s"%self.experiment_key.model_version,
                             self.experiment_key.model_backbone,
                             self.experiment_key.model_qualifier])
 

@@ -1,5 +1,5 @@
 from typing import List, Dict, Tuple, Type
-import os, builtins
+import os, builtins, json, yaml
 import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
@@ -36,20 +36,35 @@ class ExperimentKey:
             self.model_qualifier
         ])
 
+    def __repr__(self) -> str:
+        dicts = json.dumps(self, default=config_serializer)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
+
+
 class RunKey:
     run: str
     def __init__(self, run):
         self.run = run
 
+    def __repr__(self) -> str:
+        dicts = json.dumps(self, default=lambda o: o.__dict__)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
+
 class StorageKey:
     epoch: str
     step: str
     artifact: StorageArtifactType
+
     def __init__(self, epoch, step, artifact):
         self.epoch = epoch
         self.step = step
         self.artifact = artifact
-
+    def __repr__(self) -> str:
+        dicts = json.dumps(self.__dict__, default=lambda o: o.value)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
 class ERSKey:
     experiment: ExperimentKey
     run: RunKey
@@ -59,7 +74,8 @@ class ERSKey:
         self.experiment = experiment
         self.run = run
         self.storage = storage
-
+    def __repr__(self) -> str:
+        return "\n".join([repr(self.experiment), repr(self.run), repr(self.storage)])
 class StorageNameStruct:
     model_core_name: str
     model_version: str

@@ -107,37 +107,37 @@ class BaseStorage:
     def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadConfig(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadConfig(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
 
     def uploadLog(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadLog(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadLog(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
 
     def uploadModel(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadModel(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadModel(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
 
     def uploadModelArtifact(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadModelArtifact(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadModelArtifact(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
 
     def uploadModelPlugin(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadModelPlugin(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadModelPlugin(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
     
     def uploadMetric(self, source_file_name: os.PathLike, ers_key: ERSKey):
         self.upload(source_file_name=source_file_name, ers_key=ers_key)
 
-    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.Pathlike):
+    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.PathLike):
         self.download(ers_key=ers_key, destination_file_name=destination_file_name)
 
 
