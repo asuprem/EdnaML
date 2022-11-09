@@ -192,6 +192,11 @@ class StorageManager:
                 tracking_run = 0
             else:
                 tracking_run = max_run + int(new_run)
+
+            local_tracking_run = self.local_storage.getMaximumRun() + int(new_run)
+            tracking_run = max(tracking_run, local_tracking_run)
+
+
         
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
@@ -201,7 +206,7 @@ class StorageManager:
         ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
         self.cfg.save(self.getLocalSavePath(ers_key=ers_key))
         storage_dict[self.getStorageNameForArtifact(StorageArtifactType.CONFIG)].uploadConfig(ers_key = ers_key, 
-                                                                                                local_file_name = self.getLocalSavePath(ers_key=ers_key)) 
+                                                                                                source_file_name = self.getLocalSavePath(ers_key=ers_key)) 
         
         # TODO Code upload by zipping files. Skip for now...
         

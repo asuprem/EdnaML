@@ -46,7 +46,7 @@ class LocalStorage(BaseStorage):
         Returns:
             int: _description_
         """
-        rundirs = [int(item.name) for item in os.scandir(self.storage_path)]
+        rundirs = [int(item.name) for item in os.scandir(self.storage_path) if not item.name.startswith(".")]
         if artifact is None:
             if len(rundirs) == 0:
                 return 0
