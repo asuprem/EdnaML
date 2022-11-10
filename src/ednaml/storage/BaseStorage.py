@@ -31,9 +31,6 @@ class BaseStorage:
             file_struct (StorageNameStruct): Key of file to retrieve
             destination_file_name (str): Destination file name to save retrieved file in
         """
-        self.helper_lookup[ers_key.storage.artifact]["download"](
-            ers_key, destination_file_name
-        )
         raise NotImplementedError()
 
     def upload(self, source_file_name: str, ers_key: ERSKey):
@@ -43,11 +40,9 @@ class BaseStorage:
             source_file_name (str): The file to upload
             file_struct (StorageNameStruct): The key for the file to upload
         """
-        self.helper_lookup[ers_key.storage.artifact]["upload"](
-            source_file_name, ers_key
-        )
-
         raise NotImplementedError()
+
+        
 
 
     def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:

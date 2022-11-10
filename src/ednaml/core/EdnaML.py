@@ -286,8 +286,7 @@ class EdnaML(EdnaMLBase):
         # Upload the configuration for this Run
         self.setTrackingRunAndUploadConfig(**kwargs)
         # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
-        ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
-        self.logManager.updateERSKey(ers_key=ers_key,file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
+        self.updateLoggerWithERS()
         # Download pre-trained weights, if such a link is provided in built-in model paths
         self.downloadModelWeights()
         # Build the data loaders
@@ -299,11 +298,7 @@ class EdnaML(EdnaMLBase):
         # For EdnaDeploy, lost the most recent weights unless provided.
         self.loadWeights()
         # Generate a model summary
-        if not kwargs.get("skip_model_summary", False):
-            if self.cfg.LOGGING.INPUT_SIZE is not None:
-                if kwargs.get("input_size", None) is None:
-                    kwargs["input_size"] = self.cfg.LOGGING.INPUT_SIZE
-            self.getModelSummary(**kwargs) 
+        self.getModelSummary(**kwargs)
         # Build the optimizer
         self.buildOptimizer()
         # Build the scheduler
@@ -469,23 +464,10 @@ class EdnaML(EdnaMLBase):
                                             new_run = kwargs.get("new_run", False),
                                             config_mode=kwargs.get("config_mode", "flexible"))
 
-    # TODO Move this to a LogManager API, with LocalLogManager, LogstashLogManager, GrafanaLokiManager
-    # Each of these will add a handler to the log to allow for proper logging, plus a file handler (i.e. LocalLogManager will only add a file handler)
-    # Then our custom log manager can either upload the file, or do nothing because LogstashLogManager and GrafanaLokiManager (or others) are already handling it.
-    def initializeLog(self):
-        self.logger.info("Initializing logfile")
-        if self.storageManager.performBackup(StorageArtifactType.LOG):
-            # We are performing log backups.
-            # We will use Storage to download the current log state
-            # Note: not every log will do this ! Remote loggers can just ignore...
-            self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.LOG)].download(
-                file_struct = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG), 
-                destination_file_name = self.storageManager.path_ends[StorageArtifactType.LOG]((0, 0)) # epoch and step do not matter for logs...
-            )
 
-        self.buildLogger(
-            self.logger, add_filehandler=True,add_streamhandler=False,logger_save_path = self.storageManager.path_ends[StorageArtifactType.LOG]((0, 0))
-        )
+    def updateLoggerWithERS(self):
+        ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
+        self.logManager.updateERSKey(ers_key=ers_key,file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
 
     def setPreviousStop(self):
         """Sets the previous stop"""
@@ -969,6 +951,11 @@ class EdnaML(EdnaMLBase):
         # if it doesn't have it, use input size in arguments
         # TODO possibly move this into trainer...?
         # or at least deal with potential mlti-gpu scenario...
+        if kwargs.get("skip_model_summary", False):
+            return
+        if self.cfg.LOGGING.INPUT_SIZE is not None:
+            if input_size is None:
+                input_size = self.cfg.LOGGING.INPUT_SIZE
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model.to(device)
         # change below statement according to line 722
