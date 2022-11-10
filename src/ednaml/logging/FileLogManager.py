@@ -57,7 +57,7 @@ class FileLogManager(LogManager):
         filehandler = False
 
         if logger.hasHandlers():
-            for handler in logger.handlers():
+            for handler in logger.handlers:
                 if isinstance(handler, logging.StreamHandler):
                     streamhandler = True
                 if isinstance(handler, logging.FileHandler) and add_filehandler:

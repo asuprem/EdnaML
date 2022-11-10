@@ -112,17 +112,17 @@ class BaseTrainer:
 
         self.metadata = {}
         self.labelMetadata = labels
-        self.crawler = crawler
-        self.config = config
+        self.crawler: Crawler = crawler
+        self.config: EdnaMLConfig = config
         self.storage = storage
         # Add later -- download data from Azure/other file instance
         #self.downloadData()
 
-        self.buildMetadata(
-            # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
-            crawler=crawler.classes,
-            config=json.loads(config.export("json")),
-        )
+        # self.buildMetadata(
+        #     # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
+        #     crawler=crawler.classes,
+        #     config=json.loads(config.export("json")),
+        # )
 
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
@@ -131,10 +131,6 @@ class BaseTrainer:
         self.edna_context = context
         self.init_setup(**kwargs)
 
-    def init_setup(self, **kwargs):
-        pass
-
-
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
             self.metadata[keys] = kwargs.get(keys)
@@ -142,12 +138,7 @@ class BaseTrainer:
     def apply(
         self,
         step_verbose: int = 5,
-        #save_frequency: int = 5,
-        #step_save_frequency: int = 0,
         test_frequency: int = 5,
-        #save_directory: str = "./checkpoint/",
-        #save_backup: bool = False,
-        #backup_directory: str = None,
         storage_manager: StorageManager = None,
         storage_mode: str = "loose",    # loose | strict
         gpus: int = 1,
@@ -156,23 +147,11 @@ class BaseTrainer:
         logger_file: str = None,
     ):
         self.step_verbose = step_verbose
-        #self.save_frequency = save_frequency
-        #self.step_save_frequency = step_save_frequency
-        
         self.test_frequency = test_frequency
-        #self.save_directory = save_directory
-        #self.backup_directory = None
         self.model_save_name = model_save_name
         self.logger_file = logger_file
-        #self.save_backup = save_backup
-        #if self.save_backup or self.config.SAVE.LOG_BACKUP:
-        #    self.backup_directory = backup_directory
-        #    os.makedirs(self.backup_directory, exist_ok=True)
-        #os.makedirs(self.save_directory, exist_ok=True)
         self.storage_manager = storage_manager
         self.storage_mode_strict = True if storage_mode == "strict" else False
-        self.saveMetadata()
-
         self.gpus = gpus
 
         if self.gpus != 1:
@@ -181,7 +160,6 @@ class BaseTrainer:
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if self.gpus:
-            #self.model.cuda() # moves the model into GPU
             self.logger.info("%i GPUs available"%self.gpus)
         self.model.to(self.device)
 
