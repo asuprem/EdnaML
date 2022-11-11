@@ -24,6 +24,7 @@ class FileLogManager(LogManager):
                 add_filehandler=False,
                 add_streamhandler=True,
                 log_level = kwargs.get("log_level", logging.DEBUG))
+        self.logger.info("Generated logger object with experiment key %s"%self.experiment_key.getExperimentName())
 
 
     def updateERSKey(self, ers_key: ERSKey, file_name: str):
@@ -46,6 +47,7 @@ class FileLogManager(LogManager):
             add_streamhandler=False,
             logger_save_path=file_name,
         )
+        self.logger.debug("Updated logger object with file name %s"%file_name)
 
     def buildLogger(
         self,

@@ -22,18 +22,24 @@ class StorageManager:
                         cfg: EdnaMLConfig, 
                         experiment_key: ExperimentKey, 
                         storage_manager_mode = "loose"):
+        self.logger = logger
+        
         self.experiment_key = experiment_key
         self.storage_manager_mode = storage_manager_mode    # strict or loose
+        self.log("Initializing StorageManager")
+        self.log("\tusing experiment_key: \t{ekey}".format(ekey=self.experiment_key.getExperimentName()))
+        self.log("\twith storage_manager_mode: \t{mode}".format(mode=self.storage_manager_mode))
         self.cfg = cfg
 
         self.run_key: RunKey = None
         self.latest_storage_key: StorageKey = None
         # Add options here for where to save local files, i.e. not directly in ./
         self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
+        self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
         
         # So, the log file is still not set up
         # We do it when the run is initialized.
-        self.logger = logger
+        
 
         # Runs are handled elsewhere, so without it, we have essentially a misconfigured directory
         # TODO potentially problematic...?
@@ -51,9 +57,10 @@ class StorageManager:
         #                     self.metadata.MODEL_BACKBONE,
         #                     self.metadata.MODEL_QUALIFIER])
         self.file_basename = "experiment"
+        self.log("\tUsing file basename: \t%s"%self.file_basename)
         self.local_storage = LocalStorage(experiment_key=self.experiment_key,
             storage_name = "ednaml-local-storage-reserved", storage_url="./", file_basename = self.file_basename)
-
+        self.log("Generated `ednaml-local-storage-reserved` LocalStorage object")
         # We create a fast, O(1) reference for each of the save-options to avoid switch statements later
         self.artifact_references = {
             StorageArtifactType.MODEL: self.cfg.SAVE.MODEL_BACKUP,
@@ -99,7 +106,7 @@ class StorageManager:
         else:
             raise NotImplementedError()
 
-
+        self.log("Generated EpochTrigger checks")
         if self.storage_manager_mode == "strict":
         # We create a fast O(1) reference to the trigger checking methods here for epochs
             self.step_triggers = {
@@ -122,7 +129,10 @@ class StorageManager:
             }
         else:
             raise NotImplementedError()
+        self.log("Generated StepTrigger checks")
 
+    def log(self, msg):
+        self.logger.debug("[StorageManager] %s"%msg)
 
     def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType) -> ERSKey:
         """Given epoch, run, step, and artifact type, we will construct a StorageKey
@@ -224,7 +234,8 @@ class StorageManager:
         return self.artifact_references[artifact_type].STORAGE_NAME
 
 
-    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False, config_mode = "flexible"):
+    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False):
+        self.log("Tracking run with `new_run`: %s"%str(new_run))
         if tracking_run is None:
             max_run_list = [storage_dict[self.getStorageNameForArtifact(artifact_key)].getMaximumRun() if self.performBackup(artifact_key) else -1 for artifact_key in self.artifact_references]
             max_run = max(max_run_list)
@@ -232,11 +243,13 @@ class StorageManager:
                 tracking_run = 0
             else:
                 tracking_run = max_run + int(new_run)
+            self.log("Remote tracking run is %i"%tracking_run)
 
             local_tracking_run = self.local_storage.getMaximumRun() + int(new_run)
+            self.log("Local tracking run is %i"%tracking_run)
             tracking_run = max(tracking_run, local_tracking_run)
 
-
+        self.log("Tracking run in `ednaml-local-storage-reserved` set to: %i"%tracking_run)
         
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
@@ -287,8 +300,11 @@ class StorageManager:
 
 
         # Inform the storages that we have a run:
-
-        tracking_runs = [storage_dict[self.getStorageNameForArtifact(artifact_key)].setTrackingRun(tracking_run) if self.performBackup(artifact_key) else None for artifact_key in self.artifact_references]
+        for artifact_key in self.artifact_references:
+            if self.performBackup(artifact_type=artifact_key):
+                storage_name = self.getStorageNameForArtifact(artifact_key)
+                storage_dict[storage_name].setTrackingRun(tracking_run)
+                self.log("Tracking run for Storage %s set to: %i"%(storage_name, tracking_run))
 
         # Copy the files over??? Or save that for other methods to perform...
 
@@ -308,7 +324,7 @@ class StorageManager:
         if artifact is None:
             artifact = StorageArtifactType.MODEL
         
-
+        self.log("Intializing StorageKey to (-1,-1), with reference artifact: %s"%artifact.value)
         ers_key: ERSKey = self.getERSKey(epoch = -1, step = -1, artifact_type=artifact)
         remote_ers_key = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
         local_ers_key = self.local_storage.getLatestStorageKey(ers_key=ers_key)
@@ -330,7 +346,7 @@ class StorageManager:
         else:
             raise RuntimeError()
 
-
+        self.log("Obtained latest StorageKey at (%i,%i), with reference artifact: %s"%(final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value))
         self.latest_storage_key = StorageKey(epoch = final_ers_key.storage.epoch,
                                             step = final_ers_key.storage.step,
                                             artifact=artifact)

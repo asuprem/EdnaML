@@ -46,7 +46,6 @@ class EdnaML(EdnaMLBase):
     optimizer: List[torch.optim.Optimizer]
     scheduler: List[torch.optim.lr_scheduler._LRScheduler]
     loss_scheduler: List[torch.optim.lr_scheduler._LRScheduler]
-    previous_stop: int
     trainer: BaseTrainer
     crawler: Crawler
     train_generator: Generator
@@ -116,9 +115,6 @@ class EdnaML(EdnaMLBase):
         else:
             self.cfg = EdnaMLConfig(self.config, **kwargs)
 
-        self.saveMetadata = SaveMetadata(
-            self.cfg, **kwargs
-        )  # <-- for changing the logger name...
         self.experiment_key = ExperimentKey(self.cfg.SAVE.MODEL_CORE_NAME, 
                                                 self.cfg.SAVE.MODEL_VERSION,
                                                 self.cfg.SAVE.MODEL_BACKBONE,
@@ -134,9 +130,8 @@ class EdnaML(EdnaMLBase):
         log_manager_class: Type[LogManager] = locate_class(subpackage="logging", classfile=log_manager_class, classpackage=log_manager_class)
         self.logManager = log_manager_class(experiment_key=self.experiment_key, **log_kwargs)
         self.logManager.apply()
-        self.logger = self.logManager.logger
+        self.logger = self.logManager.getLogger()
         
-        self.previous_stop = -1
         self.load_run: int = kwargs.get("load_run", None)
         self.load_epoch: int = kwargs.get("load_epoch", None)
         self.load_step: int = kwargs.get("load_step", None)
@@ -158,6 +153,7 @@ class EdnaML(EdnaMLBase):
             "generator": self.addGeneratorClass,
             "model_plugin": self.addPlugins,
         }
+        self.logger.info("Initialized empty Context Object")
         self.context_information = EdnaMLContextInformation()
 
     def addResetQueues(self):
@@ -279,29 +275,40 @@ class EdnaML(EdnaMLBase):
         # Print the current configuration state
         self.printConfiguration()
         # Build the Storage Manager
+        self.logger.info("[APPLY] Building StorageManager")
         self.buildStorageManager()
         # Build the storage backends that StorageManager can use
+        self.logger.info("[APPLY] Adding Storages")
         self.buildStorage()
         # Set the RunKey for this ExperimentKey
         # Upload the configuration for this Run
+        self.logger.info("[APPLY] Setting tracking run")
         self.setTrackingRun(**kwargs)
         # Obtain the latest weights path. This will be the continuation epoch, regardless of whether weights are provided or not, during training.
+        self.logger.info("[APPLY] Setting latest StorageKey")
         self.setLatestStorageKey()
         # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
+        self.logger.info("[APPLY] Updating Logger with Latest ERSKey")
         self.updateLoggerWithERS()
         # Download pre-trained weights, if such a link is provided in built-in model paths
+        self.logger.info("[APPLY] Downloading pre-trained weights, if available")
         self.downloadModelWeights()
         # Build the data loaders
+        self.logger.info("[APPLY] Building dataloaders")
         self.buildDataloaders()
         # Build the model
+        self.logger.info("[APPLY] Building model")
         self.buildModel()
         # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
         # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
         # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
+        self.logger.info("[APPLY] Loading latest weights, if available")
         self.loadWeights()
         # Generate a model summary
+        self.logger.info("[APPLY] Generating summary")
         self.getModelSummary(**kwargs)
         # Build the optimizer
+        self.logger.info("[APPLY] Building optimizer, scheduler, and losses")
         self.buildOptimizer()
         # Build the scheduler
         self.buildScheduler()
@@ -312,6 +319,7 @@ class EdnaML(EdnaMLBase):
         # Build the loss schedulers, for learnable losses
         self.buildLossScheduler()
         # Build the trainer
+        self.logger.info("[APPLY] Building trainer")
         self.buildTrainer()
         # Reset the queues. Maybe clear the plugins and storage queues as well??
         self.resetQueues()
@@ -394,7 +402,7 @@ class EdnaML(EdnaMLBase):
 
 
     def train(self, **kwargs):
-        self.trainer.train(continue_epoch=self.previous_stop + 1, continue_step = self.previous_step, **kwargs)  #
+        self.trainer.train(storage_key = self.storageManager.getLatestStorageKey(), **kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()
@@ -470,23 +478,26 @@ class EdnaML(EdnaMLBase):
     def updateLoggerWithERS(self):
         """Download the existing log file from remote, if possible, so that our LogManager can append to it.
         """
+        self.logger.info("Retrieving latest ERSKey")
         ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.LOG)
         if ers_key.storage.epoch == -1:
+            self.logger.info("Latest ERSKey's StorageKey is empty. Resetting StorageKey component.")
             ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
         # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
+        self.logger.info(ers_key)
 
         success = self.storageManager.download(
             storage_dict=self.storage,
             ers_key=ers_key
         )
+        if success:
+            self.logger.info("Downloaded remote log to %s"%self.storageManager.getLocalSavePath(ers_key=ers_key))
+        else:
+            self.logger.info("No remote logger exists. Will create new log file at above ERSKey")
         self.logManager.updateERSKey(ers_key=ers_key,
                         file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
 
 
-    def setPreviousStop(self):
-        """Sets the previous stop"""
-        self.previous_stop, self.previous_step = self.getPreviousStop()
-    
 
     def setLatestStorageKey(self):
         """Query the storages to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
@@ -499,39 +510,6 @@ class EdnaML(EdnaMLBase):
             artifact=StorageArtifactType.MODEL,
         )
 
-
-    # TODO -- Harmonize this change -- we do not need it because we need to implement the previous stop somewhere else, maybe. Discuss...
-    def getPreviousStop(self) -> int:
-        """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory."""
-        if self.cfg.SAVE.DRIVE_BACKUP:
-            fl_list = glob.glob(
-                os.path.join(self.saveMetadata.CHECKPOINT_DIRECTORY, "*.pth")
-            )
-        else:
-            fl_list = glob.glob(
-                os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, "*.pth")
-            )
-        _re = re.compile(r".*epoch([0-9]+).*step([0-9]+).*\.pth")
-        previous_stop = [
-            (int(item[1]),int(item[2]))
-            for item in [_re.search(item) for item in fl_list]
-            if item is not None
-        ]
-        if len(previous_stop) == 0:
-            self.logger.info(
-                "No previous stop detected. Will start from epoch 0"
-            )
-            return -1, 0
-        else:
-            max_epoch = max(previous_stop, key=lambda x:x[0])
-            max_epoch_pairs = [item for item in previous_stop if item[0] == max_epoch[0]]
-            max_step = max(max_epoch_pairs, key=lambda x:x[1])
-
-            self.logger.info(
-                "Previous stop detected. Will attempt to resume from epoch %i, step %i"
-                % (max_epoch[0], max_step[1])
-            )
-            return max_epoch[0], max_step[1]
 
     def addOptimizer(
         self, optimizer: torch.optim.Optimizer, parameter_group="opt-1"
@@ -933,9 +911,10 @@ class EdnaML(EdnaMLBase):
         if self.mode == "test":
             if self.weights is None:
                 self.logger.info(
-                    "No saved model weights provided. Inferring weights path from the latest storage key."
+                    "No saved model weights provided. Inferring weights path from the latest ERSKey:"
                 )
                 model_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.MODEL)
+                self.logger.info(model_ers_key)
                 # success to check if a model was downloaded or not...
                 success = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(
                     ers_key=model_ers_key,
@@ -943,8 +922,9 @@ class EdnaML(EdnaMLBase):
                 )
 
                 if success:
-                    artifact_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.MODEL)
-                    self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(
+                    self.logger.info("Found model in Storage at provided ERSKey")
+                    artifact_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.ARTIFACT)
+                    self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModelArtifact(
                         ers_key=artifact_ers_key,
                         destination_file_name=self.storageManager.getLocalSavePath(artifact_ers_key)
                     )
