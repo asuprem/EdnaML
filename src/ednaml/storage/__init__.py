@@ -27,7 +27,7 @@ class StorageManager:
         self.cfg = cfg
 
         self.run_key: RunKey = None
-        self.last_storage_key: StorageKey = None
+        self.latest_storage_key: StorageKey = None
         # Add options here for where to save local files, i.e. not directly in ./
         self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
         
@@ -138,6 +138,39 @@ class StorageManager:
             self.experiment_key, self.run_key, StorageKey(epoch, step, artifact_type)
         )
 
+    def getExperimentKey(self) -> ExperimentKey:
+        return self.experiment_key
+
+    def getRunKey(self) -> RunKey:
+        return self.run_key
+
+    def getLatestStorageKey(self) -> StorageKey:
+        return self.latest_storage_key
+
+    def getLatestERSKey(self, artifact: StorageArtifactType) -> ERSKey:
+        return self.getERSKey(epoch = self.latest_storage_key.epoch, step = self.latest_storage_key.step, artifact_type=artifact)
+
+    def getNextERSKey(self, artifact: StorageArtifactType) -> ERSKey
+        return self.getERSKey(epoch = self.latest_storage_key.epoch + 1, step = 0, artifact_type=artifact)
+
+    def download(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey):
+        """Download the file(s) corresponding to the ERSKey if they do not already exist locally
+
+        Args:
+            storage_dict (Dict[str, BaseStorage]): _description_
+            ers_key (ERSKey): _description_
+        """
+        pass
+
+    def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey):
+        """Upload the file(s) corresponding to the ERSKey. If they already exist, Storage will throw an error.
+
+        Args:
+            storage_dict (Dict[str, BaseStorage]): _description_
+            ers_key (ERSKey): _description_
+        """
+        pass
+
 
     def getLocalFileName(self, ers_key: ERSKey) -> Union[str,os.PathLike]:
         """Creates the local file name for the provided StorageKey. This does not contain experiment details, or run details.
@@ -148,7 +181,8 @@ class StorageManager:
         Returns:
             Union[str,os.PathLike]: The constructed file name that combines attributes of the StorageKey
         """
-        return self.local_storage.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
+        return self.local_storage.path_of_artifact()
+        path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
     
     def getLocalSavePath(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
         """Provides the complete path to the file name for the provided StorageKey
@@ -253,8 +287,53 @@ class StorageManager:
         # Copy the files over??? Or save that for other methods to perform...
 
 
+    def setLatestStorageKey(self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None):
+        """Check local storage as well as remote storage(s) for the latest epoch-step pair when something was saved.
+
+        Args:
+            storage_dict (Dict[str, BaseStorage]): _description_
+            artifact (StorageArtifactType, optional): _description_. Defaults to None.
+
+        Raises:
+            RuntimeError: _description_
+            RuntimeError: _description_
+        """
+        # Default to checking with MODEL, TODO add functionality in Storage to handle other artifact types.
+        if artifact is None:
+            artifact = StorageArtifactType.MODEL
         
 
+        ers_key: ERSKey = self.getERSKey(epoch = -1, step = -1, artifact_type=artifact)
+        remote_ers_key = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
+        local_ers_key = self.local_storage.getLatestStorageKey(ers_key=ers_key)
+
+        final_ers_key = None
+        if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:
+            final_ers_key = local_ers_key
+        elif remote_ers_key.storage.epoch > local_ers_key.storage.epoch:
+            final_ers_key = remote_ers_key
+        elif local_ers_key.storage.epoch == remote_ers_key.storage.epoch:
+            if local_ers_key.storage.step > remote_ers_key.storage.step:
+                final_ers_key = local_ers_key
+            elif remote_ers_key.storage.step > local_ers_key.storage.step:
+                final_ers_key = remote_ers_key
+            elif local_ers_key.storage.step == remote_ers_key.storage.step:
+                final_ers_key = local_ers_key
+            else:
+                raise RuntimeError()
+        else:
+            raise RuntimeError()
+
+
+        self.latest_storage_key = StorageKey(epoch = final_ers_key.storage.epoch,
+                                            step = final_ers_key.storage.step,
+                                            artifact=artifact)
+
+    def updateStorageKey(self, ers_key: ERSKey):
+        self.latest_storage_key.epoch = ers_key.storage.epoch
+        self.latest_storage_key.step = ers_key.storage.step
+
+        
 
     def initializeLog(self, storage_dict: Dict[str, BaseStorage]):
         """Initialize a log file (or append to an existing one / log-server)

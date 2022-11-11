@@ -284,7 +284,9 @@ class EdnaML(EdnaMLBase):
         self.buildStorage()
         # Set the RunKey for this ExperimentKey
         # Upload the configuration for this Run
-        self.setTrackingRunAndUploadConfig(**kwargs)
+        self.setTrackingRun(**kwargs)
+        # Obtain the latest weights path. This will be the continuation epoch, regardless of whether weights are provided or not, during training.
+        self.setLatestStorageKey()
         # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
         self.updateLoggerWithERS()
         # Download pre-trained weights, if such a link is provided in built-in model paths
@@ -293,9 +295,9 @@ class EdnaML(EdnaMLBase):
         self.buildDataloaders()
         # Build the model
         self.buildModel()
-        # For test mode, load the most recent weights unless provided
-        # For train mode, most recent weights are loaded by BaseTrainer, not here...
-        # For EdnaDeploy, lost the most recent weights unless provided.
+        # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
+        # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
+        # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
         self.loadWeights()
         # Generate a model summary
         self.getModelSummary(**kwargs)
@@ -453,25 +455,46 @@ class EdnaML(EdnaMLBase):
                 #backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 storage_manager = self.storageManager,
                 gpus=self.gpus,
-                fp16=self.cfg.EXECUTION.FP16,
-                model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
-                logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+                fp16=self.cfg.EXECUTION.FP16
             )
 
-    def setTrackingRunAndUploadConfig(self, **kwargs):
+    def setTrackingRun(self, **kwargs):
         self.storageManager.setTrackingRun(storage_dict=self.storage, 
                                             tracking_run = kwargs.get("tracking_run", None), 
                                             new_run = kwargs.get("new_run", False),
                                             config_mode=kwargs.get("config_mode", "flexible"))
 
+    def uploadConfig(self, **kwargs):
+        self.storageManager.upload(storage_dict=self.storage, ers_key=self.storageManager.getNextERSKey(artifact=StorageArtifactType.CONFIG))
 
     def updateLoggerWithERS(self):
-        ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
-        self.logManager.updateERSKey(ers_key=ers_key,file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
+        """Download the existing log file from remote, if possible, so that our LogManager can append to it.
+        """
+        ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.LOG)
+        self.storageManager.download(
+            storage_dict=self.storage,
+            ers_key=ers_key
+        )
+        self.logManager.updateERSKey(ers_key=ers_key,
+                        file_name=self.storageManager.getLocalSavePath(ers_key=ers_key))
+
 
     def setPreviousStop(self):
         """Sets the previous stop"""
         self.previous_stop, self.previous_step = self.getPreviousStop()
+    
+
+    def setLatestStorageKey(self):
+        """Query the storages to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
+        StorageManager.
+
+        We query MODEL only
+        """
+        self.storageManager.setLatestStorageKey(
+            storage_dict=self.storage,
+            artifact=StorageArtifactType.MODEL,
+        )
+
 
     # TODO -- Harmonize this change -- we do not need it because we need to implement the previous stop somewhere else, maybe. Discuss...
     def getPreviousStop(self) -> int:
@@ -897,30 +920,47 @@ class EdnaML(EdnaMLBase):
             self._modelArgsQueueFlag = True
 
     def loadWeights(self):
-        """If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
-        Note that for training mode, weights are downloaded from pytorch to be loaded if pretrained weights are desired.
         """
-        epoch, step = None, None
+        # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
+        # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
+        # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
+        # If pre-trained weights were downloaded, and LatestStorageKey is -1/-1, then load pre-trained weights.
+        """
         if self.mode == "test":
             if self.weights is None:
                 self.logger.info(
-                    "No saved model weights provided. Inferring weights path."
+                    "No saved model weights provided. Inferring weights path from the latest storage key."
                 )
-                # Load the weights from the provided load_epoch, with the latest step value
-                # This takes care of step not provided, load_epoch not provided, new run with no weights existing
-                self.weights, epoch, step = self.getModelWeightsFromStorageKey(epoch = self.load_epoch, step = self.load_step)
-            # Then perform the actual loading of the weights...
-            # Then we need to save the epoch and step information of this load into the context_information
-            
-            if self.weights is not None:    # we have this, because previous if-block might update weights path
-                self.model.load_state_dict(torch.load(self.weights))
-                self.context_information.MODEL_HAS_LOADED_WEIGHTS
-                self.context_information.LOADED_EPOCH = int(epoch)
-                self.context_information.LOADED_STEP = int(step)
+                model_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.MODEL)
+                # success to check if a model was downloaded or not...
+                success = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(
+                    ers_key=model_ers_key,
+                    destination_file_name=self.storageManager.getLocalSavePath(model_ers_key)
+                )
+
+                if success:
+                    artifact_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.MODEL)
+                    self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(
+                        ers_key=artifact_ers_key,
+                        destination_file_name=self.storageManager.getLocalSavePath(artifact_ers_key)
+                    )
+                    self.weights = self.storageManager.getLocalSavePath(model_ers_key)    
+                    self.model.load_state_dict(torch.load(self.weights))
+                    self.context_information.MODEL_HAS_LOADED_WEIGHTS
+                    self.context_information.LOADED_EPOCH = model_ers_key.storage.epoch
+                    self.context_information.LOADED_STEP = model_ers_key.storage.step
+
+                    self.logger.info(
+                    "Downloaded weights from epoch %i, step %i to local path %s"%(model_ers_key.storage.epoch, model_ers_key.storage.step, self.weights)
+                )
+                else:
+                    self.logger.info(
+                    "Could not download weights."
+                )
                 
         else:
             if self.weights is None:
-                self.logger.info("No saved model weights provided.")
+                self.logger.info("No saved model weights provided. BaseTrainer will load weights")
             else:
                 if (
                     self.weights != ""
@@ -941,7 +981,7 @@ class EdnaML(EdnaMLBase):
                     self.logger.info(
                         "In train mode, but no weights provided to load into"
                         " model. This means either model will be initialized"
-                        " randomly, or weights loading occurs inside the model."
+                        " randomly, or weights loading occurs inside the model/BaseTrainer."
                     )
 
     def getModelSummary(self, input_size=None, dtypes=None, **kwargs):

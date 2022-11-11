@@ -3,7 +3,7 @@ import os, shutil
 import re
 from typing import Union
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageNameStruct
+from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey, StorageNameStruct
 from ednaml.utils.SaveMetadata import SaveMetadata
 
 # TODO take care of runs...
@@ -23,13 +23,16 @@ class LocalStorage(BaseStorage):
                                                                         self.experiment_key.model_qualifier]))
 
         self.path_ends = {
-            StorageArtifactType.MODEL: lambda x : "_".join([self.file_basename,"epoch"+str(x[0]),"step"+str(x[1]),"model.pth"]),
-            StorageArtifactType.ARTIFACT: lambda x : "_".join([self.file_basename,"epoch"+str(x[0]),"step"+str(x[1]),"artifact.pth"]),
-            StorageArtifactType.PLUGIN: lambda x: "_".join([self.file_basename, "plugin.pth"]),
-            StorageArtifactType.METRIC: lambda x: "".join([self.file_basename, ".json"]),
-            StorageArtifactType.CONFIG: lambda x: "".join([self.file_basename, ".yml"]),
-            StorageArtifactType.LOG: lambda x: "".join([self.file_basename, ".log"]),
+            StorageArtifactType.MODEL: "_model.pth",
+            StorageArtifactType.ARTIFACT: "_artifact.pth",
+            StorageArtifactType.PLUGIN: "_plugin.pth",
+            StorageArtifactType.METRIC: "_metric.json",
+            StorageArtifactType.CONFIG: "_config.yml",
+            StorageArtifactType.LOG: ".log",
         }
+
+    def path_of_artifact(self, epoch: int, step: int, artifact: StorageArtifactType) -> os.PathLike:
+        "_".join([self.file_basename, "epoch"+str(epoch),"step"+str(step)]) + self.path_ends[artifact]
 
     def setTrackingRun(self, tracking_run: int):
         
@@ -58,19 +61,22 @@ class LocalStorage(BaseStorage):
 
     def upload(self, source_file_name: str, ers_key: ERSKey):
         shutil.copy2(source_file_name, 
-            os.path.join(self.storage_path, self.run_dir, self.convert_key_to_file(ers_key)))
+            os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)))
 
-    def download(self, ers_key: ERSKey, destination_file_name: str):
-        shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.convert_key_to_file(ers_key)), 
-            destination_file_name)
+    def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:
+        if self.getKey(ers_key=ers_key) is not None:
+            shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)), 
+                destination_file_name)
+            return True
+        return False
         
 
     def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
-        model_paths = os.path.join(self.storage_path, self.run_dir, self.path_ends[StorageArtifactType.MODEL]((ers_key.storage.epoch, "*")))
+        model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
         model_list = glob(model_paths)
         model_basenames = [os.path.basename(item) for item in model_list]
         _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
-        max_step = [int(item[2]) for item in [_re.search(item) for item in model_basenames]]
+        max_step = [int(item[2]) for item in [_re.search(item) for item in model_basenames] if int(item[1]) == ers_key.storage.epoch]
 
         if len(max_step) == 0:
             return None
@@ -79,13 +85,13 @@ class LocalStorage(BaseStorage):
             return ers_key
 
     def getKey(self, ers_key: ERSKey) -> ERSKey:
-        if os.path.exists(self.convert_key_to_file(ers_key=ers_key)):
+        if os.path.exists(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))):
             return ers_key
         return None
 
     def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
         # TODO modify or fix this in case of errors...?
-        model_paths = os.path.join(self.storage_path, self.run_dir,  self.path_ends[StorageArtifactType.MODEL](("*", "*")))
+        model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
         model_list = glob(model_paths)
         model_basenames = [os.path.basename(item) for item in model_list]
         _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
@@ -97,7 +103,28 @@ class LocalStorage(BaseStorage):
             ers_key.storage.epoch = max(max_epoch)
             return ers_key
 
+    def getLatestStorageKey(self, ers_key: ERSKey) -> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
+        """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
+        RunKey, and Artifact in StorageKey.
 
+        Args:
+            ers_key (ERSKey): _description_
+        """
+        if ers_key.storage.artifact is not StorageArtifactType.MODEL:
+            raise ValueError("`getLatestStorageKey` is not supported for artifacts other than MODEL for LocalStorage")
 
-    def convert_key_to_file(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
-        return self.path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
+        model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
+        model_list = glob(model_paths)
+        model_basenames = [os.path.basename(item) for item in model_list]
+        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
+        compiled = [_re.search(item) for item in model_basenames]
+        max_epoch = [int(item[1]) for item in compiled]
+        
+        if len(max_epoch) == 0:
+            ers_key.storage.epoch = -1
+            ers_key.storage.step = -1
+        else:
+            ers_key.storage.epoch = max(max_epoch)
+            max_step = [int(item[2]) for item in compiled if int(item[1]) == ers_key.storage.epoch]
+            ers_key.storage.step = max(max_step)
+        return ers_key

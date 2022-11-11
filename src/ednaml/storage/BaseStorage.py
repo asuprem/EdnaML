@@ -1,5 +1,5 @@
 import os
-from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType
+from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey
 
 class BaseStorage:
     storage_name: str
@@ -42,13 +42,20 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-        
+    def getLatestStorageKey(self, ers_key: ERSKey)-> StorageKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
+        """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
+        RunKey, and Artifact.
+
+        Args:
+            ers_key (ERSKey): _description_
+        """
+        raise NotImplementedError()
 
 
     def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:
         """Returns the maximum run for this Storage with the current `self.experiment_key`.
 
-        If `artifact` is provided, return the maximum run that contains a saved `artifact`.
+        If `artifact` is provided, return the maximum run that contains that specific `artifact`.
 
         If `artifact` is not provided, return the maximum run overall.
 
@@ -63,8 +70,9 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
-        """Returns the latest model's ERSKey created (using the step as the comparator) with the provided Epoch. If there is no model, return None.
+    def getLatestStepOfArtifactWithEpoch(self, ers_key: ERSKey) -> ERSKey:
+        """Returns the latest artifact's ERSKey created (using the step as the comparator) 
+        with the provided Epoch. If there is no artifact, return None.
 
         Args:
             ers_key (ERSKey): _description_
@@ -74,8 +82,8 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
-        """Return the latest epoch of the model given ERS key. If no models exist, return None
+    def getLatestEpochOfArtifact(self, ers_key: ERSKey) -> ERSKey:
+        """Return the latest epoch of the given artifact in ERS key. If no models exist, return None
 
         Args:
             ers_key (ERSKey): _description_
@@ -97,6 +105,21 @@ class BaseStorage:
         Returns:
             ERSKey: _description_
         """
+        raise NotImplementedError()
+
+    def setTrackingRun(self, tracking_run: int):
+        """Set the current run for this experiment.
+
+        Args:
+            tracking_run (int): The run for this experiment
+
+        Raises:
+            NotImplementedError: _description_
+        """
+
+    
+
+
         raise NotImplementedError()
 
     def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey):

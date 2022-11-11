@@ -10,10 +10,27 @@ class LogManager:
         self.apply(**kwargs)
     
     def apply(self, **kwargs):
-        pass
+        """Build the logger internal state. At this time, the logger does not have access 
+        to the ERSKey, or any indexing information about the current experiment.
+
+        This function can be used to initialize logging, and set of batched requests once
+        the logger has access to indexing information.
+        """
+        raise NotImplementedError()
 
     def updateERSKey(self, ers_key: ERSKey, file_name: str):
-        pass
+        """Update the logger with the run information from the ERSKey. The StorageKey is also available
+        if this logger indexes logs as such.
+
+        The file_name is the local file where logs can be dumped. A Log Storage will upload this local file
+        to its remote Storage with the latest ERS-Key. This means a batch of logs is generally indexed by the 
+        logging backup frequency (depending on how the Log Storage takes care of files)
+
+        Args:
+            ers_key (ERSKey): _description_
+            file_name (str): _description_
+        """
+        raise NotImplementedError()
 
     def getLogger(self):
-        pass
+        return self.logger

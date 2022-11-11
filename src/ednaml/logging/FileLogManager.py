@@ -13,6 +13,10 @@ class FileLogManager(LogManager):
     }
     verbose: int = 3
     def apply(self, **kwargs):
+        """Build the FileLogManager internal state, without a file handler. Initially, log only to STDOUT.
+
+        When ERSKey is available, we add the local file_name to the file handler.
+        """
         self.logger = logging.Logger(self.experiment_key.getExperimentName())
         self.buildLogger(
                 self.logger,
@@ -23,10 +27,22 @@ class FileLogManager(LogManager):
 
 
     def updateERSKey(self, ers_key: ERSKey, file_name: str):
+        """Add a filehandler pointing to the provided file_name. FileLogManager will append to this file.
+
+        When using in conjunction with LocalStorage, or NAS-type Storages, it is best if the Storages keep
+        a single log file that is appended to for each <ExperimenKey-RunKey> pair, ignoring the epoch and step information
+
+        FileLogManager will adjust the target file when requested.
+
+        Args:
+            ers_key (ERSKey): _description_
+            file_name (str): _description_
+        """
         self.buildLogger(
             self.logger,
             logger_given=True,
             add_filehandler=True,
+            remove_old_filehandler=True,
             add_streamhandler=False,
             logger_save_path=file_name,
         )
@@ -36,6 +52,7 @@ class FileLogManager(LogManager):
         logger: logging.Logger,
         logger_given = False,
         add_filehandler: bool = False,
+        remove_old_filehandler: bool = False,
         add_streamhandler: bool = True,
         logger_save_path: str = "",
         log_level = logging.DEBUG,
@@ -56,13 +73,19 @@ class FileLogManager(LogManager):
         streamhandler = False
         filehandler = False
 
+        mark_for_deletion = []
         if logger.hasHandlers():
-            for handler in logger.handlers:
+            for idx, handler in enumerate(logger.handlers):
                 if isinstance(handler, logging.StreamHandler):
                     streamhandler = True
                 if isinstance(handler, logging.FileHandler) and add_filehandler:
                     if os.path.splitext(os.path.basename(handler.baseFilename))[0] == os.path.splitext(os.path.basename(logger_save_path))[0]:
                         filehandler = True
+                    else:   # not equal -- we can remove if desired
+                        if remove_old_filehandler:
+                            mark_for_deletion.append(idx)
+        for mark in mark_for_deletion:
+            logger.removeHandler(logger.handlers[mark])
 
         if not logger_given:
             logger.setLevel(self.logLevels[self.verbose])
