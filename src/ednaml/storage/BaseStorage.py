@@ -24,7 +24,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def download(self, ers_key: ERSKey, destination_file_name: str):
+    def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:
         """Use the storage backend to download a file with the `file_struct` key into a destination file
 
         Args:
@@ -33,7 +33,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def upload(self, source_file_name: str, ers_key: ERSKey):
+    def upload(self, source_file_name: str, ers_key: ERSKey) -> bool:
         """Upload a local file into the storage backend
 
         Args:

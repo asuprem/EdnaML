@@ -471,7 +471,11 @@ class EdnaML(EdnaMLBase):
         """Download the existing log file from remote, if possible, so that our LogManager can append to it.
         """
         ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.LOG)
-        self.storageManager.download(
+        if ers_key.storage.epoch == -1:
+            ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
+        # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
+
+        success = self.storageManager.download(
             storage_dict=self.storage,
             ers_key=ers_key
         )

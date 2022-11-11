@@ -32,7 +32,7 @@ class LocalStorage(BaseStorage):
         }
 
     def path_of_artifact(self, epoch: int, step: int, artifact: StorageArtifactType) -> os.PathLike:
-        "_".join([self.file_basename, "epoch"+str(epoch),"step"+str(step)]) + self.path_ends[artifact]
+        return "_".join([self.file_basename, "epoch"+str(epoch),"step"+str(step)]) + self.path_ends[artifact]
 
     def setTrackingRun(self, tracking_run: int):
         
@@ -60,6 +60,7 @@ class LocalStorage(BaseStorage):
 
 
     def upload(self, source_file_name: str, ers_key: ERSKey):
+        
         shutil.copy2(source_file_name, 
             os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)))
 

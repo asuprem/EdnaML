@@ -150,26 +150,33 @@ class StorageManager:
     def getLatestERSKey(self, artifact: StorageArtifactType) -> ERSKey:
         return self.getERSKey(epoch = self.latest_storage_key.epoch, step = self.latest_storage_key.step, artifact_type=artifact)
 
-    def getNextERSKey(self, artifact: StorageArtifactType) -> ERSKey
+    def getNextERSKey(self, artifact: StorageArtifactType) -> ERSKey:
         return self.getERSKey(epoch = self.latest_storage_key.epoch + 1, step = 0, artifact_type=artifact)
 
-    def download(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey):
+    def download(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
         """Download the file(s) corresponding to the ERSKey if they do not already exist locally
 
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
             ers_key (ERSKey): _description_
         """
-        pass
+        return storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].download(ers_key=ers_key, 
+            destination_file_name=self.getLocalSavePath(ers_key=ers_key))
 
-    def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey):
+    def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
         """Upload the file(s) corresponding to the ERSKey. If they already exist, Storage will throw an error.
 
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
             ers_key (ERSKey): _description_
         """
-        pass
+        source_file_name = self.getLocalSavePath(ers_key=ers_key)
+        if os.path.exists(source_file_name):
+            storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].upload(ers_key=ers_key, 
+                source_file_name=source_file_name)
+            return True
+        return False
+        
 
 
     def getLocalFileName(self, ers_key: ERSKey) -> Union[str,os.PathLike]:
@@ -181,8 +188,7 @@ class StorageManager:
         Returns:
             Union[str,os.PathLike]: The constructed file name that combines attributes of the StorageKey
         """
-        return self.local_storage.path_of_artifact()
-        path_ends[ers_key.storage.artifact]((ers_key.storage.epoch, ers_key.storage.step))
+        return self.local_storage.path_of_artifact(ers_key.storage.epoch, ers_key.storage.step, ers_key.storage.artifact)
     
     def getLocalSavePath(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
         """Provides the complete path to the file name for the provided StorageKey
@@ -237,10 +243,10 @@ class StorageManager:
         # Then, the provided config is uploaded
         self._setTrackingRun(storage_dict, tracking_run)
 
-        ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
-        self.cfg.save(self.getLocalSavePath(ers_key=ers_key))
-        storage_dict[self.getStorageNameForArtifact(StorageArtifactType.CONFIG)].uploadConfig(ers_key = ers_key, 
-                                                                                                source_file_name = self.getLocalSavePath(ers_key=ers_key)) 
+        #ers_key = self.getERSKey(epoch = 0, step = 0, artifact_type=StorageArtifactType.CONFIG)
+        #self.cfg.save(self.getLocalSavePath(ers_key=ers_key))
+        #storage_dict[self.getStorageNameForArtifact(StorageArtifactType.CONFIG)].uploadConfig(ers_key = ers_key, 
+        #                                                                                        source_file_name = self.getLocalSavePath(ers_key=ers_key)) 
         
         # TODO Code upload by zipping files. Skip for now...
         
