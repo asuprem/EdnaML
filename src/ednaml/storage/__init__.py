@@ -304,7 +304,7 @@ class StorageManager:
             if self.performBackup(artifact_type=artifact_key):
                 storage_name = self.getStorageNameForArtifact(artifact_key)
                 storage_dict[storage_name].setTrackingRun(tracking_run)
-                self.log("Tracking run for Storage %s set to: %i"%(storage_name, tracking_run))
+                self.log("Tracking run for Artifact `%s` at Storage `%s` set to: %i"%(artifact_key.value, storage_name, tracking_run))
 
         # Copy the files over??? Or save that for other methods to perform...
 

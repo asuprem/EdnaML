@@ -469,8 +469,7 @@ class EdnaML(EdnaMLBase):
     def setTrackingRun(self, **kwargs):
         self.storageManager.setTrackingRun(storage_dict=self.storage, 
                                             tracking_run = kwargs.get("tracking_run", None), 
-                                            new_run = kwargs.get("new_run", False),
-                                            config_mode=kwargs.get("config_mode", "flexible"))
+                                            new_run = kwargs.get("new_run", False))
 
     def uploadConfig(self, **kwargs):
         self.storageManager.upload(storage_dict=self.storage, ers_key=self.storageManager.getNextERSKey(artifact=StorageArtifactType.CONFIG))
