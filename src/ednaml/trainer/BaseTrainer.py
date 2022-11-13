@@ -466,6 +466,8 @@ class BaseTrainer:
                     self.saveFlag = False
 
             self.global_batch += 1
+            import pdb
+            pdb.set_trace()
             if self.storage_mode_strict:
                 self.check_step_save()
             else:   # We check every steo_verbose steps
