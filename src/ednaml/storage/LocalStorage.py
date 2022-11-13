@@ -41,7 +41,7 @@ class LocalStorage(BaseStorage):
 
 
     def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:
-        """Return the maximum run for this Storage with the saved ExperimentKey
+        """Return the maximum run for this Storage with the saved ExperimentKey. if no run exist, return -1.
 
         Args:
             artifact (StorageArtifactType, optional): _description_. Defaults to None.
@@ -52,7 +52,7 @@ class LocalStorage(BaseStorage):
         rundirs = [int(item.name) for item in os.scandir(self.storage_path) if not item.name.startswith(".")]
         if artifact is None:
             if len(rundirs) == 0:
-                return 0
+                return -1
             else:
                 return max(rundirs)
         else:
