@@ -444,6 +444,7 @@ class BaseTrainer:
 
     def epoch_step(self, epoch):
         """Trains model for an epoch."""
+        self.global_batch = 0
         for batch in self.train_loader:
             if self.global_batch == 0:
                 self.printOptimizerLearningRates()
@@ -481,8 +482,6 @@ class BaseTrainer:
             # if self.step_save_frequency and self.global_batch % self.step_save_frequency == 0:
             #     self.set_save_flag()
             
-
-        self.global_batch = 0
         self.stepSchedulers()
         self.stepLossSchedulers()
 

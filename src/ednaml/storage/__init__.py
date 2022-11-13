@@ -77,7 +77,7 @@ class StorageManager:
                 self.state = initial_state
             def __call__(self, check_value: int)-> bool:
                 cv = int(check_value/self.trigger_frequency)
-                if cv != self.state:
+                if cv and cv != self.state:
                     self.state = cv
                     return True
                 return False
