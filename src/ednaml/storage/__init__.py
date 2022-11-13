@@ -134,7 +134,7 @@ class StorageManager:
     def log(self, msg):
         self.logger.debug("[StorageManager] %s"%msg)
 
-    def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType) -> ERSKey:
+    def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
         """Given epoch, run, step, and artifact type, we will construct a StorageKey
         (a StorageNameStruct) and return it.
 
@@ -157,10 +157,10 @@ class StorageManager:
     def getLatestStorageKey(self) -> StorageKey:
         return self.latest_storage_key
 
-    def getLatestERSKey(self, artifact: StorageArtifactType) -> ERSKey:
+    def getLatestERSKey(self, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
         return self.getERSKey(epoch = self.latest_storage_key.epoch, step = self.latest_storage_key.step, artifact_type=artifact)
 
-    def getNextERSKey(self, artifact: StorageArtifactType) -> ERSKey:
+    def getNextERSKey(self, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
         return self.getERSKey(epoch = self.latest_storage_key.epoch + 1, step = 0, artifact_type=artifact)
 
     def download(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
@@ -170,8 +170,11 @@ class StorageManager:
             storage_dict (Dict[str, BaseStorage]): _description_
             ers_key (ERSKey): _description_
         """
-        return storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].download(ers_key=ers_key, 
-            destination_file_name=self.getLocalSavePath(ers_key=ers_key))
+        local_path = self.getLocalSavePath(ers_key=ers_key)
+        if not os.path.exists(local_path):
+            return storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].download(ers_key=ers_key, 
+                destination_file_name=local_path)
+        return True # Already exists.
 
     def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
         """Upload the file(s) corresponding to the ERSKey. If they already exist, Storage will throw an error.
@@ -350,6 +353,7 @@ class StorageManager:
         self.latest_storage_key = StorageKey(epoch = final_ers_key.storage.epoch,
                                             step = final_ers_key.storage.step,
                                             artifact=artifact)
+
 
     def updateStorageKey(self, ers_key: ERSKey):
         self.latest_storage_key.epoch = ers_key.storage.epoch

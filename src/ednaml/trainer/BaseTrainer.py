@@ -3,12 +3,13 @@ from logging import Logger
 from typing import Dict, List, Tuple
 import torch
 from torch.utils.data import DataLoader
+from ednaml import storage
 from ednaml.core import EdnaMLContextInformation
 import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
-from ednaml.utils import ERSKey, StorageArtifactType
+from ednaml.utils import ERSKey, StorageArtifactType, StorageKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage import BaseStorage, StorageManager
 
@@ -45,6 +46,8 @@ class BaseTrainer:
     edna_context: EdnaMLContextInformation
     saveFlag_epoch = 0
     saveFlag_step = 0
+
+    current_ers_key: ERSKey
 
     def __init__(
         self,
@@ -261,7 +264,7 @@ class BaseTrainer:
         # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
 
     # load is called by self.train() when being initialized...
-    def load(self, load_epoch, load_step: int = 0):
+    def load(self, load_epoch: int = None, load_step : int = None, artifact: StorageArtifactType = StorageArtifactType.MODEL, ignore_if_error: bool = False):
         """_summary_
 
         Args:
@@ -269,132 +272,140 @@ class BaseTrainer:
             load_step (int, optional): _description_. Defaults to 0.
         """
         self.logger.info(
-            "Resuming training from epoch %i. Loading saved state from %i"
-            % (load_epoch + 1, load_epoch)
+            "Loading saved state of %s from epoch %i / step %i"
+            % (artifact.value, load_epoch, load_step)
         )
 
-        model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, ".pth"])
-        training_load = (
-            "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, "_training.pth"])
-        )
-               
+        # TODO what happens when there is a local copy as well as a remote copy -- we do not need to download from remote...
+        # Have StorageManager handle this gracefully...
+        if artifact == StorageArtifactType.MODEL:
+            model_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = load_epoch, step = load_step, artifact_type=artifact)
+            response = self.storage_manager.download(
+                ers_key=model_ers_key, storage_dict=self.storage
+            ) 
+            artifact_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = load_epoch, step = load_step, artifact_type=StorageArtifactType.ARTIFACT)
+            artifact_response = self.storage_manager.download(
+                ers_key=artifact_ers_key, storage_dict=self.storage
+            ) 
 
-        if self.save_backup:
-            self.logger.info(
-                "Loading model, optimizer, and scheduler from drive backup."
-            )
-            model_load_path = os.path.join(self.backup_directory, model_load)
-            training_load_path = os.path.join(
-                self.backup_directory, training_load
-            )
+            if response:
+                model_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=model_ers_key)
+                # TODO replace with ModelAbstract's own loader?????
+                if self.gpus == 0:
+                    self.model.load_state_dict(torch.load(model_local_storage_savepath), map_location=self.device)
+                else:
+                    self.model.load_state_dict(torch.load(model_local_storage_savepath))
+                self.logger.info(
+                    "Finished loading model state_dict from %s" % model_local_storage_savepath
+                )
+                if artifact_response:
+                    # we have the file 
+                    
+                    artifact_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=artifact_ers_key)
+                    
+                    checkpoint = torch.load(artifact_local_storage_savepath)
+                    for pgn in self.parameter_groups:
+                        self.optimizer[pgn].load_state_dict(checkpoint["optimizer"][pgn])
 
+                        self.scheduler[pgn].load_state_dict(checkpoint["scheduler"][pgn])
+                    self.logger.info(
+                        "Finished loading optimizer state_dict from %s" % artifact_local_storage_savepath
+                    )
+                    self.logger.info(
+                        "Finished loading scheduler state_dict from %s" % artifact_local_storage_savepath
+                    )
+
+                    for lossname in self.loss_fn:
+                        self.loss_fn[lossname].load_state_dict(
+                            checkpoint["loss_fn"][lossname]
+                        )
+                        if self.loss_optimizer[lossname] is not None:
+                            self.loss_optimizer[lossname].load_state_dict(
+                                checkpoint["loss_optimizer"][lossname]
+                            )
+                        if self.loss_scheduler[lossname] is not None:
+                            self.loss_scheduler[lossname].load_state_dict(
+                                checkpoint["loss_scheduler"][lossname]
+                            )
+
+                        self.logger.info(
+                            "Finished loading loss state_dict from %s" % artifact_local_storage_savepath
+                        )
+                else:
+                    # we have model but not artifact. We will load model.
+                    if not ignore_if_error:
+                        raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(StorageArtifactType.ARTIFACT.value, load_epoch, load_step))
+            else:
+                if not ignore_if_error:
+                    raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(artifact.value, load_epoch, load_step))
+                return False
+
+
+        elif artifact == StorageArtifactType.ARTIFACT:
+            raise NotImplementedError("MODEL_ARTIFACT is loaded with MODEL")
+        elif artifact == StorageArtifactType.CONFIG:
+            raise NotImplementedError("CONFIG downloads should not be managed inside Trainer")
+        elif artifact == StorageArtifactType.LOG:
+            raise NotImplementedError("LOG downloads should not be managed inside Trainer")
+        elif artifact == StorageArtifactType.PLUGIN:
+            raise NotImplementedError("PLUGIN downloads should be used with Deploy")
+        elif artifact == StorageArtifactType.METRIC:
+            raise NotImplementedError("METRIC downloads should not be managed inside Trainer")
         else:
-            self.logger.info(
-                "Loading model, optimizer, and scheduler from local backup."
-            )
-            model_load_path = os.path.join(self.save_directory, model_load)
-            training_load_path = os.path.join(
-                self.save_directory, training_load
-            )
-      
-        if not (os.path.exists(model_load_path) and os.path.exists(training_load_path)):
-            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load_path)
-            
-            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
-            training_load = (
-                "".join([self.model_save_name, "_epoch%i" % load_epoch, "_training.pth"])
-            )
-
-        if self.save_backup:
-            self.logger.info(
-                "Loading model, optimizer, and scheduler from drive backup."
-            )
-            model_load_path = os.path.join(self.backup_directory, model_load)
-            training_load_path = os.path.join(
-                self.backup_directory, training_load
-            )
-
-        else:
-            self.logger.info(
-                "Loading model, optimizer, and scheduler from local backup."
-            )
-            model_load_path = os.path.join(self.save_directory, model_load)
-            training_load_path = os.path.join(
-                self.save_directory, training_load
-            )
-
+            raise ValueError("Unexpected value for artifact type %s"%artifact.value)
         
-        # TODO replace with ModelAbstract's own loader?????
-        if self.gpus == 0:
-          self.model.load_state_dict(torch.load(model_load_path), map_location=self.device)
-        else:
-          self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info(
-            "Finished loading model state_dict from %s" % model_load_path
-        )
+        return True
 
-        checkpoint = torch.load(training_load_path)
-        for pgn in self.parameter_groups:
-            self.optimizer[pgn].load_state_dict(checkpoint["optimizer"][pgn])
+    def train(self, continue_epoch: int = 0, continue_step: int = 0, ers_key: ERSKey = None, **kwargs):
+        if continue_epoch is None:  # Use the provided latest key
+            continue_epoch = ers_key.storage.epoch
+            continue_step = ers_key.storage.step
+            self.current_ers_key = ers_key
+        else:   # contnue epoch and step are provided
+            # Check if they are valid. Otherwise, default to provided latest_key
+            key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
+                            self.storage_manager.getERSKey( epoch=continue_epoch, 
+                                                            step=continue_step, 
+                                                            artifact_type=StorageArtifactType.MODEL)
+                                                            )
+            if key is None:
+                self.logger.info("Provided epoch/step pair %i/%i do not exist. Using LatestStorageKey"%(continue_epoch,continue_step))
+                continue_epoch = ers_key.storage.epoch
+                continue_step = ers_key.storage.step
+                self.current_ers_key = ers_key
+            else:
+                self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
 
-            self.scheduler[pgn].load_state_dict(checkpoint["scheduler"][pgn])
-        self.logger.info(
-            "Finished loading optimizer state_dict from %s" % training_load_path
-        )
-        self.logger.info(
-            "Finished loading scheduler state_dict from %s" % training_load_path
-        )
 
-        for lossname in self.loss_fn:
-            self.loss_fn[lossname].load_state_dict(
-                checkpoint["loss_fn"][lossname]
-            )
-            if self.loss_optimizer[lossname] is not None:
-                self.loss_optimizer[lossname].load_state_dict(
-                    checkpoint["loss_optimizer"][lossname]
-                )
-            if self.loss_scheduler[lossname] is not None:
-                self.loss_scheduler[lossname].load_state_dict(
-                    checkpoint["loss_scheduler"][lossname]
-                )
 
-            self.logger.info(
-                "Finished loading loss state_dict from %s" % training_load_path
-            )
-
-        # for idx in range(self.num_losses):
-        #    if self.loss_optimizer[idx] is not None:
-        #        self.loss_optimizer[idx].load_state_dict(checkpoint["loss_optimizer"][idx])
-        #    if self.loss_scheduler[idx] is not None:
-        #        self.loss_scheduler[idx].load_state_dict(checkpoint["loss_scheduler"][idx])
-
-    def train(self, continue_epoch = 0, continue_step = 0):
-        self.logger.info("Starting training")
+        self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
         self.logger.info("Logging to:\t%s" % self.logger_file)
         self.logger.info(
-            "Models/model artifacts will be saved with base name:\t%s"
+            "Models/model artifacts will be saved locally with base name:\t%s"
             % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.MODEL))
         )
 
-        if continue_epoch or continue_step:
-            load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
-            if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
-                # TODO if weights are already loaded, we should load the other things, right?
-                # We need a few more controls here
-                # When we load weights, we should also store what run-epoch-step weights have been loaded
-                # Then, here, we check if they match the continue_epoch / continue_step
-                # If they do, all good. (NOTE: artifact weights are loaded WITH model weights...)
-                # If they do not, then perform a load again.
-                # Regardless of whether model weights have been loaded, we still need to load other things
-                # CONFIG need not be loaded
-                # LOG already set up in EdnaML
-                # METRICS  need not be loaded, we only ever write metrics...
-                # PLUGINS need not be loaded, they are handled in BaseDeploy for now
-                # So, in effect, for load, we are only checking if weights have already been loaded
-                # If not, then load the weights...
-                self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
-            else:
-                self.load(load_epoch, continue_step)
+        # So, invalid continue_epoch and step could be provided with no corresponding stuff
+        # In that case, we can default to the latest_ers_key...
+        if continue_epoch == -1:
+            self.logger.info("Starting from scratch. Setting initial epoch/step to 0/0")
+            self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+        if continue_step == -1:
+            raise RuntimeError("`continue_step` is -1 after error checking")
+
+        self.current_ers_key = self.storage_manager.getLatestERSKey()
+        continue_epoch = self.current_ers_key.storage.epoch
+        continue_step = self.current_ers_key.storage.step
+
+        
+        if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+            self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
+        else:
+            # Attempt to load models, with skip-if-error
+            response = self.load(load_epoch=continue_epoch, load_step=continue_step, artifact=StorageArtifactType.MODEL, ignore_if_error = True)
+            if not response:
+                self.logger.info("Could not load weights at epoch-step %i/%i. Skipping"%(continue_epoch, continue_step))
+
 
         if not self.skipeval:
             self.logger.info("Performing initial evaluation...")
@@ -516,9 +527,8 @@ class BaseTrainer:
             self.save(artifact=StorageArtifactType.LOG)
         if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.METRIC):
             self.save(artifact=StorageArtifactType.METRIC)
-        # No need to save config again...
-        #if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
-        #    self.save(artifact=StorageArtifactType.CONFIG)
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
+            self.save(artifact=StorageArtifactType.CONFIG)
 
     def check_epoch_save(self):  # TODO off by one errors
         if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.MODEL):
@@ -531,6 +541,8 @@ class BaseTrainer:
             self.save(artifact=StorageArtifactType.LOG)
         if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.METRIC):
             self.save(artifact=StorageArtifactType.METRIC)
+        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
+            self.save(artifact=StorageArtifactType.CONFIG)
 
 
     def set_save_flag(self):

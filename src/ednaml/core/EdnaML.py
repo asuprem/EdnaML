@@ -402,7 +402,7 @@ class EdnaML(EdnaMLBase):
 
 
     def train(self, **kwargs):
-        self.trainer.train(storage_key = self.storageManager.getLatestStorageKey(), **kwargs)  #
+        self.trainer.train(ers_key = self.storageManager.getLatestERSKey(), **kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()

@@ -60,9 +60,11 @@ class LocalStorage(BaseStorage):
 
 
     def upload(self, source_file_name: str, ers_key: ERSKey):
-        
-        shutil.copy2(source_file_name, 
-            os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)))
+        if os.path.exists(source_file_name):
+            shutil.copy2(source_file_name, 
+                os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)))
+            return True
+        return False
 
     def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:
         if self.getKey(ers_key=ers_key) is not None:
