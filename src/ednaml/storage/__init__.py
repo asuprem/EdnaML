@@ -327,10 +327,15 @@ class StorageManager:
         if artifact is None:
             artifact = StorageArtifactType.MODEL
         
-        self.log("Intializing StorageKey to (-1,-1), with reference artifact: %s"%artifact.value)
+        self.log("Intializing reference StorageKey to (-1,-1), with reference artifact: %s"%artifact.value)
         ers_key: ERSKey = self.getERSKey(epoch = -1, step = -1, artifact_type=artifact)
         remote_ers_key = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
         local_ers_key = self.local_storage.getLatestStorageKey(ers_key=ers_key)
+
+        self.log("Found remote ERSKey with reference artifact: %s \n %s"%(artifact.value, repr(remote_ers_key)))
+        self.log("Found local ERSKey with reference artifact: %s \n %s"%(artifact.value, repr(local_ers_key)))
+        
+
 
         final_ers_key = None
         if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:

@@ -76,6 +76,38 @@ class ERSKey:
         self.storage = storage
     def __repr__(self) -> str:
         return "\n".join([repr(self.experiment), repr(self.run), repr(self.storage)])
+
+
+class KeyMethods:
+    @staticmethod
+    def cloneExperimentKey(experiment_key: ExperimentKey) -> ExperimentKey:
+        return ExperimentKey(
+            model_core_name=experiment_key.model_core_name,
+            model_backbone=experiment_key.model_backbone,
+            model_qualifier=experiment_key.model_qualifier,
+            model_version=experiment_key.model_version,
+        )
+
+    @staticmethod
+    def cloneRunKey(run_key: RunKey):
+        return RunKey(
+            run=run_key.run
+        )
+
+    @staticmethod
+    def cloneStorageKey(storage_key: StorageKey):
+        return StorageKey(epoch=storage_key.epoch,
+                            step=storage_key.step,
+                            artifact=storage_key.artifact)
+
+    @staticmethod
+    def cloneERSKey(ers_key: ERSKey):
+        return ERSKey(
+            experiment = KeyMethods.cloneExperimentKey(ers_key.experiment),
+            run = KeyMethods.cloneRunKey(ers_key.run),
+            storage = KeyMethods.cloneStorageKey(ers_key.storage),
+        )
+
 class StorageNameStruct:
     model_core_name: str
     model_version: str

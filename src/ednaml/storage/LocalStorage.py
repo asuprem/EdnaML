@@ -3,7 +3,7 @@ import os, shutil
 import re
 from typing import Union
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey, StorageNameStruct
+from ednaml.utils import ERSKey, ExperimentKey, KeyMethods, StorageArtifactType, StorageKey, StorageNameStruct
 from ednaml.utils.SaveMetadata import SaveMetadata
 
 # TODO take care of runs...
@@ -123,6 +123,7 @@ class LocalStorage(BaseStorage):
         compiled = [_re.search(item) for item in model_basenames]
         max_epoch = [int(item[1]) for item in compiled]
         
+        ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         if len(max_epoch) == 0:
             ers_key.storage.epoch = -1
             ers_key.storage.step = -1
