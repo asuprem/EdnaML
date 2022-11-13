@@ -176,7 +176,7 @@ class BaseTrainer:
             save_epoch = self.global_epoch
         if save_step is None:
             save_step = self.global_batch
-        
+        self.logger.info("Attempting upload of artifact `%s` at epoch %i / step %i"%(artifact.value, save_epoch, save_step))
         # For whatever the artifact is, we will first perform a local save,
         # then perform a backup IF backup_perform is true...
         if artifact == StorageArtifactType.MODEL:
@@ -292,7 +292,7 @@ class BaseTrainer:
                 model_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=model_ers_key)
                 # TODO replace with ModelAbstract's own loader?????
                 if self.gpus == 0:
-                    self.model.load_state_dict(torch.load(model_local_storage_savepath), map_location=self.device)
+                    self.model.load_state_dict(torch.load(model_local_storage_savepath, map_location=self.device))
                 else:
                     self.model.load_state_dict(torch.load(model_local_storage_savepath))
                 self.logger.info(
@@ -358,11 +358,13 @@ class BaseTrainer:
 
     def train(self, continue_epoch: int = 0, continue_step: int = 0, ers_key: ERSKey = None, **kwargs):
         if continue_epoch is None:  # Use the provided latest key
+            self.logger.debug("`continue_epoch` is not provided. Checking in provided `ers_key`")
             continue_epoch = ers_key.storage.epoch
             continue_step = ers_key.storage.step
             self.current_ers_key = ers_key
         else:   # contnue epoch and step are provided
             # Check if they are valid. Otherwise, default to provided latest_key
+            self.logger.debug("`continue_epoch` is provided. Checking validity in remote Storage")
             key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
                             self.storage_manager.getERSKey( epoch=continue_epoch, 
                                                             step=continue_step, 
@@ -374,6 +376,7 @@ class BaseTrainer:
                 continue_step = ers_key.storage.step
                 self.current_ers_key = ers_key
             else:
+                # get an ERSKey using the continue_epoch and step...
                 self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
 
 
@@ -390,12 +393,11 @@ class BaseTrainer:
         if continue_epoch == -1:
             self.logger.info("Starting from scratch. Setting initial epoch/step to 0/0")
             self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+            self.current_ers_key = self.storage_manager.getLatestERSKey()
+            continue_epoch = self.current_ers_key.storage.epoch
+            continue_step = self.current_ers_key.storage.step
         if continue_step == -1:
             raise RuntimeError("`continue_step` is -1 after error checking")
-
-        self.current_ers_key = self.storage_manager.getLatestERSKey()
-        continue_epoch = self.current_ers_key.storage.epoch
-        continue_step = self.current_ers_key.storage.step
 
         
         if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
