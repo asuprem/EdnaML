@@ -40,7 +40,7 @@ Verbosity = 0 -> create no logger and use a dummy that print nothing anywhere
 class EdnaML(EdnaMLBase):
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
-    model: ModelAbstract = None
+    model: ModelAbstract
     loss_function_array: List[LossBuilder]
     loss_optimizer_array: List[torch.optim.Optimizer]
     optimizer: List[torch.optim.Optimizer]
@@ -53,9 +53,9 @@ class EdnaML(EdnaMLBase):
     cfg: EdnaMLConfig
     config: Union[str,List[str]]    # list of paths to configuration files
     decorator_reference: Dict[str,Type[MethodType]]
-    plugins: Dict[str, ModelPlugin] = {}
-    storage: Dict[str, BaseStorage] = {}
-    storage_classes: Dict[str, Type[BaseStorage]] = {}
+    plugins: Dict[str, ModelPlugin]
+    storage: Dict[str, BaseStorage]
+    storage_classes: Dict[str, Type[BaseStorage]]
     storageManager: StorageManager
     logManager: LogManager
     logger: logging.Logger
@@ -104,7 +104,13 @@ class EdnaML(EdnaMLBase):
                     ValueError("config MUST be list or string")
         else:
             raise ValueError("config MUST be list or string")
-        
+
+        self.model = None
+        self.plugins = {}
+        self.storage = {}
+        self.storage_classes = {}
+
+
         self.mode = mode
         self.weights = weights
         self.pretrained_weights = None
