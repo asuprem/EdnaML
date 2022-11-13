@@ -44,8 +44,8 @@ class BaseTrainer:
     step_save_frequency: int
 
     edna_context: EdnaMLContextInformation
-    saveFlag_epoch = 0
-    saveFlag_step = 0
+    saveFlag_epoch: int
+    saveFlag_step: int
 
     current_ers_key: ERSKey
 
@@ -112,6 +112,8 @@ class BaseTrainer:
 
         self.global_batch = 0  # Current batch number in the epoch
         self.global_epoch = 0
+        self.saveFlag_epoch = 0
+        self.saveFlag_step = 0
 
         self.metadata = {}
         self.labelMetadata = labels
@@ -465,18 +467,17 @@ class BaseTrainer:
                     self.save(self.saveFlag_epoch, self.saveFlag_step)
                     self.saveFlag = False
 
-            self.global_batch += 1
-            import pdb
-            pdb.set_trace()
+            
+            
             if self.storage_mode_strict:
-                self.check_step_save()
+                self.check_step_save(self.global_batch)
             else:   # We check every steo_verbose steps
                 if (self.global_batch + 1) % self.step_verbose == 0:
-                    self.check_step_save()
+                    self.check_step_save(self.global_batch+1)
             
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
-            
+            self.global_batch += 1
             # if self.step_save_frequency and self.global_batch % self.step_save_frequency == 0:
             #     self.set_save_flag()
             
@@ -501,7 +502,7 @@ class BaseTrainer:
             else:
                 self.evaluate()
         
-        self.check_epoch_save()
+        self.check_epoch_save(self.global_epoch)
         # if self.global_epoch % self.save_frequency == 0:
         #     if self.accumulation_steps > 0:
         #         self.logger.info(
@@ -519,40 +520,40 @@ class BaseTrainer:
     # Additional notes: for model and artifact saving, we need a way to tie their frequency together
     # That is, we will completely ignore whatever frequency is for ARTIFACT, because we save artifacts WHEN
     # we save model; we just save it in the artifact location, rather than the model location
-    def check_step_save(self):
+    def check_step_save(self, step):
         # MODEL and MODEL_ARTIFACTS
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.MODEL):
+        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.MODEL):
             # For gradient accumulation
-            self.set_save_flag()
+            self.set_save_flag(epoch=self.global_epoch, step=step)
 
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.PLUGIN):
-            self.save(artifact=StorageArtifactType.PLUGIN)
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.LOG):
-            self.save(artifact=StorageArtifactType.LOG)
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.METRIC):
-            self.save(artifact=StorageArtifactType.METRIC)
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
-            self.save(artifact=StorageArtifactType.CONFIG)
+        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.PLUGIN):
+            self.save(artifact=StorageArtifactType.PLUGIN, save_step=step)
+        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG):
+            self.save(artifact=StorageArtifactType.LOG, save_step=step)
+        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.METRIC):
+            self.save(artifact=StorageArtifactType.METRIC, save_step=step)
+        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.CONFIG):
+            self.save(artifact=StorageArtifactType.CONFIG, save_step=step)
 
-    def check_epoch_save(self):  # TODO off by one errors
-        if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.MODEL):
+    def check_epoch_save(self, epoch):  # TODO off by one errors
+        if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.MODEL):
             # For gradient accumulation
-            self.set_save_flag()
+            self.set_save_flag(epoch=epoch, step=self.global_batch)
 
-        if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.PLUGIN):
-            self.save(artifact=StorageArtifactType.PLUGIN)
-        if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.LOG):
-            self.save(artifact=StorageArtifactType.LOG)
-        if self.storage_manager.getUploadTriggerForEpoch(self.global_epoch, StorageArtifactType.METRIC):
-            self.save(artifact=StorageArtifactType.METRIC)
-        if self.storage_manager.getUploadTriggerForStep(self.global_batch, StorageArtifactType.CONFIG):
-            self.save(artifact=StorageArtifactType.CONFIG)
+        if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.PLUGIN):
+            self.save(artifact=StorageArtifactType.PLUGIN, save_epoch=epoch)
+        if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.LOG):
+            self.save(artifact=StorageArtifactType.LOG, save_epoch=epoch)
+        if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.METRIC):
+            self.save(artifact=StorageArtifactType.METRIC, save_epoch=epoch)
+        if self.storage_manager.getUploadTriggerForStep(epoch, StorageArtifactType.CONFIG):
+            self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch)
 
 
-    def set_save_flag(self):
+    def set_save_flag(self, epoch, step):
         self.saveFlag = True
-        self.saveFlag_epoch = self.global_epoch
-        self.saveFlag_step = self.global_batch
+        self.saveFlag_epoch = epoch
+        self.saveFlag_step = step
     
     def set_evaluate_flag(self):
         pass
