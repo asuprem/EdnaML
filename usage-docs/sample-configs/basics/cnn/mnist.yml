@@ -32,7 +32,7 @@ SAVE:
     BACKUP: True
     STORAGE_NAME: local
     FREQUENCY: 1
-    FREQUENCY_STEP: 0
+    FREQUENCY_STEP: 200
 
 TRANSFORMATION:
   BATCH_SIZE: 32                # The size of batches to provide to the model during training
