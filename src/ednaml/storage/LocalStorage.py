@@ -74,12 +74,13 @@ class LocalStorage(BaseStorage):
         return False
         
 
-    def getLatestModelWithEpoch(self, ers_key: ERSKey) -> ERSKey:
-        model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
-        model_list = glob(model_paths)
-        model_basenames = [os.path.basename(item) for item in model_list]
-        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
-        max_step = [int(item[2]) for item in [_re.search(item) for item in model_basenames] if int(item[1]) == ers_key.storage.epoch]
+    def getLatestStepOfArtifactWithEpoch(self, ers_key: ERSKey) -> ERSKey:
+        ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
+        artifact_paths = os.path.join(self.storage_path, self.run_dir,  "*"+self.path_ends[ers_key.storage.artifact])
+        artifact_list = glob(artifact_paths)
+        artifact_basenames = [os.path.basename(item) for item in artifact_list]
+        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)%s"%(self.path_ends[ers_key.storage.artifact].replace(".", "\.")))
+        max_step = [int(item[2]) for item in [_re.search(item) for item in artifact_basenames] if int(item[1]) == ers_key.storage.epoch]
 
         if len(max_step) == 0:
             return None
@@ -92,13 +93,14 @@ class LocalStorage(BaseStorage):
             return ers_key
         return None
 
-    def getLatestModelEpoch(self, ers_key: ERSKey) -> ERSKey:
+    def getLatestEpochOfArtifact(self, ers_key: ERSKey) -> ERSKey:
+        ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         # TODO modify or fix this in case of errors...?
-        model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
-        model_list = glob(model_paths)
-        model_basenames = [os.path.basename(item) for item in model_list]
-        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)_model\.pth")
-        max_epoch = [int(item[1]) for item in [_re.search(item) for item in model_basenames]]
+        artifact_paths = os.path.join(self.storage_path, self.run_dir,  "*"+self.path_ends[ers_key.storage.artifact])
+        artifact_list = glob(artifact_paths)
+        artifact_basenames = [os.path.basename(item) for item in artifact_list]
+        _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)%s"%(self.path_ends[ers_key.storage.artifact].replace(".", "\.")))
+        max_epoch = [int(item[1]) for item in [_re.search(item) for item in artifact_basenames]]
 
         if len(max_epoch) == 0:
             return None

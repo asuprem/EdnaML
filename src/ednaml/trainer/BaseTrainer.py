@@ -358,7 +358,7 @@ class BaseTrainer:
         
         return True
 
-    def train(self, continue_epoch: int = 0, continue_step: int = 0, ers_key: ERSKey = None, **kwargs):
+    def train(self, continue_epoch: int = 0, continue_step: int = None, ers_key: ERSKey = None, **kwargs):
         if continue_epoch is None:  # Use the provided latest key
             self.logger.debug("`continue_epoch` is not provided. Checking in provided `ers_key`")
             continue_epoch = ers_key.storage.epoch
@@ -367,6 +367,11 @@ class BaseTrainer:
         else:   # contnue epoch and step are provided
             # Check if they are valid. Otherwise, default to provided latest_key
             self.logger.debug("`continue_epoch` is provided. Checking validity in remote Storage")
+            key = None
+            if continue_step is None:
+                self.logger.debug("`continue_step` is not provided. Getting latest step saved in Epoch %i in remote Storage"%continue_epoch)
+                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+
             key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
                             self.storage_manager.getERSKey( epoch=continue_epoch, 
                                                             step=continue_step, 
@@ -446,6 +451,7 @@ class BaseTrainer:
             self.logger.info("Final: Saving model at save-frequency")
             self.save(self.saveFlag_epoch, self.saveFlag_step)
             self.saveFlag = False
+        self.logger.info("Finished training")
 
     def initial_evaluate(self):
         """Evaluation of model before we start training"""

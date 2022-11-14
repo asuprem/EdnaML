@@ -160,6 +160,19 @@ class StorageManager:
     def getLatestStorageKey(self) -> StorageKey:
         return self.latest_storage_key
 
+    def getLatestStepOfArtifactWithEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL):
+        """Given an epoch or an ERSKey with epoch value, return ers_key of the latest Artifact
+
+        Args:
+            epoch (int, optional): _description_. Defaults to None.
+            ers_key (ERSKey, optional): _description_. Defaults to None.
+            artifact (StorageArtifactType, optional): _description_. Defaults to StorageArtifactType.MODEL.
+        """
+        if ers_key is None:
+            ers_key = self.getERSKey(epoch=epoch,step=0,artifact_type=artifact)
+        return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+
+
     def getLatestERSKey(self, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
         return self.getERSKey(epoch = self.latest_storage_key.epoch, step = self.latest_storage_key.step, artifact_type=artifact)
 
