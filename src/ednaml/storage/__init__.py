@@ -72,14 +72,17 @@ class StorageManager:
         }
 
         class LooseTriggerMethod:
-            def __init__(self, trigger_frequency: int, initial_state: int = -1):
+            def __init__(self, trigger_frequency: int, initial_state: int = -1, base = 0):
                 self.trigger_frequency: int = trigger_frequency
                 self.state = initial_state
+                self.base = base
             def __call__(self, check_value: int)-> bool:
+                # Get the quotient, i.e. whether we are at a multiplicative factor of the trigger_frequency
                 cv = int(check_value/self.trigger_frequency)
-                if cv and cv != self.state:
+                if cv != self.state:    # Check if same multiplicative factor as before
                     self.state = cv
-                    return True
+                    if cv>=self.base:   # Check if we are above the lowest threshold. 0 for EPOCH, 1 for STEP.
+                        return True
                 return False
 
         # Trigger methods tell us whether to trigger an upload or not. To improve speed, we cache many of the parameters here.
@@ -120,12 +123,12 @@ class StorageManager:
 
         elif self.storage_manager_mode == "loose":
             self.step_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP),
-                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP, base=1),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP, base=1),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY_STEP, base=1),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY_STEP, base=1),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY_STEP, base=1),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP, base=1),
             }
         else:
             raise NotImplementedError()
