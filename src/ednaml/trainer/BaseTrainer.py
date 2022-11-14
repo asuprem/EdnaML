@@ -417,7 +417,7 @@ class BaseTrainer:
         else:
             self.logger.info("Skipping initial evaluation.")
         
-        self.logger.info("Starting training from %i" % continue_epoch)
+        self.logger.info("Starting training from Epoch %i" % continue_epoch)
         self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
