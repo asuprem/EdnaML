@@ -535,6 +535,7 @@ class BaseTrainer:
             self.save(artifact=StorageArtifactType.CONFIG, save_step=step)
 
     def check_epoch_save(self, epoch):  # TODO off by one errors
+        self.logger.info("Checking epoch save status at Epoch %i"%epoch)
         if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.MODEL):
             # For gradient accumulation
             self.set_save_flag(epoch=epoch, step=self.global_batch)

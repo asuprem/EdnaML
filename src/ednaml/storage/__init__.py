@@ -99,12 +99,12 @@ class StorageManager:
 
         elif self.storage_manager_mode == "loose":
             self.epoch_triggers = {
-                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY, initial_state=0),
-                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY, initial_state=0),
+                StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY),
+                StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY),
+                StorageArtifactType.PLUGIN: (lambda x: False) if self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.PLUGIN_BACKUP.FREQUENCY),
+                StorageArtifactType.METRIC: (lambda x: False) if self.cfg.SAVE.METRICS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.METRICS_BACKUP.FREQUENCY),
+                StorageArtifactType.CONFIG: (lambda x: False) if self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.CONFIG_BACKUP.FREQUENCY),
+                StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY),
             }
         else:
             raise NotImplementedError()
