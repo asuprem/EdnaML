@@ -403,12 +403,21 @@ class BaseTrainer:
 
         
         if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
-            self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
+            self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
         else:
+            self.logger.info("Attempting to load weights from from Epoch %i Step %i"%(continue_epoch, continue_step))
             # Attempt to load models, with skip-if-error
             response = self.load(load_epoch=continue_epoch, load_step=continue_step, artifact=StorageArtifactType.MODEL, ignore_if_error = True)
             if not response:
                 self.logger.info("Could not load weights at epoch-step %i/%i. Skipping"%(continue_epoch, continue_step))
+            else: # If we have loaded weights from a specific epoch, we should continue from the next epoch...
+                
+                self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+                self.current_ers_key = self.storage_manager.getLatestERSKey()
+                continue_epoch = self.current_ers_key.storage.epoch
+                continue_step = self.current_ers_key.storage.step
+                self.logger.info("Loaded weights. Incrementing Epoch to: Epoch %i Step %i"%(continue_epoch, continue_step))
+            
 
 
         if not self.skipeval:
