@@ -371,6 +371,10 @@ class BaseTrainer:
             if continue_step is None:
                 self.logger.debug("`continue_step` is not provided. Getting latest step saved in Epoch %i in remote Storage"%continue_epoch)
                 key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+                if key is None:
+                    continue_step = 0
+                else:
+                    continue_step = key.storage.step
 
             key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
                             self.storage_manager.getERSKey( epoch=continue_epoch, 
@@ -416,7 +420,6 @@ class BaseTrainer:
             if not response:
                 self.logger.info("Could not load weights at epoch-step %i/%i. Skipping"%(continue_epoch, continue_step))
             else: # If we have loaded weights from a specific epoch, we should continue from the next epoch...
-                
                 self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
                 self.current_ers_key = self.storage_manager.getLatestERSKey()
                 continue_epoch = self.current_ers_key.storage.epoch

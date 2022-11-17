@@ -116,10 +116,6 @@ class BaseStorage:
         Raises:
             NotImplementedError: _description_
         """
-
-    
-
-
         raise NotImplementedError()
 
     def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey):
