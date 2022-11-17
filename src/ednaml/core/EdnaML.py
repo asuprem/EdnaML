@@ -840,6 +840,7 @@ class EdnaML(EdnaMLBase):
                             " path %s." % (self.previous_stop, self.weights)
                         )
             if self.weights is not None:    # we have this, because previous if-block might update weights path
+                self.logger.info("Loading weights from %s"%self.weights)
                 self.model.load_state_dict(torch.load(self.weights))
                 self.context_information.MODEL_HAS_LOADED_WEIGHTS
                 

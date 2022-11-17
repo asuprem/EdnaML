@@ -203,10 +203,6 @@ class BaseDeploy:
             % (load_epoch, load_step)
         )
         model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, ".pth"])
-        if not (os.path.exists(model_load) and os.path.exists(training_load)):
-            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
-            
-            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
             
         if self.save_backup:
             self.logger.info(
@@ -219,10 +215,36 @@ class BaseDeploy:
             )
             model_load_path = os.path.join(self.save_directory, model_load)
 
-        self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info(
-            "Finished loading model state_dict from %s" % model_load_path
-        )
+        if not (os.path.exists(model_load_path)):
+            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
+            
+            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
+
+            if self.save_backup:
+                self.logger.info(
+                    "Loading model from drive backup."
+                )
+                model_load_path = os.path.join(self.backup_directory, model_load)
+            else:
+                self.logger.info(
+                    "Loading model from local backup."
+                )
+                model_load_path = os.path.join(self.save_directory, model_load)
+
+            if not (os.path.exists(model_load_path)):
+                self.logger.info("Final attempt. Could not find model or training path at %s. Not loading."%model_load)
+            else:
+                self.model.load_state_dict(torch.load(model_load_path))
+                self.logger.info(
+                    "Finished loading model state_dict from %s" % model_load_path
+                )
+        else:
+            self.model.load_state_dict(torch.load(model_load_path))
+            self.logger.info(
+                "Finished loading model state_dict from %s" % model_load_path
+            )
+
+        
         # Here, we will need to get a list of pickled or serialized plugin objects, then load them into a dictionary, then pass them into model
         # YES!!!!
         plugin_load = self.model_save_name + "_plugins.pth"
