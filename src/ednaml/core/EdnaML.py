@@ -103,6 +103,7 @@ class EdnaML(EdnaMLBase):
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.plugins = {}
         # TODO Deal with extensions
         if type(self.config) is str:
@@ -406,9 +407,29 @@ class EdnaML(EdnaMLBase):
         ]
         if len(previous_stop) == 0:
             self.logger.info(
-                "No previous stop detected. Will start from epoch 0"
+                "No previous stop detected. Attempting without steps. Will start from epoch 0"
             )
-            return -1, 0
+            
+            _re = re.compile(r".*epoch([0-9]+).*\.pth")
+            previous_stop = [
+                (int(item[1]))
+                for item in [_re.search(item) for item in fl_list]
+                if item is not None
+            ]
+            
+            if len(previous_stop) == 0:
+                self.logger.info(
+                "No previous stop detected.Will start from epoch 0"
+                )
+
+                return -1, 0
+            else:
+                max_epoch = max(previous_stop)
+                self.logger.info(
+                    "Previous stop detected. Will attempt to resume from epoch %i"
+                % (max_epoch)
+            )
+            return max_epoch, 0
         else:
             max_epoch = max(previous_stop, key=lambda x:x[0])
             max_epoch_pairs = [item for item in previous_stop if item[0] == max_epoch[0]]
@@ -842,7 +863,7 @@ class EdnaML(EdnaMLBase):
                         )
             if self.weights is not None:    # we have this, because previous if-block might update weights path
                 self.logger.info("Loading weights from %s"%self.weights)
-                self.model.load_state_dict(torch.load(self.weights))
+                self.model.load_state_dict(torch.load(self.weights, map_location=self.device))
                 self.context_information.MODEL_HAS_LOADED_WEIGHTS = True
                 
         else:
@@ -1298,7 +1319,7 @@ class EdnaML(EdnaMLBase):
         """
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
-            self.model.load_state_dict(torch.load(model_load_path))
+            self.model.load_state_dict(torch.load(model_load_path, map_location=self.device))
             self.logger.info(
                 "Finished loading model state_dict from %s" % model_load_path
             )
