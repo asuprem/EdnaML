@@ -125,30 +125,6 @@ class BaseDeploy:
                 load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
                 if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
                     self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
-
-                    plugin_load = self.model_save_name + "_plugins.pth"
-
-                    if self.save_backup:
-                        self.logger.info(
-                            "Looking for model plugins from drive backup."
-                        )
-                        plugin_load_path = os.path.join(self.backup_directory, plugin_load)
-                    else:
-                        self.logger.info(
-                            "Looking for model plugins from local backup."
-                        )
-                        plugin_load_path = os.path.join(self.save_directory, plugin_load)
-
-                    if os.path.exists(plugin_load_path):
-                        
-                        self.model.loadPlugins(plugin_load_path, ignore_plugins=ignore_plugins)
-                        self.logger.info(
-                            "Loaded plugins from %s"%plugin_load_path
-                        )
-                    else:
-                        self.logger.info(
-                            "No plugins found at %s"%plugin_load_path
-                        )
                 else:
                     self.load(load_epoch, continue_step, ignore_plugins=ignore_plugins)
 
