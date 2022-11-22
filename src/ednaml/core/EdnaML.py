@@ -52,7 +52,7 @@ class EdnaML(EdnaMLBase):
     test_generator: Generator
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
-    plugins: Dict[str, ModelPlugin]
+    plugins: Dict[str, ModelPlugin] = {}
 
     context_information: EdnaMLContextInformation
 
@@ -103,7 +103,6 @@ class EdnaML(EdnaMLBase):
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
-        self.plugins = {}
         # TODO Deal with extensions
         if type(self.config) is str:
             self.cfg = EdnaMLConfig([self.config], **kwargs)
