@@ -128,7 +128,6 @@ class BaseDeploy:
                 else:
                     self.load(load_epoch, continue_step, ignore_plugins=ignore_plugins)
 
-
             if inference:
                 self.model.inference()
             else:
@@ -235,12 +234,12 @@ class BaseDeploy:
             if not (os.path.exists(model_load_path)):
                 self.logger.info("Final attempt. Could not find model or training path at %s. Not loading."%model_load)
             else:
-                self.model.load_state_dict(torch.load(model_load_path, map_location=self.device))
+                self.model.load_state_dict(torch.load(model_load_path))
                 self.logger.info(
                     "Finished loading model state_dict from %s" % model_load_path
                 )
         else:
-            self.model.load_state_dict(torch.load(model_load_path, map_location=self.device))
+            self.model.load_state_dict(torch.load(model_load_path))
             self.logger.info(
                 "Finished loading model state_dict from %s" % model_load_path
             )
