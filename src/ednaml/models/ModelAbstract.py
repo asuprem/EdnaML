@@ -29,22 +29,21 @@ class ModelAbstract(nn.Module):
         _type_: _description_
     """
     model_name: str = "ModelAbstract"
-    model_arch: str = None
-    number_outputs: int = 1
-    output_classnames: List[str] = ["out1"]
-    output_dimensions: List[int] = [512]
-    secondary_outputs: List[Any] = []
-
+    model_arch: str
+    number_outputs: int 
+    output_classnames: List[str]
+    output_dimensions: List[int]
+    secondary_outputs: List[Any]
     model_base: str
     weights: str
     normalization: str
     metadata: LabelMetadata
     parameter_groups: Dict[str, nn.Module]
 
-    plugins: Dict[str,ModelPlugin] = {}
-    plugin_count: int = 0
-    has_plugins: bool = False
-    plugin_hook: str = "always"
+    plugins: Dict[str,ModelPlugin]
+    plugin_count: int 
+    has_plugins: bool 
+    plugin_hook: str 
 
     _logger: Logger = None
 
@@ -65,6 +64,17 @@ class ModelAbstract(nn.Module):
         self.parameter_groups = {}
         self.inferencing = False
         
+
+        self.plugins = {}
+        self.output_classnames = ["out1"]
+        self.output_dimensions = [512]
+        self.secondary_outputs = []
+        self.plugin_count = 0
+        self.has_plugins = False
+        self.plugin_hook = "always"
+        self.model_arch = None
+        self.number_outputs = 1
+
 
         self.model_attributes_setup(**kwargs)
         self.model_setup(**kwargs)

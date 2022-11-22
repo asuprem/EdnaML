@@ -165,6 +165,7 @@ class EdnaDeploy(EdnaML):
                 crawler=self.crawler,
                 config=self.cfg,
                 labels=self.labelMetadata,
+                context=self.context_information,
                 **self.cfg.DEPLOYMENT.DEPLOYMENT_ARGS
             )
             self.deployment.apply(

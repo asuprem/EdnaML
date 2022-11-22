@@ -1,5 +1,5 @@
 # Entry point
-__VERSION__ = 0.1
+__VERSION__ = "0.1.5"
 
 
 def version():

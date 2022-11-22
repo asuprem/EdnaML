@@ -8,7 +8,7 @@ from torchinfo import ModelStatistics
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
 from ednaml.config.ModelConfig import ModelConfig
-from ednaml.core import EdnaMLBase
+from ednaml.core import EdnaMLBase, EdnaMLContextInformation
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
@@ -52,7 +52,9 @@ class EdnaML(EdnaMLBase):
     test_generator: Generator
     cfg: EdnaMLConfig
     decorator_reference: Dict[str,Type[MethodType]]
-    plugins: Dict[str, ModelPlugin] = {}
+    plugins: Dict[str, ModelPlugin]
+
+    context_information: EdnaMLContextInformation
 
     def __init__(
         self,
@@ -101,6 +103,8 @@ class EdnaML(EdnaMLBase):
         self.pretrained_weights = None
         self.verbose = verbose
         self.gpus = torch.cuda.device_count()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.plugins = {}
         # TODO Deal with extensions
         if type(self.config) is str:
             self.cfg = EdnaMLConfig([self.config], **kwargs)
@@ -133,6 +137,7 @@ class EdnaML(EdnaMLBase):
             "generator": self.addGeneratorClass,
             "model_plugin": self.addPlugins,
         }
+        self.context_information = EdnaMLContextInformation()
 
     def addResetQueues(self):
         return []
@@ -316,7 +321,7 @@ class EdnaML(EdnaMLBase):
                                     **self.cfg.STORAGE.STORAGE_ARGS)
 
     def train(self, **kwargs):
-        self.trainer.train(continue_epoch=self.previous_stop + 1, **kwargs)  #
+        self.trainer.train(continue_epoch=self.previous_stop + 1, continue_step = self.previous_step, **kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()
@@ -363,11 +368,13 @@ class EdnaML(EdnaMLBase):
                 config=self.cfg,
                 labels=self.labelMetadata,
                 storage=self.storage,
+                context = self.context_information,
                 **self.cfg.EXECUTION.TRAINER_ARGS
             )
             self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
                 save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
+                step_save_frequency = self.cfg.SAVE.STEP_SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
                 save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
                 save_backup=self.cfg.SAVE.DRIVE_BACKUP,
@@ -380,7 +387,7 @@ class EdnaML(EdnaMLBase):
 
     def setPreviousStop(self):
         """Sets the previous stop"""
-        self.previous_stop = self.getPreviousStop()
+        self.previous_stop, self.previous_step = self.getPreviousStop()
 
     def getPreviousStop(self) -> int:
         """Gets the previous stop, if any, of the trainable model by checking local save directory, as well as a network directory."""
@@ -392,23 +399,47 @@ class EdnaML(EdnaMLBase):
             fl_list = glob.glob(
                 os.path.join(self.saveMetadata.MODEL_SAVE_FOLDER, "*.pth")
             )
-        _re = re.compile(r".*epoch([0-9]+)\.pth")
+        _re = re.compile(r".*epoch([0-9]+).*step([0-9]+).*\.pth")
         previous_stop = [
-            int(item[1])
+            (int(item[1]),int(item[2]))
             for item in [_re.search(item) for item in fl_list]
             if item is not None
         ]
         if len(previous_stop) == 0:
             self.logger.info(
-                "No previous stop detected. Will start from epoch 0"
+                "No previous stop detected. Attempting without steps. Will start from epoch 0"
             )
-            return -1
+            
+            _re = re.compile(r".*epoch([0-9]+).*\.pth")
+            previous_stop = [
+                (int(item[1]))
+                for item in [_re.search(item) for item in fl_list]
+                if item is not None
+            ]
+            
+            if len(previous_stop) == 0:
+                self.logger.info(
+                "No previous stop detected.Will start from epoch 0"
+                )
+
+                return -1, 0
+            else:
+                max_epoch = max(previous_stop)
+                self.logger.info(
+                    "Previous stop detected. Will attempt to resume from epoch %i"
+                % (max_epoch)
+            )
+            return max_epoch, 0
         else:
+            max_epoch = max(previous_stop, key=lambda x:x[0])
+            max_epoch_pairs = [item for item in previous_stop if item[0] == max_epoch[0]]
+            max_step = max(max_epoch_pairs, key=lambda x:x[1])
+
             self.logger.info(
-                "Previous stop detected. Will attempt to resume from epoch %i"
-                % max(previous_stop)
+                "Previous stop detected. Will attempt to resume from epoch %i, step %i"
+                % (max_epoch[0], max_step[1])
             )
-            return max(previous_stop)
+            return max_epoch[0], max_step[1]
 
     def addOptimizer(
         self, optimizer: torch.optim.Optimizer, parameter_group="opt-1"
@@ -802,7 +833,7 @@ class EdnaML(EdnaMLBase):
 
     def loadWeights(self):
         """If in `test` mode, load weights from weights path. Otherwise, partially load what is possible from given weights path, if given.
-        Note that for training mode, weights are downloaded from pytoch to be loaded if pretrained weights are desired.
+        Note that for training mode, weights are downloaded from pytorch to be loaded if pretrained weights are desired.
         """
         if self.mode == "test":
             if self.weights is None:
@@ -831,7 +862,10 @@ class EdnaML(EdnaMLBase):
                             " path %s." % (self.previous_stop, self.weights)
                         )
             if self.weights is not None:    # we have this, because previous if-block might update weights path
-                self.model.load_state_dict(torch.load(self.weights))
+                self.logger.info("Loading weights from %s"%self.weights)
+                self.model.load_state_dict(torch.load(self.weights, map_location=self.device))
+                self.context_information.MODEL_HAS_LOADED_WEIGHTS = True
+                
         else:
             if self.weights is None:
                 self.logger.info("No saved model weights provided.")
@@ -845,6 +879,7 @@ class EdnaML(EdnaMLBase):
                         )
                     )
                     self.model.partial_load(self.weights)
+                    self.context_information.MODEL_HAS_LOADED_WEIGHTS = True
                     self.logger.info(
                         "Completed partial model load from {}".format(
                             self.weights
@@ -1284,7 +1319,7 @@ class EdnaML(EdnaMLBase):
         """
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
-            self.model.load_state_dict(torch.load(model_load_path))
+            self.model.load_state_dict(torch.load(model_load_path, map_location=self.device))
             self.logger.info(
                 "Finished loading model state_dict from %s" % model_load_path
             )

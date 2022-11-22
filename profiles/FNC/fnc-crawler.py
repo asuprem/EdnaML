@@ -326,7 +326,7 @@ class FNCRawGenerator(TextGenerator):
     def getNumEntities(self, crawler, mode, **kwargs):  #<-- dataset args
         label_dict = {
             item: {"classes": crawler.metadata[mode]["classes"][item]}
-            for item in kwargs.get("classificationclass", ["fn_label"])
+            for item in kwargs.get("classificationclass", ["fnews"])
         }
         return LabelMetadata(label_dict=label_dict)
 

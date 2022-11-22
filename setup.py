@@ -10,7 +10,8 @@ requires = [
         "Pillow>=7.1.2",    #9.0.x, this is for colab...
         "tqdm>=4.63.*",
         "sentencepiece>=0.1.96",
-        "sortedcontainers>=2.4.0"
+        "sortedcontainers>=2.4.0",
+        "pyyaml>=6.0",
     ]
 
 

@@ -20,6 +20,8 @@ class EdnaMLBase:
     _generatorArgsQueue = Dict[str, Any]
     _generatorClassQueueFlag = bool
 
+class EdnaMLContextInformation:
+    MODEL_HAS_LOADED_WEIGHTS = False
 
 from ednaml.core.EdnaML import EdnaML
 from ednaml.core.EdnaDeploy import EdnaDeploy

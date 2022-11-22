@@ -51,6 +51,9 @@ class FNCFilterDeployment(BaseDeploy):
 
         return filter_batch, None, unfilter_batch
 
+    def move_to_device(self, batch):
+        return batch
+
     def output_setup(self, **kwargs):
         filter_file = kwargs.get("filtered_output")
         unfilter_file = kwargs.get("unfiltered_output")

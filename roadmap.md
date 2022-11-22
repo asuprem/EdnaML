@@ -2,30 +2,6 @@
 
 Deploy also needs to deal with storage classes
 
-Roadmap
-[
-
-FNC-labeler.py
-
-point at a zip
-it will iterate through the zip first and get the number of lines in there
-
-Then, it will iterate through zip again
-
-First do 400 / num lines. This is probability of selecting a line.
-
-Multiply by 5.
-
-For each line, check if prob matches the threshold.
-
-If so, ask us.  -- wait for user input of left arrow or right arrow for fake/true, and write to file based on this...
-
-Else, ignore and write -1
-
-
-]
-
-
 
 - Deploy
     - need a way to rerun existing saved model, by also saving the file model was generated from...🟢

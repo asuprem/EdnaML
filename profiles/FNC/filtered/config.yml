@@ -11,7 +11,7 @@ DEPLOYMENT:
       azfile: tweets-2020-01-22.json.gz
     DATAREADER: AlbertReader
     DATASET_ARGS:
-      classificationclass: ['fn_label']
+      classificationclass: ['fnews']
       shard_replace: False
       shardpath: datashard-artifacts
       shardname: fnc-raw-shard

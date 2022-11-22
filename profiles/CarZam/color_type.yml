@@ -1,0 +1,47 @@
+EXECUTION:
+  DATAREADER:
+    DATASET_ARGS:
+      pathidx: 0
+      annotationidx: [2, 1]
+      classificationclass: ['color','vtype']
+    GENERATOR: MultiClassificationGenerator
+  TRAINER: MultiClassificationTrainer
+
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "origtoolimgs"
+  MODEL_BACKBONE: "multiclass"
+  MODEL_QUALIFIER: "color-vtype"
+  DRIVE_BACKUP: False
+  LOG_BACKUP: False
+  SAVE_FREQUENCY: 1 # Epoch
+  CHECKPOINT_DIRECTORY: "checkpoint"
+
+
+MODEL:
+  BUILDER: multiclassification_model_builder
+  MODEL_ARCH: 'MultiClassificationResnet'
+  MODEL_BASE: 'resnet18'
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS: 
+    number_outputs: 2
+    outputs:
+      - dimensions:
+        name: type
+        label: vtype
+      - dimensions:
+        name: out2
+        label: color
+
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: color
+    NAME: colorloss
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: vtype
+    NAME: typeloss
