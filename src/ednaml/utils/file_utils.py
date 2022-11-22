@@ -9,13 +9,12 @@ class IterableFile:
         self.row_count = self._bufcount(file_path)
         self.file_path = file_path
         self.line_callback = line_callback
-        self.file_obj = open(self.file_path, "r")
 
     def __len__(self):
         return self.row_count
 
     def __iter__(self):
-        return (self.line_callback(row) for row in self.file_obj)
+        return (self.line_callback(row) for row in open(self.file_path, "r"))
 
 
     def _bufcount(self, filename):
@@ -30,9 +29,6 @@ class IterableFile:
             buf = read_f(buf_size)
 
         return lines
-
-    def close(self):
-        self.file_obj.close()
 
 """
 self.file_obj = open(file_path, "r+b")
