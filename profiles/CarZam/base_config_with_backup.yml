@@ -24,7 +24,7 @@ SAVE:
   DRIVE_BACKUP: True
   LOG_BACKUP: True
   SAVE_FREQUENCY: 1 # Epoch
-  CHECKPOINT_DIRECTORY: "checkpoint"
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CarZam/Models/"
 
 TRANSFORMATION:
   BATCH_SIZE: 32
