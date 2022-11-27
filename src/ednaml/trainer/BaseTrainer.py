@@ -231,8 +231,16 @@ class BaseTrainer:
             torch.save(save_dict, artifact_local_storage_savepath)
 
             if self.storage_manager.performBackup(artifact):
-                self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadModel(source_file_name=model_local_storage_savepath, ers_key=model_ers_key)
-                self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.ARTIFACT)].uploadModelArtifact(source_file_name=artifact_local_storage_savepath, ers_key=artifact_ers_key)
+                self.storage_manager.upload(
+                    self.storage,
+                    model_ers_key
+                )
+                self.storage_manager.upload(
+                    self.storage,
+                    artifact_ers_key
+                )
+                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadModel(source_file_name=model_local_storage_savepath, ers_key=model_ers_key)
+                #self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.ARTIFACT)].uploadModelArtifact(source_file_name=artifact_local_storage_savepath, ers_key=artifact_ers_key)
 
         elif artifact == StorageArtifactType.ARTIFACT:
             raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
@@ -241,19 +249,26 @@ class BaseTrainer:
         elif artifact == StorageArtifactType.LOG:
             # LogManager writes to file OR writes to a remote server. Storage takes care of "missing" files by skipping them.
             log_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.LOG)
-            log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
+            #log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
             if self.storage_manager.performBackup(artifact):
-                self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
+                self.storage_manager.upload(
+                    self.storage, log_ers_key
+                )
+                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
         elif artifact == StorageArtifactType.CONFIG:
             self.logger.debug("Not uploading config")   # TODO
         elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
             # MetricManager writes to one-file-per-metric, or to remote server (or both).
             # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server 
             metrics_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.METRIC)
-            metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
+            #metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
             # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
             if self.storage_manager.performBackup(artifact):
-                self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
+                self.storage_manager.upload(
+                    self.storage,
+                    metrics_ers_key
+                )
+                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
         else:
             raise ValueError("Unexpected value for artifact type %s"%artifact.value)
 
