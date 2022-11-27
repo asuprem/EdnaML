@@ -1,5 +1,5 @@
 from typing import Type, Union, List
-from ednaml.core import EdnaML
+from ednaml.core.EdnaML import EdnaML
 import logging
 from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader

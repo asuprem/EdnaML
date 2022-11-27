@@ -1,3 +1,8 @@
+class EdnaMLContextInformation:
+    MODEL_HAS_LOADED_WEIGHTS: bool = False
+    LOADED_EPOCH: int = -1
+    LOADED_STEP: int = -1
+    
 import logging
 from types import MethodType
 from typing import Any, Dict, List, Type, Union
@@ -15,11 +20,6 @@ from ednaml.storage import BaseStorage, StorageManager
 from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.utils import ExperimentKey
 from ednaml.utils.LabelMetadata import LabelMetadata
-
-class EdnaMLContextInformation:
-    MODEL_HAS_LOADED_WEIGHTS: bool = False
-    LOADED_EPOCH: int = -1
-    LOADED_STEP: int = -1
 
 class EdnaMLBase:
     labelMetadata: LabelMetadata
