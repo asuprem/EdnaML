@@ -12,6 +12,7 @@ class EdnaMLBase:
         2: logging.INFO,
         3: logging.DEBUG,
     }
+    logger: logging.Logger
     _crawlerClassQueue: Type[Crawler]
     _crawlerArgsQueue: Dict[str, Any]
     _crawlerClassQueueFlag: bool
@@ -25,10 +26,10 @@ class EdnaMLBase:
     def clear_registrations():
         ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS = {}
 
-    def log(self):
-        pass
-    def debug(self):
-        pass
+    def log(self, msg):
+        self.logger.info("[EdnaML]" + msg)
+    def debug(self, msg):
+        self.logger.debug("[EdnaML]" + msg)
 
     def __init__(self):
         self.logger = None
