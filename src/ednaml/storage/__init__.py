@@ -1,4 +1,5 @@
 import logging
+from threading import local
 from typing import Dict, Union
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.SaveConfig import SaveConfig
@@ -188,8 +189,10 @@ class StorageManager:
         """
         
         local_path = self.getLocalSavePath(ers_key=ers_key)
+        storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
+        self.log("Downloading ERSKey `{key}` from storage {storage} into {path}".format(key=ers_key.printKey(), storage=storage_name, path=local_path))
         if not os.path.exists(local_path):
-            return storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].download(ers_key=ers_key, 
+            return storage_dict[storage_name].download(ers_key=ers_key, 
                 destination_file_name=local_path)
         return True # Already exists.
 
@@ -201,8 +204,10 @@ class StorageManager:
             ers_key (ERSKey): _description_
         """
         source_file_name = self.getLocalSavePath(ers_key=ers_key)
+        storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
+        self.log("Uploading {path} into storage {storage}, with ERSKey `{key}`".format(key=ers_key.printKey(), storage=storage_name, path=source_file_name))
         if os.path.exists(source_file_name):
-            storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].upload(ers_key=ers_key, 
+            storage_dict[storage_name].upload(ers_key=ers_key, 
                 source_file_name=source_file_name)
             return True
         return False
