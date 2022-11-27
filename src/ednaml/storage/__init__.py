@@ -190,10 +190,13 @@ class StorageManager:
         
         local_path = self.getLocalSavePath(ers_key=ers_key)
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
-        self.log("Downloading ERSKey `{key}` from storage {storage} into {path}".format(key=ers_key.printKey(), storage=storage_name, path=local_path))
+        
         if not os.path.exists(local_path):
+            self.log("Downloading ERSKey `{key}` from storage {storage} into {path}".format(key=ers_key.printKey(), storage=storage_name, path=local_path))
             return storage_dict[storage_name].download(ers_key=ers_key, 
                 destination_file_name=local_path)
+        else:
+            self.log("ERSKey `{key}` already exists locally. Skipping.".format(key=ers_key.printKey()))
         return True # Already exists.
 
     def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
@@ -205,11 +208,14 @@ class StorageManager:
         """
         source_file_name = self.getLocalSavePath(ers_key=ers_key)
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
-        self.log("Uploading {path} into storage {storage}, with ERSKey `{key}`".format(key=ers_key.printKey(), storage=storage_name, path=source_file_name))
+        
         if os.path.exists(source_file_name):
+            self.log("Uploading {path} into storage {storage}, with ERSKey `{key}`".format(key=ers_key.printKey(), storage=storage_name, path=source_file_name))
             storage_dict[storage_name].upload(ers_key=ers_key, 
                 source_file_name=source_file_name)
             return True
+        else:
+            self.log("Could not find any file for ERSKey `{key}`, at local path {path}".format(ley=ers_key.printKey(), path=source_file_name))
         return False
         
 
