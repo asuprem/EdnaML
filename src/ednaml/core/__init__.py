@@ -17,6 +17,10 @@ from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.utils import ExperimentKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 
+class EdnaMLContextInformation:
+    MODEL_HAS_LOADED_WEIGHTS: bool = False
+    LOADED_EPOCH: int = -1
+    LOADED_STEP: int = -1
 
 class EdnaMLBase:
     labelMetadata: LabelMetadata
@@ -77,10 +81,7 @@ class EdnaMLBase:
         self.storageManager = None
         self.logManager = None
         self.pretrained_weights = None
-class EdnaMLContextInformation:
-    MODEL_HAS_LOADED_WEIGHTS: bool = False
-    LOADED_EPOCH: int = -1
-    LOADED_STEP: int = -1
+
 
 from ednaml.core.EdnaDeploy import EdnaDeploy
 from ednaml.core.EdnaML import EdnaML
