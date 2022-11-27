@@ -76,7 +76,7 @@ class StorageKey:
         return yaml.dump(dicta)
 
     def getStorageKey(self) -> str:
-        return "-".join([self.artifact.value, self.epoch, self.step])
+        return "-".join([self.artifact.value, str(self.epoch), str(self.step)])
 
     def __str__(self) -> str:
         return self.getStorageKey()

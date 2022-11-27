@@ -1,10 +1,16 @@
 import importlib
-import os, logging, glob, re
+import logging
+import os
+import warnings
 from types import MethodType
 from typing import Callable, Dict, List, Type, Union
-import warnings
-from torchinfo import ModelStatistics
-from ednaml import storage
+
+import torch
+from torchinfo import ModelStatistics, summary
+
+import ednaml.core.decorators
+import ednaml.utils
+import ednaml.utils.web
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.LossConfig import LossConfig
 from ednaml.config.ModelConfig import ModelConfig
@@ -13,23 +19,16 @@ from ednaml.crawlers import Crawler
 from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
 from ednaml.logging import LogManager
-from ednaml.loss.builders import LossBuilder
+from ednaml.loss.builders import ClassificationLossBuilder, LossBuilder
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.optimizer import BaseOptimizer
 from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
-from ednaml.loss.builders import ClassificationLossBuilder
 from ednaml.plugins.ModelPlugin import ModelPlugin
-from ednaml.trainer.BaseTrainer import BaseTrainer
 from ednaml.storage import BaseStorage, StorageManager
-from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey, locate_class, path_import
-import ednaml.utils
-import torch
-from torchinfo import summary
+from ednaml.trainer.BaseTrainer import BaseTrainer
+from ednaml.utils import (ERSKey, ExperimentKey, StorageArtifactType,
+                          StorageKey, locate_class, path_import)
 from ednaml.utils.LabelMetadata import LabelMetadata
-import ednaml.utils.web
-from ednaml.utils.SaveMetadata import SaveMetadata
-import logging
-import ednaml.core.decorators
 
 """TODO
 
@@ -481,7 +480,7 @@ class EdnaML(EdnaMLBase):
             self.log("Latest ERSKey's StorageKey is empty. Resetting StorageKey component.")
             ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
         # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
-        self.log(ers_key)
+        self.log("Using ERSKey : {key}".format(key=ers_key.printKey()))
 
         success = self.storageManager.download(
             storage_dict=self.storage,
