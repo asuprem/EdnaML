@@ -90,7 +90,7 @@ class EdnaML(EdnaMLBase):
             test_only: Under this condition, if in test mode, only model and dataloaders will be created. Optimizers, schedulers will be empty.
 
         """
-
+        super().__init__()
         if type(config) is str:
             self.config = config
         elif type(config) is list:
@@ -105,15 +105,8 @@ class EdnaML(EdnaMLBase):
         else:
             raise ValueError("config MUST be list or string")
 
-        self.model = None
-        self.plugins = {}
-        self.storage = {}
-        self.storage_classes = {}
-
-
         self.mode = mode
         self.weights = weights
-        self.pretrained_weights = None
         self.gpus = torch.cuda.device_count()
         # TODO Deal with extensions
         if type(self.config) is str:
@@ -129,8 +122,6 @@ class EdnaML(EdnaMLBase):
         #os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
         # We create a cached directory for temporary logs while EdnaML starts up...
         # Or maybe we create the logger inside storage...!
-        self.storageManager = None
-        
         log_manager_class = "FileLogManager"
         log_kwargs = {"log_level": 10}  # 10 is DEBUG
         log_manager_class: Type[LogManager] = locate_class(subpackage="logging", classfile=log_manager_class, classpackage=log_manager_class)

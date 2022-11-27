@@ -25,6 +25,20 @@ class EdnaMLBase:
     def clear_registrations():
         ednaml.core.decorators.REGISTERED_EDNA_COMPONENTS = {}
 
+    def log(self):
+        pass
+    def debug(self):
+        pass
+
+    def __init__(self):
+        self.logger = None
+        self.model = None
+        self.plugins = {}
+        self.storage = {}
+        self.storage_classes = {}
+        self.storageManager = None
+        self.logManager = None
+        self.pretrained_weights = None
 class EdnaMLContextInformation:
     MODEL_HAS_LOADED_WEIGHTS: bool = False
     LOADED_EPOCH: int = -1
