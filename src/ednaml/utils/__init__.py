@@ -41,6 +41,9 @@ class ExperimentKey:
         dicta = json.loads(dicts)
         return yaml.dump(dicta)
 
+    def __str__(self) -> str:
+        return self.getExperimentName()
+
 
 class RunKey:
     run: int
@@ -51,6 +54,12 @@ class RunKey:
         dicts = json.dumps(self, default=lambda o: o.__dict__)  # or getvars()????
         dicta = json.loads(dicts)
         return yaml.dump(dicta)
+
+    def getRunKey(self) -> str:
+        return str(self.run)
+
+    def __str__(self) -> str:
+        return self.getRunKey()
 
 class StorageKey:
     epoch: int
@@ -65,6 +74,12 @@ class StorageKey:
         dicts = json.dumps(self.__dict__, default=lambda o: o.value)  # or getvars()????
         dicta = json.loads(dicts)
         return yaml.dump(dicta)
+
+    def getStorageKey(self) -> str:
+        return "-".join([self.artifact.value, self.epoch, self.step])
+
+    def __str__(self) -> str:
+        return self.getStorageKey()
 class ERSKey:
     experiment: ExperimentKey
     run: RunKey
@@ -76,7 +91,8 @@ class ERSKey:
         self.storage = storage
     def __repr__(self) -> str:
         return "\n".join([repr(self.experiment), repr(self.run), repr(self.storage)])
-
+    def printKey(self) -> str:
+        return "<" + ", ".join([str(item) for item in [self.experiment, self.run, self.storage]]) + ">"
 
 class KeyMethods:
     @staticmethod

@@ -186,6 +186,7 @@ class StorageManager:
             storage_dict (Dict[str, BaseStorage]): _description_
             ers_key (ERSKey): _description_
         """
+        
         local_path = self.getLocalSavePath(ers_key=ers_key)
         if not os.path.exists(local_path):
             return storage_dict[self.getStorageNameForArtifact(ers_key.storage.artifact)].download(ers_key=ers_key, 
