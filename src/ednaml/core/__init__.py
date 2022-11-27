@@ -5,7 +5,6 @@ import torch
 from torchinfo import ModelStatistics
 import ednaml.core.decorators as edna
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
-from ednaml.core import EdnaMLContextInformation
 from ednaml.crawlers import Crawler
 from ednaml.generators import Generator
 from ednaml.logging import LogManager
