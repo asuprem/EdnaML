@@ -9,7 +9,7 @@ import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
 from ednaml.models.ModelAbstract import ModelAbstract
-from ednaml.utils import ERSKey, StorageArtifactType, StorageKey
+from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType, StorageKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage import BaseStorage, StorageManager
 
@@ -363,7 +363,8 @@ class BaseTrainer:
             self.logger.debug("`continue_epoch` is not provided. Checking in provided `ers_key`")
             continue_epoch = ers_key.storage.epoch
             continue_step = ers_key.storage.step
-            self.current_ers_key = ers_key
+            self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
+            self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
         else:   # contnue epoch and step are provided
             # Check if they are valid. Otherwise, default to provided latest_key
             self.logger.debug("`continue_epoch` is provided. Checking validity in remote Storage")
@@ -372,8 +373,10 @@ class BaseTrainer:
                 self.logger.debug("`continue_step` is not provided. Getting latest step saved in Epoch %i in remote Storage"%continue_epoch)
                 key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
                 if key is None:
+                    self.logger.debug("No latest step found. Setting to 0")
                     continue_step = 0
                 else:
+                    self.logger.debug("Found step %i"%key.storage.step)
                     continue_step = key.storage.step
 
             key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
@@ -382,13 +385,23 @@ class BaseTrainer:
                                                             artifact_type=StorageArtifactType.MODEL)
                                                             )
             if key is None:
-                self.logger.info("Provided epoch/step pair %i/%i do not exist. Using LatestStorageKey"%(continue_epoch,continue_step))
-                continue_epoch = ers_key.storage.epoch
-                continue_step = ers_key.storage.step
-                self.current_ers_key = ers_key
+                self.logger.info("Epoch/step pair %i/%i do not exist. Checking if epoch exists and using latest Step."%(continue_epoch,continue_step))
+                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+                if key is None:
+                    self.logger.info("Provided epoch/step pair %i/%i do not exist. Using LatestStorageKey"%(continue_epoch,continue_step))
+                    continue_epoch = ers_key.storage.epoch
+                    continue_step = ers_key.storage.step
+                    self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
+                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+                else:
+                    self.logger.debug("Found step %i"%key.storage.step)
+                    continue_step = key.storage.step
+                    self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
+                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
             else:
                 # get an ERSKey using the continue_epoch and step...
                 self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
+                self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
 
 
 
