@@ -586,6 +586,7 @@ class HFGenerator(TextGenerator):
         tokenizer = kwargs.get("tokenizer", "HFAutoTokenizer")
         self.tokenizer = locate_class(package="ednaml", subpackage="utils", classpackage=tokenizer, classfile="tokenizers")
         self.tokenizer = self.tokenizer(**kwargs) # vocab_file, do_lower_case, spm_model_file
+        
 
     
     def buildDataset(self, crawler, mode, transform, **kwargs): #<-- dataset args:

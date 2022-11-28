@@ -536,7 +536,7 @@ class BaseTrainer:
             
             if self.storage_mode_strict:
                 self.check_step_save(self.global_batch)
-            else:   # We check every steo_verbose steps
+            else:   # We check every step_verbose steps
                 if (self.global_batch + 1) % self.step_verbose == 0:
                     self.check_step_save(self.global_batch+1)
             
@@ -548,12 +548,6 @@ class BaseTrainer:
             
         self.stepSchedulers()
         self.stepLossSchedulers()
-
-        self.logger.info(
-            "{0} Completed epoch {1} {2}".format(
-                "*" * 10, self.global_epoch, "*" * 10
-            )
-        )
 
         if self.global_epoch % self.test_frequency == 0:
             if self.accumulation_steps > 0:
@@ -575,6 +569,11 @@ class BaseTrainer:
         #         self.set_save_flag()
         #     else:
         #         self.save()
+        self.logger.info(
+            "{0} Completed epoch {1} {2}".format(
+                "*" * 10, self.global_epoch, "*" * 10
+            )
+        )
         self.global_epoch += 1
     
     # Check whether to save each of the artifacts at the current global_batch step.
@@ -599,7 +598,7 @@ class BaseTrainer:
             self.save(artifact=StorageArtifactType.CONFIG, save_step=step)
 
     def check_epoch_save(self, epoch):  # TODO off by one errors
-        self.logger.info("Checking epoch save status at Epoch %i"%epoch)
+        self.logger.debug("Checking epoch save status at Epoch %i"%epoch)
         if self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.MODEL):
             # For gradient accumulation
             self.set_save_flag(epoch=epoch, step=self.global_batch)

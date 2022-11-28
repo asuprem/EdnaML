@@ -15,12 +15,10 @@ class EdnaDeploy(EdnaML):
         deploy: Union[List[str], str] = "",
         mode: str = "test",
         weights: str = None,
-        logger: logging.Logger = None,
-        verbose: int = 2,
         **kwargs
     ):
         
-        super().__init__([config,deploy], mode, weights, logger, verbose,**kwargs)
+        super().__init__([config,deploy], mode, weights, **kwargs)
 
         self.decorator_reference["deployment"] = self.addDeploymentClass
         self.decorator_reference.pop("trainer") # We do not need trainer in a Deployment
@@ -29,19 +27,44 @@ class EdnaDeploy(EdnaML):
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
         self.printConfiguration()
+        self.log("[APPLY] Building StorageManager")
+        self.buildStorageManager()
+        # Build the storage backends that StorageManager can use
+        self.log("[APPLY] Adding Storages")
+        self.buildStorage()
+        # Set the RunKey for this ExperimentKey
+        # Upload the configuration for this Run
+        self.log("[APPLY] Setting tracking run")
+        self.setTrackingRun(**kwargs)
+        # Obtain the latest weights path. This will be the continuation epoch, regardless of whether weights are provided or not, during training.
+        self.log("[APPLY] Setting latest StorageKey")
+        self.setLatestStorageKey()
+        # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
+        self.log("[APPLY] Updating Logger with Latest ERSKey")
+        self.updateLoggerWithERS()
+        # Download pre-trained weights, if such a link is provided in built-in model paths
+        self.log("[APPLY] Downloading pre-trained weights, if available")
         self.downloadModelWeights()
-        self.setPreviousStop()
 
+        # Build the data loaders
+        self.log("[APPLY] Building dataloaders")
         self.buildDataloaders()
-
+        # Build the model
+        self.log("[APPLY] Building model")
         self.buildModel()
+        # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
+        # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
+        # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
+        self.log("[APPLY] Loading latest weights, if available")
         self.loadWeights()
-        self.getModelSummary(**kwargs) 
+        # Generate a model summary
+        self.log("[APPLY] Generating summary")
+        self.getModelSummary(**kwargs)
 
         self.buildDeployment()
 
         self.resetQueues()
-
+    
 
     def buildDataloaders(self):
         """Sets up the datareader classes and builds the train and test dataloaders"""
@@ -165,20 +188,23 @@ class EdnaDeploy(EdnaML):
                 crawler=self.crawler,
                 config=self.cfg,
                 labels=self.labelMetadata,
+                storage=self.storage,
                 context=self.context_information,
                 **self.cfg.DEPLOYMENT.DEPLOYMENT_ARGS
             )
             # TODO -- change save_backup, backup_directory stuff. These are all in Storage.... We just need the model save name...
             self.deployment.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
-                save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
-                save_backup=self.cfg.SAVE.DRIVE_BACKUP,
-                save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
-                backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
+                #save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
+                #save_backup=self.cfg.SAVE.DRIVE_BACKUP,
+                #save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
+                #backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,
-                model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
-                logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
+                storage_manager = self.storageManager,
+                log_manager = self.logManager
+                #model_save_name=self.saveMetadata.MODEL_SAVE_NAME,
+                #logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
     
     
