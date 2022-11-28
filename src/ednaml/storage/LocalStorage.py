@@ -1,10 +1,8 @@
 from glob import glob
 import os, shutil
-import re
-from typing import Union
+import re, warnings
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.utils import ERSKey, ExperimentKey, KeyMethods, StorageArtifactType, StorageKey, StorageNameStruct
-from ednaml.utils.SaveMetadata import SaveMetadata
+from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType
 
 # TODO take care of runs...
 class LocalStorage(BaseStorage):
@@ -116,7 +114,7 @@ class LocalStorage(BaseStorage):
             ers_key (ERSKey): _description_
         """
         if ers_key.storage.artifact is not StorageArtifactType.MODEL:
-            raise ValueError("`getLatestStorageKey` is not supported for artifacts other than MODEL for LocalStorage")
+            warnings.warn("`getLatestStorageKey` is not supported for artifacts other than MODEL for LocalStorage")
 
         model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
         model_list = glob(model_paths)
