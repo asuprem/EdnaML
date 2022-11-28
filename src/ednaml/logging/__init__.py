@@ -34,3 +34,22 @@ class LogManager:
 
     def getLogger(self):
         return self.logger
+
+    def flush(self) -> bool:
+        """Flush any remaining logs.
+
+        Returns:
+            bool: Flush success
+        """
+        pass
+
+    def getLocalLog(self) -> str:
+        """Return path to a local file containing any disk logs. Can be an empty file.
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            str: Path to log file
+        """
+        raise NotImplementedError()

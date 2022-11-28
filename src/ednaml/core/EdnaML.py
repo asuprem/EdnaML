@@ -459,6 +459,7 @@ class EdnaML(EdnaMLBase):
                 #save_backup=self.cfg.SAVE.DRIVE_BACKUP,
                 #backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 storage_manager = self.storageManager,
+                log_manager = self.logManager,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16
             )
@@ -474,13 +475,30 @@ class EdnaML(EdnaMLBase):
     def updateLoggerWithERS(self):
         """Download the existing log file from remote, if possible, so that our LogManager can append to it.
         """
-        self.log("Retrieving latest ERSKey")
-        ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.LOG)
+        #self.log("Using latest ERSKey to search for log file")
+        self.log("Searching for latest generated log file") 
+        ers_key = self.storageManager.searchLatestERSKey(self.storage, artifact=StorageArtifactType.LOG)
         if ers_key.storage.epoch == -1:
             self.log("Latest ERSKey's StorageKey is empty. Resetting StorageKey component.")
-            ers_key = self.storageManager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG)
+            ers_key.storage.epoch = 0
+            ers_key.storage.step = 0
+
+        # Now we have the latest key, remote or local...
+        # For Logging:
+
+        # 1. download the key, if it does not exist already
+        # 2. Provive this file path to the LogManager, to do what it will (updateERSKey())
+        # 3. During saving, BaseTrainer does a few things:
+        #      a. First, flush the LogManager
+        #      b. Request file from LogManager
+        #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
+        #      d. Ask StorageManager to upload the file
+
+
+
+
         # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
-        self.log("Using ERSKey : {key}".format(key=ers_key.printKey()))
+        self.log("Logging with base ERSKey : {key}".format(key=ers_key.printKey()))
 
         success = self.storageManager.download(
             storage_dict=self.storage,
@@ -971,7 +989,7 @@ class EdnaML(EdnaMLBase):
         # if it doesn't have it, use input size in arguments
         # TODO possibly move this into trainer...?
         # or at least deal with potential mlti-gpu scenario...
-        if kwargs.get("skip_model_summary", False):
+        if kwargs.get("skip_model_summary", True):
             return
         if self.cfg.LOGGING.INPUT_SIZE is not None:
             if input_size is None:

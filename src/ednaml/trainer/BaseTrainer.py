@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from ednaml import storage
 from ednaml.core import EdnaMLContextInformation
+from ednaml.logging import LogManager
 import ednaml.loss.builders
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.crawlers import Crawler
@@ -38,6 +39,7 @@ class BaseTrainer:
     logger: logging.Logger
     storage: Dict[str,BaseStorage]
     storage_manager: StorageManager
+    log_manager: LogManager
     storage_mode_strict: bool
 
     save_frequency: int
@@ -145,6 +147,7 @@ class BaseTrainer:
         step_verbose: int = 5,
         test_frequency: int = 5,
         storage_manager: StorageManager = None,
+        log_manager: LogManager = None,
         storage_mode: str = "loose",    # loose | strict
         gpus: int = 1,
         fp16: bool = False,
@@ -152,6 +155,7 @@ class BaseTrainer:
         self.step_verbose = step_verbose
         self.test_frequency = test_frequency
         self.storage_manager = storage_manager
+        self.log_manager = log_manager
         self.storage_mode_strict = True if storage_mode == "strict" else False
         self.model_save_name = self.storage_manager.getExperimentKey().getExperimentName()
         self.logger_file = self.storage_manager.getLocalSavePath(self.storage_manager.getLatestERSKey(artifact=StorageArtifactType.LOG))
@@ -247,8 +251,22 @@ class BaseTrainer:
         elif artifact == StorageArtifactType.PLUGIN:
             self.logger.debug("Not saving model plugins")   # TODO
         elif artifact == StorageArtifactType.LOG:
+            # 3. During saving, BaseTrainer does a few things:
+            #      a. First, flush the LogManager
+            #      b. Request file from LogManager
+            #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
+            #      d. Ask StorageManager to upload the file
+            self.logger.info("Flushing current logs")
+            self.log_manager.flush()
+            local_log_file = self.log_manager.getLocalLog()
             # LogManager writes to file OR writes to a remote server. Storage takes care of "missing" files by skipping them.
             log_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.LOG)
+            storage_log_file = self.storage_manager.getLocalSavePath(log_ers_key)
+            if local_log_file != storage_log_file:
+                self.logger.info("Transferring LogManager log at {logpath} to StorageManager path at {stpath}".format(
+                    logpath = local_log_file, stpath = storage_log_file
+                ))
+                shutil.copy2(local_log_file, storage_log_file)
             #log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
             if self.storage_manager.performBackup(artifact):
                 self.storage_manager.upload(

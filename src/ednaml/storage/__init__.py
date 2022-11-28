@@ -215,7 +215,7 @@ class StorageManager:
                 source_file_name=source_file_name)
             return True
         else:
-            self.log("Could not find any file for ERSKey `{key}`, at local path {path}".format(ley=ers_key.printKey(), path=source_file_name))
+            self.log("Could not find any file for ERSKey `{key}`, at local path {path}".format(key=ers_key.printKey(), path=source_file_name))
         return False
         
 
@@ -354,14 +354,19 @@ class StorageManager:
         # Default to checking with MODEL, TODO add functionality in Storage to handle other artifact types.
         if artifact is None:
             artifact = StorageArtifactType.MODEL
-        
+        final_ers_key = self.searchLatestERSKey(storage_dict=storage_dict, artifact=artifact)
+        self.latest_storage_key = StorageKey(epoch = final_ers_key.storage.epoch,
+                                            step = final_ers_key.storage.step,
+                                            artifact=artifact)
+
+    def searchLatestERSKey(self, storage_dict: Dict[str, BaseStorage], artifact : StorageArtifactType = None) -> ERSKey:
         self.log("Intializing reference StorageKey to (-1,-1), with reference artifact: %s"%artifact.value)
         ers_key: ERSKey = self.getERSKey(epoch = -1, step = -1, artifact_type=artifact)
-        remote_ers_key = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
-        local_ers_key = self.local_storage.getLatestStorageKey(ers_key=ers_key)
+        remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
+        local_ers_key: ERSKey = self.local_storage.getLatestStorageKey(ers_key=ers_key)
 
-        self.log("Found remote ERSKey with reference artifact: %s \n %s"%(artifact.value, repr(remote_ers_key)))
-        self.log("Found local ERSKey with reference artifact: %s \n %s"%(artifact.value, repr(local_ers_key)))
+        self.log("Found remote ERSKey with reference artifact: %s \n %s"%(artifact.value, remote_ers_key.printKey()))
+        self.log("Found local ERSKey with reference artifact: %s \n %s"%(artifact.value, local_ers_key.printKey()))
         
 
 
@@ -383,9 +388,7 @@ class StorageManager:
             raise RuntimeError()
 
         self.log("Obtained latest StorageKey at (%i,%i), with reference artifact: %s"%(final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value))
-        self.latest_storage_key = StorageKey(epoch = final_ers_key.storage.epoch,
-                                            step = final_ers_key.storage.step,
-                                            artifact=artifact)
+        return final_ers_key
 
 
     def updateStorageKey(self, ers_key: ERSKey):

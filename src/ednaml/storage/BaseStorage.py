@@ -42,7 +42,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def getLatestStorageKey(self, ers_key: ERSKey)-> StorageKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
+    def getLatestStorageKey(self, ers_key: ERSKey)-> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
         RunKey, and Artifact.
 

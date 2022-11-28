@@ -11,13 +11,15 @@ class FileLogManager(LogManager):
         2: logging.INFO,
         3: logging.DEBUG,
     }
-    verbose: int = 3
+    verbose: int
+    log_filename: str
     def apply(self, **kwargs):
         """Build the FileLogManager internal state, without a file handler. Initially, log only to STDOUT.
 
         When ERSKey is available, we add the local file_name to the file handler.
         """
         self.logger = logging.Logger(self.experiment_key.getExperimentName())
+        self.verbose = 3
         self.buildLogger(
                 self.logger,
                 logger_given = False,   # For the log level setup
@@ -47,6 +49,7 @@ class FileLogManager(LogManager):
             add_streamhandler=False,
             logger_save_path=file_name,
         )
+        self.log_filename = file_name
         self.logger.debug("Updated logger object with file name %s"%file_name)
 
     def buildLogger(
@@ -108,5 +111,13 @@ class FileLogManager(LogManager):
             )
             logger.addHandler(cs)
         return None
+
+    def getLocalLog(self) -> str:
+        return self.log_filename
+
+
+    def flush(self) -> bool:
+        for handler in self.logger.handlers:
+            handler.flush()
 
         
