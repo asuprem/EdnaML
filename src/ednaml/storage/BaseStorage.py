@@ -107,6 +107,30 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
+
+    def checkEpoch(self, ers_key: ERSKey) -> ERSKey:
+        """Returns the key if the epoch exists in the Storage, else return None
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Returns:
+            ERSKey: _description_
+        """
+        raise NotImplementedError()
+
+
+    def checkStep(self, ers_key: ERSKey) -> ERSKey:
+        """Returns the key if epoch AND step exists in the Storage, else return None
+
+        Args:
+            ers_key (ERSKey): _description_
+
+        Returns:
+            ERSKey: _description_
+        """
+        raise NotImplementedError()
+
     def setTrackingRun(self, tracking_run: int):
         """Set the current run for this experiment.
 

@@ -6,6 +6,7 @@ from ednaml.datareaders import DataReader
 from ednaml.generators import Generator
 
 from ednaml.deploy.BaseDeploy import BaseDeploy
+from ednaml.storage import StorageManager
 from ednaml.utils import locate_class
 
 class EdnaDeploy(EdnaML):
@@ -23,6 +24,11 @@ class EdnaDeploy(EdnaML):
         self.decorator_reference["deployment"] = self.addDeploymentClass
         self.decorator_reference.pop("trainer") # We do not need trainer in a Deployment
         self.dataloader_mode = kwargs.get("dataloader_mode", self.mode)
+
+    def log(self, msg):
+        self.logger.info("[ed]" + msg)
+    def debug(self, msg):
+        self.logger.debug("[ed]" + msg)
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
@@ -161,7 +167,7 @@ class EdnaDeploy(EdnaML):
         )
 
     def deploy(self, **kwargs):
-        self.deployment.deploy(continue_epoch=self.previous_stop + 1, **kwargs)
+        self.deployment.deploy(ers_key = self.storageManager.getLatestERSKey(), **kwargs)
 
     def buildDeployment(self):
         """Builds the EdnaDeploy deployment and sets it up"""
@@ -207,7 +213,16 @@ class EdnaDeploy(EdnaML):
                 #logger_file=self.saveMetadata.LOGGER_SAVE_NAME,
             )
     
-    
+    def buildStorageManager(self, **kwargs):  # TODO after I get a handle on the rest...
+        self.storageManager = StorageManager(
+            logger = self.logger,
+            cfg = self.cfg,
+            experiment_key = self.experiment_key,
+            storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
+            storage_manager_mode=kwargs.get("storage_manager_mode", "download_only")    # Use remote for downloads when provided, but NOT uploads
+        )
+
+        
     def resetDeploymentQueue(self):
         self._deploymentClassQueue = None
         self._deploymentClassQueueFlag = False

@@ -10,7 +10,7 @@ from ednaml.logging import LogManager
 from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.storage import StorageManager
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.utils import StorageArtifactType
+from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 
@@ -106,7 +106,6 @@ class BaseDeploy:
         self.log_manager = log_manager
         self.storage_mode_strict = True if storage_mode == "strict" else False
         self.model_save_name = self.storage_manager.getExperimentKey().getExperimentName()
-        self.logger_file = self.storage_manager.getLocalSavePath(self.storage_manager.getLatestERSKey(artifact=StorageArtifactType.LOG))
         self.gpus = gpus
 
         if self.gpus != 1:
@@ -126,23 +125,66 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def deploy(self, continue_epoch=0, continue_step = 0, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None):
-        if model_build or (model_build is None and not self.model_is_built):
-            self.logger.info("Starting deployment")
-            self.logger.info("Logging to:\t%s" % self.logger_file)
-            if self.config.SAVE.LOG_BACKUP:
-                self.logger.info(
-                    "Logs will be backed up to drive directory:\t%s"
-                    % self.backup_directory
-                )
-            
-            #self.logger.info("Loading model from saved epoch %i" % (continue_epoch - 1))
-            if continue_epoch or continue_step:
-                load_epoch = (continue_epoch - 1) if continue_epoch > 0 else 0
-                if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
-                    self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(load_epoch, continue_step))
+    def deploy(self, continue_epoch: int = 0, continue_step: int = None, inference = False, ers_key: ERSKey = None, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None, **kwargs):
+        if continue_epoch is None:  # Use the provided latest key
+            self.logger.debug("`continue_epoch` is not provided. Checking in provided `ers_key`")
+            continue_epoch = ers_key.storage.epoch
+            continue_step = ers_key.storage.step
+            self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
+            self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+        else:   # continue epoch and step are provided
+            # Check if they are valid. Otherwise, default to provided latest_key
+            self.logger.debug("`continue_epoch` is provided. Checking validity in remote Storage")
+            key = None
+            if continue_step is None:
+                self.logger.debug("`continue_step` is not provided. Getting latest step saved in Epoch %i in remote Storage"%continue_epoch)
+                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+                if key is None:
+                    self.logger.debug("No latest step found. Setting to 0")
+                    continue_step = 0
                 else:
-                    self.load(load_epoch, continue_step, ignore_plugins=ignore_plugins)
+                    self.logger.debug("Found step %i"%key.storage.step)
+                    continue_step = key.storage.step
+
+            key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
+                            self.storage_manager.getERSKey( epoch=continue_epoch, 
+                                                            step=continue_step, 
+                                                            artifact_type=StorageArtifactType.MODEL)
+                                                            )
+            if key is None:
+                self.logger.info("Epoch/step pair %i/%i do not exist. Checking if epoch exists and using latest Step."%(continue_epoch,continue_step))
+                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+                if key is None:
+                    self.logger.info("Provided epoch/step pair %i/%i do not exist. Using LatestStorageKey"%(continue_epoch,continue_step))
+                    continue_epoch = ers_key.storage.epoch
+                    continue_step = ers_key.storage.step
+                    self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
+                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+                else:
+                    self.logger.debug("Found step %i"%key.storage.step)
+                    continue_step = key.storage.step
+                    self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
+                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+            else:
+                # get an ERSKey using the continue_epoch and step...
+                self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
+                self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+
+
+            
+        
+        
+        
+        if model_build or (model_build is None and not self.model_is_built):    
+            self.logger.info("`model_build` is True or model may not be built. Checking.")
+            if continue_epoch or continue_step:
+                if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                    self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
+                else:
+                    self.logger.info("Model is empty and `model_build` is set. Attempting loading weights from Epoch %i Step %i"%(continue_epoch, continue_step))
+                    self.load(continue_epoch, continue_step, ignore_if_error = True, artifact = StorageArtifactType.MODEL)
+                    self.logger.info("Model is empty and `model_build` is set. Attempting loading plugins from Epoch %i Step %i"%(continue_epoch, continue_step))
+                    self.load(continue_epoch, continue_step, ignore_plugins=ignore_plugins, ignore_if_error = True, artifact = StorageArtifactType.PLUGIN)
 
             if inference:
                 self.model.inference()
@@ -151,15 +193,19 @@ class BaseDeploy:
             self.model_is_built = True
         else:
             if model_build is not None and not model_build:
-                self.logger.info("Skipping model building due to `model_build=False`")
+                self.logger.info("Skipping model building and plugin loading due to `model_build=False`")
             elif self.model_is_built:
-                self.logger.info("Skipping model building because model is already built. To force, set the `model_build` flag to True in `ed.deploy`")
+                self.logger.info("Skipping model building and plugin loading because model is already built in a prior call to `deploy()`. To force, set the `model_build` flag to True in `ed.deploy`")
             else:
-                self.logger.info("Skipping model building")
+                self.logger.info("Skipping model building and plugin loading")
 
         if execute:
             self.logger.info("Setting up plugin hooks. Plugins will fire during:  %s"%self.config.DEPLOYMENT.PLUGIN.HOOKS)
             self.model.set_plugin_hooks(self.config.DEPLOYMENT.PLUGIN.HOOKS)
+
+
+            self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+            self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
 
             self.logger.info("Executing deployment for  %i epochs" % self.epochs)
             for epoch in range(self.epochs):
@@ -241,57 +287,74 @@ class BaseDeploy:
             self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch, save_step = 0)
 
 
-    def load(self, load_epoch, load_step = 0, ignore_plugins: List[str] = []):
+    # load is called by self.train() when being initialized...
+    def load(self, load_epoch: int = None, load_step : int = None, artifact: StorageArtifactType = StorageArtifactType.MODEL, ignore_if_error: bool = False, ignore_plugins: List[str] = []):
+        """_summary_
+
+        Args:
+            load_epoch (_type_): _description_
+            load_step (int, optional): _description_. Defaults to 0.
+        """
         self.logger.info(
-            "Loading a model from saved epoch %i, step %i"
-            % (load_epoch, load_step)
+            "Loading saved state of %s from epoch %i / step %i"
+            % (artifact.value, load_epoch, load_step)
         )
-        model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, "_step%i" % load_step, ".pth"])
-        if not (os.path.exists(model_load) and os.path.exists(training_load)):
-            self.logger.info("Could not find model or training path at %s. Defaulting to not using step parameter."%model_load)
-            
-            model_load = "".join([self.model_save_name, "_epoch%i" % load_epoch, ".pth"])
-            
-        if self.save_backup:
-            self.logger.info(
-                "Loading model from drive backup."
-            )
-            model_load_path = os.path.join(self.backup_directory, model_load)
-        else:
-            self.logger.info(
-                "Loading model from local backup."
-            )
-            model_load_path = os.path.join(self.save_directory, model_load)
 
-        self.model.load_state_dict(torch.load(model_load_path))
-        self.logger.info(
-            "Finished loading model state_dict from %s" % model_load_path
-        )
-        # Here, we will need to get a list of pickled or serialized plugin objects, then load them into a dictionary, then pass them into model
-        # YES!!!!
-        plugin_load = self.model_save_name + "_plugins.pth"
+        # TODO what happens when there is a local copy as well as a remote copy -- we do not need to download from remote...
+        # Have StorageManager handle this gracefully...
+        if artifact == StorageArtifactType.MODEL:
+            model_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = load_epoch, step = load_step, artifact_type=artifact)
+            response = self.storage_manager.download(
+                ers_key=model_ers_key, storage_dict=self.storage
+            ) 
 
-        if self.save_backup:
-            self.logger.info(
-                "Looking for model plugins from drive backup."
-            )
-            plugin_load_path = os.path.join(self.backup_directory, plugin_load)
-        else:
-            self.logger.info(
-                "Looking for model plugins from local backup."
-            )
-            plugin_load_path = os.path.join(self.save_directory, plugin_load)
+            if response:
+                model_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=model_ers_key)
+                # TODO replace with ModelAbstract's own loader?????
+                if self.gpus == 0:
+                    self.model.load_state_dict(torch.load(model_local_storage_savepath, map_location=self.device))
+                else:
+                    self.model.load_state_dict(torch.load(model_local_storage_savepath))
+                self.logger.info(
+                    "Finished loading model state_dict from %s" % model_local_storage_savepath
+                )
+            else:
+                if not ignore_if_error:
+                    raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(artifact.value, load_epoch, load_step))
+                return False
 
-        if os.path.exists(plugin_load_path):
-            
-            self.model.loadPlugins(plugin_load_path, ignore_plugins=ignore_plugins)
-            self.logger.info(
-                "Loaded plugins from %s"%plugin_load_path
-            )
+        elif artifact == StorageArtifactType.ARTIFACT:
+            raise NotImplementedError("MODEL_ARTIFACT is loaded with MODEL")
+        elif artifact == StorageArtifactType.CONFIG:
+            raise NotImplementedError("CONFIG downloads should not be managed inside Deploy")
+        elif artifact == StorageArtifactType.LOG:
+            raise NotImplementedError("LOG downloads should not be managed inside Deploy")
+        elif artifact == StorageArtifactType.PLUGIN:
+            plugin_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = load_epoch, step = load_step, artifact_type=artifact)
+            response = self.storage_manager.download(
+                ers_key=plugin_ers_key, storage_dict=self.storage
+            ) 
+            if response:
+                plugin_local_savepath = self.storage_manager.getLocalSavePath(ers_key=plugin_ers_key)
+                self.model.loadPlugins(plugin_local_savepath, ignore_plugins=ignore_plugins)
+                self.logger.info(
+                    "Finished loading plugin state_dict from %s" % plugin_ers_key
+                )
+            else:
+                if not ignore_if_error:
+                    raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(artifact.value, load_epoch, load_step))
+                return False
+
+
+
+
+        elif artifact == StorageArtifactType.METRIC:
+            raise NotImplementedError("METRIC downloads should not be managed inside Deploy")
         else:
-            self.logger.info(
-                "No plugins found at %s"%plugin_load_path
-            )
+            raise ValueError("Unexpected value for artifact type %s"%artifact.value)
+        
+        return True
+       
 
     def save(self, save_epoch: int = None, save_step : int = None, artifact: StorageArtifactType = StorageArtifactType.MODEL):
         if save_epoch is None:
@@ -316,7 +379,7 @@ class BaseDeploy:
                 torch.save(plugin_save, plugin_local_path)
                 self.logger.debug("Saved the following plugins: %s"%str(plugin_save.keys()))
 
-                if self.storage_manager.performBackup(artifact):
+                if self.storage_manager.performBackup(artifact):    # TODO under strict/loose modes, storageManager can take care of all of these. 
                     self.storage_manager.upload(
                         self.storage,
                         plugin_ers_key

@@ -67,9 +67,9 @@ class EdnaMLBase:
         edna.REGISTERED_EDNA_COMPONENTS = {}
 
     def log(self, msg):
-        self.logger.info("[EdnaML]" + msg)
+        self.logger.info("[eml]" + msg)
     def debug(self, msg):
-        self.logger.debug("[EdnaML]" + msg)
+        self.logger.debug("[eml]" + msg)
 
     def __init__(self):
         self.logger = None

@@ -273,7 +273,7 @@ class EdnaML(EdnaMLBase):
         self.printConfiguration()
         # Build the Storage Manager
         self.log("[APPLY] Building StorageManager")
-        self.buildStorageManager()
+        self.buildStorageManager(**kwargs)
         # Build the storage backends that StorageManager can use
         self.log("[APPLY] Adding Storages")
         self.buildStorage()
@@ -321,12 +321,13 @@ class EdnaML(EdnaMLBase):
         # Reset the queues. Maybe clear the plugins and storage queues as well??
         self.resetQueues()
 
-    def buildStorageManager(self):  # TODO after I get a handle on the rest...
+    def buildStorageManager(self, **kwargs):  # TODO after I get a handle on the rest...
         self.storageManager = StorageManager(
             logger = self.logger,
             cfg = self.cfg,
             experiment_key = self.experiment_key,
-            storage_manager_mode="loose"
+            storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
+            storage_manager_mode=kwargs.get("storage_manager_mode", "strict")   # Use remote ONLY if allowed and provided
         )
 
     def addStorage(self, storage_class_dict: Dict[str, BaseStorage]):
@@ -399,7 +400,7 @@ class EdnaML(EdnaMLBase):
 
 
     def train(self, **kwargs):
-        self.trainer.train(ers_key = self.storageManager.getLatestERSKey(), **kwargs)  #
+        self.trainer.train(**kwargs)  #
 
     def eval(self):
         return self.trainer.evaluate()
@@ -514,7 +515,7 @@ class EdnaML(EdnaMLBase):
 
 
     def setLatestStorageKey(self):
-        """Query the storages to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
+        """Query the storages, local and remote, to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
         StorageManager.
 
         We query MODEL only
@@ -922,7 +923,7 @@ class EdnaML(EdnaMLBase):
         # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
         # If pre-trained weights were downloaded, and LatestStorageKey is -1/-1, then load pre-trained weights.
         """
-        if self.mode == "test":
+        if self.mode == "test": # TODO fix providing of loading epoch and step, and conflict with BaseTrainer
             if self.weights is None:
                 self.log(
                     "No saved model weights provided. Inferring weights path from the latest ERSKey:"

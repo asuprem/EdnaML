@@ -1,6 +1,8 @@
 import logging
 from threading import local
+from types import LambdaType
 from typing import Dict, Union
+from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.config.SaveConfig import SaveConfig
 from ednaml.storage.BaseStorage import BaseStorage
@@ -19,21 +21,39 @@ class StorageManager:
     3. Provide a trigger-mechanism for checking upload requirements given the configuration file and current epoch and step
     4. Provide the storage name for a given upload type (e.g. config, logfile, model, etc)
     """
+
+    logger: logging.Logger
+    experiment_key: ExperimentKey
+    storage_manager_mode: str   # loose | download | strict. Loose: If storage is defined, we upload/download. Download: we download if storage is defined. Strict: We upload/download ONLY if allowed
+    storage_trigger_mode: str   # loose | strict
+    storage_manager_strict: bool
+    storage_trigger_strict: bool
+    cfg: EdnaMLConfig
+    run_key: RunKey
+    latest_storage_key: StorageKey
+    local_save_directory: str
+    local_storage: LocalStorage
+    artifact_references: Dict[StorageArtifactType, BackupOptionsConfig]
+    epoch_triggers: Dict[StorageArtifactType, LambdaType]
+    step_triggers: Dict[StorageArtifactType: LambdaType]
     def __init__(self,  logger: logging.Logger, 
                         cfg: EdnaMLConfig, 
                         experiment_key: ExperimentKey, 
-                        storage_manager_mode = "loose"):
+                        storage_trigger_mode: str = "loose",                     # Trigger mode determines how often we check whether we should upload
+                        storage_manager_mode: str = "loose"):            # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
         self.logger = logger
         
         self.experiment_key = experiment_key
         self.storage_manager_mode = storage_manager_mode    # strict or loose
+        self.storage_trigger_mode = storage_trigger_mode    # strict or loose
         self.log("Initializing StorageManager")
         self.log("\tusing experiment_key: \t{ekey}".format(ekey=self.experiment_key.getExperimentName()))
         self.log("\twith storage_manager_mode: \t{mode}".format(mode=self.storage_manager_mode))
+        self.log("\twith storage_trigger_mode: \t{mode}".format(mode=self.storage_trigger_mode))
         self.cfg = cfg
 
-        self.run_key: RunKey = None
-        self.latest_storage_key: StorageKey = None
+        self.run_key = None
+        self.latest_storage_key = None
         # Add options here for where to save local files, i.e. not directly in ./
         self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
         self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
@@ -87,7 +107,7 @@ class StorageManager:
                 return False
 
         # Trigger methods tell us whether to trigger an upload or not. To improve speed, we cache many of the parameters here.
-        if self.storage_manager_mode == "strict":
+        if self.storage_trigger_mode == "strict":
         # We create a fast O(1) reference to the trigger checking methods here for epochs
             self.epoch_triggers = {
                 StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0)),
@@ -98,7 +118,7 @@ class StorageManager:
                 StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0 else (lambda x: (x%self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0)),
             }
 
-        elif self.storage_manager_mode == "loose":
+        elif self.storage_trigger_mode == "loose":
             self.epoch_triggers = {
                 StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY),
                 StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY),
@@ -111,7 +131,7 @@ class StorageManager:
             raise NotImplementedError()
 
         self.log("Generated EpochTrigger checks")
-        if self.storage_manager_mode == "strict":
+        if self.storage_trigger_mode == "strict":
         # We create a fast O(1) reference to the trigger checking methods here for epochs
             self.step_triggers = {
                 StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0)),
@@ -122,7 +142,7 @@ class StorageManager:
                 StorageArtifactType.LOG: (lambda x: False) if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0 else (lambda x: (x%self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0)),
             }
 
-        elif self.storage_manager_mode == "loose":
+        elif self.storage_trigger_mode == "loose":
             self.step_triggers = {
                 StorageArtifactType.MODEL: (lambda x: False) if self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.MODEL_BACKUP.FREQUENCY_STEP, base=1),
                 StorageArtifactType.ARTIFACT: (lambda x: False) if self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP == 0 else LooseTriggerMethod(self.cfg.SAVE.ARTIFACTS_BACKUP.FREQUENCY_STEP, base=1),
@@ -135,7 +155,7 @@ class StorageManager:
             raise NotImplementedError()
         self.log("Generated StepTrigger checks")
 
-    def log(self, msg):
+    def log(self, msg) -> None:
         self.logger.debug("[StorageManager] %s"%msg)
 
     def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
@@ -161,8 +181,8 @@ class StorageManager:
     def getLatestStorageKey(self) -> StorageKey:
         return self.latest_storage_key
 
-    def getLatestStepOfArtifactWithEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL):
-        """Given an epoch or an ERSKey with epoch value, return ers_key of the latest Artifact
+    def getLatestStepOfArtifactWithEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
+        """Given an epoch or an ERSKey with epoch value, return ers_key of the latest Artifact in remote OR local
 
         Args:
             epoch (int, optional): _description_. Defaults to None.
@@ -171,7 +191,51 @@ class StorageManager:
         """
         if ers_key is None:
             ers_key = self.getERSKey(epoch=epoch,step=0,artifact_type=artifact)
-        return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+        if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
+            return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+        else:   # storage is strict AND backup is not allowed
+            return self.local_storage.getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+
+    def getLatestEpochOfArtifact(self, storage: Dict[str, BaseStorage], ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
+        if ers_key is None:
+            ers_key = self.getERSKey(epoch=0, step=0, artifact_type=artifact)
+        if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
+            return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestEpochOfArtifact(ers_key=ers_key)
+        else:   # storage is strict AND backup is not allowed
+            return self.local_storage.getLatestEpochOfArtifact(ers_key=ers_key)
+
+    def checkEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = None) -> bool:
+        """Check if an epoch exists in either remote or local storage
+
+        Args:
+            storage (Dict[str, BaseStorage]): _description_
+            epoch (int, optional): _description_. Defaults to None.
+            ers_key (ERSKey, optional): _description_. Defaults to None.
+            artifact (StorageArtifactType, optional): _description_. Defaults to None.
+        """
+        if ers_key is None:
+            ers_key = self.getERSKey(epoch=epoch, step=0, artifact_type=artifact)
+        remote_response = None
+        if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
+            remote_response = storage[self.getStorageNameForArtifact(artifact_type=artifact)].checkEpoch(ers_key=ers_key)
+        local_response = self.local_storage.checkEpoch(ers_key=ers_key)
+
+        if (remote_response is not None) or (local_response is not None):
+            return True
+        return False
+
+    def checkStep(self, storage: Dict[str, BaseStorage], epoch: int = None, step: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = None):
+        if ers_key is None:
+            ers_key = self.getERSKey(epoch=epoch, step=step, artifact_type=artifact)
+        remote_response = None
+        if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
+            remote_response = storage[self.getStorageNameForArtifact(artifact_type=artifact)].checkStep(ers_key=ers_key)
+        local_response = self.local_storage.checkStep(ers_key=ers_key)
+
+        if (remote_response is not None) or (local_response is not None):
+            return True
+        return False
+
 
 
     def getLatestERSKey(self, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
@@ -181,7 +245,7 @@ class StorageManager:
         return self.getERSKey(epoch = self.latest_storage_key.epoch + 1, step = 0, artifact_type=artifact)
 
     def download(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
-        """Download the file(s) corresponding to the ERSKey if they do not already exist locally
+        """Download the file(s) corresponding to the ERSKey if they do not already exist locally.
 
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
@@ -192,6 +256,9 @@ class StorageManager:
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
         
         if not os.path.exists(local_path):
+            if self.storage_manager_strict and not self.performBackup(ers_key.storage.artifact):
+                self.log("Not downloading ERSKey `{key}` from storage {storage} due to strict checking".format(key=ers_key.printKey(), storage=storage_name))
+                return False
             self.log("Downloading ERSKey `{key}` from storage {storage} into {path}".format(key=ers_key.printKey(), storage=storage_name, path=local_path))
             return storage_dict[storage_name].download(ers_key=ers_key, 
                 destination_file_name=local_path)
@@ -210,13 +277,16 @@ class StorageManager:
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
         
         if os.path.exists(source_file_name):
+            if (self.storage_manager_strict or self.storage_manager_mode == "download_only") and not self.performBackup(ers_key.storage.artifact):
+                self.log("Not uploading ERSKey `{key}` to storage {storage} due to strict checking or download_only mode".format(key=ers_key.printKey(), storage=storage_name))
+                return False
             self.log("Uploading {path} into storage {storage}, with ERSKey `{key}`".format(key=ers_key.printKey(), storage=storage_name, path=source_file_name))
             storage_dict[storage_name].upload(ers_key=ers_key, 
                 source_file_name=source_file_name)
             return True
         else:
             self.log("Could not find any file for ERSKey `{key}`, at local path {path}".format(key=ers_key.printKey(), path=source_file_name))
-        return False
+        return False    # Could not upload due to file not found
         
 
 
@@ -265,10 +335,11 @@ class StorageManager:
         return self.artifact_references[artifact_type].STORAGE_NAME
 
 
-    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False):
+    def setTrackingRun(self, storage_dict: Dict[str, BaseStorage] = None, tracking_run: int = None, new_run: bool = False) -> None:
         self.log("Tracking run with `new_run`: %s"%str(new_run))
+        # NOTE: We check remote tracking run if backup is allowed OR if we are in download_only/loose mode!!!
         if tracking_run is None:
-            max_run_list = [storage_dict[self.getStorageNameForArtifact(artifact_key)].getMaximumRun() if self.performBackup(artifact_key) else -1 for artifact_key in self.artifact_references]
+            max_run_list = [storage_dict[self.getStorageNameForArtifact(artifact_key)].getMaximumRun() if (self.performBackup(artifact_key) or (not self.storage_manager_strict)) else -1 for artifact_key in self.artifact_references]
             max_run = max(max_run_list)
             if max_run == -1:
                 tracking_run = 0
@@ -323,7 +394,7 @@ class StorageManager:
 
         
 
-    def _setTrackingRun(self, storage_dict: Dict[str, BaseStorage], tracking_run: int):
+    def _setTrackingRun(self, storage_dict: Dict[str, BaseStorage], tracking_run: int) -> None:
         self.run_key = RunKey(run=tracking_run)
 
         # Create the run directory locally.
@@ -340,8 +411,8 @@ class StorageManager:
         # Copy the files over??? Or save that for other methods to perform...
 
 
-    def setLatestStorageKey(self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None):
-        """Check local storage as well as remote storage(s) for the latest epoch-step pair when something was saved.
+    def setLatestStorageKey(self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None) -> None:
+        """Check local storage as well as remote storage(s), if backup is performed on a remote storage, for the latest epoch-step pair when something was saved.
 
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
@@ -362,77 +433,50 @@ class StorageManager:
     def searchLatestERSKey(self, storage_dict: Dict[str, BaseStorage], artifact : StorageArtifactType = None) -> ERSKey:
         self.log("Intializing reference StorageKey to (-1,-1), with reference artifact: %s"%artifact.value)
         ers_key: ERSKey = self.getERSKey(epoch = -1, step = -1, artifact_type=artifact)
-        remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
+        if self.performBackup(artifact_type=artifact) or not self.storage_manager_strict:
+            if not self.storage_manager_strict:
+                self.log("Retrieving remote ERSKey because `storage_manager_mode` is not `strict`")
+            remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
+        else:
+            remote_ers_key = None
         local_ers_key: ERSKey = self.local_storage.getLatestStorageKey(ers_key=ers_key)
 
-        self.log("Found remote ERSKey with reference artifact: %s \n %s"%(artifact.value, remote_ers_key.printKey()))
-        self.log("Found local ERSKey with reference artifact: %s \n %s"%(artifact.value, local_ers_key.printKey()))
+        if remote_ers_key is None:
+            self.log("Did not find any remote ERSKey because backup is not enabled for reference artifact: %s"%(artifact.value))
+        else:
+            self.log("Found remote ERSKey `%s` with reference artifact: %s"%(remote_ers_key.printKey(), artifact.value))
+        self.log("Found local ERSKey `%s` with reference artifact: %s"%(local_ers_key.printKey(),artifact.value))
         
 
 
         final_ers_key = None
-        if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:
+        if remote_ers_key is None:
             final_ers_key = local_ers_key
-        elif remote_ers_key.storage.epoch > local_ers_key.storage.epoch:
-            final_ers_key = remote_ers_key
-        elif local_ers_key.storage.epoch == remote_ers_key.storage.epoch:
-            if local_ers_key.storage.step > remote_ers_key.storage.step:
+        else:
+            if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:
                 final_ers_key = local_ers_key
-            elif remote_ers_key.storage.step > local_ers_key.storage.step:
+            elif remote_ers_key.storage.epoch > local_ers_key.storage.epoch:
                 final_ers_key = remote_ers_key
-            elif local_ers_key.storage.step == remote_ers_key.storage.step:
-                final_ers_key = local_ers_key
+            elif local_ers_key.storage.epoch == remote_ers_key.storage.epoch:
+                if local_ers_key.storage.step > remote_ers_key.storage.step:
+                    final_ers_key = local_ers_key
+                elif remote_ers_key.storage.step > local_ers_key.storage.step:
+                    final_ers_key = remote_ers_key
+                elif local_ers_key.storage.step == remote_ers_key.storage.step:
+                    final_ers_key = local_ers_key
+                else:
+                    raise RuntimeError()
             else:
                 raise RuntimeError()
-        else:
-            raise RuntimeError()
 
         self.log("Obtained latest StorageKey at (%i,%i), with reference artifact: %s"%(final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value))
         return final_ers_key
 
 
-    def updateStorageKey(self, ers_key: ERSKey):
+    def updateStorageKey(self, ers_key: ERSKey) -> None:
         self.latest_storage_key.epoch = ers_key.storage.epoch
         self.latest_storage_key.step = ers_key.storage.step
 
-        
-
-    def initializeLog(self, storage_dict: Dict[str, BaseStorage]):
-        """Initialize a log file (or append to an existing one / log-server)
-
-        Ok, so we have some logging solution -- how does this look like?
-
-        presumably, StorageManager contains a LocalLogManager (instead of python logging)
-            LocalLogManager --> physical logs, e.g. logging.Log
-            LocalLogManager --> Logstash logs through the logstash logging handler
-            So, basically, we can set up what the logging solution is in config directly
-
-            In initialize log, we do the actual logstash/physical log setup (because logstash will need
-            some key to reference this log, right, for our experiment-key + run-key)
-
-            NOTE: say we are using LogStash -- then we likely do not need a LogBackup
-            Alternatively, one can use LogStash + LogBackup
-            Or use the regular file storage + LogBackup Storage instantiates a background process
-            to manage the logging continuously without needing manual triggering...
-
-
-
-        Returns:
-            _type_: _description_
-        """
-        if self.performBackup(StorageArtifactType.LOG):
-            # We are performing log backups.
-            # We will use Storage to download the current log state
-            # Note: not every log will do this ! Remote loggers can just ignore...
-            storage_dict[self.getStorageNameForArtifact(StorageArtifactType.LOG)].download(
-                file_struct = self.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG), 
-                destination_file_name = self.path_ends[StorageArtifactType.LOG]((0, 0)) # epoch and step do not matter for logs...
-            )
-        
-        # No backup being performed.
-        # Directly instantiate
-        
-            
 
 
     @property
@@ -441,11 +485,43 @@ class StorageManager:
 
     @property
     def tracking_epoch(self) -> str:
-        return self.last_storage_key.epoch
+        return self.latest_storage_key.epoch
 
     @property
     def tracking_step(self) -> str:
-        return self.last_storage_key.step
+        return self.latest_storage_key.step
+
+
+    @property
+    def storage_manager_mode(self) -> str:
+        return self._storage_manager_mode
+
+    @storage_manager_mode.setter
+    def storage_manager_mode(self, mode: str):
+        if mode not in  ["loose", "strict", "download_only"]:
+            raise ValueError("`storage_manager_mode` must be one of [`loose`, `strict`], got %s"%(str(mode)))
+        self._storage_manager_mode = mode
+        self._storage_manager_mode_strict = True if self._storage_manager_mode == "strict" else False
+
+    @property
+    def storage_manager_strict(self) ->bool:
+        return self._storage_manager_mode_strict
+
+    @property
+    def storage_trigger_mode(self) -> str:
+        return self._storage_trigger_mode
+
+    @storage_trigger_mode.setter
+    def storage_trigger_mode(self, mode: str):
+        if mode not in  ["loose", "strict"]:
+            raise ValueError("`storage_trigger_mode` must be one of [`loose`, `strict`], got %s"%(str(mode)))
+        self._storage_trigger_mode = mode
+        self._storage_trigger_mode_strict = True if self._storage_trigger_mode == "strict" else False
+
+    @property
+    def storage_trigger_strict(self) ->bool:
+        return self._storage_trigger_mode_strict
+        
 
 """
 

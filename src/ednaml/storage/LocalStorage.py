@@ -91,7 +91,24 @@ class LocalStorage(BaseStorage):
             return ers_key
         return None
 
+    def checkEpoch(self, ers_key: ERSKey) -> ERSKey:
+        all_epochs = self._getAllEpochs(ers_key=ers_key)
+        if ers_key.storage.epoch in all_epochs:
+            return ers_key
+        return None
+
+    def checkStep(self, ers_key: ERSKey) -> ERSKey:
+        return self.getKey(ers_key=ers_key)
+
     def getLatestEpochOfArtifact(self, ers_key: ERSKey) -> ERSKey:
+        max_epoch = self._getAllEpochs(ers_key=ers_key)
+        if len(max_epoch) == 0:
+            return None
+        else:
+            ers_key.storage.epoch = max(max_epoch)
+            return ers_key
+
+    def _getAllEpochs(self, ers_key: ERSKey) -> list[int]:
         ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         # TODO modify or fix this in case of errors...?
         artifact_paths = os.path.join(self.storage_path, self.run_dir,  "*"+self.path_ends[ers_key.storage.artifact])
@@ -99,12 +116,8 @@ class LocalStorage(BaseStorage):
         artifact_basenames = [os.path.basename(item) for item in artifact_list]
         _re = re.compile(r".*epoch([0-9]+)_step([0-9]+)%s"%(self.path_ends[ers_key.storage.artifact].replace(".", "\.")))
         max_epoch = [int(item[1]) for item in [_re.search(item) for item in artifact_basenames]]
+        return max_epoch
 
-        if len(max_epoch) == 0:
-            return None
-        else:
-            ers_key.storage.epoch = max(max_epoch)
-            return ers_key
 
     def getLatestStorageKey(self, ers_key: ERSKey) -> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
