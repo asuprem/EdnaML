@@ -12,6 +12,7 @@ class StorageArtifactType(enum.Enum):
     PLUGIN = "plugin"
     METRIC = "metric"
     ARTIFACT = "artifact"
+    CODE = "code"
 
 
 class ExperimentKey:
@@ -26,7 +27,10 @@ class ExperimentKey:
         self.model_qualifier = str(model_qualifier)
 
     def getKey(self):
-        return (self.model_core_name, self.model_version, self.model_backbone, self.model_qualifier)
+        return (self.model_core_name, 
+                    self.model_version, 
+                    self.model_backbone, 
+                    self.model_qualifier)
 
     def getExperimentName(self):
         return "_".join([
