@@ -1,3 +1,4 @@
+from typing import List
 from glob import glob
 import os, shutil
 import re, warnings
@@ -108,7 +109,7 @@ class LocalStorage(BaseStorage):
             ers_key.storage.epoch = max(max_epoch)
             return ers_key
 
-    def _getAllEpochs(self, ers_key: ERSKey) -> list[int]:
+    def _getAllEpochs(self, ers_key: ERSKey) -> List[int]:
         ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         # TODO modify or fix this in case of errors...?
         artifact_paths = os.path.join(self.storage_path, self.run_dir,  "*"+self.path_ends[ers_key.storage.artifact])

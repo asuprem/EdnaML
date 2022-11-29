@@ -157,7 +157,7 @@ class BaseTrainer:
         self.storage_manager = storage_manager
         self.log_manager = log_manager
         self.storage_mode_strict = True if storage_mode == "strict" else False
-        self.model_save_name = self.storage_manager.getExperimentKey().getExperimentName()
+        self.model_save_name = self.storage_manager.experiment_key.getExperimentName()
         self.gpus = gpus
 
         if self.gpus != 1:

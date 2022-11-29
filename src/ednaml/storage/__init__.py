@@ -23,7 +23,7 @@ class StorageManager:
     """
 
     logger: logging.Logger
-    experiment_key: ExperimentKey
+    _experiment_key: ExperimentKey
     storage_manager_mode: str   # loose | download | strict. Loose: If storage is defined, we upload/download. Download: we download if storage is defined. Strict: We upload/download ONLY if allowed
     storage_trigger_mode: str   # loose | strict
     storage_manager_strict: bool
@@ -155,39 +155,72 @@ class StorageManager:
             raise NotImplementedError()
         self.log("Generated StepTrigger checks")
 
-    def log(self, msg) -> None:
+    def log(self, msg: str) -> None:
+        """Logs a message to the logger with a `[StorageManager]` prefix
+
+        Args:
+            msg (str): Message to log
+        """
         self.logger.debug("[StorageManager] %s"%msg)
 
     def getERSKey(self, epoch: int, step: int, artifact_type: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
-        """Given epoch, run, step, and artifact type, we will construct a StorageKey
-        (a StorageNameStruct) and return it.
+        """Combine the current  `experiment_key` and `run_key` with the provided epoch, step, and artifact to generate
+        an ERSKey.
 
         Args:
-            epoch (_type_): _description_
-            run (_type_): _description_
-            step (_type_): _description_
-            artifact_type (StorageArtifactType): _description_
+            epoch (int): Epoch value for ERSKey
+            step (int): Step value for ERSKey
+            artifact_type (StorageArtifactType, optional): The StorageArtifactType for the ERSKey. Defaults to StorageArtifactType.MODEL.
+
+        Returns:
+            ERSKey: A complete ERSKey
         """
         return ERSKey(
             self.experiment_key, self.run_key, StorageKey(epoch, step, artifact_type)
         )
 
-    def getExperimentKey(self) -> ExperimentKey:
-        return self.experiment_key
+    @property
+    def experiment_key(self) -> ExperimentKey:
+        """Returns the current `experiment_key`
+
+        Returns:
+            ExperimentKey: The current `experiment_key`
+        """
+        return self._experiment_key
+
+    @experiment_key.setter
+    def experiment_key(self, ekey: ExperimentKey):
+        """Sets the current `experiment_key`
+
+        Args:
+            ekey (ExperimentKey): The current experiment key
+        """
+        self._experiment_key = ekey
+
 
     def getRunKey(self) -> RunKey:
+        """Gets the current `run_key`
+
+        Returns:
+            RunKey: The current `run_key`
+        """
         return self.run_key
 
     def getLatestStorageKey(self) -> StorageKey:
+        """Gets the latest StorageKey tracked by the StorageManager. The latest Storage Key refers to the most recent artifact created in either local or remote storage. Usually, the MODEL artifact is used as the reference artifact to compute the latest Storage Key.
+
+        Returns:
+            StorageKey: The latest Storage Key tracked by this StorageManager
+        """
         return self.latest_storage_key
 
     def getLatestStepOfArtifactWithEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
-        """Given an epoch or an ERSKey with epoch value, return ers_key of the latest Artifact in remote OR local
+        """Given an epoch or an ERSKey with epoch value, return ERSKey of the latest Artifact in remote OR local. If `storage_manager_mode` is 'strict', the remote is checked only if backup is allowed for the artifact. If `storage_manager_mode` is 'loose' or 'download_only', then both the local and remote storages are checked regardless of whether backup is allowed, as long as a remote storage is provided. Note: `storage_manager_mode` defaults to 'strict' for EML and 'download_only' for ED.
 
         Args:
-            epoch (int, optional): _description_. Defaults to None.
-            ers_key (ERSKey, optional): _description_. Defaults to None.
-            artifact (StorageArtifactType, optional): _description_. Defaults to StorageArtifactType.MODEL.
+            epoch (int, optional): The epoch value to find the latest step for. Used if `ers_key` is not provided. Defaults to None.
+            ers_key (ERSKey, optional): An ERSKey whose epoch value will be used. Defaults to None.
+            artifact (StorageArtifactType, optional): The artifact to use as reference. Defaults to StorageArtifactType.MODEL.
         """
         if ers_key is None:
             ers_key = self.getERSKey(epoch=epoch,step=0,artifact_type=artifact)
