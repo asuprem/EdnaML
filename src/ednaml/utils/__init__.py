@@ -1,5 +1,5 @@
 from typing import List, Dict, Tuple, Type
-import os, builtins
+import os, builtins, json, yaml
 import logging
 import sys
 from ednaml.exceptions import ErrorDuringImport
@@ -40,20 +40,50 @@ class ExperimentKey:
             self.model_qualifier
         ])
 
+    def __repr__(self) -> str:
+        dicts = json.dumps(self, default=config_serializer)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
+
+    def __str__(self) -> str:
+        return self.getExperimentName()
+
+
 class RunKey:
-    run: str
+    run: int
     def __init__(self, run):
         self.run = run
 
+    def __repr__(self) -> str:
+        dicts = json.dumps(self, default=lambda o: o.__dict__)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
+
+    def getRunKey(self) -> str:
+        return str(self.run)
+
+    def __str__(self) -> str:
+        return self.getRunKey()
+
 class StorageKey:
-    epoch: str
-    step: str
+    epoch: int
+    step: int
     artifact: StorageArtifactType
+
     def __init__(self, epoch, step, artifact):
         self.epoch = epoch
         self.step = step
         self.artifact = artifact
+    def __repr__(self) -> str:
+        dicts = json.dumps(self.__dict__, default=lambda o: o.value)  # or getvars()????
+        dicta = json.loads(dicts)
+        return yaml.dump(dicta)
 
+    def getStorageKey(self) -> str:
+        return "-".join([self.artifact.value, str(self.epoch), str(self.step)])
+
+    def __str__(self) -> str:
+        return self.getStorageKey()
 class ERSKey:
     experiment: ExperimentKey
     run: RunKey
@@ -63,6 +93,40 @@ class ERSKey:
         self.experiment = experiment
         self.run = run
         self.storage = storage
+    def __repr__(self) -> str:
+        return "\n".join([repr(self.experiment), repr(self.run), repr(self.storage)])
+    def printKey(self) -> str:
+        return "<" + ", ".join([str(item) for item in [self.experiment, self.run, self.storage]]) + ">"
+
+class KeyMethods:
+    @staticmethod
+    def cloneExperimentKey(experiment_key: ExperimentKey) -> ExperimentKey:
+        return ExperimentKey(
+            model_core_name=experiment_key.model_core_name,
+            model_backbone=experiment_key.model_backbone,
+            model_qualifier=experiment_key.model_qualifier,
+            model_version=experiment_key.model_version,
+        )
+
+    @staticmethod
+    def cloneRunKey(run_key: RunKey):
+        return RunKey(
+            run=run_key.run
+        )
+
+    @staticmethod
+    def cloneStorageKey(storage_key: StorageKey):
+        return StorageKey(epoch=storage_key.epoch,
+                            step=storage_key.step,
+                            artifact=storage_key.artifact)
+
+    @staticmethod
+    def cloneERSKey(ers_key: ERSKey):
+        return ERSKey(
+            experiment = KeyMethods.cloneExperimentKey(ers_key.experiment),
+            run = KeyMethods.cloneRunKey(ers_key.run),
+            storage = KeyMethods.cloneStorageKey(ers_key.storage),
+        )
 
 class StorageNameStruct:
     model_core_name: str

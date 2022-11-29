@@ -4,3 +4,6 @@ __VERSION__ = "0.1.5"
 
 def version():
     return __VERSION__
+
+
+import ednaml.core

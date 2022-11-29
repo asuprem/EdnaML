@@ -17,6 +17,8 @@ DATAREADER:
     masking: False
     keyword_mask: False
     keywords: []
+    keytoken_mask: False
+    keytokens: []
     label_idxs: [3] # This is the actual label...
     annotation_idxs: [1,2]  # this is shares and likes
   GENERATOR_ARGS: 

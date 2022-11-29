@@ -57,7 +57,7 @@ def build_model_and_load_weights(
     Returns:
         _type_: _description_
     """
-    from ednaml.core import EdnaML
+    from ednaml.core.EdnaML import EdnaML
 
     eml = EdnaML(
         config=config_file,
