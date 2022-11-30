@@ -28,7 +28,7 @@ class ClassificationDeploy(BaseDeploy):
     def end_of_epoch(self, epoch: int):
         print(self.creport(self.total_labels, self.total_pred))
 
-    def creport(self, labels, pred):
+    def accprint(self, labels, pred):
         return "Accuracy:  %f"%((torch.tensor(self.total_pred) == torch.tensor(self.total_labels)).sum().float() / float(
             len(self.total_labels)
         ))
