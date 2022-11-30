@@ -156,7 +156,6 @@ class BaseTrainer:
         self.test_frequency = test_frequency
         self.storage_manager = storage_manager
         self.log_manager = log_manager
-        self.storage_mode_strict = True if storage_mode == "strict" else False
         self.model_save_name = self.storage_manager.experiment_key.getExperimentName()
         self.gpus = gpus
 
@@ -185,111 +184,20 @@ class BaseTrainer:
         # For whatever the artifact is, we will first perform a local save,
         # then perform a backup IF backup_perform is true...
         if artifact == StorageArtifactType.MODEL:
-            # We save MODEL and ARTIFACT together. 
-            save_dict = {}
-            save_dict["optimizer"] = {
-                pgn: self.optimizer[pgn].state_dict()
-                for pgn in self.parameter_groups
-            }
-            save_dict["scheduler"] = {
-                pgn: self.scheduler[pgn].state_dict()
-                for pgn in self.parameter_groups
-            }
-            save_dict["loss_fn"] = {
-                lossname: self.loss_fn[lossname].state_dict()
-                for lossname in self.loss_fn
-            }
-            save_dict["loss_optimizer"] = {
-                lossname: (
-                    self.loss_optimizer[lossname].state_dict()
-                    if self.loss_optimizer[lossname] is not None
-                    else None
-                )
-                for lossname in self.loss_optimizer
-            }
-            save_dict["loss_scheduler"] = {
-                lossname: (
-                    self.loss_scheduler[lossname].state_dict()
-                    if self.loss_scheduler[lossname] is not None
-                    else None
-                )
-                for lossname in self.loss_scheduler
-            }
-            
-            model_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = save_epoch, step = save_step, artifact_type=artifact)
-            model_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=model_ers_key)
-
-
-            torch.save(
-                self.model.state_dict(),
-                model_local_storage_savepath,
-            )
-
-            artifact_ers_key = self.storage_manager.getERSKey(
-                epoch = save_epoch,
-                step=save_step,
-                artifact_type = StorageArtifactType.ARTIFACT
-                )
-            artifact_local_storage_savepath = self.storage_manager.getLocalSavePath(artifact_ers_key)
-            torch.save(save_dict, artifact_local_storage_savepath)
-
-            if self.storage_manager.performBackup(artifact):    # TODO under strict/loose modes, storageManager can take care of all of these. 
-                self.storage_manager.upload(
-                    self.storage,
-                    model_ers_key
-                )
-                self.storage_manager.upload(
-                    self.storage,
-                    artifact_ers_key
-                )
-                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadModel(source_file_name=model_local_storage_savepath, ers_key=model_ers_key)
-                #self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.ARTIFACT)].uploadModelArtifact(source_file_name=artifact_local_storage_savepath, ers_key=artifact_ers_key)
-
+           self.saveModel(epoch=save_epoch, step=save_step)
+           self.saveArtifact()(epoch=save_epoch, step=save_step)
         elif artifact == StorageArtifactType.ARTIFACT:
             raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
         elif artifact == StorageArtifactType.PLUGIN:
-            self.logger.debug("Not saving model plugins")   # TODO
+            self.savePlugin(epoch=save_epoch, step=save_step)
         elif artifact == StorageArtifactType.LOG:
-            # 3. During saving, BaseTrainer does a few things:
-            #      a. First, flush the LogManager
-            #      b. Request file from LogManager
-            #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
-            #      d. Ask StorageManager to upload the file
-            self.logger.info("Flushing current logs")
-            self.log_manager.flush()
-            local_log_file = self.log_manager.getLocalLog()
-            # LogManager writes to file OR writes to a remote server. Storage takes care of "missing" files by skipping them.
-            log_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.LOG)
-            storage_log_file = self.storage_manager.getLocalSavePath(log_ers_key)
-            if local_log_file != storage_log_file:
-                self.logger.info("Transferring LogManager log at {logpath} to StorageManager path at {stpath}".format(
-                    logpath = local_log_file, stpath = storage_log_file
-                ))
-                shutil.copy2(local_log_file, storage_log_file)
-            #log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
-            if self.storage_manager.performBackup(artifact):
-                self.storage_manager.upload(
-                    self.storage, log_ers_key
-                )
-                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
+            self.saveLog(epoch=save_epoch, step=save_step)
         elif artifact == StorageArtifactType.CONFIG:
-            self.logger.debug("Not uploading config")   # TODO
+            self.saveConfig(epoch=save_epoch, step=save_step)
         elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
-            # MetricManager writes to one-file-per-metric, or to remote server (or both).
-            # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server 
-            metrics_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.METRIC)
-            #metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
-            # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
-            if self.storage_manager.performBackup(artifact):
-                self.storage_manager.upload(
-                    self.storage,
-                    metrics_ers_key
-                )
-                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
+            self.saveMetrics(epoch=save_epoch, step=save_step)
         else:
             raise ValueError("Unexpected value for artifact type %s"%artifact.value)
-
-
 
 
         
@@ -298,6 +206,118 @@ class BaseTrainer:
         # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
 
     # load is called by self.train() when being initialized...
+
+    def saveModel(self, epoch: int, step: int):
+        model_ers_key: ERSKey = self.storage_manager.getERSKey(epoch = epoch, step = step, artifact_type=StorageArtifactType.MODEL)
+        model_local_storage_savepath = self.storage_manager.getLocalSavePath(ers_key=model_ers_key)
+
+        torch.save(
+            self.model.state_dict(),
+            model_local_storage_savepath,
+        )
+        if self.storage_manager.performBackup(StorageArtifactType.MODEL):    # TODO under strict/loose modes, storageManager can take care of all of these. 
+            self.storage_manager.upload(
+                self.storage,
+                model_ers_key
+            )
+
+    def saveArtifact(self, epoch: int, step: int):
+        save_dict = {}
+        save_dict["optimizer"] = {
+            pgn: self.optimizer[pgn].state_dict()
+            for pgn in self.parameter_groups
+        }
+        save_dict["scheduler"] = {
+            pgn: self.scheduler[pgn].state_dict()
+            for pgn in self.parameter_groups
+        }
+        save_dict["loss_fn"] = {
+            lossname: self.loss_fn[lossname].state_dict()
+            for lossname in self.loss_fn
+        }
+        save_dict["loss_optimizer"] = {
+            lossname: (
+                self.loss_optimizer[lossname].state_dict()
+                if self.loss_optimizer[lossname] is not None
+                else None
+            )
+            for lossname in self.loss_optimizer
+        }
+        save_dict["loss_scheduler"] = {
+            lossname: (
+                self.loss_scheduler[lossname].state_dict()
+                if self.loss_scheduler[lossname] is not None
+                else None
+            )
+            for lossname in self.loss_scheduler
+        }
+        
+        
+
+        artifact_ers_key = self.storage_manager.getERSKey(
+            epoch = epoch,
+            step=step,
+            artifact_type = StorageArtifactType.ARTIFACT
+            )
+        artifact_local_storage_savepath = self.storage_manager.getLocalSavePath(artifact_ers_key)
+        torch.save(save_dict, artifact_local_storage_savepath)
+
+        if self.storage_manager.performBackup(StorageArtifactType.ARTIFACT):    # TODO under strict/loose modes, storageManager can take care of all of these. 
+            self.storage_manager.upload(
+                self.storage,
+                artifact_ers_key
+            )
+
+    def saveLog(self, epoch: int, step: int):
+        # 3. During saving, BaseTrainer does a few things:
+        #      a. First, flush the LogManager
+        #      b. Request file from LogManager
+        #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
+        #      d. Ask StorageManager to upload the file
+        self.logger.info("Flushing current logs")
+        self.log_manager.flush()
+        local_log_file = self.log_manager.getLocalLog()
+        # LogManager writes to file OR writes to a remote server. Storage takes care of "missing" files by skipping them.
+        log_ers_key = self.storage_manager.getERSKey(epoch=epoch, step=step, artifact_type=StorageArtifactType.LOG)
+        storage_log_file = self.storage_manager.getLocalSavePath(log_ers_key)
+        if local_log_file != storage_log_file:
+            self.logger.info("Transferring LogManager log at {logpath} to StorageManager path at {stpath}".format(
+                logpath = local_log_file, stpath = storage_log_file
+            ))
+            shutil.copy2(local_log_file, storage_log_file)
+        #log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
+        if self.storage_manager.performBackup(StorageArtifactType.LOG):
+            self.storage_manager.upload(
+                self.storage, log_ers_key
+            )
+            #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
+
+    def saveMetrics(self, epoch: int, step: int):
+        # MetricManager writes to one-file-per-metric, or to remote server (or both).
+        # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server 
+        metrics_ers_key = self.storage_manager.getERSKey(epoch=epoch, step=step, artifact_type=StorageArtifactType.METRIC)
+        #metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
+        # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
+        if self.storage_manager.performBackup(StorageArtifactType.METRIC):
+            self.storage_manager.upload(
+                self.storage,
+                metrics_ers_key
+            )
+            #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
+
+    def savePlugin(self, epoch: int, step: int):
+        self.logger.debug("Not saving model plugins")   # TODO
+
+    def saveConfig(self, epoch: int, step: int):
+        self.logger.debug("Not uploading config")   # TODO
+
+    def saveCode(self, epoch: int, step: int):
+        pass
+
+
+
+
+
     def load(self, load_epoch: int = None, load_step : int = None, artifact: StorageArtifactType = StorageArtifactType.MODEL, ignore_if_error: bool = False):
         """_summary_
 
@@ -371,7 +391,7 @@ class BaseTrainer:
                         raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(StorageArtifactType.ARTIFACT.value, load_epoch, load_step))
             else:
                 if not ignore_if_error:
-                    raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(artifact.value, load_epoch, load_step))
+                    raise FileNotFoundError("Could not download artifact %s from epoch %i ? step %i"%(StorageArtifactType.MODEL.value, load_epoch, load_step))
                 return False
 
 
@@ -389,6 +409,29 @@ class BaseTrainer:
             raise ValueError("Unexpected value for artifact type %s"%artifact.value)
         
         return True
+
+
+    def loadModel(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadArtifact(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadPlugin(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadCode(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadConfig(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadLog(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
+    def loadMetrics(epoch: int, step: int, ignore_if_error: bool):
+        pass
+
 
     def train(self, continue_epoch: int = None, continue_step: int = None, **kwargs):
         ers_key = self.storage_manager.getLatestERSKey(artifact = StorageArtifactType.MODEL)
@@ -455,7 +498,8 @@ class BaseTrainer:
         if continue_step == -1:
             raise RuntimeError("`continue_step` is -1 after error checking")
 
-        
+
+
         if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
             self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
         else:
@@ -463,17 +507,20 @@ class BaseTrainer:
             # Attempt to load models, with skip-if-error
             response = self.load(load_epoch=continue_epoch, load_step=continue_step, artifact=StorageArtifactType.MODEL, ignore_if_error = True)
             if not response:
-                self.logger.info("Could not load weights at epoch-step %i/%i. Skipping"%(continue_epoch, continue_step))
+                # This is for non-initial epoch/step
+                if continue_epoch or continue_step:
+                    raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+                #self.logger.info()
+                self.logger.info("Could not load weights since there is no model saved yet.")
             else: # If we have loaded weights from a specific epoch, we should continue from the next epoch...
-                self.logger.info("Loaded weights.")
-                self.logger.info("Switching to latest ERSKey `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
-                self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
-                self.logger.info("Incremented latest ERSKey to `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
-                self.current_ers_key = self.storage_manager.getLatestERSKey()
-                continue_epoch = self.current_ers_key.storage.epoch
-                continue_step = self.current_ers_key.storage.step
-                
-            
+                self.logger.info("Loaded weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+        
+        self.logger.info("Switching to latest ERSKey `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
+        self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+        self.logger.info("Incremented latest ERSKey to `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
+        self.current_ers_key = self.storage_manager.getLatestERSKey()
+        continue_epoch = self.current_ers_key.storage.epoch
+        continue_step = self.current_ers_key.storage.step
 
 
         if not self.skipeval:
@@ -534,9 +581,7 @@ class BaseTrainer:
                     self.save(self.saveFlag_epoch, self.saveFlag_step)
                     self.saveFlag = False
 
-            
-            
-            if self.storage_mode_strict:
+            if self.storage_manager.storage_trigger_strict:
                 self.check_step_save(self.global_batch)
             else:   # We check every step_verbose steps
                 if (self.global_batch + 1) % self.step_verbose == 0:
