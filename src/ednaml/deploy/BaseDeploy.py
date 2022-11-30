@@ -125,56 +125,83 @@ class BaseDeploy:
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
 
-    def deploy(self, continue_epoch: int = 0, continue_step: int = None, inference = False, ers_key: ERSKey = None, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None, **kwargs):
+    def deploy(self, continue_epoch: int = 0, continue_step: int = None, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None, **kwargs):
+        ers_key = self.storage_manager.getLatestERSKey(artifact = StorageArtifactType.MODEL)
         if continue_epoch is None:  # Use the provided latest key
-            self.logger.debug("`continue_epoch` is not provided. Checking in provided `ers_key`")
+            self.logger.debug("`continue_epoch` is not provided. Will use latest `ers_key`")
             continue_epoch = ers_key.storage.epoch
             continue_step = ers_key.storage.step
-            self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
-            self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
-        else:   # continue epoch and step are provided
+            self.current_ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
+        else:   # contnue epoch and/or step are provided
             # Check if they are valid. Otherwise, default to provided latest_key
-            self.logger.debug("`continue_epoch` is provided. Checking validity in remote Storage")
-            key = None
-            if continue_step is None:
-                self.logger.debug("`continue_step` is not provided. Getting latest step saved in Epoch %i in remote Storage"%continue_epoch)
-                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
-                if key is None:
-                    self.logger.debug("No latest step found. Setting to 0")
-                    continue_step = 0
-                else:
-                    self.logger.debug("Found step %i"%key.storage.step)
-                    continue_step = key.storage.step
+            self.logger.debug("`continue_epoch` is provided. Checking validity in remote and local Storage with artifact MODEL")
+            key_exist = self.storage_manager.checkEpoch(
+                storage=self.storage, epoch=continue_epoch, artifact=StorageArtifactType.MODEL
+            )
+            if key_exist is False:
+                self.logger.debug("`continue_epoch` value of %i does not exist. Will switch to latest ERSKey."%continue_epoch)
+                continue_epoch = None
+            else:   # Epoch exists, we now need to check if the step value is valid
+                self.logger.debug("`continue_epoch` value of %i is valid. Checking `continue_step`."%continue_epoch)
+                if continue_step is not None:
+                    key_exist = self.storage_manager.checkStep(
+                        storage=self.storage, epoch=continue_epoch, step=continue_step, artifact=StorageArtifactType.MODEL
+                    )
+                    if key_exist is False:
+                        self.logger.debug("`continue_step` value of %i does not exist. Will attempt to find latest step."%continue_step)
+                        continue_step = None
+                    else:
+                        self.logger.debug("`continue_step` value of %i is valid."%continue_step)
+                # continue_step is None if not provided, or if the provided value is not valid.
+                if continue_step is None:
+                    self.logger.debug("`continue_step` is not provided or not valid. Getting latest step saved in Epoch %i in remote and local Storage"%continue_epoch)
+                    key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
+                    if key is None:
+                        self.logger.debug("No latest step found even though `continue_epoch` is valid. Will switch to latest ERSKey.")
+                        continue_step = None
+                        continue_epoch = None
+                    else:
+                        self.logger.debug("Found latest `continue_step` %i"%key.storage.step)
+                        continue_step = key.storage.step
 
-            key = self.storage[self.storage_manager.getStorageNameForArtifact(StorageArtifactType.MODEL)].getKey(
-                            self.storage_manager.getERSKey( epoch=continue_epoch, 
-                                                            step=continue_step, 
-                                                            artifact_type=StorageArtifactType.MODEL)
-                                                            )
-            if key is None:
-                self.logger.info("Epoch/step pair %i/%i do not exist. Checking if epoch exists and using latest Step."%(continue_epoch,continue_step))
-                key = self.storage_manager.getLatestStepOfArtifactWithEpoch(storage=self.storage,epoch=continue_epoch,artifact=StorageArtifactType.MODEL)
-                if key is None:
-                    self.logger.info("Provided epoch/step pair %i/%i do not exist. Using LatestStorageKey"%(continue_epoch,continue_step))
-                    continue_epoch = ers_key.storage.epoch
-                    continue_step = ers_key.storage.step
-                    self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
-                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
-                else:
-                    self.logger.debug("Found step %i"%key.storage.step)
-                    continue_step = key.storage.step
-                    self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
-                    self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
-            else:
-                # get an ERSKey using the continue_epoch and step...
+
+            if (continue_epoch is not None) and (continue_step is not None):
+                self.logger.info("Using provided epoch/step pair %i/%i."%(continue_epoch,continue_step))
                 self.current_ers_key = self.storage_manager.getERSKey(epoch=continue_epoch, step=continue_step)
-                self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+            else:
+                continue_epoch = ers_key.storage.epoch
+                continue_step = ers_key.storage.step
+                self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
+            self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
+        
+
+         # This occurs ONLY if using latestStorageKey and it is empty. TODO this should be 
+        # cleaned up for potential bugs when continue_epoch is -1 for other reasons due to 
+        # leaks but storageManager is still forced to update StorageKey
+        if continue_epoch == -1:
+            self.logger.info("Starting from scratch. Setting initial epoch/step to 0/0")
+            self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+            self.current_ers_key = self.storage_manager.getLatestERSKey()
+            continue_epoch = self.current_ers_key.storage.epoch
+            continue_step = self.current_ers_key.storage.step
+        if continue_step == -1:
+            raise RuntimeError("`continue_step` is -1 after error checking")
 
 
-            
+        self.logger.info("Starting deployment. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+        self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
+        self.logger.info(
+            "Plugins will be saved locally with base name:\t%s"
+            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.PLUGIN))
+        )
+        self.logger.info("Config will not be saved")
+        self.logger.info("Logs will not be saved")
+        self.logger.info("Metrics will not be saved")
+        self.logger.info("Models will not be saved")
+        self.logger.info("Model artifacts will not be saved")
+
         
-        
-        
+
         if model_build or (model_build is None and not self.model_is_built):    
             self.logger.info("`model_build` is True or model may not be built. Checking.")
             if continue_epoch or continue_step:
@@ -182,14 +209,13 @@ class BaseDeploy:
                     self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
                 else:
                     self.logger.info("Model is empty and `model_build` is set. Attempting loading weights from Epoch %i Step %i"%(continue_epoch, continue_step))
-                    self.load(continue_epoch, continue_step, ignore_if_error = True, artifact = StorageArtifactType.MODEL)
+                    response = self.load(continue_epoch, continue_step, ignore_if_error = False, artifact = StorageArtifactType.MODEL)
                     self.logger.info("Model is empty and `model_build` is set. Attempting loading plugins from Epoch %i Step %i"%(continue_epoch, continue_step))
-                    self.load(continue_epoch, continue_step, ignore_plugins=ignore_plugins, ignore_if_error = True, artifact = StorageArtifactType.PLUGIN)
-
-            if inference:
-                self.model.inference()
-            else:
-                self.model.eval()
+                    plugin_response = self.load(continue_epoch, continue_step, ignore_plugins=ignore_plugins, ignore_if_error = True, artifact = StorageArtifactType.PLUGIN)
+                    if not response:
+                        raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+                    if not plugin_response:
+                        self.logger.info("Could not load plugins at epoch-step %i/%i."%(continue_epoch, continue_step))
             self.model_is_built = True
         else:
             if model_build is not None and not model_build:
@@ -198,6 +224,11 @@ class BaseDeploy:
                 self.logger.info("Skipping model building and plugin loading because model is already built in a prior call to `deploy()`. To force, set the `model_build` flag to True in `ed.deploy`")
             else:
                 self.logger.info("Skipping model building and plugin loading")
+
+        if inference:
+            self.model.inference()
+        else:
+            self.model.eval()
 
         if execute:
             self.logger.info("Setting up plugin hooks. Plugins will fire during:  %s"%self.config.DEPLOYMENT.PLUGIN.HOOKS)

@@ -185,7 +185,7 @@ class BaseTrainer:
         # then perform a backup IF backup_perform is true...
         if artifact == StorageArtifactType.MODEL:
            self.saveModel(epoch=save_epoch, step=save_step)
-           self.saveArtifact()(epoch=save_epoch, step=save_step)
+           self.saveArtifact(epoch=save_epoch, step=save_step)
         elif artifact == StorageArtifactType.ARTIFACT:
             raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
         elif artifact == StorageArtifactType.PLUGIN:
@@ -437,22 +437,25 @@ class BaseTrainer:
         ers_key = self.storage_manager.getLatestERSKey(artifact = StorageArtifactType.MODEL)
         if continue_epoch is None:  # Use the provided latest key
             self.logger.debug("`continue_epoch` is not provided. Will use latest `ers_key`")
+            continue_epoch = ers_key.storage.epoch
+            continue_step = ers_key.storage.step
+            self.current_ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         else:   # contnue epoch and/or step are provided
             # Check if they are valid. Otherwise, default to provided latest_key
             self.logger.debug("`continue_epoch` is provided. Checking validity in remote and local Storage with artifact MODEL")
-            key = self.storage_manager.checkEpoch(
+            key_exist = self.storage_manager.checkEpoch(
                 storage=self.storage, epoch=continue_epoch, artifact=StorageArtifactType.MODEL
             )
-            if key is None:
+            if key_exist is False:
                 self.logger.debug("`continue_epoch` value of %i does not exist. Will switch to latest ERSKey."%continue_epoch)
                 continue_epoch = None
             else:   # Epoch exists, we now need to check if the step value is valid
                 self.logger.debug("`continue_epoch` value of %i is valid. Checking `continue_step`."%continue_epoch)
                 if continue_step is not None:
-                    key = self.storage_manager.checkStep(
+                    key_exist = self.storage_manager.checkStep(
                         storage=self.storage, epoch=continue_epoch, step=continue_step, artifact=StorageArtifactType.MODEL
                     )
-                    if key is None:
+                    if key_exist is False:
                         self.logger.debug("`continue_step` value of %i does not exist. Will attempt to find latest step."%continue_step)
                         continue_step = None
                     else:
@@ -478,14 +481,7 @@ class BaseTrainer:
                 continue_step = ers_key.storage.step
                 self.current_ers_key = KeyMethods.cloneERSKey(ers_key)
             self.logger.info("Using ERSKey {key}".format(key=self.current_ers_key.printKey()))
-            
-        self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
-        self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
-        self.logger.info(
-            "Models/model artifacts will be saved locally with base name:\t%s"
-            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.MODEL))
-        )
-
+        
         # This occurs ONLY if using latestStorageKey and it is empty. TODO this should be 
         # cleaned up for potential bugs when continue_epoch is -1 for other reasons due to 
         # leaks but storageManager is still forced to update StorageKey
@@ -499,6 +495,28 @@ class BaseTrainer:
             raise RuntimeError("`continue_step` is -1 after error checking")
 
 
+        self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+        self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
+        self.logger.info(
+            "Models will be saved locally with base name:\t%s"
+            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.MODEL))
+        )
+        self.logger.info(
+            "Model artifacts will be saved locally with base name:\t%s"
+            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.ARTIFACT))
+        )
+        self.logger.info(
+            "Logs will be saved locally with base name:\t%s"
+            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.LOG))
+        )
+        self.logger.info(
+            "Metrics will be saved locally with base name:\t%s"
+            % self.storage_manager.getLocalSavePath(self.storage_manager.getERSKey(epoch=0,step=0,artifact_type=StorageArtifactType.METRIC))
+        )
+        self.logger.info("Config will not be saved")
+        self.logger.info("Plugins will not be saved")
+
+      
 
         if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
             self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))

@@ -2,24 +2,24 @@
 execute for 5 epochs, 928 steps
 
 check if we start a new run
-check if epoch ended, will it run again?
+check if epoch ended, will it run again? Works.
 
 partial starts: -- end at epoch 3.600 ish
 
-start where remote has latest
-start where local has latest
-start where specific epoch given
-start where specific epoch given, but missing (latestERSKey)
-start where specific epoch given, only in remote (retrieve latest remote)
-start where specific epoch given, only in local (retrieve latest local)
-start where specific epoch given, latest step in local (retrieve latest local)
-start where specific epoch given, latest step in remote (retrieve latest remote)
-start where specific step given (retrieve that step)
-start where specific step given, only in remote (retrieve that step)
-start where specific step given, only in local (retrieve that step)
-start where specific step given, but missing , latest in remote (get remote)
-start where specific step given, but missing , latest in local (get local)
-start where specific step given, but missing , no latest due to wrong epoch (switch to latestERSKey)
+start where remote has latest -- works
+start where local has latest -- works
+start where specific epoch given -- works
+start where specific epoch given, but missing (latestERSKey) -- works
+start where specific epoch given, only in remote (retrieve latest remote) -- works
+start where specific epoch given, only in local (retrieve latest local) -- works
+start where specific epoch given, latest step in local (retrieve latest local) -- works
+start where specific epoch given, latest step in remote (retrieve latest remote) -- works
+start where specific step given (retrieve that step) -- works
+start where specific step given, only in remote (retrieve that step) -- works
+start where specific step given, only in local (retrieve that step) -- works
+start where specific step given, but missing , latest in remote (get remote) -- works
+start where specific step given, but missing , latest in local (get local) -- works
+start where specific step given, but missing , no latest due to wrong epoch (switch to latestERSKey) -- works
 
 
 

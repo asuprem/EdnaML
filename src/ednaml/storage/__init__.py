@@ -1,16 +1,11 @@
-import logging
+import logging, os
 from threading import local
-from types import LambdaType
-from typing import Dict, Union
+from typing import Callable, Dict, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
-from ednaml.config.SaveConfig import SaveConfig
 from ednaml.storage.BaseStorage import BaseStorage
-from ednaml.storage.AzureStorage import AzureStorage
 from ednaml.storage.LocalStorage import LocalStorage
-from ednaml.utils.SaveMetadata import SaveMetadata
-from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey, StorageNameStruct
-import os
+from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 
 class StorageManager:  
     """StorageManager is a helper class for storage-related tasks in EdnaML
@@ -34,8 +29,8 @@ class StorageManager:
     local_save_directory: str
     local_storage: LocalStorage
     artifact_references: Dict[StorageArtifactType, BackupOptionsConfig]
-    epoch_triggers: Dict[StorageArtifactType, LambdaType]
-    step_triggers: Dict[StorageArtifactType: LambdaType]
+    epoch_triggers: Dict[StorageArtifactType, Callable[[int],bool]]
+    step_triggers: Dict[StorageArtifactType, Callable[[int],bool]]
     def __init__(self,  logger: logging.Logger, 
                         cfg: EdnaMLConfig, 
                         experiment_key: ExperimentKey, 
@@ -224,18 +219,32 @@ class StorageManager:
         """
         if ers_key is None:
             ers_key = self.getERSKey(epoch=epoch,step=0,artifact_type=artifact)
+        remote_step = self.getERSKey(epoch=-1,step=-1,artifact_type=artifact)
         if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
-            return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
-        else:   # storage is strict AND backup is not allowed
-            return self.local_storage.getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+            remote_step = storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+        local_step = self.local_storage.getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+        if remote_step is None:
+            return local_step   # Could be none or greater...
+        if local_step is None:
+            return remote_step
+        if remote_step.storage.step > local_step.storage.step:
+            return remote_step
+        return local_step   # if remote step equal or less than local
 
     def getLatestEpochOfArtifact(self, storage: Dict[str, BaseStorage], ers_key: ERSKey = None, artifact: StorageArtifactType = StorageArtifactType.MODEL) -> ERSKey:
         if ers_key is None:
             ers_key = self.getERSKey(epoch=0, step=0, artifact_type=artifact)
+        remote_epoch = self.getERSKey(epoch=-1,step=-1,artifact_type=artifact)
         if self.performBackup(artifact_type=artifact) or (not self.storage_manager_strict):
-            return storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestEpochOfArtifact(ers_key=ers_key)
-        else:   # storage is strict AND backup is not allowed
-            return self.local_storage.getLatestEpochOfArtifact(ers_key=ers_key)
+            remote_epoch = storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestEpochOfArtifact(ers_key=ers_key)
+        local_epoch = self.local_storage.getLatestEpochOfArtifact(ers_key=ers_key)
+        if remote_epoch is None:
+            return local_epoch
+        if local_epoch is None:
+            return remote_epoch
+        if remote_epoch.storage.epoch > local_epoch.storage.epoch:
+            return remote_epoch
+        return local_epoch   # if remote step equal or less than local
 
     def checkEpoch(self, storage: Dict[str, BaseStorage], epoch: int = None, ers_key: ERSKey = None, artifact: StorageArtifactType = None) -> bool:
         """Check if an epoch exists in either remote or local storage

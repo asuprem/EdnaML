@@ -167,7 +167,7 @@ class EdnaDeploy(EdnaML):
         )
 
     def deploy(self, **kwargs):
-        self.deployment.deploy(ers_key = self.storageManager.getLatestERSKey(), **kwargs)
+        self.deployment.deploy(**kwargs)
 
     def buildDeployment(self):
         """Builds the EdnaDeploy deployment and sets it up"""
