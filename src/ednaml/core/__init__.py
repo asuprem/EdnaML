@@ -1,7 +1,11 @@
+from ednaml.utils import ERSKey, ExperimentKey
+
 class EdnaMLContextInformation:
-    MODEL_HAS_LOADED_WEIGHTS: bool = False
-    LOADED_EPOCH: int = -1
-    LOADED_STEP: int = -1
+    MODEL_HAS_LOADED_WEIGHTS: bool
+    MODEL_ERS_KEY: ERSKey
+    def __init__(self) -> None:
+        self.MODEL_HAS_LOADED_WEIGHTS = False
+        self.MODEL_ERS_KEY = None
     
 import logging
 from types import MethodType
@@ -18,7 +22,7 @@ from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.storage import BaseStorage, StorageManager
 from ednaml.trainer.BaseTrainer import BaseTrainer
-from ednaml.utils import ExperimentKey
+
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 class EdnaMLBase:

@@ -32,7 +32,7 @@ class EdnaDeploy(EdnaML):
 
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaDeploy"""
-        self.printConfiguration()
+        self.printConfiguration(**kwargs)
         self.log("[APPLY] Building StorageManager")
         self.buildStorageManager()
         # Build the storage backends that StorageManager can use

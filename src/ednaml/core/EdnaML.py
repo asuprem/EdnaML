@@ -26,7 +26,7 @@ from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.storage import BaseStorage, StorageManager
 from ednaml.trainer.BaseTrainer import BaseTrainer
-from ednaml.utils import (ERSKey, ExperimentKey, StorageArtifactType,
+from ednaml.utils import (ERSKey, ExperimentKey, KeyMethods, StorageArtifactType,
                           StorageKey, locate_class, path_import)
 from ednaml.utils.LabelMetadata import LabelMetadata
 
@@ -106,7 +106,9 @@ class EdnaML(EdnaMLBase):
 
         self.mode = mode
         self.weights = weights
+        # TODO add these to context
         self.gpus = torch.cuda.device_count()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         # TODO Deal with extensions
         if type(self.config) is str:
             self.cfg = EdnaMLConfig([self.config], **kwargs)
@@ -270,7 +272,7 @@ class EdnaML(EdnaMLBase):
     def apply(self, **kwargs):
         """Applies the internal configuration for EdnaML"""
         # Print the current configuration state
-        self.printConfiguration()
+        self.printConfiguration(**kwargs)
         # Build the Storage Manager
         self.log("[APPLY] Building StorageManager")
         self.buildStorageManager(**kwargs)
@@ -929,29 +931,24 @@ class EdnaML(EdnaMLBase):
                     "No saved model weights provided. Inferring weights path from the latest ERSKey:"
                 )
                 model_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.MODEL)
-                self.log(model_ers_key)
-                # success to check if a model was downloaded or not...
-                success = self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModel(
-                    ers_key=model_ers_key,
-                    destination_file_name=self.storageManager.getLocalSavePath(model_ers_key)
-                )
+                self.logger.info("Using ERSKey {key}".format(key=model_ers_key.printKey()))
+                # We do not need artifact
+                success = self.storageManager.download(self.storage, ers_key=model_ers_key)
 
                 if success:
-                    self.log("Found model in Storage at provided ERSKey")
-                    artifact_ers_key = self.storageManager.getLatestERSKey(artifact=StorageArtifactType.ARTIFACT)
-                    self.storage[self.storageManager.getStorageNameForArtifact(StorageArtifactType.MODEL)].downloadModelArtifact(
-                        ers_key=artifact_ers_key,
-                        destination_file_name=self.storageManager.getLocalSavePath(artifact_ers_key)
-                    )
-                    self.weights = self.storageManager.getLocalSavePath(model_ers_key)    
-                    self.model.load_state_dict(torch.load(self.weights))
-                    self.context_information.MODEL_HAS_LOADED_WEIGHTS
-                    self.context_information.LOADED_EPOCH = model_ers_key.storage.epoch
-                    self.context_information.LOADED_STEP = model_ers_key.storage.step
-
+                    self.log("Found model at provided ERSKey")
+                    self.weights = self.storageManager.getLocalSavePath(model_ers_key)  
                     self.log(
                     "Downloaded weights from epoch %i, step %i to local path %s"%(model_ers_key.storage.epoch, model_ers_key.storage.step, self.weights)
-                )
+                    )  
+                    self.model.load_state_dict(torch.load(self.weights, map_location=self.device))
+                    self.log(
+                    "Loaded weights from epoch %i, step %i into model"%(model_ers_key.storage.epoch, model_ers_key.storage.step)
+                    )
+                    self.context_information.MODEL_HAS_LOADED_WEIGHTS
+                    self.context_information.MODEL_ERS_KEY = KeyMethods.cloneERSKey(ers_key=model_ers_key)
+
+                    
                 else:
                     self.log(
                     "Could not download weights."
@@ -1269,13 +1266,14 @@ class EdnaML(EdnaMLBase):
             self.labelMetadata = self.test_generator.num_entities
         self.log("Generated test data/query generator")
 
-    def printConfiguration(self):
+    def printConfiguration(self, **kwargs):
         """Prints the EdnaML configuration"""
-        self.log("*" * 40)
-        self.log("")
-        self.log("Using the following configuration:\n" + self.cfg.export())
-        self.log("")
-        self.log("*" * 40)
+        if kwargs.get("print_configuration", False):
+            self.log("*" * 40)
+            self.log("")
+            self.log("Using the following configuration:\n" + self.cfg.export())
+            self.log("")
+            self.log("*" * 40)
 
     def getModelWeightsFromStorageKey(self, epoch: int = None, step: int = None, storage_key: StorageKey = None):
         if storage_key is not None:
@@ -1362,7 +1360,7 @@ class EdnaML(EdnaMLBase):
         """
         model_load_path = self.getModelWeightsFromEpoch(epoch=epoch)
         if model_load_path is not None:
-            self.model.load_state_dict(torch.load(model_load_path))
+            self.model.load_state_dict(torch.load(model_load_path, map_location=self.device))
             self.log(
                 "Finished loading model state_dict from %s" % model_load_path
             )
