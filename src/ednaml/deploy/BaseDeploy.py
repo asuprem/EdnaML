@@ -282,7 +282,6 @@ class BaseDeploy:
         return (item.to(self.device) for item in batch)
         
     def deploy_step(self, batch):   # USER IMPLEMENTS
-        batch = tuple(item.cuda() for item in batch)
         data, labels = batch    # TODO move plugins here to allow labels as well!!!!!!!!
         feature_logits, features, secondary_outputs = self.model(data)
 
