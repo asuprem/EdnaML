@@ -41,16 +41,20 @@ class FileLogManager(LogManager):
             ers_key (ERSKey): _description_
             file_name (str): _description_
         """
-        self.buildLogger(
-            self.logger,
-            logger_given=True,
-            add_filehandler=True,
-            remove_old_filehandler=True,
-            add_streamhandler=False,
-            logger_save_path=file_name,
-        )
+        # Minor error handling for ephemeral storage
         self.log_filename = file_name
-        self.logger.debug("Updated logger object with file name %s"%file_name)
+        if file_name == "":
+            self.logger.info("Not creating a local logger file due to EmptyStorage.")
+        else:
+            self.buildLogger(
+                self.logger,
+                logger_given=True,
+                add_filehandler=True,
+                remove_old_filehandler=True,
+                add_streamhandler=False,
+                logger_save_path=file_name,
+            )    
+            self.logger.debug("Updated logger object with file name %s"%file_name)
 
     def buildLogger(
         self,

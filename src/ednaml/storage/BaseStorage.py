@@ -44,7 +44,7 @@ class BaseStorage:
 
     def getLatestStorageKey(self, ers_key: ERSKey)-> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
-        RunKey, and Artifact.
+        RunKey, and Artifact. If there is no latest StorageKey, return an ERSKey with -1 for epoch and storage.
 
         Args:
             ers_key (ERSKey): _description_
@@ -58,6 +58,8 @@ class BaseStorage:
         If `artifact` is provided, return the maximum run that contains that specific `artifact`.
 
         If `artifact` is not provided, return the maximum run overall.
+
+        If there is no run, return -1
 
         Args:
             artifact (StorageArtifactType, optional): _description_. Defaults to None.

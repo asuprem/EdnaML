@@ -1,10 +1,11 @@
 import logging, os
 from threading import local
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Literal, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.LocalStorage import LocalStorage
+from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 
 class StorageManager:  
@@ -34,8 +35,26 @@ class StorageManager:
     def __init__(self,  logger: logging.Logger, 
                         cfg: EdnaMLConfig, 
                         experiment_key: ExperimentKey, 
-                        storage_trigger_mode: str = "loose",                     # Trigger mode determines how often we check whether we should upload
-                        storage_manager_mode: str = "loose"):            # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
+                        storage_trigger_mode: Literal["loose", "strict"] = "loose",                     # Trigger mode determines how often we check whether we should upload
+                        storage_manager_mode: Literal["loose", "strict", "download_only"] = "loose",                     # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
+                        storage_mode : Literal["local", "empty"] = "local"):                   # Whether to save locally or not
+        """_summary_
+
+        Args:
+            logger (logging.Logger): _description_
+            cfg (EdnaMLConfig): _description_
+            experiment_key (ExperimentKey): _description_
+            storage_trigger_mode (str, optional): _description_. Defaults to "loose".
+            storage_manager_mode (str, optional): _description_. Defaults to "loose".
+            storage_mode (str, optional): _description_. Defaults to "loose".
+
+        Raises:
+            NotImplementedError: _description_
+            NotImplementedError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         self.logger = logger
         
         self.experiment_key = experiment_key
@@ -50,33 +69,29 @@ class StorageManager:
         self.run_key = None
         self.latest_storage_key = None
         # Add options here for where to save local files, i.e. not directly in ./
-        self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
-        self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
+        self.storage_mode = storage_mode
+        if storage_mode not in ["empty", "local"]:
+            raise ValueError("Unsupported value for `storage_mode` <%s>. Must be one of [`empty`, `local`]"%str(storage_mode))
+        if storage_mode == "local":
+            self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
+            self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
+            os.makedirs(self.local_save_directory, exist_ok=True)
+        else:
+            self.log("\tUsing empty ephemeral storage")
         
-        # So, the log file is still not set up
-        # We do it when the run is initialized.
         
-
-        # Runs are handled elsewhere, so without it, we have essentially a misconfigured directory
-        # TODO potentially problematic...?
-        # But we cannot do this unless storage is packaged with StorageManager
-        # So for now, in EdnaML, we do: buildStorageManager -> buildStorage -> handleRuns
-        
-        # I.e., when StorageManager is initialized, we check whether backup is set to true
-        # Then we check each backup to see if they already have a run
-        # If so, we get the max run, and increment by one
-        # ONLY if specified. Default behavior is to continue from prior run
-        # BUT, we can choose to execute a new run...
-        os.makedirs(self.local_save_directory, exist_ok=True)
-        # self.file_basename = "_".join([self.metadata.MODEL_CORE_NAME, 
-        #                     "v%i"%self.metadata.MODEL_VERSION,
-        #                     self.metadata.MODEL_BACKBONE,
-        #                     self.metadata.MODEL_QUALIFIER])
         self.file_basename = "experiment"
         self.log("\tUsing file basename: \t%s"%self.file_basename)
-        self.local_storage = LocalStorage(experiment_key=self.experiment_key,
-            storage_name = "ednaml-local-storage-reserved", storage_url="./", file_basename = self.file_basename)
-        self.log("Generated `ednaml-local-storage-reserved` LocalStorage object")
+
+        if self.storage_mode == "local":
+            self.local_storage = LocalStorage(experiment_key=self.experiment_key,
+                storage_name = "ednaml-local-storage-reserved", storage_url="./", file_basename = self.file_basename)
+            self.log("Generated `ednaml-local-storage-reserved` LocalStorage object")
+        else:
+            self.local_storage = EmptyStorage(experiment_key=self.experiment_key,
+                storage_name = "ednaml-empty-storage-reserved", storage_url="./")
+            self.log("Generated empty `ednaml-empty-storage-reserved` LocalStorage object")
+            self.log("WARNING: Nothing will be saved.")
         # We create a fast, O(1) reference for each of the save-options to avoid switch statements later
         self.artifact_references = {
             StorageArtifactType.MODEL: self.cfg.SAVE.MODEL_BACKUP,
@@ -239,7 +254,7 @@ class StorageManager:
             remote_epoch = storage[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestEpochOfArtifact(ers_key=ers_key)
         local_epoch = self.local_storage.getLatestEpochOfArtifact(ers_key=ers_key)
         if remote_epoch is None:
-            return local_epoch
+            return local_epoch  # Could be None or Greater
         if local_epoch is None:
             return remote_epoch
         if remote_epoch.storage.epoch > local_epoch.storage.epoch:
@@ -445,7 +460,7 @@ class StorageManager:
 
         # Inform the storages that we have a run:
         for artifact_key in self.artifact_references:
-            if self.performBackup(artifact_type=artifact_key):
+            if self.performBackup(artifact_type=artifact_key) or not self.storage_manager_strict:
                 storage_name = self.getStorageNameForArtifact(artifact_key)
                 storage_dict[storage_name].setTrackingRun(tracking_run)
                 self.log("Tracking run for Artifact `%s` at Storage `%s` set to: %i"%(artifact_key.value, storage_name, tracking_run))
@@ -478,6 +493,8 @@ class StorageManager:
         if self.performBackup(artifact_type=artifact) or not self.storage_manager_strict:
             if not self.storage_manager_strict:
                 self.log("Retrieving remote ERSKey because `storage_manager_mode` is not `strict`")
+            else:
+                self.log("Retrieving remote ERSKey because backup is allowed")
             remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
         else:
             remote_ers_key = None
