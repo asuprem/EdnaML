@@ -8,6 +8,7 @@ from ednaml.storage.LocalStorage import LocalStorage
 from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 
+
 class StorageManager:  
     """StorageManager is a helper class for storage-related tasks in EdnaML
 
@@ -35,9 +36,9 @@ class StorageManager:
     def __init__(self,  logger: logging.Logger, 
                         cfg: EdnaMLConfig, 
                         experiment_key: ExperimentKey, 
-                        storage_trigger_mode: Literal["loose", "strict"] = "loose",                     # Trigger mode determines how often we check whether we should upload
-                        storage_manager_mode: Literal["loose", "strict", "download_only"] = "loose",                     # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
-                        storage_mode : Literal["local", "empty"] = "local"):                   # Whether to save locally or not
+                        storage_trigger_mode: str = "loose",     #Literal["loose", "strict"]                # Trigger mode determines how often we check whether we should upload
+                        storage_manager_mode: str = "loose",     # Literal["loose", "strict", "download_only"]                # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
+                        storage_mode : str = "local"):   # Literal["local", "empty"]                # Whether to save locally or not
         """_summary_
 
         Args:
