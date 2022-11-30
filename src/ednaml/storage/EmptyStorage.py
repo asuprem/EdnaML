@@ -11,7 +11,7 @@ class EmptyStorage(BaseStorage):
         self.storage_path = ""
         self.run_dir = ""
 
-    def path_of_artifact(self, **kwargs):
+    def path_of_artifact(self, *args, **kwargs):
         return ""
 
     def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:

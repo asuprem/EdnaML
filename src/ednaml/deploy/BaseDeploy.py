@@ -391,54 +391,53 @@ class BaseDeploy:
             save_epoch = self.global_epoch
         if save_step is None:
             save_step = self.global_batch
-        self.logger.debug("Attempting upload of artifact `%s` at epoch %i / step %i"%(artifact.value, save_epoch, save_step))
-        # For whatever the artifact is, we will first perform a local save,
-        # then perform a backup IF backup_perform is true...
-        if artifact == StorageArtifactType.MODEL:
-            self.logger.debug("Not saving model in Deployment")
-        elif artifact == StorageArtifactType.ARTIFACT:
-            raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
-        elif artifact == StorageArtifactType.PLUGIN:
-            
-            plugin_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=artifact)
-            plugin_local_path = self.storage_manager.getLocalSavePath(ers_key=plugin_ers_key)
+        if self.storage_manager.storage_mode == "local":
+            self.logger.debug("Attempting upload of artifact `%s` at epoch %i / step %i"%(artifact.value, save_epoch, save_step))
+            # For whatever the artifact is, we will first perform a local save,
+            # then perform a backup IF backup_perform is true...
+            if artifact == StorageArtifactType.MODEL:
+                self.logger.debug("Not saving model in Deployment")
+            elif artifact == StorageArtifactType.ARTIFACT:
+                raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
+            elif artifact == StorageArtifactType.PLUGIN:
+                
+                plugin_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=artifact)
+                plugin_local_path = self.storage_manager.getLocalSavePath(ers_key=plugin_ers_key)
 
-            plugin_save = self.model.savePlugins()
+                plugin_save = self.model.savePlugins()
 
-            if len(plugin_save) > 0:
-                torch.save(plugin_save, plugin_local_path)
-                self.logger.debug("Saved the following plugins: %s"%str(plugin_save.keys()))
+                if len(plugin_save) > 0:
+                    torch.save(plugin_save, plugin_local_path)
+                    self.logger.debug("Saved the following plugins: %s"%str(plugin_save.keys()))
 
-                if self.storage_manager.performBackup(artifact):    # TODO under strict/loose modes, storageManager can take care of all of these. 
+                    if self.storage_manager.performBackup(artifact):    # TODO under strict/loose modes, storageManager can take care of all of these. 
+                        self.storage_manager.upload(
+                            self.storage,
+                            plugin_ers_key
+                        )
+                else:
+                    self.logger.info("No plugins to save")
+            elif artifact == StorageArtifactType.LOG:
+                self.logger.debug("Not saving logs in Deployment") 
+            elif artifact == StorageArtifactType.CONFIG:
+                self.logger.debug("Not saving config in Deployment") 
+            elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
+                # MetricManager writes to one-file-per-metric, or to remote server (or both).
+                # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server 
+                metrics_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.METRIC)
+                #metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
+                # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
+                if self.storage_manager.performBackup(artifact):
                     self.storage_manager.upload(
                         self.storage,
-                        plugin_ers_key
+                        metrics_ers_key
                     )
+                    #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
             else:
-                self.logger.info("No plugins to save")
+                raise ValueError("Unexpected value for artifact type %s"%artifact.value)
 
-
-
-        elif artifact == StorageArtifactType.LOG:
-            self.logger.debug("Not saving logs in Deployment") 
-        elif artifact == StorageArtifactType.CONFIG:
-            self.logger.debug("Not saving config in Deployment") 
-        elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
-            # MetricManager writes to one-file-per-metric, or to remote server (or both).
-            # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server 
-            metrics_ers_key = self.storage_manager.getERSKey(epoch=save_epoch, step=save_step, artifact_type=StorageArtifactType.METRIC)
-            #metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
-            # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
-            if self.storage_manager.performBackup(artifact):
-                self.storage_manager.upload(
-                    self.storage,
-                    metrics_ers_key
-                )
-                #self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
-        else:
-            raise ValueError("Unexpected value for artifact type %s"%artifact.value)
-
-        
+        else:   # TODO could this be more graceful / elegant
+            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value, save_epoch, save_step))
 
        
         

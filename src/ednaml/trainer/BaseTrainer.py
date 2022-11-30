@@ -180,24 +180,27 @@ class BaseTrainer:
             save_epoch = self.global_epoch
         if save_step is None:
             save_step = self.global_batch
-        self.logger.info("Attempting upload of artifact `%s` at epoch %i / step %i"%(artifact.value, save_epoch, save_step))
-        # For whatever the artifact is, we will first perform a local save,
-        # then perform a backup IF backup_perform is true...
-        if artifact == StorageArtifactType.MODEL:
-           self.saveModel(epoch=save_epoch, step=save_step)
-           self.saveArtifact(epoch=save_epoch, step=save_step)
-        elif artifact == StorageArtifactType.ARTIFACT:
-            raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
-        elif artifact == StorageArtifactType.PLUGIN:
-            self.savePlugin(epoch=save_epoch, step=save_step)
-        elif artifact == StorageArtifactType.LOG:
-            self.saveLog(epoch=save_epoch, step=save_step)
-        elif artifact == StorageArtifactType.CONFIG:
-            self.saveConfig(epoch=save_epoch, step=save_step)
-        elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
-            self.saveMetrics(epoch=save_epoch, step=save_step)
-        else:
-            raise ValueError("Unexpected value for artifact type %s"%artifact.value)
+        if self.storage_manager.storage_mode == "local":
+            self.logger.info("Attempting upload of artifact `%s` at epoch %i / step %i"%(artifact.value, save_epoch, save_step))
+            # For whatever the artifact is, we will first perform a local save,
+            # then perform a backup IF backup_perform is true...
+            if artifact == StorageArtifactType.MODEL:
+                self.saveModel(epoch=save_epoch, step=save_step)
+                self.saveArtifact(epoch=save_epoch, step=save_step)
+            elif artifact == StorageArtifactType.ARTIFACT:
+                raise ValueError("Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT.")
+            elif artifact == StorageArtifactType.PLUGIN:
+                self.savePlugin(epoch=save_epoch, step=save_step)
+            elif artifact == StorageArtifactType.LOG:
+                self.saveLog(epoch=save_epoch, step=save_step)
+            elif artifact == StorageArtifactType.CONFIG:
+                self.saveConfig(epoch=save_epoch, step=save_step)
+            elif artifact == StorageArtifactType.METRIC:    # TODO skip for now
+                self.saveMetrics(epoch=save_epoch, step=save_step)
+            else:
+                raise ValueError("Unexpected value for artifact type %s"%artifact.value)
+        else:   # TODO could this be more graceful / elegant
+            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value, save_epoch, save_step))
 
 
         

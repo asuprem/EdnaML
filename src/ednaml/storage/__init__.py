@@ -1,6 +1,5 @@
 import logging, os
-from threading import local
-from typing import Callable, Dict, Literal, Union
+from typing import Callable, Dict, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.storage.BaseStorage import BaseStorage
