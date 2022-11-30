@@ -402,6 +402,8 @@ class EdnaML(EdnaMLBase):
 
 
     def train(self, **kwargs):
+        if self.mode == "test":
+            raise ValueError("In `test` mode but attempting to train")
         self.trainer.train(**kwargs)  #
 
     def eval(self):
@@ -941,17 +943,19 @@ class EdnaML(EdnaMLBase):
                     self.log(
                     "Downloaded weights from epoch %i, step %i to local path %s"%(model_ers_key.storage.epoch, model_ers_key.storage.step, self.weights)
                     )  
-                    self.model.load_state_dict(torch.load(self.weights, map_location=self.device))
-                    self.log(
-                    "Loaded weights from epoch %i, step %i into model"%(model_ers_key.storage.epoch, model_ers_key.storage.step)
-                    )
-                    self.context_information.MODEL_HAS_LOADED_WEIGHTS
+                    
                     self.context_information.MODEL_ERS_KEY = KeyMethods.cloneERSKey(ers_key=model_ers_key)
 
                     
                 else:
                     self.log(
                     "Could not download weights."
+                )
+            if self.weights is not None:
+                self.model.load_state_dict(torch.load(self.weights, map_location=self.device))
+                self.context_information.MODEL_HAS_LOADED_WEIGHTS = True
+                self.log(
+                "Loaded weights from path %s"%(self.weights)
                 )
                 
         else:
