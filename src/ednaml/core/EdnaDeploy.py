@@ -34,7 +34,7 @@ class EdnaDeploy(EdnaML):
         """Applies the internal configuration for EdnaDeploy"""
         self.printConfiguration(**kwargs)
         self.log("[APPLY] Building StorageManager")
-        self.buildStorageManager()
+        self.buildStorageManager(**kwargs)
         # Build the storage backends that StorageManager can use
         self.log("[APPLY] Adding Storages")
         self.buildStorage()
@@ -219,7 +219,8 @@ class EdnaDeploy(EdnaML):
             cfg = self.cfg,
             experiment_key = self.experiment_key,
             storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
-            storage_manager_mode=kwargs.get("storage_manager_mode", "download_only")    # Use remote for downloads when provided, but NOT uploads
+            storage_manager_mode=kwargs.get("storage_manager_mode", "download_only"),    # Use remote for downloads when provided, but NOT uploads
+            storage_mode=kwargs.get("storage_mode", "local")    
         )
 
         

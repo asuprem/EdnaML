@@ -329,7 +329,8 @@ class EdnaML(EdnaMLBase):
             cfg = self.cfg,
             experiment_key = self.experiment_key,
             storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
-            storage_manager_mode=kwargs.get("storage_manager_mode", "strict")   # Use remote ONLY if allowed and provided
+            storage_manager_mode=kwargs.get("storage_manager_mode", "strict"),   # Use remote ONLY if allowed and provided
+            storage_mode=kwargs.get("storage_mode", "local")    
         )
 
     def addStorage(self, storage_class_dict: Dict[str, BaseStorage]):
