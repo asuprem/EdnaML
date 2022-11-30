@@ -288,17 +288,17 @@ class BaseDeploy:
         return feature_logits, features, secondary_outputs
 
     def end_of_epoch(self, epoch: int):
-        pass
+        self.logger.warn("No end of epochs steps are performed")
     
     def end_of_deployment(self):
-        pass
+        self.logger.warn("No end of deployment steps are performed")
 
     def output_setup(self, **kwargs): # USER IMPLEMENTS; kwargs from config.DEPLOYMENT.OUTPUT_ARGS
-        self.logger.info("Warning: No output setup is performed")
+        self.logger.warn("No output setup is performed")
 
     def output_step(self, logits, features, secondary): # USER IMPLEMENTS, ALSO, NEED SOME STEP LOGGING...????????
         if self.global_batch % self.config.LOGGING.STEP_VERBOSE == 0:
-            self.logger.info("Warning: No output is generated at step %i"%self.global_batch)
+            self.logger.warn("No output is generated at step %i"%self.global_batch)
 
 
 
@@ -438,16 +438,6 @@ class BaseDeploy:
         else:
             raise ValueError("Unexpected value for artifact type %s"%artifact.value)
 
-
-
-        # TODO need to check if ModelAbstract contains the plugins that came with it...
-        # if not, we will need to save plugins in a plugins artifact.
-        # And even if they did, we need to split up model and plugins, since they are not strictly part of the model.
-    def save(self, save_epoch: int = None):
-        if save_epoch is None:
-            save_epoch = self.global_epoch
-        self.logger.info("Performing save at epoch %i"%save_epoch)
-        self.logger.info("Saving model plugins.")
         
 
        
