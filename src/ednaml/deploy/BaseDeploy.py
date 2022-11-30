@@ -127,6 +127,7 @@ class BaseDeploy:
 
     def deploy(self, continue_epoch: int = 0, continue_step: int = None, inference = False, ignore_plugins: List[str] = [], execute: bool = True, model_build: bool = None, **kwargs):
         ers_key = self.storage_manager.getLatestERSKey(artifact = StorageArtifactType.MODEL)
+        # TODO plugin and model may have different save values since they are not necessarily saved together...
         if continue_epoch is None:  # Use the provided latest key
             self.logger.debug("`continue_epoch` is not provided. Will use latest `ers_key`")
             continue_epoch = ers_key.storage.epoch
@@ -179,16 +180,40 @@ class BaseDeploy:
         # cleaned up for potential bugs when continue_epoch is -1 for other reasons due to 
         # leaks but storageManager is still forced to update StorageKey
         if continue_epoch == -1:
-            self.logger.info("Starting from scratch. Setting initial epoch/step to 0/0")
+            self.logger.info("Starting deployment from scratch. Setting initial epoch/step to 0/0")
             self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
             self.current_ers_key = self.storage_manager.getLatestERSKey()
             continue_epoch = self.current_ers_key.storage.epoch
             continue_step = self.current_ers_key.storage.step
+        else:
+            self.logger.info("Starting deployment. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+            if model_build or (model_build is None and not self.model_is_built):    
+                self.logger.info("`model_build` is True or model may not be built. Checking.")
+                if continue_epoch or continue_step:
+                    if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                        self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
+                    else:
+                        self.logger.info("Model is empty and `model_build` is set. Attempting loading weights from Epoch %i Step %i"%(continue_epoch, continue_step))
+                        response = self.load(continue_epoch, continue_step, ignore_if_error = False, artifact = StorageArtifactType.MODEL)
+                        self.logger.info("Model is empty and `model_build` is set. Attempting loading plugins from Epoch %i Step %i"%(continue_epoch, continue_step))
+                        plugin_response = self.load(continue_epoch, continue_step, ignore_plugins=ignore_plugins, ignore_if_error = True, artifact = StorageArtifactType.PLUGIN)
+                        if not response:
+                            raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+                        if not plugin_response:
+                            self.logger.info("Could not load plugins at epoch-step %i/%i."%(continue_epoch, continue_step))
+                self.model_is_built = True
+            else:
+                if model_build is not None and not model_build:
+                    self.logger.info("Skipping model building and plugin loading due to `model_build=False`")
+                elif self.model_is_built:
+                    self.logger.info("Skipping model building and plugin loading because model is already built in a prior call to `deploy()`. To force, set the `model_build` flag to True in `ed.deploy`")
+                else:
+                    self.logger.info("Skipping model building and plugin loading")
         if continue_step == -1:
             raise RuntimeError("`continue_step` is -1 after error checking")
 
 
-        self.logger.info("Starting deployment. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+        
         self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
         self.logger.info(
             "Plugins will be saved locally with base name:\t%s"
@@ -202,28 +227,7 @@ class BaseDeploy:
 
         
 
-        if model_build or (model_build is None and not self.model_is_built):    
-            self.logger.info("`model_build` is True or model may not be built. Checking.")
-            if continue_epoch or continue_step:
-                if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
-                    self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
-                else:
-                    self.logger.info("Model is empty and `model_build` is set. Attempting loading weights from Epoch %i Step %i"%(continue_epoch, continue_step))
-                    response = self.load(continue_epoch, continue_step, ignore_if_error = False, artifact = StorageArtifactType.MODEL)
-                    self.logger.info("Model is empty and `model_build` is set. Attempting loading plugins from Epoch %i Step %i"%(continue_epoch, continue_step))
-                    plugin_response = self.load(continue_epoch, continue_step, ignore_plugins=ignore_plugins, ignore_if_error = True, artifact = StorageArtifactType.PLUGIN)
-                    if not response:
-                        raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
-                    if not plugin_response:
-                        self.logger.info("Could not load plugins at epoch-step %i/%i."%(continue_epoch, continue_step))
-            self.model_is_built = True
-        else:
-            if model_build is not None and not model_build:
-                self.logger.info("Skipping model building and plugin loading due to `model_build=False`")
-            elif self.model_is_built:
-                self.logger.info("Skipping model building and plugin loading because model is already built in a prior call to `deploy()`. To force, set the `model_build` flag to True in `ed.deploy`")
-            else:
-                self.logger.info("Skipping model building and plugin loading")
+        
 
         if inference:
             self.model.inference()
@@ -437,7 +441,7 @@ class BaseDeploy:
                 raise ValueError("Unexpected value for artifact type %s"%artifact.value)
 
         else:   # TODO could this be more graceful / elegant
-            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value, save_epoch, save_step))
+            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value))
 
        
         

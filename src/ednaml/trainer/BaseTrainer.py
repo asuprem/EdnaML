@@ -200,7 +200,7 @@ class BaseTrainer:
             else:
                 raise ValueError("Unexpected value for artifact type %s"%artifact.value)
         else:   # TODO could this be more graceful / elegant
-            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value, save_epoch, save_step))
+            self.logger.info("Not uploading artifact `%s` due to empty storage"%(artifact.value))
 
 
         
@@ -494,11 +494,33 @@ class BaseTrainer:
             self.current_ers_key = self.storage_manager.getLatestERSKey()
             continue_epoch = self.current_ers_key.storage.epoch
             continue_step = self.current_ers_key.storage.step
+        else:
+            self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+            if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
+                self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
+            else:
+                self.logger.info("Attempting to load weights from from Epoch %i Step %i"%(continue_epoch, continue_step))
+                # Attempt to load models, with skip-if-error
+                response = self.load(load_epoch=continue_epoch, load_step=continue_step, artifact=StorageArtifactType.MODEL, ignore_if_error = True)
+                if not response:
+                    # This is for non-initial epoch/step
+                    if continue_epoch or continue_step:
+                        raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+                    #self.logger.info()
+                    self.logger.info("Could not load weights since there is no model saved yet.")
+                else: # If we have loaded weights from a specific epoch, we should continue from the next epoch...
+                    self.logger.info("Loaded weights at epoch-step %i/%i."%(continue_epoch, continue_step))
+            
+            self.logger.info("Switching to latest ERSKey `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
+            self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+            self.logger.info("Incremented latest ERSKey to `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
+            self.current_ers_key = self.storage_manager.getLatestERSKey()
+            continue_epoch = self.current_ers_key.storage.epoch
+            continue_step = self.current_ers_key.storage.step
         if continue_step == -1:
             raise RuntimeError("`continue_step` is -1 after error checking")
 
-
-        self.logger.info("Starting training. with `continue_epoch` %i and `continue_step` %i"%(continue_epoch, continue_step))
+        
         self.logger.info("Logging to:\t%s" % self.log_manager.getLocalLog())
         self.logger.info(
             "Models will be saved locally with base name:\t%s"
@@ -518,30 +540,6 @@ class BaseTrainer:
         )
         self.logger.info("Config will not be saved")
         self.logger.info("Plugins will not be saved")
-
-      
-
-        if self.edna_context.MODEL_HAS_LOADED_WEIGHTS:
-            self.logger.info("Weights have already been loaded into model. Skipping loading of epoch-specific weights from Epoch %i Step %i"%(continue_epoch, continue_step))
-        else:
-            self.logger.info("Attempting to load weights from from Epoch %i Step %i"%(continue_epoch, continue_step))
-            # Attempt to load models, with skip-if-error
-            response = self.load(load_epoch=continue_epoch, load_step=continue_step, artifact=StorageArtifactType.MODEL, ignore_if_error = True)
-            if not response:
-                # This is for non-initial epoch/step
-                if continue_epoch or continue_step:
-                    raise RuntimeError("Could not load weights at epoch-step %i/%i."%(continue_epoch, continue_step))
-                #self.logger.info()
-                self.logger.info("Could not load weights since there is no model saved yet.")
-            else: # If we have loaded weights from a specific epoch, we should continue from the next epoch...
-                self.logger.info("Loaded weights at epoch-step %i/%i."%(continue_epoch, continue_step))
-        
-        self.logger.info("Switching to latest ERSKey `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
-        self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
-        self.logger.info("Incremented latest ERSKey to `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
-        self.current_ers_key = self.storage_manager.getLatestERSKey()
-        continue_epoch = self.current_ers_key.storage.epoch
-        continue_step = self.current_ers_key.storage.step
 
 
         if not self.skipeval:

@@ -483,7 +483,7 @@ class EdnaML(EdnaMLBase):
         """
         #self.log("Using latest ERSKey to search for log file")
         self.log("Searching for latest generated log file") 
-        ers_key = self.storageManager.searchLatestERSKey(self.storage, artifact=StorageArtifactType.LOG)
+        ers_key = KeyMethods.cloneERSKey(self.storageManager.searchLatestERSKey(self.storage, artifact=StorageArtifactType.LOG))
         if ers_key.storage.epoch == -1:
             self.log("Latest ERSKey's StorageKey is empty. Resetting StorageKey component.")
             ers_key.storage.epoch = 0
