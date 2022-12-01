@@ -306,7 +306,7 @@ class EdnaML(EdnaMLBase):
             skip_model (bool). Default `False`. Whether to skip building the model.
             skip_model_summary (bool). Default `True`. Whether to skip printing model summary.
             skip_storage (bool): Default `False`. Whether to skip building the Storage. `reserved-empty-storage` will still be created.
-
+            skip_pipeline (bool): Default `False`. Whether to skip building trainer/deployment.
 
         """
         # Print the current configuration state
@@ -357,9 +357,10 @@ class EdnaML(EdnaMLBase):
             # Build the loss schedulers, for learnable losses
             self.buildLossScheduler()
             # Build the trainer
-        self.log("[APPLY] Building trainer")
-        self.buildTrainer()
-        # Reset the queues. Maybe clear the plugins and storage queues as well??
+        if not kwargs.get("skip_pipeline", False):
+            self.log("[APPLY] Building trainer")
+            self.buildTrainer()
+            # Reset the queues. TODO Maybe clear the plugins and storage queues as well??
         self.resetQueues()
 
     def buildStorageManager(self, **kwargs):  # TODO after I get a handle on the rest...

@@ -67,8 +67,9 @@ class EdnaDeploy(EdnaML):
             # Generate a model summary
             self.log("[APPLY] Generating summary")
             self.getModelSummary(**kwargs)
-
-        self.buildDeployment()
+        if not kwargs.get("skip_pipeline", False):
+            self.log("[APPLY] Building Deployment")
+            self.buildDeployment()
 
         self.resetQueues()
     
