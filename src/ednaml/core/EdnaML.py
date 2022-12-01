@@ -305,6 +305,7 @@ class EdnaML(EdnaMLBase):
             new_run (bool): Default `False`. Specifies whether we should use a new run or log to the most recent run. If `tracking_run` is provided, `new_run` is ignored.
             skip_model (bool). Default `False`. Whether to skip building the model.
             skip_model_summary (bool). Default `True`. Whether to skip printing model summary.
+            skip_storage (bool): Default `False`. Whether to skip building the Storage. `reserved-empty-storage` will still be created.
 
 
         """
@@ -315,7 +316,7 @@ class EdnaML(EdnaMLBase):
         self.buildStorageManager(**kwargs)
         # Build the storage backends that StorageManager can use
         self.log("[APPLY] Adding Storages")
-        self.buildStorage()
+        self.buildStorage(**kwargs)
         # Set the RunKey for this ExperimentKey
         # Upload the configuration for this Run
         self.log("[APPLY] Setting tracking run")
@@ -411,7 +412,7 @@ class EdnaML(EdnaMLBase):
         # We don't need queues here because Storages are instantiated lazily,
         # i.e. only if they are needed from the configuration
 
-    def buildStorage(self):
+    def buildStorage(self, **kwargs):
         # We look at config to see what storages we need to load
         # Then we check their classes: if they are first, we check in decorated loaded list.
         # Then we check built-in
@@ -421,42 +422,44 @@ class EdnaML(EdnaMLBase):
         # So, first we check if a class or instance was directly passed.
         # If nothing has been passed, then we try to locate a built-in version based on storage.type
         # If that doesn't work, then we can throw an error...
-        for storage_element in self.cfg.STORAGE:
-            if self.cfg.STORAGE[storage_element].STORAGE_NAME in self.storage:
-                self.debug(
-                    "Skipping storage with name %s, already exists" % storage_element
-                )
-            else:
-                storage_class_name = self.cfg.STORAGE[storage_element].STORAGE_CLASS
-                if storage_class_name in self.storage_classes:
-                    storage_class_reference: Type[BaseStorage] = self.storage_classes[
-                        storage_class_name
-                    ]
-                    self.log(
-                        "Loaded {} from {} to build Storage".format(
-                            self.cfg.STORAGE[storage_element].STORAGE_CLASS,
-                            "storage-list",
-                        )
+        if not kwargs.get("skip_storage", False):
+            for storage_element in self.cfg.STORAGE:
+                if self.cfg.STORAGE[storage_element].STORAGE_NAME in self.storage:
+                    self.debug(
+                        "Skipping storage with name %s, already exists" % storage_element
                     )
                 else:
-                    storage_class_reference: Type[BaseStorage] = locate_class(
-                        subpackage="storage", classpackage=storage_class_name
-                    )
-                    self.log(
-                        "Loaded {} from {} to build Storage".format(
-                            self.cfg.STORAGE[storage_element].STORAGE_CLASS,
-                            "ednaml.storage",
+                    storage_class_name = self.cfg.STORAGE[storage_element].STORAGE_CLASS
+                    if storage_class_name in self.storage_classes:
+                        storage_class_reference: Type[BaseStorage] = self.storage_classes[
+                            storage_class_name
+                        ]
+                        self.log(
+                            "Loaded {} from {} to build Storage".format(
+                                self.cfg.STORAGE[storage_element].STORAGE_CLASS,
+                                "storage-list",
+                            )
                         )
+                    else:
+                        storage_class_reference: Type[BaseStorage] = locate_class(
+                            subpackage="storage", classpackage=storage_class_name
+                        )
+                        self.log(
+                            "Loaded {} from {} to build Storage".format(
+                                self.cfg.STORAGE[storage_element].STORAGE_CLASS,
+                                "ednaml.storage",
+                            )
+                        )
+                    self.storage[
+                        self.cfg.STORAGE[storage_element].STORAGE_NAME
+                    ] = storage_class_reference(
+                        storage_name=self.cfg.STORAGE[storage_element].STORAGE_NAME,
+                        storage_url=self.cfg.STORAGE[storage_element].STORAGE_URL,
+                        experiment_key=self.experiment_key,
+                        **self.cfg.STORAGE[storage_element].STORAGE_ARGS
                     )
-                self.storage[
-                    self.cfg.STORAGE[storage_element].STORAGE_NAME
-                ] = storage_class_reference(
-                    storage_name=self.cfg.STORAGE[storage_element].STORAGE_NAME,
-                    storage_url=self.cfg.STORAGE[storage_element].STORAGE_URL,
-                    experiment_key=self.experiment_key,
-                    **self.cfg.STORAGE[storage_element].STORAGE_ARGS
-                )
-
+        else:
+            self.logger.warn("Skipping storage building. This can cause instability in pipeline operations.")
         self.debug("Building `reserved-empty-storage` as fallback option")
         self.storage["reserved-empty-storage"] = EmptyStorage(
                 experiment_key=self.experiment_key,

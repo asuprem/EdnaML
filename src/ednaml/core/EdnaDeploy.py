@@ -37,7 +37,7 @@ class EdnaDeploy(EdnaML):
         self.buildStorageManager(**kwargs)
         # Build the storage backends that StorageManager can use
         self.log("[APPLY] Adding Storages")
-        self.buildStorage()
+        self.buildStorage(**kwargs)
         # Set the RunKey for this ExperimentKey
         # Upload the configuration for this Run
         self.log("[APPLY] Setting tracking run")
