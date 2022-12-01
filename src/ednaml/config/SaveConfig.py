@@ -14,6 +14,7 @@ class SaveConfig(BaseConfig):
     MODEL_BACKUP: BackupOptionsConfig
     ARTIFACTS_BACKUP: BackupOptionsConfig
     METRICS_BACKUP: BackupOptionsConfig
+    PLUGIN_BACKUP: BackupOptionsConfig
     CONFIG_BACKUP: BackupOptionsConfig
 
     def __init__(self, save_dict, defaults: ConfigDefaults):

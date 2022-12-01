@@ -1,13 +1,13 @@
 SAVE:
   BACKUP: 
     BACKUP: True
-    STORAGE_NAME: local
+    STORAGE_NAME: GoogleDrive
     FREQUENCY: 1
   LOG_BACKUP: # prevent log files from piling up...hopefully :/
     FREQUENCY: 0
 
 STORAGE:
-  - STORAGE_NAME: local
+  - STORAGE_NAME: GoogleDrive
     STORAGE_CLASS: LocalStorage
     STORAGE_URL: ./drive/MyDrive/Projects/SemanticMasking/Models/
     STORAGE_ARGS: {}
