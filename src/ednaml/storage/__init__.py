@@ -651,10 +651,7 @@ class StorageManager:
             self.log("Local tracking run is %i" % tracking_run)
             tracking_run = max(tracking_run, local_tracking_run)
 
-        self.log(
-            "Tracking run in `ednaml-local-storage-reserved` set to: %i" % tracking_run
-        )
-
+        
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
         # Then, the provided config is uploaded
@@ -696,7 +693,9 @@ class StorageManager:
         self, storage_dict: Dict[str, BaseStorage], tracking_run: int
     ) -> None:
         self.run_key = RunKey(run=tracking_run)
-
+        self.log(
+            "Tracking run in `ednaml-local-storage-reserved` set to: %i" % tracking_run
+        )
         # Create the run directory locally.
         self.local_storage.setTrackingRun(tracking_run)
 
