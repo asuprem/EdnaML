@@ -1,5 +1,5 @@
 import logging, os
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, List, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.storage.BaseStorage import BaseStorage
@@ -61,20 +61,23 @@ class StorageManager:
         self.logger = logger
         
         self.experiment_key = experiment_key
-        self.storage_manager_mode = storage_manager_mode    # strict or loose
-        self.storage_trigger_mode = storage_trigger_mode    # strict or loose
+        self.storage_manager_mode = self.validate("storage_manager_mode", ["strict", "loose"], storage_manager_mode)
+        self.storage_trigger_mode = self.validate("storage_trigger_mode", ["strict", "loose"], storage_trigger_mode)
+        self.storage_mode = self.validate("storage_mode", ["empty", "local"], storage_mode)
+        self.backup_mode = self.validate("backup_mode", ["canonical", "ers", "hybrid", "custom"], backup_mode)
+
+
         self.log("Initializing StorageManager")
-        self.log("\tusing experiment_key: \t{ekey}".format(ekey=self.experiment_key.getExperimentName()))
+        self.log("\tusing experiment_key:      \t{ekey}".format(ekey=self.experiment_key.getExperimentName()))
         self.log("\twith storage_manager_mode: \t{mode}".format(mode=self.storage_manager_mode))
         self.log("\twith storage_trigger_mode: \t{mode}".format(mode=self.storage_trigger_mode))
+        self.log("\twith storage_mode:         \t{mode}".format(mode=self.storage_mode))
+        self.log("\twith backup_mode:          \t{mode}".format(mode=self.backup_mode))
         self.cfg = cfg
 
         self.run_key = None
         self.latest_storage_key = None
         # Add options here for where to save local files, i.e. not directly in ./
-        self.storage_mode = storage_mode
-        if storage_mode not in ["empty", "local"]:
-            raise ValueError("Unsupported value for `storage_mode` <%s>. Must be one of [`empty`, `local`]"%str(storage_mode))
         if storage_mode == "local":
             self.local_save_directory = "%s-v%s-%s-%s" % self.experiment_key.getKey()
             self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
@@ -82,10 +85,6 @@ class StorageManager:
         else:
             self.local_save_directory = ""
             self.log("\tUsing empty ephemeral storage")
-        
-        if backup_mode not in ["hybrid", "ers", "canonical", "custom"]:
-            raise ValueError("Unsupported value for `backup_mode` <%s>. Must be one of [`hybrid`, `ers`, `canonical`, `custom`]"%str(backup_mode))
-        self.backup_mode = backup_mode
 
         
         self.file_basename = "experiment"
@@ -608,6 +607,14 @@ class StorageManager:
         return self._storage_trigger_mode_strict
         
 
+    def validate(self, var_name: str, var_options: List[str], var_value: str):
+        if var_value not in var_options:
+            raise ValueError("Unsupported value for `{varname}` <{varvalue}}>. Must be one of {varlist}".format(
+                varname=var_name,
+                varvalue=var_value,
+                varlist = "[" + " ,".join(["`"+item+"`" for item in var_options]) + "]"
+            ))
+        return var_value
 """
 
 Experiment Key: <CORE_NAME, VERSION, BACKBONE, QUALIFIER>
