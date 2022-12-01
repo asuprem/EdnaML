@@ -489,8 +489,10 @@ class BaseTrainer:
         # cleaned up for potential bugs when continue_epoch is -1 for other reasons due to 
         # leaks but storageManager is still forced to update StorageKey
         if continue_epoch == -1:
-            self.logger.info("Starting from scratch. Setting initial epoch/step to 0/0")
+            self.logger.info("Starting from scratch. ")
+            self.logger.info("Switching to latest ERSKey `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
             self.storage_manager.updateStorageKey(self.storage_manager.getNextERSKey())
+            self.logger.info("Incremented latest ERSKey to `{key}`".format(key=self.storage_manager.getLatestERSKey().printKey()))
             self.current_ers_key = self.storage_manager.getLatestERSKey()
             continue_epoch = self.current_ers_key.storage.epoch
             continue_step = self.current_ers_key.storage.step
