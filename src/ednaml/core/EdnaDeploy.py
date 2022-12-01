@@ -56,16 +56,17 @@ class EdnaDeploy(EdnaML):
         self.log("[APPLY] Building dataloaders")
         self.buildDataloaders()
         # Build the model
-        self.log("[APPLY] Building model")
-        self.buildModel()
-        # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
-        # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
-        # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
-        self.log("[APPLY] Loading latest weights, if available")
-        self.loadWeights()
-        # Generate a model summary
-        self.log("[APPLY] Generating summary")
-        self.getModelSummary(**kwargs)
+        if not kwargs.get("skip_model", False):
+            self.log("[APPLY] Building model")
+            self.buildModel()
+            # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
+            # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
+            # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
+            self.log("[APPLY] Loading latest weights, if available")
+            self.loadWeights()
+            # Generate a model summary
+            self.log("[APPLY] Generating summary")
+            self.getModelSummary(**kwargs)
 
         self.buildDeployment()
 

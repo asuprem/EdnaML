@@ -303,6 +303,7 @@ class EdnaML(EdnaMLBase):
             backup_mode (canonical | ers | hybrid): Default `hybrid`. Which `backup_mode` to use when performing backups
             tracking_run (int): An integer specifying a specific run to save to. Run will be created if it does not exist.
             new_run (bool): Default `False`. Specifies whether we should use a new run or log to the most recent run. If `tracking_run` is provided, `new_run` is ignored.
+            skip_model (bool). Default `False`. Whether to skip building the model.
             skip_model_summary (bool). Default `True`. Whether to skip printing model summary.
 
 
@@ -332,28 +333,29 @@ class EdnaML(EdnaMLBase):
         self.log("[APPLY] Building dataloaders")
         self.buildDataloaders()
         # Build the model
-        self.log("[APPLY] Building model")
-        self.buildModel()
-        # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
-        # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
-        # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
-        self.log("[APPLY] Loading latest weights, if available")
-        self.loadWeights()
-        # Generate a model summary
-        self.log("[APPLY] Generating summary")
-        self.getModelSummary(**kwargs)
-        # Build the optimizer
-        self.log("[APPLY] Building optimizer, scheduler, and losses")
-        self.buildOptimizer()
-        # Build the scheduler
-        self.buildScheduler()
-        # Build the loss array
-        self.buildLossArray()
-        # Build the Loss optimizers, for learnable losses
-        self.buildLossOptimizer()
-        # Build the loss schedulers, for learnable losses
-        self.buildLossScheduler()
-        # Build the trainer
+        if not kwargs.get("skip_model", False):
+            self.log("[APPLY] Building model")
+            self.buildModel()
+            # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
+            # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
+            # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
+            self.log("[APPLY] Loading latest weights, if available")
+            self.loadWeights()
+            # Generate a model summary
+            self.log("[APPLY] Generating summary")
+            self.getModelSummary(**kwargs)
+            # Build the optimizer
+            self.log("[APPLY] Building optimizer, scheduler, and losses")
+            self.buildOptimizer()
+            # Build the scheduler
+            self.buildScheduler()
+            # Build the loss array
+            self.buildLossArray()
+            # Build the Loss optimizers, for learnable losses
+            self.buildLossOptimizer()
+            # Build the loss schedulers, for learnable losses
+            self.buildLossScheduler()
+            # Build the trainer
         self.log("[APPLY] Building trainer")
         self.buildTrainer()
         # Reset the queues. Maybe clear the plugins and storage queues as well??
