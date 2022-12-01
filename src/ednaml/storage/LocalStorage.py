@@ -30,10 +30,21 @@ class LocalStorage(BaseStorage):
             StorageArtifactType.LOG: ".log",
         }
 
+        self.canonical_path_ends = {
+            StorageArtifactType.MODEL: "model.pth",
+            StorageArtifactType.ARTIFACT: "artifact.pth",
+            StorageArtifactType.PLUGIN: "plugin.pth",
+            StorageArtifactType.METRIC: "metric.json",
+            StorageArtifactType.CONFIG: "config.yml",
+            StorageArtifactType.LOG: "log.log",
+        }
+
     def path_of_artifact(self, epoch: int, step: int, artifact: StorageArtifactType) -> os.PathLike:
         return "_".join([self.file_basename, "epoch"+str(epoch),"step"+str(step)]) + self.path_ends[artifact]
+    def canonical_path_of_artifact(self, epoch: int, step: int, artifact: StorageArtifactType) -> os.PathLike:
+        return self.canonical_path_ends[artifact]
 
-    def setTrackingRun(self, tracking_run: int):
+    def setTrackingRun(self, tracking_run: int) -> None:
         
         self.run_dir = str(tracking_run)
         os.makedirs(os.path.join(self.storage_path, self.run_dir), exist_ok=True)
@@ -58,15 +69,18 @@ class LocalStorage(BaseStorage):
             raise NotImplementedError()
 
 
-    def upload(self, source_file_name: str, ers_key: ERSKey):
+    def upload(self, source_file_name: str, ers_key: ERSKey, canonical: bool = False) -> bool:
         if os.path.exists(source_file_name):
-            shutil.copy2(source_file_name, 
-                os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)))
+            if canonical:
+                artifact_path = os.path.join(self.storage_path, self.run_dir, self.canonical_path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))
+            else:
+                artifact_path = os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))
+            shutil.copy2(source_file_name, artifact_path)
             return True
         return False
 
-    def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:
-        if self.getKey(ers_key=ers_key) is not None:
+    def download(self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False) -> bool:
+        if self.getKey(ers_key=ers_key, canonical = canonical) is not None:
             shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)), 
                 destination_file_name)
             return True
@@ -87,8 +101,12 @@ class LocalStorage(BaseStorage):
             ers_key.storage.step = max(max_step)
             return ers_key
 
-    def getKey(self, ers_key: ERSKey) -> ERSKey:
-        if os.path.exists(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))):
+    def getKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
+        if canonical:
+            artifact_path = os.path.join(self.storage_path, self.run_dir, self.canonical_path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))
+        else:
+            artifact_path = os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact))
+        if os.path.exists(artifact_path):
             return ers_key
         return None
 
@@ -120,7 +138,7 @@ class LocalStorage(BaseStorage):
         return max_epoch
 
 
-    def getLatestStorageKey(self, ers_key: ERSKey) -> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
+    def getLatestStorageKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
         RunKey, and Artifact in StorageKey.
 
@@ -129,6 +147,14 @@ class LocalStorage(BaseStorage):
         """
         if ers_key.storage.artifact is not StorageArtifactType.MODEL:
             warnings.warn("`getLatestStorageKey` is not supported for artifacts other than MODEL for LocalStorage")
+        
+        if canonical:
+            canonical_path = self.canonical_path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)
+            if os.path.exists(canonical_path):
+                return ers_key
+            ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)
+            ers_key.storage.epoch = -1
+            ers_key.storage.step = -1
 
         model_paths = os.path.join(self.storage_path, self.run_dir,  "*model.pth")
         model_list = glob(model_paths)

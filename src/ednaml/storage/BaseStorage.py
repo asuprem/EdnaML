@@ -24,7 +24,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def download(self, ers_key: ERSKey, destination_file_name: str) -> bool:
+    def download(self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False) -> bool:
         """Use the storage backend to download a file with the `file_struct` key into a destination file
 
         Args:
@@ -33,7 +33,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def upload(self, source_file_name: str, ers_key: ERSKey) -> bool:
+    def upload(self, source_file_name: str, ers_key: ERSKey, canonical: bool = False) -> bool:
         """Upload a local file into the storage backend
 
         Args:
@@ -42,9 +42,11 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def getLatestStorageKey(self, ers_key: ERSKey)-> ERSKey: # TODO need to adjust how files are saved so we can extract storagekey regardless of artifact type
+    def getLatestStorageKey(self, ers_key: ERSKey, canonical: bool = False)-> ERSKey:
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey, 
         RunKey, and Artifact. If there is no latest StorageKey, return an ERSKey with -1 for epoch and storage.
+
+        If canonical is set, check if a canonical file exists and return the provided ers_key as it is, or return -1/-1.
 
         Args:
             ers_key (ERSKey): _description_
@@ -98,8 +100,8 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def getKey(self, ers_key: ERSKey) -> ERSKey:
-        """Returns the key if it exists in the Storage, else return None
+    def getKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
+        """Returns the key if it exists in the Storage, else return None. 
 
         Args:
             ers_key (ERSKey): _description_
@@ -133,7 +135,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def setTrackingRun(self, tracking_run: int):
+    def setTrackingRun(self, tracking_run: int) -> None:
         """Set the current run for this experiment.
 
         Args:
@@ -144,41 +146,41 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
-    def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadConfig(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadConfig(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadConfig(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
 
-    def uploadLog(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadLog(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadLog(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadLog(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
 
-    def uploadModel(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadModel(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadModel(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadModel(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
 
-    def uploadModelArtifact(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadModelArtifact(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadModelArtifact(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadModelArtifact(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
 
-    def uploadModelPlugin(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadModelPlugin(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadModelPlugin(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadModelPlugin(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
     
-    def uploadMetric(self, source_file_name: os.PathLike, ers_key: ERSKey):
-        self.upload(source_file_name=source_file_name, ers_key=ers_key)
+    def uploadMetric(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        return self.upload(source_file_name=source_file_name, ers_key=ers_key, canonical=canonical)
 
-    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.PathLike):
-        self.download(ers_key=ers_key, destination_file_name=destination_file_name)
+    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        return self.download(ers_key=ers_key, destination_file_name=destination_file_name, canonical=canonical)
 
 
 

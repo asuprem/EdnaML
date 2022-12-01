@@ -24,6 +24,8 @@ class StorageManager:
     storage_trigger_mode: str   # loose | strict
     storage_manager_strict: bool
     storage_trigger_strict: bool
+    storage_mode: str
+    backup_mode: str
     cfg: EdnaMLConfig
     run_key: RunKey
     latest_storage_key: StorageKey
@@ -37,7 +39,8 @@ class StorageManager:
                         experiment_key: ExperimentKey, 
                         storage_trigger_mode: str = "loose",     #Literal["loose", "strict"]                # Trigger mode determines how often we check whether we should upload
                         storage_manager_mode: str = "loose",     # Literal["loose", "strict", "download_only"]                # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
-                        storage_mode : str = "local"):   # Literal["local", "empty"]                # Whether to save locally or not
+                        storage_mode : str = "local",            # Literal["local", "empty"]                # Whether to save locally or not
+                        backup_mode : str = "hybrid"):   # Literal["canonical", "ers", "hybrid", "custom"],
         """_summary_
 
         Args:
@@ -77,8 +80,13 @@ class StorageManager:
             self.log("\tUsing local save directory: \t%s"%self.local_save_directory)
             os.makedirs(self.local_save_directory, exist_ok=True)
         else:
+            self.local_save_directory = ""
             self.log("\tUsing empty ephemeral storage")
         
+        if backup_mode not in ["hybrid", "ers", "canonical", "custom"]:
+            raise ValueError("Unsupported value for `backup_mode` <%s>. Must be one of [`hybrid`, `ers`, `canonical`, `custom`]"%str(backup_mode))
+        self.backup_mode = backup_mode
+
         
         self.file_basename = "experiment"
         self.log("\tUsing file basename: \t%s"%self.file_basename)
@@ -101,6 +109,19 @@ class StorageManager:
             StorageArtifactType.CONFIG: self.cfg.SAVE.CONFIG_BACKUP,
             StorageArtifactType.LOG: self.cfg.SAVE.LOG_BACKUP,
         }
+        
+        if self.backup_mode == "ers":
+            canonical = []
+            ers = [item for item in self.artifact_references]
+        elif self.backup_mode == "canonical":
+            canonical = [item for item in self.artifact_references]
+            ers = []
+        elif self.backup_mode == "hybrid":
+            ers = [StorageArtifactType.MODEL, StorageArtifactType.ARTIFACT]
+            canonical = [item for item in self.artifact_references if item not in ers]
+        else:
+            raise NotImplementedError()
+        self.backup_canonical_references = {item:True if item in canonical else False for item in self.artifact_references}
 
         class LooseTriggerMethod:
             def __init__(self, trigger_frequency: int, initial_state: int = -1, base = 0):
@@ -318,7 +339,8 @@ class StorageManager:
                 return False
             self.log("Downloading ERSKey `{key}` from storage {storage} into {path}".format(key=ers_key.printKey(), storage=storage_name, path=local_path))
             return storage_dict[storage_name].download(ers_key=ers_key, 
-                destination_file_name=local_path)
+                destination_file_name=local_path,
+                canonical = self.backup_canonical_references[ers_key.storage.artifact])
         else:
             self.log("ERSKey `{key}` already exists locally. Skipping.".format(key=ers_key.printKey()))
         return True # Already exists.
@@ -339,7 +361,8 @@ class StorageManager:
                 return False
             self.log("Uploading {path} into storage {storage}, with ERSKey `{key}`".format(key=ers_key.printKey(), storage=storage_name, path=source_file_name))
             storage_dict[storage_name].upload(ers_key=ers_key, 
-                source_file_name=source_file_name)
+                source_file_name=source_file_name,
+                canonical = self.backup_canonical_references[ers_key.storage.artifact])
             return True
         else:
             self.log("Could not find any file for ERSKey `{key}`, at local path {path}".format(key=ers_key.printKey(), path=source_file_name))
@@ -495,7 +518,10 @@ class StorageManager:
                 self.log("Retrieving remote ERSKey because `storage_manager_mode` is not `strict`")
             else:
                 self.log("Retrieving remote ERSKey because backup is allowed")
-            remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
+            if self.backup_canonical_references[artifact]:
+                remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(self.getLatestERSKey(artifact=artifact), canonical=True)
+            else:
+                remote_ers_key: ERSKey = storage_dict[self.getStorageNameForArtifact(artifact_type=artifact)].getLatestStorageKey(ers_key)
         else:
             remote_ers_key = None
         local_ers_key: ERSKey = self.local_storage.getLatestStorageKey(ers_key=ers_key)

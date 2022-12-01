@@ -330,7 +330,8 @@ class EdnaML(EdnaMLBase):
             experiment_key = self.experiment_key,
             storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
             storage_manager_mode=kwargs.get("storage_manager_mode", "strict"),   # Use remote ONLY if allowed and provided
-            storage_mode=kwargs.get("storage_mode", "local")    
+            storage_mode=kwargs.get("storage_mode", "local"),
+            backup_mode=kwargs.get("backup_mode", "hybrid") 
         )
 
     def addStorage(self, storage_class_dict: Dict[str, BaseStorage]):
@@ -481,27 +482,34 @@ class EdnaML(EdnaMLBase):
     def updateLoggerWithERS(self):
         """Download the existing log file from remote, if possible, so that our LogManager can append to it.
         """
+
+
+        # So, canonical vs ers modes for logger 
+
+        """
+        ers mode is fine. When we search latestERSKey, we get appropriate file. Then we transfer that file to StorageManager. Then we provide that file to LogManager
+        to append. During saving periods, whatever the currentERSKey is (before logger ers, after, same as whatever) we transfer the log file to that ersKey, then upload
+
+
+        Under canonical mode -- we have a single file, usually...
+        Ok, solution -- at this point, we already have a latest ERS Key...
+        So, we return the latestERSKey, if we are in canonical mode !!!!!!!!
+
+        
+
+
+        """
+
+
+
         #self.log("Using latest ERSKey to search for log file")
         self.log("Searching for latest generated log file") 
+        # So, we either get the latestERSKey or the actual log ERSKey, depending on canonical setting for log
         ers_key = KeyMethods.cloneERSKey(self.storageManager.searchLatestERSKey(self.storage, artifact=StorageArtifactType.LOG))
         if ers_key.storage.epoch == -1:
             self.log("Latest ERSKey's StorageKey is empty. Resetting StorageKey component.")
             ers_key.storage.epoch = 0
             ers_key.storage.step = 0
-
-        # Now we have the latest key, remote or local...
-        # For Logging:
-
-        # 1. download the key, if it does not exist already
-        # 2. Provive this file path to the LogManager, to do what it will (updateERSKey())
-        # 3. During saving, BaseTrainer does a few things:
-        #      a. First, flush the LogManager
-        #      b. Request file from LogManager
-        #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
-        #      d. Ask StorageManager to upload the file
-
-
-
 
         # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
         self.log("Logging with base ERSKey : {key}".format(key=ers_key.printKey()))

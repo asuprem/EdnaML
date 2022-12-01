@@ -220,7 +220,8 @@ class EdnaDeploy(EdnaML):
             experiment_key = self.experiment_key,
             storage_trigger_mode=kwargs.get("storage_trigger_mode", "loose"),
             storage_manager_mode=kwargs.get("storage_manager_mode", "download_only"),    # Use remote for downloads when provided, but NOT uploads
-            storage_mode=kwargs.get("storage_mode", "local")    
+            storage_mode=kwargs.get("storage_mode", "local"),
+            backup_mode=kwargs.get("backup_mode", "hybrid") 
         )
 
         
