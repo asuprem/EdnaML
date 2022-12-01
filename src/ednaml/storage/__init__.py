@@ -66,7 +66,7 @@ class StorageManager:
 
         self.experiment_key = experiment_key
         self.storage_manager_mode = self.validate(
-            "storage_manager_mode", ["strict", "loose"], storage_manager_mode
+            "storage_manager_mode", ["strict", "loose", "download_only"], storage_manager_mode
         )
         self.storage_trigger_mode = self.validate(
             "storage_trigger_mode", ["strict", "loose"], storage_trigger_mode
@@ -872,7 +872,7 @@ class StorageManager:
     def validate(self, var_name: str, var_options: List[str], var_value: str):
         if var_value not in var_options:
             raise ValueError(
-                "Unsupported value for `{varname}` <{varvalue}}>. Must be one of {varlist}".format(
+                "Unsupported value for `{varname}` <{varvalue}>. Must be one of {varlist}".format(
                     varname=var_name,
                     varvalue=var_value,
                     varlist="["

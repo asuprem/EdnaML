@@ -10,6 +10,7 @@ from torchinfo import ModelStatistics, summary
 from ednaml import storage
 
 import ednaml.core.decorators
+from ednaml.storage.EmptyStorage import EmptyStorage
 import ednaml.utils
 import ednaml.utils.web
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
@@ -453,6 +454,13 @@ class EdnaML(EdnaMLBase):
                     experiment_key=self.experiment_key,
                     **self.cfg.STORAGE[storage_element].STORAGE_ARGS
                 )
+
+        self.debug("Building `reserved-empty-storage` as fallback option")
+        self.storage["reserved-empty-storage"] = EmptyStorage(
+                experiment_key=self.experiment_key,
+                storage_name="reserved-empty-storage",
+                storage_url="./"
+            )
 
     def train(self, **kwargs):
         if self.mode == "test":
