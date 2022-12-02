@@ -554,11 +554,11 @@ class BaseTrainer:
         self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
-        for epoch in range(self.epochs):
+        for epoch in range(self.epochs + 1):
             if epoch >= continue_epoch:
                 # TODO pre epoch
                 self.epoch_step(epoch)
-                # TODO post epoch
+                # TODO post
                 self.global_epoch += 1
             else:
                 self.global_epoch = epoch + 1
@@ -568,10 +568,13 @@ class BaseTrainer:
             self.evaluate()
             self.evaluateFlag = False
         if self.saveFlag:
-            self.logger.info("Final: Saving model at save-frequency")
+            self.logger.info("Final: Saving model at save-frequency. Saving Logs as well.")
             self.save(self.saveFlag_epoch, self.saveFlag_step)
+            self.save(self.saveFlag_epoch, self.saveFlag_step, artifact=StorageArtifactType.LOG)
             self.saveFlag = False
         self.logger.info("Finished training")
+
+        
 
     def initial_evaluate(self):
         """Evaluation of model before we start training"""
