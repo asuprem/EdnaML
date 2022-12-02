@@ -6,6 +6,7 @@ class BackupOptionsConfig(BaseConfig):
     BACKUP: bool
     STORAGE_NAME: str
     FREQUENCY: int
+    FREQUENCY_STEP: int
     
     def __init__(self, save_dict, defaults: ConfigDefaults):
         self.BACKUP = save_dict.get(

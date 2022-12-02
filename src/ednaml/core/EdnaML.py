@@ -301,7 +301,7 @@ class EdnaML(EdnaMLBase):
             storage_manager_mode (loose | strict | download_only): Default `strict` for EdnaML, `download_only` for EdnaDeploy. With `loose`, always upload and download to remote if available, ignoring backup options. With `strict`, only upload and download from remote if backup is allowed. With `download_only`, download from remote whenever remote available, but upload only if backup allowed.
             storage_mode (local | empty): Default `local`. With `empty`, no artifacts will be generated. So, no artifacts will be backed up.
             backup_mode (canonical | ers | hybrid): Default `hybrid`. Which `backup_mode` to use when performing backups
-            tracking_run (int): An integer specifying a specific run to save to. Run will be created if it does not exist.
+            tracking_run (int): Default None. An integer specifying a specific run to save to. Run will be created if it does not exist.
             new_run (bool): Default `False`. Specifies whether we should use a new run or log to the most recent run. If `tracking_run` is provided, `new_run` is ignored.
             skip_model (bool). Default `False`. Whether to skip building the model.
             skip_model_summary (bool). Default `True`. Whether to skip printing model summary.
