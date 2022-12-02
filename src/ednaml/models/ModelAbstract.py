@@ -22,12 +22,13 @@ class ModelAbstract(nn.Module):
         model_base (str): Name for the core model architecture, of this is a modular construction. Useful during debugging.
         weights (str): Path to weights file for this model
         normalization (str): Name for type of normalization used in this model. Provided here since it is a common model characteristic.
-        metadata (LabelMetadata): A LabelMetadata object for this model that provides information on the training input and mopdel output. 
+        metadata (LabelMetadata): A LabelMetadata object for this model that provides information on the training input and mopdel output.
         parameter_groups (Dict[str, nn.Module]): A named dictionary of a ModelAbstracts sub-components. For example, a GAN can have encoder, decoder, and discriminator parameter groups, if they are trained separately.
 
     Methods:
         _type_: _description_
     """
+
     model_name: str = "ModelAbstract"
     model_arch: str = None
     number_outputs: int = 1
@@ -41,7 +42,7 @@ class ModelAbstract(nn.Module):
     metadata: LabelMetadata
     parameter_groups: Dict[str, nn.Module]
 
-    plugins: Dict[str,ModelPlugin] = {}
+    plugins: Dict[str, ModelPlugin] = {}
     plugin_count: int = 0
     has_plugins: bool = False
     plugin_hook: str = "always"
@@ -64,13 +65,12 @@ class ModelAbstract(nn.Module):
         self.normalization = normalization
         self.parameter_groups = {}
         self.inferencing = False
-        
 
         self.model_attributes_setup(**kwargs)
         self.model_setup(**kwargs)
         self.parameter_groups_setup(parameter_groups)
 
-    def set_plugin_hooks(self, plugin_hook: str):   # always | warmup | activated
+    def set_plugin_hooks(self, plugin_hook: str):  # always | warmup | activated
         self.plugin_hook = plugin_hook
 
     def model_attributes_setup(self, **kwargs):
@@ -127,7 +127,7 @@ class ModelAbstract(nn.Module):
                 continue
             self.state_dict()[_key].copy_(params[_key])
 
-    def forward(self, x, labels=None, **kwargs):    # TODO Labels for the plugins...?????
+    def forward(self, x, labels=None, **kwargs):  # TODO Labels for the plugins...?????
         if self.training and self.inferencing:
             raise ValueError(
                 "Cannot inference and train at the same time! Call"
@@ -137,18 +137,31 @@ class ModelAbstract(nn.Module):
         # TODO, we neede a pre-forward hook, a forward hook, and a post foward hook
         if self.has_plugins:
             x, kwargs, secondary_output_queue_pre = self.pre_forward_hook(x, **kwargs)
-        feature_logits, features, secondary_outputs = self.forward_impl(
-            x, **kwargs
-        )
+        feature_logits, features, secondary_outputs = self.forward_impl(x, **kwargs)
         if self.has_plugins:
-            feature_logits, features, secondary_outputs, secondary_output_queue_post = self.post_forward_hook(x, feature_logits, features, secondary_outputs, **kwargs)
+            (
+                feature_logits,
+                features,
+                secondary_outputs,
+                secondary_output_queue_post,
+            ) = self.post_forward_hook(
+                x, feature_logits, features, secondary_outputs, **kwargs
+            )
 
         # TODO deal with secondary_output_queues
         if self.has_plugins:
-            secondary_outputs = (secondary_outputs, secondary_output_queue_pre, secondary_output_queue_post)
+            secondary_outputs = (
+                secondary_outputs,
+                secondary_output_queue_pre,
+                secondary_output_queue_post,
+            )
         return feature_logits, features, secondary_outputs
 
-    def foward_impl(self, x, **kwargs) -> Tuple[TensorType,TensorType,List[Any]]:   # Return Logits, Features, Secondary Outputs
+    def foward_impl(
+        self, x, **kwargs
+    ) -> Tuple[
+        TensorType, TensorType, List[Any]
+    ]:  # Return Logits, Features, Secondary Outputs
 
         raise NotImplementedError()
 
@@ -162,9 +175,7 @@ class ModelAbstract(nn.Module):
         return self.model_arch
 
     def getParameterGroup(self, key: str) -> nn.Module:
-        if (
-            self.parameter_groups[key] == "self"
-        ):  # avoid recursion bug, I think?
+        if self.parameter_groups[key] == "self":  # avoid recursion bug, I think?
             return self
         else:
             return self.parameter_groups[key]
@@ -189,7 +200,7 @@ class ModelAbstract(nn.Module):
     def convertForInference(self) -> "ModelAbstract":
         raise NotImplementedError
 
-    #-------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------
     # Model Plugins and Hooks architecture
     def loadPlugins(self, plugin_path: PathLike, ignore_plugins: List[str] = []):
         plugin_dict = torch.load(plugin_path)
@@ -197,21 +208,25 @@ class ModelAbstract(nn.Module):
             if plugin_name in self.plugins:
                 if plugin_name not in ignore_plugins:
                     self.plugins[plugin_name].load(plugin_dict[plugin_name])
-                    self._logger.info("Loading plugin with name %s"%plugin_name)
+                    self._logger.info("Loading plugin with name %s" % plugin_name)
                 else:
-                    self._logger.info("Ignoring plugin with name %s"%plugin_name)
+                    self._logger.info("Ignoring plugin with name %s" % plugin_name)
             else:
-                self._logger.info("No plugin exists for name %s"%plugin_name)
+                self._logger.info("No plugin exists for name %s" % plugin_name)
 
     def savePlugins(self):
         save_dict = {}
         for plugin_name in self.plugins:
             save_dict[plugin_name] = self.plugins[plugin_name].save()
-            
 
         return save_dict
 
-    def addPlugin(self, plugin: Type[ModelPlugin], plugin_name: str = None, plugin_kwargs: Dict[str, Any] = {}):
+    def addPlugin(
+        self,
+        plugin: Type[ModelPlugin],
+        plugin_name: str = None,
+        plugin_kwargs: Dict[str, Any] = {},
+    ):
         if plugin_name is None:
             plugin_name = plugin.name
         if plugin_name == "ModelPlugin":
@@ -219,12 +234,14 @@ class ModelAbstract(nn.Module):
             raise ValueError("Potentially no actual plugin passed!")
 
         if plugin_name in self.plugins:
-            raise KeyError("`plugin_name` %s already exists in self.plugins:  "%plugin_name)
+            raise KeyError(
+                "`plugin_name` %s already exists in self.plugins:  " % plugin_name
+            )
         else:
-            self._logger.info("Added plugin %s"%plugin_name)
+            self._logger.info("Added plugin %s" % plugin_name)
             self.plugins[plugin_name] = plugin(**plugin_kwargs)
             self.plugins[plugin_name]._logger = self._logger
-        
+
         self.plugin_count = len(self.plugins)
         self.has_plugins = self.plugin_count > 0
 
@@ -232,41 +249,58 @@ class ModelAbstract(nn.Module):
         if self.plugin_hook == "always":
             self.usable_plugins = [item for item in self.plugins]
         elif self.plugin_hook == "warmup":
-            self.usable_plugins = [item for item in self.plugins if not self.plugins[item].activated]
+            self.usable_plugins = [
+                item for item in self.plugins if not self.plugins[item].activated
+            ]
         elif self.plugin_hook == "activated":
-            self.usable_plugins = [item for item in self.plugins if self.plugins[item].activated]
+            self.usable_plugins = [
+                item for item in self.plugins if self.plugins[item].activated
+            ]
         else:
-            raise ValueError("Unknown value for `plugin_hook`: %s"%self.plugin_hook)
+            raise ValueError("Unknown value for `plugin_hook`: %s" % self.plugin_hook)
 
     def pre_epoch_hook(self, epoch: int = 0):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
         # we do this check before, and after...
-        self.set_usable_plugins()   # dealing with a plugin-load
+        self.set_usable_plugins()  # dealing with a plugin-load
         for plugin in self.usable_plugins:
-            self.plugins[plugin].pre_epoch(model = self, epoch=epoch)
-        self.set_usable_plugins()   # post plugin usage
+            self.plugins[plugin].pre_epoch(model=self, epoch=epoch)
+        self.set_usable_plugins()  # post plugin usage
+
     def post_epoch_hook(self, epoch: int = 0):
         # Here, we set up which plugins are activated and can be used, based on cfg...PLUGIN.HOOK
         # we do this check before, and after...
-        #self.set_usable_plugins()  # unneeded
+        # self.set_usable_plugins()  # unneeded
         for plugin in self.usable_plugins:
-            self.plugins[plugin].post_epoch(model = self, epoch=epoch)
-        self.set_usable_plugins()   # post plugin usage
+            self.plugins[plugin].post_epoch(model=self, epoch=epoch)
+        self.set_usable_plugins()  # post plugin usage
 
     def pre_forward_hook(self, x, **kwargs):
-        # For example, L-Score will perturb the input, then itself call self.forward_impl with the perturbed input (i.e. itself very 
+        # For example, L-Score will perturb the input, then itself call self.forward_impl with the perturbed input (i.e. itself very
         # hacky under our own framework), then provide results to secondary_outputs
         secondaries: Dict[str, Any] = {}
         for plugin in self.usable_plugins:
-            x, kwargs, secondary_output_pre = self.plugins[plugin].pre_forward(x, **kwargs)
+            x, kwargs, secondary_output_pre = self.plugins[plugin].pre_forward(
+                x, **kwargs
+            )
             secondaries[plugin] = secondary_output_pre
         return x, kwargs, secondaries
 
-    def post_forward_hook(self, x, feature_logits, features, secondary_outputs, **kwargs):
+    def post_forward_hook(
+        self, x, feature_logits, features, secondary_outputs, **kwargs
+    ):
         # For ModelPlugins.
         # For example, KMP, after forward pass, provides distance to nearest proxy as well as nearest proxy in the secondary_outputs
         secondaries: Dict[str, Any] = {}
         for plugin in self.usable_plugins:
-            feature_logits, features, secondary_outputs, kwargs, secondary_output_post = self.plugins[plugin].post_forward(x,feature_logits, features, secondary_outputs,self, **kwargs)
+            (
+                feature_logits,
+                features,
+                secondary_outputs,
+                kwargs,
+                secondary_output_post,
+            ) = self.plugins[plugin].post_forward(
+                x, feature_logits, features, secondary_outputs, self, **kwargs
+            )
             secondaries[plugin] = secondary_output_post
         return feature_logits, features, secondary_outputs, secondaries

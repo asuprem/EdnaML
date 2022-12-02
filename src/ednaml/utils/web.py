@@ -48,9 +48,7 @@ def download(file_, url):
     sys.stdout.write("\nDownload of %s to %s completed\n" % (file_, url))
 
 
-def cached_path(
-    url_or_filename, cache_dir=None, force_download=False, proxies=None
-):
+def cached_path(url_or_filename, cache_dir=None, force_download=False, proxies=None):
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -96,9 +94,7 @@ def cached_path(
     else:
         # Something unknown
         raise ValueError(
-            "unable to parse {} as a URL or as a local path".format(
-                url_or_filename
-            )
+            "unable to parse {} as a URL or as a local path".format(url_or_filename)
         )
 
 
@@ -151,9 +147,7 @@ def get_from_cache(url, cache_dir=None, force_download=False, proxies=None):
     # try to get the last downloaded one
     if not os.path.exists(cache_path) and etag is None:
         matching_files = fnmatch.filter(os.listdir(cache_dir), filename + ".*")
-        matching_files = list(
-            filter(lambda s: not s.endswith(".json"), matching_files)
-        )
+        matching_files = list(filter(lambda s: not s.endswith(".json"), matching_files))
         if matching_files:
             cache_path = os.path.join(cache_dir, matching_files[-1])
 

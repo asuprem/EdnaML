@@ -17,6 +17,3 @@ class Crawler:
             )
         else:
             self.logger.info("Found {data_folder}".format(data_folder=folder))
-
-
-

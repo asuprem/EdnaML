@@ -12,12 +12,12 @@ class ClassificationTrainer(BaseTrainer):
         self.softaccuracy = []
 
     # Steps through a batch of data
-    def step(self, batch): 
+    def step(self, batch):
         batch_kwargs = {}
         (
             img,
             batch_kwargs["labels"],
-        ) = batch  
+        ) = batch
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
@@ -74,13 +74,9 @@ class ClassificationTrainer(BaseTrainer):
         # for evaluation...
 
         logit_labels = torch.argmax(logits, dim=1)
-        accuracy = (logit_labels == labels).sum().float() / float(
-            labels.size(0)
-        )
+        accuracy = (logit_labels == labels).sum().float() / float(labels.size(0))
         micro_fscore = np.mean(f1_score(labels, logit_labels, average="micro"))
-        weighted_fscore = np.mean(
-            f1_score(labels, logit_labels, average="weighted")
-        )
+        weighted_fscore = np.mean(f1_score(labels, logit_labels, average="weighted"))
         self.logger.info("Accuracy: {:.3%}".format(accuracy))
         self.logger.info("Micro F-score: {:.3f}".format(micro_fscore))
         self.logger.info("Weighted F-score: {:.3f}".format(weighted_fscore))

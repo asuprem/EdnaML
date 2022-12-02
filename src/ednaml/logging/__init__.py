@@ -1,16 +1,16 @@
 from ednaml.utils import ERSKey, ExperimentKey
 
 
-
 class LogManager:
     experiment_key: ExperimentKey
+
     def __init__(self, experiment_key: ExperimentKey, **kwargs):
         self.experiment_key = experiment_key
         self.logger = None
         self.apply(**kwargs)
-    
+
     def apply(self, **kwargs):
-        """Build the logger internal state. At this time, the logger does not have access 
+        """Build the logger internal state. At this time, the logger does not have access
         to the ERSKey, or any indexing information about the current experiment.
 
         This function can be used to initialize logging, and set of batched requests once
@@ -23,7 +23,7 @@ class LogManager:
         if this logger indexes logs as such.
 
         The file_name is the local file where logs can be dumped. A Log Storage will upload this local file
-        to its remote Storage with the latest ERS-Key. This means a batch of logs is generally indexed by the 
+        to its remote Storage with the latest ERS-Key. This means a batch of logs is generally indexed by the
         logging backup frequency (depending on how the Log Storage takes care of files)
 
         Args:

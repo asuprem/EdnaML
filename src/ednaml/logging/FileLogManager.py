@@ -13,6 +13,7 @@ class FileLogManager(LogManager):
     }
     verbose: int
     log_filename: str
+
     def apply(self, **kwargs):
         """Build the FileLogManager internal state, without a file handler. Initially, log only to STDOUT.
 
@@ -21,13 +22,16 @@ class FileLogManager(LogManager):
         self.logger = logging.Logger(self.experiment_key.getExperimentName())
         self.verbose = 3
         self.buildLogger(
-                self.logger,
-                logger_given = False,   # For the log level setup
-                add_filehandler=False,
-                add_streamhandler=True,
-                log_level = kwargs.get("log_level", logging.DEBUG))
-        self.logger.info("Generated logger object with experiment key %s"%self.experiment_key.getExperimentName())
-
+            self.logger,
+            logger_given=False,  # For the log level setup
+            add_filehandler=False,
+            add_streamhandler=True,
+            log_level=kwargs.get("log_level", logging.DEBUG),
+        )
+        self.logger.info(
+            "Generated logger object with experiment key %s"
+            % self.experiment_key.getExperimentName()
+        )
 
     def updateERSKey(self, ers_key: ERSKey, file_name: str):
         """Add a filehandler pointing to the provided file_name. FileLogManager will append to this file.
@@ -53,18 +57,18 @@ class FileLogManager(LogManager):
                 remove_old_filehandler=True,
                 add_streamhandler=False,
                 logger_save_path=file_name,
-            )    
-            self.logger.debug("Updated logger object with file name %s"%file_name)
+            )
+            self.logger.debug("Updated logger object with file name %s" % file_name)
 
     def buildLogger(
         self,
         logger: logging.Logger,
-        logger_given = False,
+        logger_given=False,
         add_filehandler: bool = False,
         remove_old_filehandler: bool = False,
         add_streamhandler: bool = True,
         logger_save_path: str = "",
-        log_level = logging.DEBUG,
+        log_level=logging.DEBUG,
         **kwargs
     ) -> logging.Logger:
         """Builds a new logger or adds the correct file and stream handlers to
@@ -78,7 +82,7 @@ class FileLogManager(LogManager):
         Returns:
             logging.Logger: A logger with file and stream handlers.
         """
-        
+
         streamhandler = False
         filehandler = False
 
@@ -88,9 +92,12 @@ class FileLogManager(LogManager):
                 if isinstance(handler, logging.StreamHandler):
                     streamhandler = True
                 if isinstance(handler, logging.FileHandler) and add_filehandler:
-                    if os.path.splitext(os.path.basename(handler.baseFilename))[0] == os.path.splitext(os.path.basename(logger_save_path))[0]:
+                    if (
+                        os.path.splitext(os.path.basename(handler.baseFilename))[0]
+                        == os.path.splitext(os.path.basename(logger_save_path))[0]
+                    ):
                         filehandler = True
-                    else:   # not equal -- we can remove if desired
+                    else:  # not equal -- we can remove if desired
                         if remove_old_filehandler:
                             mark_for_deletion.append(idx)
         for mark in mark_for_deletion:
@@ -100,18 +107,22 @@ class FileLogManager(LogManager):
             logger.setLevel(self.logLevels[self.verbose])
 
         if not filehandler and add_filehandler:
-            fh = logging.FileHandler(
-                logger_save_path, mode="a", encoding="utf-8"
-            )
+            fh = logging.FileHandler(logger_save_path, mode="a", encoding="utf-8")
             fh.setLevel(log_level)
-            fh.setFormatter(logging.Formatter("[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S"))
+            fh.setFormatter(
+                logging.Formatter(
+                    "[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S"
+                )
+            )
             logger.addHandler(fh)
 
         if not streamhandler and add_streamhandler:
             cs = logging.StreamHandler()
             cs.setLevel(log_level)
             cs.setFormatter(
-                logging.Formatter("[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S")
+                logging.Formatter(
+                    "[%(levelname)s %(asctime)s] %(message)s", datefmt="%H:%M:%S"
+                )
             )
             logger.addHandler(cs)
         return None
@@ -119,9 +130,6 @@ class FileLogManager(LogManager):
     def getLocalLog(self) -> str:
         return self.log_filename
 
-
     def flush(self) -> bool:
         for handler in self.logger.handlers:
             handler.flush()
-
-        

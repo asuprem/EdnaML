@@ -21,9 +21,9 @@ class ConfigDefaults(BaseConfig):
     STEP_SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
-    OUTPUT_ARGS: Dict[str,str]
+    OUTPUT_ARGS: Dict[str, str]
     DEPLOY: str
-    DEPLOYMENT_ARGS: Dict[str,str]
+    DEPLOYMENT_ARGS: Dict[str, str]
     DEPLOYMENT_EPOCHS: int
 
     TRANSFORM_ARGS: Dict
@@ -64,7 +64,7 @@ class ConfigDefaults(BaseConfig):
     STORAGE_NAME: str
     STORAGE_CLASS: str
     STORAGE_URL: str
-    STORAGE_ARGS: Dict[str,str]
+    STORAGE_ARGS: Dict[str, str]
 
     BACKUP_PERFORM = bool
     BACKUP_LOCATION = str
@@ -96,9 +96,7 @@ class ConfigDefaults(BaseConfig):
         self.LOG_BACKUP = kwargs.get("LOG_BACKUP", False)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
         self.STEP_SAVE_FREQUENCY = kwargs.get("STEP_SAVE_FREQUENCY", 0)
-        self.CHECKPOINT_DIRECTORY = kwargs.get(
-            "CHECKPOINT_DIRECTORY", "checkpoint"
-        )
+        self.CHECKPOINT_DIRECTORY = kwargs.get("CHECKPOINT_DIRECTORY", "checkpoint")
 
         self.OUTPUT_ARGS = {}
         self.DEPLOY = kwargs.get("DEPLOY", "BaseDeploy")

@@ -31,9 +31,7 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
         lr_ops = kwargs.get("lr_ops")
         milestones = [item[0] for item in lr_ops]
         if milestones != sorted(milestones):
-            raise ValueError(
-                "`milestones` in `lr_ops` should be a sorted `list`."
-            )
+            raise ValueError("`milestones` in `lr_ops` should be a sorted `list`.")
 
         relative = kwargs.get("relative", False)
         self.build_lr = [(-1, self.lr_mult, 1)]
@@ -48,8 +46,9 @@ class FineGrainedSteppedLR(torch.optim.lr_scheduler._LRScheduler):
                 _op = self.lr_mult
             else:
                 raise ValueError(
-                    "Unknown operation token {0}. Expected one of '+', '*'."
-                    .format(_item[0])
+                    "Unknown operation token {0}. Expected one of '+', '*'.".format(
+                        _item[0]
+                    )
                 )
             self.build_lr.append((_milestone, _op, _val))
 

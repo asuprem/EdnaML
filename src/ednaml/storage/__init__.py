@@ -66,7 +66,9 @@ class StorageManager:
 
         self.experiment_key = experiment_key
         self.storage_manager_mode = self.validate(
-            "storage_manager_mode", ["strict", "loose", "download_only"], storage_manager_mode
+            "storage_manager_mode",
+            ["strict", "loose", "download_only"],
+            storage_manager_mode,
         )
         self.storage_trigger_mode = self.validate(
             "storage_trigger_mode", ["strict", "loose"], storage_trigger_mode
@@ -354,24 +356,24 @@ class StorageManager:
         ers_key: ERSKey = None,
         artifact: StorageArtifactType = StorageArtifactType.MODEL,
     ) -> Union[ERSKey, None]:
-        """Given an epoch or an ERSKey with epoch value, return ERSKey of the 
+        """Given an epoch or an ERSKey with epoch value, return ERSKey of the
         latest Artifact in remote OR local. Returns `None` if there is no ERSKey.
-        
-        If `storage_manager_mode` is 'strict', the remote is checked only if 
-        backup is allowed for the artifact. If `storage_manager_mode` is 'loose' 
-        or 'download_only', then both the local and remote storages are checked 
-        regardless of whether backup is allowed, as long as a remote storage is 
-        provided. 
-        
-        Note: `storage_manager_mode` defaults to 'strict' for EML and 
+
+        If `storage_manager_mode` is 'strict', the remote is checked only if
+        backup is allowed for the artifact. If `storage_manager_mode` is 'loose'
+        or 'download_only', then both the local and remote storages are checked
+        regardless of whether backup is allowed, as long as a remote storage is
+        provided.
+
+        Note: `storage_manager_mode` defaults to 'strict' for EML and
         'download_only' for ED.
 
         Args:
-            epoch (int, optional): The epoch value to find the latest 
+            epoch (int, optional): The epoch value to find the latest
                 step for. Used if `ers_key` is not provided. Defaults to None.
-            ers_key (ERSKey, optional): An ERSKey whose epoch value 
+            ers_key (ERSKey, optional): An ERSKey whose epoch value
                 will be used. Defaults to None.
-            artifact (StorageArtifactType, optional): The artifact to use as 
+            artifact (StorageArtifactType, optional): The artifact to use as
                 reference. Defaults to StorageArtifactType.MODEL.
         """
         if ers_key is None:
@@ -651,7 +653,6 @@ class StorageManager:
             self.log("Local tracking run is %i" % tracking_run)
             tracking_run = max(tracking_run, local_tracking_run)
 
-        
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
         # Then, the provided config is uploaded

@@ -28,9 +28,15 @@ from ednaml.optimizer.StandardLossOptimizer import StandardLossOptimizer
 from ednaml.plugins.ModelPlugin import ModelPlugin
 from ednaml.storage import BaseStorage, StorageManager
 from ednaml.trainer.BaseTrainer import BaseTrainer
-from ednaml.utils import (ERSKey, ExperimentKey, KeyMethods,
-                          StorageArtifactType, StorageKey, locate_class,
-                          path_import)
+from ednaml.utils import (
+    ERSKey,
+    ExperimentKey,
+    KeyMethods,
+    StorageArtifactType,
+    StorageKey,
+    locate_class,
+    path_import,
+)
 from ednaml.utils.LabelMetadata import LabelMetadata
 
 """TODO
@@ -427,14 +433,15 @@ class EdnaML(EdnaMLBase):
             for storage_element in self.cfg.STORAGE:
                 if self.cfg.STORAGE[storage_element].STORAGE_NAME in self.storage:
                     self.debug(
-                        "Skipping storage with name %s, already exists" % storage_element
+                        "Skipping storage with name %s, already exists"
+                        % storage_element
                     )
                 else:
                     storage_class_name = self.cfg.STORAGE[storage_element].STORAGE_CLASS
                     if storage_class_name in self.storage_classes:
-                        storage_class_reference: Type[BaseStorage] = self.storage_classes[
-                            storage_class_name
-                        ]
+                        storage_class_reference: Type[
+                            BaseStorage
+                        ] = self.storage_classes[storage_class_name]
                         self.log(
                             "Loaded {} from {} to build Storage".format(
                                 self.cfg.STORAGE[storage_element].STORAGE_CLASS,
@@ -460,13 +467,15 @@ class EdnaML(EdnaMLBase):
                         **self.cfg.STORAGE[storage_element].STORAGE_ARGS
                     )
         else:
-            self.logger.warn("Skipping storage building. This can cause instability in pipeline operations.")
+            self.logger.warn(
+                "Skipping storage building. This can cause instability in pipeline operations."
+            )
         self.debug("Building `reserved-empty-storage` as fallback option")
         self.storage["reserved-empty-storage"] = EmptyStorage(
-                experiment_key=self.experiment_key,
-                storage_name="reserved-empty-storage",
-                storage_url="./"
-            )
+            experiment_key=self.experiment_key,
+            storage_name="reserved-empty-storage",
+            storage_url="./",
+        )
 
     def train(self, **kwargs):
         if self.mode == "test":
@@ -1429,14 +1438,21 @@ class EdnaML(EdnaMLBase):
 
     # TODO fix this i.e. harmonize
     def getModelWeightsFromEpoch(self, epoch: int = 0):
-        latest_model_ers_key = self.storageManager.getLatestStepOfArtifactWithEpoch(storage=self.storage, epoch=epoch, artifact=StorageArtifactType.MODEL)
+        latest_model_ers_key = self.storageManager.getLatestStepOfArtifactWithEpoch(
+            storage=self.storage, epoch=epoch, artifact=StorageArtifactType.MODEL
+        )
         if latest_model_ers_key is None:
-            self.log("Could not find any model with provided epoch %i"%epoch)
+            self.log("Could not find any model with provided epoch %i" % epoch)
             return None
-        success = self.storageManager.download(storage_dict=self.storage, ers_key=latest_model_ers_key)
+        success = self.storageManager.download(
+            storage_dict=self.storage, ers_key=latest_model_ers_key
+        )
         if success:
             return self.storageManager.getLocalSavePath(ers_key=latest_model_ers_key)
-        self.log("Could not download model with ERSKey <%s>"%latest_model_ers_key.printKey())
+        self.log(
+            "Could not download model with ERSKey <%s>"
+            % latest_model_ers_key.printKey()
+        )
         return None
 
     def setModelWeightsFromEpoch(self, epoch: int = 0):
@@ -1449,7 +1465,7 @@ class EdnaML(EdnaMLBase):
         """
         self.weights = self.getModelWeightsFromEpoch(epoch=epoch)
 
-    def loadEpoch(self, epoch = 0):
+    def loadEpoch(self, epoch=0):
         """Loads weights saved at a specific epoch into the current stored model
         in `self.model`. If no weights are saved for that epoch, logs this and
         does nothing.
@@ -1462,5 +1478,5 @@ class EdnaML(EdnaMLBase):
             epoch (int, optional): The epoch to load. If None, then will not do anything.
                 If weights corresponding to this epoch do not exist, will not do anything. Defaults to 0.
         """
-        self.setModelWeightsFromEpoch(epoch = epoch)
+        self.setModelWeightsFromEpoch(epoch=epoch)
         self.loadWeights()

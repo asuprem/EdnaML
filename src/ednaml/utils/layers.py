@@ -333,9 +333,7 @@ class GroupNorm2d(_GroupNorm):
 
     def _check_input_dim(self, input):
         if input.dim() != 4:
-            raise ValueError(
-                "expected 4D input (got {}D input)".format(input.dim())
-            )
+            raise ValueError("expected 4D input (got {}D input)".format(input.dim()))
 
 
 class GroupNorm3d(_GroupNorm):
@@ -345,10 +343,7 @@ class GroupNorm3d(_GroupNorm):
 
     def _check_input_dim(self, input):
         if input.dim() != 5:
-            raise ValueError(
-                "expected 5D input (got {}D input)".format(input.dim())
-            )
-
+            raise ValueError("expected 5D input (got {}D input)".format(input.dim()))
 
 
 from ednaml.utils.blocks import KMeansProxy

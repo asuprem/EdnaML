@@ -38,9 +38,7 @@ class TripletLoss(Loss):
 
         return self.loss_fn(features, labels, self.margin)
 
-    def hard_mining(
-        self, features, labels, margin, squared=False, device="cuda"
-    ):
+    def hard_mining(self, features, labels, margin, squared=False, device="cuda"):
         """Build the triplet loss over a batch of features.
 
         For each anchor, we get the hardest positive and hardest negative to form a triplet.
@@ -73,9 +71,7 @@ class TripletLoss(Loss):
 
         # For each anchor, get the hardest negative
         # First, we need to get a mask for every valid negative (they should have different labels)
-        mask_anchor_negative = self._get_anchor_negative_triplet_mask(
-            labels
-        ).float()
+        mask_anchor_negative = self._get_anchor_negative_triplet_mask(labels).float()
 
         # We add the maximum value in each row to the invalid negatives (label(a) == label(n))
         max_anchor_negative_dist, _ = pairwise_dist.max(1, keepdim=True)
@@ -163,9 +159,7 @@ class TripletLoss(Loss):
         # ||a - b||^2 = ||a||^2  - 2 <a, b> + ||b||^2
         # shape (batch_size, batch_size)
         distances = (
-            square_norm.unsqueeze(0)
-            - 2.0 * dot_product
-            + square_norm.unsqueeze(1)
+            square_norm.unsqueeze(0) - 2.0 * dot_product + square_norm.unsqueeze(1)
         )
 
         # Because of computation errors, some distances might be negative so we put everything >= 0.0

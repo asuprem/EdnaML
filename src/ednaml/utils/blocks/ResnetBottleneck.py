@@ -28,9 +28,7 @@ class ResnetBottleneck(nn.Module):
             norm_layer = nn.BatchNorm2d
         width = int(planes * (base_width / 64.0)) * groups
 
-        self.conv1 = nn.Conv2d(
-            inplanes, width, kernel_size=1, bias=False, stride=1
-        )
+        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False, stride=1)
         self.bn1 = norm_layer(width)
         self.conv2 = nn.Conv2d(
             width,

@@ -1,12 +1,15 @@
 from ednaml.utils import ERSKey, ExperimentKey
 
+
 class EdnaMLContextInformation:
     MODEL_HAS_LOADED_WEIGHTS: bool
     MODEL_ERS_KEY: ERSKey
+
     def __init__(self) -> None:
         self.MODEL_HAS_LOADED_WEIGHTS = False
         self.MODEL_ERS_KEY = None
-    
+
+
 import logging
 from types import MethodType
 from typing import Any, Dict, List, Type, Union
@@ -25,6 +28,7 @@ from ednaml.trainer.BaseTrainer import BaseTrainer
 
 from ednaml.utils.LabelMetadata import LabelMetadata
 
+
 class EdnaMLBase:
     labelMetadata: LabelMetadata
     modelStatistics: ModelStatistics
@@ -39,8 +43,8 @@ class EdnaMLBase:
     train_generator: Generator
     test_generator: Generator
     cfg: EdnaMLConfig
-    config: Union[str,List[str]]    # list of paths to configuration files
-    decorator_reference: Dict[str,Type[MethodType]]
+    config: Union[str, List[str]]  # list of paths to configuration files
+    decorator_reference: Dict[str, Type[MethodType]]
     plugins: Dict[str, ModelPlugin]
     storage: Dict[str, BaseStorage]
     storage_classes: Dict[str, Type[BaseStorage]]
@@ -72,6 +76,7 @@ class EdnaMLBase:
 
     def log(self, msg):
         self.logger.info("[eml]" + msg)
+
     def debug(self, msg):
         self.logger.debug("[eml]" + msg)
 

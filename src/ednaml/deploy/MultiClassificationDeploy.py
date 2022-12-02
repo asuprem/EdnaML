@@ -1,13 +1,15 @@
-from sklearn.metrics import f1_score    
+from sklearn.metrics import f1_score
 import numpy as np
 
 import torch
 from ednaml.deploy.BaseDeploy import BaseDeploy
 from ednaml.models.MultiClassificationResnet import MultiClassificationResnet
 
+
 class MultiClassificationDeploy(BaseDeploy):
     model: MultiClassificationResnet
-    def deploy_step(self, batch): 
+
+    def deploy_step(self, batch):
         data, label = batch
         logit, feature, secondary = self.model(data)
         return logit, feature, (secondary, label)
@@ -20,11 +22,11 @@ class MultiClassificationDeploy(BaseDeploy):
             item: idx for idx, item in enumerate(self.labelMetadata.labels)
         }
 
-
         self.pred_logits, self.pred_labels = (
             [[] for _ in range(self.model.number_outputs)],
             [],
         )
+
     def output_step(self, logits, features, secondary):
         for idx in range(self.model.number_outputs):
             self.pred_logits[idx].append(logits[idx].detach().cpu())
@@ -34,19 +36,14 @@ class MultiClassificationDeploy(BaseDeploy):
         logits = [torch.cat(logit, dim=0) for logit in self.pred_logits]
         labels = torch.cat(self.pred_labels, dim=0)
 
-
         logit_labels = [torch.argmax(logit, dim=1) for logit in logits]
         accuracy = [[] for _ in range(self.model.number_outputs)]
         micro_fscore = [[] for _ in range(self.model.number_outputs)]
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
         for idx, labelname in enumerate(self.model_labelorder):
             accuracy[idx] = (
-                logit_labels[
-                    self.model_labelorder[labelname]
-                ]
-                == labels[
-                    :, self.data_labelorder[labelname]
-                ]
+                logit_labels[self.model_labelorder[labelname]]
+                == labels[:, self.data_labelorder[labelname]]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
                 f1_score(
@@ -54,9 +51,7 @@ class MultiClassificationDeploy(BaseDeploy):
                         :,
                         self.data_labelorder[labelname],
                     ],
-                    logit_labels[
-                        self.model_labelorder[labelname]
-                    ],
+                    logit_labels[self.model_labelorder[labelname]],
                     average="micro",
                 )
             )
@@ -66,9 +61,7 @@ class MultiClassificationDeploy(BaseDeploy):
                         :,
                         self.data_labelorder[labelname],
                     ],
-                    logit_labels[
-                        self.model_labelorder[labelname]
-                    ],
+                    logit_labels[self.model_labelorder[labelname]],
                     average="weighted",
                 )
             )
@@ -80,8 +73,7 @@ class MultiClassificationDeploy(BaseDeploy):
             "Accuracy        \t"
             + "\t".join(
                 [
-                    "%s: %0.3f"
-                    % (self.labelMetadata.labels[idx], accuracy[idx].item())
+                    "%s: %0.3f" % (self.labelMetadata.labels[idx], accuracy[idx].item())
                     for idx in range(self.model.number_outputs)
                 ]
             )
@@ -109,7 +101,3 @@ class MultiClassificationDeploy(BaseDeploy):
                 ]
             )
         )
-
-
-    
-

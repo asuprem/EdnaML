@@ -107,9 +107,7 @@ class MultiClassificationResnet(ClassificationResnet):
         self.output_labels = [None] * self.number_outputs
 
         for idx, output_details in enumerate(outputs):
-            self.softmax_dimensions[idx] = output_details.get(
-                "dimensions", None
-            )
+            self.softmax_dimensions[idx] = output_details.get("dimensions", None)
             self.output_names[idx] = output_details.get(
                 "name", self._internal_name_counter()
             )

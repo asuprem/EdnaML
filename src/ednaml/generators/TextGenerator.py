@@ -11,7 +11,7 @@ class TextGenerator(Generator):
     """Base class for text generators"""
 
     def __init__(
-        self, logger = None, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
+        self, logger=None, gpus: int = 1, transforms={}, mode: str = "train", **kwargs
     ):
         """Initializes the Generator and builds the data transformer
 

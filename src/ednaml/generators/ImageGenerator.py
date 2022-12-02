@@ -25,7 +25,6 @@ class ImageGenerator(Generator):
 
     def build_transforms(self, transforms, mode, **kwargs):
         return T.Compose(self._build_transforms(**transforms.ARGS))
-        
 
     def _build_transforms(
         self,
@@ -47,21 +46,22 @@ class ImageGenerator(Generator):
         Returns:
             _type_: _description_
         """
-        if(i_shape == [] and channels == 0 and normalization_mean == 0 and normalization_std == 0 and normalization_scale == 0):
+        if (
+            i_shape == []
+            and channels == 0
+            and normalization_mean == 0
+            and normalization_std == 0
+            and normalization_scale == 0
+        ):
             return []
-        
-        (
-            normalization_mean,
-            normalization_std,
-        ) = ednaml.utils.extend_mean_arguments(
+
+        (normalization_mean, normalization_std,) = ednaml.utils.extend_mean_arguments(
             [normalization_mean, normalization_std], channels
         )
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
         if kwargs.get("h_flip", 0) > 0:
-            transformer_primitive.append(
-                T.RandomHorizontalFlip(p=kwargs.get("h_flip"))
-            )
+            transformer_primitive.append(T.RandomHorizontalFlip(p=kwargs.get("h_flip")))
         if kwargs.get("t_crop", False):
             transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())

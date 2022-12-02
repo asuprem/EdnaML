@@ -69,14 +69,10 @@ class MarginLoss(Loss):
 
         # `dist_ap` means distance(anchor, positive)
         # both `dist_ap` and `relative_p_inds` with shape [N, 1]
-        dist_ap, _ = torch.max(
-            distances[pos].contiguous().view(N, -1), 1, keepdim=True
-        )
+        dist_ap, _ = torch.max(distances[pos].contiguous().view(N, -1), 1, keepdim=True)
         # `dist_an` means distance(anchor, negative)
         # both `dist_an` and `relative_n_inds` with shape [N, 1]
-        dist_an, _ = torch.min(
-            distances[neg].contiguous().view(N, -1), 1, keepdim=True
-        )
+        dist_an, _ = torch.min(distances[neg].contiguous().view(N, -1), 1, keepdim=True)
         # shape [N]
         dist_ap = dist_ap.squeeze(1)
         dist_an = dist_an.squeeze(1)

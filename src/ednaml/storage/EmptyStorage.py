@@ -3,7 +3,6 @@ from ednaml.utils import ERSKey, ExperimentKey, KeyMethods, StorageArtifactType
 
 
 class EmptyStorage(BaseStorage):
-
     def apply(self, storage_url: str, **kwargs):
         self.run = -1
         self.storage_name: str = kwargs.get("storage_name")
@@ -13,18 +12,22 @@ class EmptyStorage(BaseStorage):
 
     def path_of_artifact(self, *args, **kwargs):
         return ""
+
     def canonical_path_of_artifact(self, *args, **kwargs):
         return ""
 
-    def download(self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False) -> bool:
+    def download(
+        self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False
+    ) -> bool:
         return False
 
-    def upload(self, source_file_name: str, ers_key: ERSKey, canonical: bool = False) -> bool:
+    def upload(
+        self, source_file_name: str, ers_key: ERSKey, canonical: bool = False
+    ) -> bool:
         return False
-
 
     def getLatestStorageKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
-        
+
         return_key = KeyMethods.cloneERSKey(ers_key=ers_key)
         return_key.storage.epoch = -1
         return_key.storage.step = -1
@@ -50,8 +53,3 @@ class EmptyStorage(BaseStorage):
 
     def setTrackingRun(self, tracking_run: int) -> None:
         self.run = tracking_run
-
-    
-
-    
-

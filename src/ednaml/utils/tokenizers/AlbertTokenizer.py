@@ -14,9 +14,7 @@ import sentencepiece
 class AlbertFullTokenizer(object):
     """Runs end-to-end tokenziation."""
 
-    def __init__(
-        self, vocab_file, do_lower_case=True, spm_model_file=None, **kwargs
-    ):
+    def __init__(self, vocab_file, do_lower_case=True, spm_model_file=None, **kwargs):
         self.vocab = None
         self.sp_model = None
         if spm_model_file:
@@ -33,9 +31,7 @@ class AlbertFullTokenizer(object):
             print("load vocab")
             self.vocab = load_vocab(vocab_file)
             print("load token")
-            self.basic_tokenizer = AlbertBasicTokenizer(
-                do_lower_case=do_lower_case
-            )
+            self.basic_tokenizer = AlbertBasicTokenizer(do_lower_case=do_lower_case)
             self.wordpiece_tokenizer = AlbertWordpieceTokenizer(
                 vocab=self.vocab,
                 unk_token="[UNK]",
@@ -45,9 +41,7 @@ class AlbertFullTokenizer(object):
 
     def tokenize(self, text):
         if self.sp_model:
-            split_tokens = encode_pieces(
-                self.sp_model, text, return_unicode=False
-            )
+            split_tokens = encode_pieces(self.sp_model, text, return_unicode=False)
         else:
             split_tokens = []
             for token in self.basic_tokenizer.tokenize(text):

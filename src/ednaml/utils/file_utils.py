@@ -2,14 +2,12 @@ import mmap
 from types import FunctionType
 
 
-
 class IterableFile:
-
-    def __init__(self, file_path, chunk_size = 50000, line_callback: FunctionType = None):
+    def __init__(self, file_path, chunk_size=50000, line_callback: FunctionType = None):
         # TODO use chunk-size to preload some chunk into memory for ammortized overhead?
         self.row_count = 0
         for _ in (row for row in open(file_path, "r")):
-            self.row_count+=1
+            self.row_count += 1
         self.file_path = file_path
         self.line_callback = line_callback
 

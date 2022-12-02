@@ -5,6 +5,8 @@ import sys
 from ednaml.exceptions import ErrorDuringImport
 import importlib.util
 import enum
+
+
 class StorageArtifactType(enum.Enum):
     MODEL = "model"
     LOG = "log"
@@ -20,6 +22,7 @@ class ExperimentKey:
     model_version: str
     model_backbone: str
     model_qualifier: str
+
     def __init__(self, model_core_name, model_version, model_backbone, model_qualifier):
         self.model_backbone = str(model_backbone)
         self.model_version = str(model_version)
@@ -27,18 +30,22 @@ class ExperimentKey:
         self.model_qualifier = str(model_qualifier)
 
     def getKey(self):
-        return (self.model_core_name, 
-                    self.model_version, 
-                    self.model_backbone, 
-                    self.model_qualifier)
-
-    def getExperimentName(self):
-        return "_".join([
+        return (
             self.model_core_name,
             self.model_version,
             self.model_backbone,
-            self.model_qualifier
-        ])
+            self.model_qualifier,
+        )
+
+    def getExperimentName(self):
+        return "_".join(
+            [
+                self.model_core_name,
+                self.model_version,
+                self.model_backbone,
+                self.model_qualifier,
+            ]
+        )
 
     def __repr__(self) -> str:
         dicts = json.dumps(self, default=config_serializer)  # or getvars()????
@@ -51,6 +58,7 @@ class ExperimentKey:
 
 class RunKey:
     run: int
+
     def __init__(self, run):
         self.run = run
 
@@ -65,6 +73,7 @@ class RunKey:
     def __str__(self) -> str:
         return self.getRunKey()
 
+
 class StorageKey:
     epoch: int
     step: int
@@ -74,6 +83,7 @@ class StorageKey:
         self.epoch = epoch
         self.step = step
         self.artifact = artifact
+
     def __repr__(self) -> str:
         dicts = json.dumps(self.__dict__, default=lambda o: o.value)  # or getvars()????
         dicta = json.loads(dicts)
@@ -84,6 +94,8 @@ class StorageKey:
 
     def __str__(self) -> str:
         return self.getStorageKey()
+
+
 class ERSKey:
     experiment: ExperimentKey
     run: RunKey
@@ -93,10 +105,19 @@ class ERSKey:
         self.experiment = experiment
         self.run = run
         self.storage = storage
+
     def __repr__(self) -> str:
         return "\n".join([repr(self.experiment), repr(self.run), repr(self.storage)])
+
     def printKey(self) -> str:
-        return "<" + ", ".join([str(item) for item in [self.experiment, self.run, self.storage]]) + ">"
+        return (
+            "<"
+            + ", ".join(
+                [str(item) for item in [self.experiment, self.run, self.storage]]
+            )
+            + ">"
+        )
+
 
 class KeyMethods:
     @staticmethod
@@ -110,23 +131,24 @@ class KeyMethods:
 
     @staticmethod
     def cloneRunKey(run_key: RunKey):
-        return RunKey(
-            run=run_key.run
-        )
+        return RunKey(run=run_key.run)
 
     @staticmethod
     def cloneStorageKey(storage_key: StorageKey):
-        return StorageKey(epoch=storage_key.epoch,
-                            step=storage_key.step,
-                            artifact=storage_key.artifact)
+        return StorageKey(
+            epoch=storage_key.epoch,
+            step=storage_key.step,
+            artifact=storage_key.artifact,
+        )
 
     @staticmethod
     def cloneERSKey(ers_key: ERSKey):
         return ERSKey(
-            experiment = KeyMethods.cloneExperimentKey(ers_key.experiment),
-            run = KeyMethods.cloneRunKey(ers_key.run),
-            storage = KeyMethods.cloneStorageKey(ers_key.storage),
+            experiment=KeyMethods.cloneExperimentKey(ers_key.experiment),
+            run=KeyMethods.cloneRunKey(ers_key.run),
+            storage=KeyMethods.cloneStorageKey(ers_key.storage),
         )
+
 
 class StorageNameStruct:
     model_core_name: str
@@ -137,8 +159,18 @@ class StorageNameStruct:
     epoch: str
     step: str
     artifact_type: StorageArtifactType
-    def __init__(self, model_core_name, model_version, model_backbone, model_qualifier,
-        run, epoch, step, artifact_type):
+
+    def __init__(
+        self,
+        model_core_name,
+        model_version,
+        model_backbone,
+        model_qualifier,
+        run,
+        epoch,
+        step,
+        artifact_type,
+    ):
         self.model_core_name = model_core_name
         self.model_version = model_version
         self.model_backbone = model_backbone
@@ -149,10 +181,16 @@ class StorageNameStruct:
         self.artifact_type = artifact_type
 
     def getKey(self):
-        return (self.model_core_name, self.model_version, self.model_backbone, self.model_qualifier,
-            self.run, self.epoch, self.step, self.artifact_type)
-    
-
+        return (
+            self.model_core_name,
+            self.model_version,
+            self.model_backbone,
+            self.model_qualifier,
+            self.run,
+            self.epoch,
+            self.step,
+            self.artifact_type,
+        )
 
 
 def locate_class(
@@ -236,13 +274,14 @@ def safeimport(path, forceload=0, cache={}):
             return None
     return module
 
+
 def path_import(absolute_path):
-   '''implementation taken from https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly'''
-   """And from https://stackoverflow.com/questions/41861427/python-3-5-how-to-dynamically-import-a-module-given-the-full-file-path-in-the"""
-   spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
-   module = importlib.util.module_from_spec(spec)
-   spec.loader.exec_module(module)
-   return module
+    """implementation taken from https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly"""
+    """And from https://stackoverflow.com/questions/41861427/python-3-5-how-to-dynamically-import-a-module-given-the-full-file-path-in-the"""
+    spec = importlib.util.spec_from_file_location(absolute_path, absolute_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def extend_mean_arguments(
@@ -274,12 +313,11 @@ def generate_logger(MODEL_SAVE_FOLDER, LOGGER_SAVE_NAME):
     cs = logging.StreamHandler()
     cs.setLevel(logging.DEBUG)
     cs.setFormatter(
-        logging.Formatter(
-            "%(asctime)s-%(msecs)d %(message)s", datefmt="%H:%M:%S"
-        )
+        logging.Formatter("%(asctime)s-%(msecs)d %(message)s", datefmt="%H:%M:%S")
     )
     logger.addHandler(cs)
     return logger
+
 
 # TODO handle tuple return
 def generate_save_names(cfg):
@@ -330,9 +368,9 @@ def fix_generator_arguments(
             type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is int
             or type(cfg.get("TRANSFORMATION.NORMALIZATION_STD")) is float
         ):
-            NORMALIZATION_STD = [
-                cfg.get("TRANSFORMATION.NORMALIZATION_STD")
-            ] * cfg.get("TRANSFORMATION.CHANNELS")
+            NORMALIZATION_STD = [cfg.get("TRANSFORMATION.NORMALIZATION_STD")] * cfg.get(
+                "TRANSFORMATION.CHANNELS"
+            )
         if (
             type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is int
             or type(cfg.get("TRANSFORMATION.RANDOM_ERASE_VALUE")) is float
@@ -411,12 +449,14 @@ from ednaml.utils.LabelMetadata import LabelMetadata
 
 def merge_dictionary_on_key_with_copy(a, b, path=None):
     from copy import deepcopy
+
     return merge_dictionary_on_key(deepcopy(a), b)
 
 
-def merge_dictionary_on_key(a, b, path=None): #make it more descriptive!!!
+def merge_dictionary_on_key(a, b, path=None):  # make it more descriptive!!!
     # from https://stackoverflow.com/a/7205107/2601357
-    if path is None: path = []
+    if path is None:
+        path = []
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):

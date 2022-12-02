@@ -25,7 +25,6 @@ class SaveMetadata:
 
         self.save_ref = cfg.SAVE
 
-
     @property
     def MODEL_VERSION(self):
         return self.save_ref.MODEL_VERSION
@@ -42,11 +41,8 @@ class SaveMetadata:
     def MODEL_QUALIFIER(self):
         return self.save_ref.MODEL_QUALIFIER
 
-
-    @staticmethod   # We will need to not use this anymore...
-    def generate_save_names_from_config(
-        cfg: EdnaMLConfig, **kwargs
-    ) -> Tuple[str]:
+    @staticmethod  # We will need to not use this anymore...
+    def generate_save_names_from_config(cfg: EdnaMLConfig, **kwargs) -> Tuple[str]:
 
         MODEL_SAVE_NAME = "%s-v%i" % (
             cfg.SAVE.MODEL_CORE_NAME,
@@ -67,7 +63,7 @@ class SaveMetadata:
                 cfg.SAVE.MODEL_BACKBONE,
                 cfg.SAVE.MODEL_QUALIFIER,
             )
-        
+
         return (
             MODEL_SAVE_NAME,
             MODEL_SAVE_FOLDER,
