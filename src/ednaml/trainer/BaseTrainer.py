@@ -554,11 +554,12 @@ class BaseTrainer:
         self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
-        for epoch in range(self.epochs + 1):
+        for epoch in range(self.epochs):
             if epoch >= continue_epoch:
                 # TODO pre epoch
                 self.epoch_step(epoch)
                 # TODO post epoch
+                self.global_epoch += 1
             else:
                 self.global_epoch = epoch + 1
 
@@ -642,7 +643,7 @@ class BaseTrainer:
                 "*" * 10, self.global_epoch, "*" * 10
             )
         )
-        self.global_epoch += 1
+        
     
     # Check whether to save each of the artifacts at the current global_batch step.
     # If so, perform a save (or in case of model, plugin, and artifact, perform a setSaveFlag() for the accumulation_step bit)
