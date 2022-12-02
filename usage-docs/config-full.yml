@@ -17,22 +17,6 @@ EXECUTION:
   TEST_FREQUENCY: 1
   # Unused
   FP16: False
-  # DATAREADER is the data-ingest unit that determines the data source. 
-  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
-  # Crawler that yields raw samples, and a Generator that yields batches
-  # to a classifier. A generator may contain an associated 
-  # Dataset to manage sample preprocessing.
-  DATAREADER: 
-    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
-    DATAREADER: DataReader
-    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
-    CRAWLER_ARGS: {}
-    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
-    DATASET_ARGS: 
-    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
-    GENERATOR: 
-    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
-    GENERATOR_ARGS: 
   # PLUGIN manages how plugins are used. Unused for EXECUTION
   PLUGIN:
     # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
@@ -51,28 +35,36 @@ DEPLOYMENT:
   DEPLOYMENT_ARGS: {}
   # The number of epochs to run this Deployment.
   EPOCHS: 1
-  # DATAREADER is the data-ingest unit that determines the data source. 
-  # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
-  # Crawler that yields raw samples, and a Generator that yields batches
-  # to a classifier. A generator may contain an associated 
-  # Dataset to manage sample preprocessing.
-  DATAREADER: 
-    # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
-    DATAREADER: DataReader
-    # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
-    CRAWLER_ARGS: {}
-    # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
-    DATASET_ARGS: 
-    # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
-    GENERATOR: 
-    # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
-    GENERATOR_ARGS: 
   # PLUGIN manages how plugins are used in this Deployment
   PLUGIN:
     # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
     # `activated` means only plugins that are ready are used.
     HOOKS: always # always | warmup | activated
     # Whether to reset already generated PLUGINS.
+
+# DATAREADER is the data-ingest unit that determines the data source. 
+# It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
+# Crawler that yields raw samples, and a Generator that yields batches
+# to a classifier. A generator may contain an associated 
+# Dataset to manage sample preprocessing.
+DATAREADER: 
+  # A DataReader class from ednaml.datareaders for built-in data sources, e.g. TorchvisionDatareader for datasets from TorchVision
+  DATAREADER: DataReader
+  # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
+  CRAWLER_ARGS: {}
+  # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
+  DATASET_ARGS: 
+  # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
+  GENERATOR: 
+  # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
+  GENERATOR_ARGS: 
+
+# Manages Storage connections for backup options (Backup options in SAVE)
+STORAGE:
+  - STORAGE_NAME: storage-1 
+    STORAGE_CLASS: BaseStorage
+    STORAGE_URL: ./
+    STORAGE_ARGS: {}
 
 # Manages the SAVE configuration of the EXECUTION or DEPLOYMENT, as well as file names. SAVE is essentially a readable unique identifier for a model
 # All entries in SAVE are purely for information purposes.
@@ -85,16 +77,45 @@ SAVE:
   MODEL_BACKBONE: "backbone"
   # Any additional qualifiers for this model
   MODEL_QUALIFIER: "all"
-  # Whether to backup this model in a remote storage
-  DRIVE_BACKUP: False
-  # Whether to backup this model's log files in a remote storage
-  LOG_BACKUP: False
-  # How often to perform a local save and backup for this model
-  SAVE_FREQUENCY: 5 # Epoch
-  # Number of steps to wait before saving in the middle of epoch. 0 means no saving within epochs.
-  STEP_SAVE_FREQUENCY: 0  
-  # The URL where the backup will be conducted.
-  CHECKPOINT_DIRECTORY: "checkpoint"
+  # Backup Options, for overall. If any subsequent options are missing, we fall back on Backup options.
+  # Provided options are the default for Backup Options. 
+  BACKUP:
+    BACKUP: False # False | True
+    STORAGE_NAME: storage-1  # A storage name defined in the STORAGE section, corresponding to STORAGE_NAME there as well
+    FREQUENCY: 1  # Frequency of backup, in epochs
+    FREQUENCY_STEP: 0 # Frequency of backup, in steps, per epoch. Default 0
+  # Log backup options, with alternative examples for options
+  LOG_BACKUP:
+    BACKUP: True  # Overrides False in BACKUP.BACKUP
+    STORAGE_NAME: log_backup  # overrides `storage-1`
+    FREQUENCY: 1  # Overrides 0
+  # Config backup options
+  CONFIG_BACKUP:
+    BACKUP: False
+    STORAGE_NAME: none
+    FREQUENCY: 0
+  # Model backup options
+  MODEL_BACKUP:
+    BACKUP: False
+    STORAGE_NAME: none
+    FREQUENCY: 0
+  # Model artifacts backup options. 
+  ARTIFACTS_BACKUP: # fallback to MODEL_BACKUP if not available
+    BACKUP: False
+    STORAGE_NAME: none
+    FREQUENCY: 0
+  # Model plugin backup options
+  PLUGIN_BACKUP:  # fallback to MODEL_BACKUP if not available
+    BACKUP: False
+    STORAGE_NAME: none
+    FREQUENCY: 0
+  # Model metrics backup options
+  METRICS_BACKUP:
+    BACKUP: False
+    STORAGE_NAME: none
+    FREQUENCY: 0
+
+
 
 # TRANSFORMATION manages data transformation for both training and testing subsets
 TRANSFORMATION:

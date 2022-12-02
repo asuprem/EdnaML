@@ -2,29 +2,37 @@
 EXECUTION:
   EPOCHS: 5  # We will execute for 10 epochs
   TEST_FREQUENCY: 1 # We will test the model every 1 epoch
-  DATAREADER: 
-    DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
-    GENERATOR_ARGS:
-      tv_dataset: MNIST   # This tells our datareader that we want MNIST
-      tv_args: 
-        root: "Data/"     # This tells where to download the dataset
-        args:
-          download: true
-    DATASET_ARGS:
-      label_name: mnist_digits
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
     accumulation_steps: 2         # Number of steps for gradient accumulation
 
+DATAREADER: 
+  DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
+  GENERATOR_ARGS:
+    tv_dataset: MNIST   # This tells our datareader that we want MNIST
+    tv_args: 
+      root: "Data/"     # This tells where to download the dataset
+      args:
+        download: true
+  DATASET_ARGS:
+    label_name: mnist_digits
+
+STORAGE:
+  - STORAGE_NAME: local
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./backup
+    STORAGE_ARGS: {}
 
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
   MODEL_BACKBONE: res18         # What backbone we are using here
   MODEL_QUALIFIER: mnist        # Any other details we want to capture in the name
-  DRIVE_BACKUP: False           # Whether we are performing remote backup of the model
-  LOG_BACKUP: False             # Whether we are performing remote backup of the log files
-  SAVE_FREQUENCY: 5             # How often to save the model locally, and perform backups, if desired
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: local
+    FREQUENCY: 1
+    FREQUENCY_STEP: 200
 
 TRANSFORMATION:
   BATCH_SIZE: 32                # The size of batches to provide to the model during training
@@ -53,13 +61,18 @@ MODEL:                              # These are model-specific details
   MODEL_BASE: resnet18              # The base we are using for the architecture. For example, ClassificationResnet accepts resnet18, resnet34, resnet50, etc
   MODEL_KWARGS:
     initial_channels: 1             # Since MNIST is black and white with 1 channel, we use the `initial_channels` parameter of ClassificationResnet to set this
-  
+
+METRICS:
+  MANAGER: JSONMetricsManager
+  MANAGER_ARGS: {}
+  METRICS:
+
 LOSS:
   - LOSSES: ['SoftmaxLogitsLoss']   # We use the basic softmax loss here
     KWARGS: [{}]
     LAMBDAS: [1.0]
     NAME: digit_out                 # The name for this loss
-    LABEL: mnist_digits             # The label this loss is targeting. This MUST match the EXECUTION.DATAREADER.DATASET_ARGS["label_name"] above
+    LABEL: mnist_digits             # The label this loss is targeting. This MUST match the DATAREADER.DATASET_ARGS["label_name"] above
 
 OPTIMIZER:
   - OPTIMIZER: Adam                 # We use the standard Adam optimizer
@@ -76,5 +89,7 @@ SCHEDULER:
       gamma: 0.1
 
 LOGGING:
+  MANAGER: LocalLogManager
+  MANAGER_ARGS: {}
   STEP_VERBOSE: 100                 # How often to print intermediate results
   INPUT_SIZE: [32, 1, 28, 28]       # The estimated shape of the input. 

@@ -136,9 +136,7 @@ class multibranchresnet(nn.Module):
 
         # Make sure ia and input_attention do not conflict
         if self.ia_attention is not None and self.input_attention is not None:
-            raise ValueError(
-                "Cannot have both ia_attention and input_attention."
-            )
+            raise ValueError("Cannot have both ia_attention and input_attention.")
         if self.part_attention is not None and (
             self.attention is not None and self.secondary_attention is None
         ):
@@ -158,8 +156,7 @@ class multibranchresnet(nn.Module):
         if self.shared_block_count == 4:
             raise ValueError(
                 "`shared_block_count` value is %i. This is a non-branching"
-                " model."
-                % self.shared_block_count
+                " model." % self.shared_block_count
             )
 
         # Set up the per-layer parameters for the primary ResNet blocks
@@ -351,48 +348,36 @@ class multibranchresnet(nn.Module):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
             # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
             full_layer_list = [
-                item
-                for item in param_dict
-                if ("layer" + str(layer_idx + 1) in item)
+                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
             ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for layer_name in full_layer_list:
                 # First, get the raw layer info, then append sharedblock to it...
-                local_param_name = (
-                    self._build_local_layer_param_from_pytorch_name(
-                        layer_name, layer_idx
-                    )
+                local_param_name = self._build_local_layer_param_from_pytorch_name(
+                    layer_name, layer_idx
                 )
-                self.state_dict()[local_param_name].copy_(
-                    param_dict[layer_name]
-                )
+                self.state_dict()[local_param_name].copy_(param_dict[layer_name])
 
         # Now, we need to load branch params...
         for layer_idx in range(self.shared_block_count, 4):
             # layer_idx is the layer that is in shared-block. BUT, in the pytorch params, it exists as layer1, corresponding to layer_idx0
             # So if shared_block_count is 3, then we need to copy layer 1-3 into layer_idx0-2
             full_layer_list = [
-                item
-                for item in param_dict
-                if ("layer" + str(layer_idx + 1) in item)
+                item for item in param_dict if ("layer" + str(layer_idx + 1) in item)
             ]  # get all weights inside layer[x]
 
             # The layers exist as an nn.sequential
             for branch_idx in range(self.num_branches):
                 for layer_name in full_layer_list:
                     # First, get the raw layer info, then append sharedblock to it...
-                    local_param_name = (
-                        self._build_branch_layer_param_from_pytorch_name(
-                            layer_name,
-                            layer_idx,
-                            branch_idx,
-                            self.shared_block_count,
-                        )
+                    local_param_name = self._build_branch_layer_param_from_pytorch_name(
+                        layer_name,
+                        layer_idx,
+                        branch_idx,
+                        self.shared_block_count,
                     )
-                    self.state_dict()[local_param_name].copy_(
-                        param_dict[layer_name]
-                    )
+                    self.state_dict()[local_param_name].copy_(param_dict[layer_name])
 
     def _build_local_layer_param_from_pytorch_name(
         self, paramname: str, layeridx: int
@@ -496,12 +481,7 @@ def resnet18(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet18",
-        ResnetBasicBlock,
-        [2, 2, 2, 2],
-        pretrained,
-        progress,
-        **kwargs
+        "resnet18", ResnetBasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs
     )
 
 
@@ -513,12 +493,7 @@ def resnet34(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet34",
-        ResnetBasicBlock,
-        [3, 4, 6, 3],
-        pretrained,
-        progress,
-        **kwargs
+        "resnet34", ResnetBasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs
     )
 
 
@@ -530,12 +505,7 @@ def resnet50(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet50",
-        ResnetBottleneck,
-        [3, 4, 6, 3],
-        pretrained,
-        progress,
-        **kwargs
+        "resnet50", ResnetBottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
     )
 
 
@@ -547,12 +517,7 @@ def resnet101(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet101",
-        ResnetBottleneck,
-        [3, 4, 23, 3],
-        pretrained,
-        progress,
-        **kwargs
+        "resnet101", ResnetBottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs
     )
 
 
@@ -564,12 +529,7 @@ def resnet152(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _multibranchresnet(
-        "resnet152",
-        ResnetBottleneck,
-        [3, 8, 36, 3],
-        pretrained,
-        progress,
-        **kwargs
+        "resnet152", ResnetBottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
     )
 
 

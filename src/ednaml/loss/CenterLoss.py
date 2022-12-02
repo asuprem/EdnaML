@@ -19,9 +19,7 @@ class CenterLoss(Loss):
 
         self.num_classes = num_classes
         self.feat_dim = feat_dim
-        self.centers = nn.Parameter(
-            torch.randn(self.num_classes, self.feat_dim).cuda()
-        )
+        self.centers = nn.Parameter(torch.randn(self.num_classes, self.feat_dim).cuda())
 
     def forward(self, features, labels):
         """

@@ -8,33 +8,34 @@ EXECUTION:
   TRAINER: HFTrainer
   TRAINER_ARGS: 
     accumulation_steps: 8
-  DATAREADER:
-    DATAREADER: HFReader
-    CRAWLER_ARGS: 
-      split: 0.9
-      true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
-      fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
-      true_file: gossipcop_real.csv
-      fake_file: gossipcop_fake.csv
-    DATASET_ARGS:
-      classificationclass: ['fnews']
-      maxlen: 512
-      shardcache: True
-      shardsize: 20000
-      shard_replace: False
-      shardpath: datashard-artifacts
-      shardname: fnc-gossipcop-shard
-      mlm_probability: 0.15
-      shuffle: False
-      data_shuffle: True
-      masking: False
-      keyword_mask: True
-      keywords: []
-      label_idxs: [1] # This is the actual label...
-      annotation_idxs: []  # this is shares and likes
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
+    
+DATAREADER:
+  DATAREADER: HFReader
+  CRAWLER_ARGS: 
+    split: 0.9
+    true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
+    fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
+    true_file: gossipcop_real.csv
+    fake_file: gossipcop_fake.csv
+  DATASET_ARGS:
+    classificationclass: ['fnews']
+    maxlen: 512
+    shardcache: True
+    shardsize: 20000
+    shard_replace: False
+    shardpath: datashard-artifacts
+    shardname: fnc-gossipcop-shard
+    mlm_probability: 0.15
+    shuffle: False
+    data_shuffle: True
+    masking: False
+    keyword_mask: True
+    keywords: []
+    label_idxs: [1] # This is the actual label...
+    annotation_idxs: []  # this is shares and likes
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: albert-base-v2
 
 DEPLOYMENT:
   DEPLOY: HFDeploy
@@ -43,33 +44,6 @@ DEPLOYMENT:
   PLUGIN:
     HOOKS: warmup
     RESET: False
-  DATAREADER:
-    DATAREADER: HFReader
-    CRAWLER_ARGS: 
-      split: 0.9
-      true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
-      fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
-      true_file: gossipcop_real.csv
-      fake_file: gossipcop_fake.csv
-    DATASET_ARGS:
-      classificationclass: ['fnews']
-      maxlen: 512
-      shardcache: True
-      shardsize: 20000
-      shard_replace: False
-      shardpath: datashard-artifacts
-      shardname: fnc-gossipcop-shard
-      mlm_probability: 0.15
-      shuffle: False
-      data_shuffle: True
-      masking: False
-      keyword_mask: True
-      keywords: []
-      label_idxs: [1] # This is the actual label...
-      annotation_idxs: []  # this is shares and likes
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
     
 LOSS: 
   - LOSSES: ['SoftmaxLogitsLoss']

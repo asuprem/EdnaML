@@ -1,14 +1,7 @@
-EXECUTION:
-  DATAREADER:
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
-
-DEPLOYMENT:
-  DATAREADER:
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
+DATAREADER:
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: albert-base-v2
 
 MODEL:
   BUILDER: ednaml_model_builder
@@ -22,5 +15,5 @@ MODEL:
   PARAMETER_GROUPS: [opt-1]
 
 SAVE:
+  MODEL_VERSION: 1
   MODEL_BACKBONE: albert
-  MODEL_VERSION: 2  # to deal with other bugs...

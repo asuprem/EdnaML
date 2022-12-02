@@ -19,9 +19,7 @@ class ModelConfig(BaseConfig):
         self.MODEL_NORMALIZATION = model_dict.get(
             "MODEL_NORMALIZATION", defaults.MODEL_NORMALIZATION
         )
-        self.MODEL_KWARGS = model_dict.get(
-            "MODEL_KWARGS", defaults.MODEL_KWARGS
-        )
+        self.MODEL_KWARGS = model_dict.get("MODEL_KWARGS", defaults.MODEL_KWARGS)
         if self.MODEL_KWARGS is None:
             self.MODEL_KWARGS = defaults.MODEL_KWARGS
 

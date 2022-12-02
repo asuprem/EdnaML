@@ -97,9 +97,9 @@ def prune_linear_layer(layer, index, dim=0):
             b = layer.bias[index].clone().detach()
     new_size = list(layer.weight.size())
     new_size[dim] = len(index)
-    new_layer = nn.Linear(
-        new_size[1], new_size[0], bias=layer.bias is not None
-    ).to(layer.weight.device)
+    new_layer = nn.Linear(new_size[1], new_size[0], bias=layer.bias is not None).to(
+        layer.weight.device
+    )
     new_layer.weight.requires_grad = False
     new_layer.weight.copy_(W.contiguous())
     new_layer.weight.requires_grad = True
@@ -149,9 +149,7 @@ def prune_layer(layer, index, dim=None):
     elif isinstance(layer, Conv1D):
         return prune_conv1d_layer(layer, index, dim=1 if dim is None else dim)
     else:
-        raise ValueError(
-            "Can't prune layer of class {}".format(layer.__class__)
-        )
+        raise ValueError("Can't prune layer of class {}".format(layer.__class__))
 
 
 class AlbertEmbeddingAverage(nn.Module):

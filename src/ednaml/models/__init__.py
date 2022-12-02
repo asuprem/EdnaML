@@ -14,9 +14,7 @@ def ednaml_model_builder(
     **kwargs
 ):
     if type(arch) is str:
-        arch = locate_class(
-            subpackage="models", classpackage=arch, classfile=arch
-        )
+        arch = locate_class(subpackage="models", classpackage=arch, classfile=arch)
 
     return arch(
         base=base,
@@ -64,9 +62,7 @@ def classification_model_builder(
     """
     if arch != "ClassificationResnet":
         raise NotImplementedError()
-    archbase = locate_class(
-        subpackage="models", classpackage=arch, classfile=arch
-    )
+    archbase = locate_class(subpackage="models", classpackage=arch, classfile=arch)
     # Extract the dimensions from the classes metadata provided by EdnaML
     kwargs["softmax_dimensions"] = metadata.getLabelDimensions()
 
@@ -120,9 +116,7 @@ def multiclassification_model_builder(
     # make the MultiClassificationResnet, with resnet base, with multiple output fc layers
     if arch != "MultiClassificationResnet":
         raise NotImplementedError()
-    archbase = locate_class(
-        subpackage="models", classpackage=arch, classfile=arch
-    )
+    archbase = locate_class(subpackage="models", classpackage=arch, classfile=arch)
 
     model = archbase(
         base=base,
@@ -182,9 +176,7 @@ def multibranch_model_builder(
     # make the MultiClassificationResnet, with resnet base, with multiple output fc layers
     if arch != "MultiBranchResnet":
         raise NotImplementedError()
-    archbase = locate_class(
-        subpackage="models", classpackage=arch, classfile=arch
-    )
+    archbase = locate_class(subpackage="models", classpackage=arch, classfile=arch)
 
     model = archbase(
         base=base,

@@ -21,9 +21,9 @@ class ConfigDefaults(BaseConfig):
     STEP_SAVE_FREQUENCY: int
     CHECKPOINT_DIRECTORY: str
 
-    OUTPUT_ARGS: Dict[str,str]
+    OUTPUT_ARGS: Dict[str, str]
     DEPLOY: str
-    DEPLOYMENT_ARGS: Dict[str,str]
+    DEPLOYMENT_ARGS: Dict[str, str]
     DEPLOYMENT_EPOCHS: int
 
     TRANSFORM_ARGS: Dict
@@ -61,9 +61,15 @@ class ConfigDefaults(BaseConfig):
     PLUGIN_NAME: str
     PLUGIN_KWARGS: Dict[str, str]
 
-    STORAGE_TYPE: str
-    STORAGE_ARGS: Dict
+    STORAGE_NAME: str
+    STORAGE_CLASS: str
     STORAGE_URL: str
+    STORAGE_ARGS: Dict[str, str]
+
+    BACKUP_PERFORM = bool
+    BACKUP_LOCATION = str
+    BACKUP_FREQUENCY = int
+    BACKUP_FREQUENCY_STEP = int
 
     def __init__(self, **kwargs):
 
@@ -90,9 +96,7 @@ class ConfigDefaults(BaseConfig):
         self.LOG_BACKUP = kwargs.get("LOG_BACKUP", False)
         self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
         self.STEP_SAVE_FREQUENCY = kwargs.get("STEP_SAVE_FREQUENCY", 0)
-        self.CHECKPOINT_DIRECTORY = kwargs.get(
-            "CHECKPOINT_DIRECTORY", "checkpoint"
-        )
+        self.CHECKPOINT_DIRECTORY = kwargs.get("CHECKPOINT_DIRECTORY", "checkpoint")
 
         self.OUTPUT_ARGS = {}
         self.DEPLOY = kwargs.get("DEPLOY", "BaseDeploy")
@@ -132,10 +136,16 @@ class ConfigDefaults(BaseConfig):
         self.STEP_VERBOSE = kwargs.get("STEP_VERBOSE", 100)
         self.INPUT_SIZE = kwargs.get("INPUT_SIZE", None)
 
-        self.STORAGE_TYPE = kwargs.get("STORAGE_TYPE", "BaseStorage")
-        self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
+        self.STORAGE_NAME = kwargs.get("STORAGE_NAME", "reserved-empty-storage")
+        self.STORAGE_CLASS = kwargs.get("STORAGE_CLASS", "EmptyStorage")
         self.STORAGE_URL = kwargs.get("STORAGE_URL", "./")
-        
+        self.STORAGE_ARGS = kwargs.get("STORAGE_ARGS", {})
+
+        self.BACKUP_PERFORM = kwargs.get("BACKUP_PERFORM", False)
+        self.BACKUP_LOCATION = kwargs.get("BACKUP_LOCATION", "reserved-empty-storage")
+        self.BACKUP_FREQUENCY = kwargs.get("BACKUP_FREQUENCY", 0)
+        self.BACKUP_FREQUENCY_STEP = kwargs.get("BACKUP_FREQUENCY_STEP", 0)
+
         self.PLUGIN_NAME = "mp-1"
         self.PLUGIN = "ModelPlugin"
         self.PLUGIN_KWARGS = {}

@@ -47,15 +47,12 @@ class Generator:
         self.transforms = transforms
         self.mode = mode
         self.training_mode = self.isTrainingMode()
-        self.transformer = self.build_transforms(
-            self.transforms, self.mode, **kwargs
-        )
-        self.buildGeneratorAttributes(**kwargs)	
-    
-    
-    def buildGeneratorAttributes(self, **kwargs):	
+        self.transformer = self.build_transforms(self.transforms, self.mode, **kwargs)
+        self.buildGeneratorAttributes(**kwargs)
+
+    def buildGeneratorAttributes(self, **kwargs):
         pass
-    
+
     def build_transforms(self, transforms: Dict[str, Any], mode, **kwargs):
         return None
 
@@ -77,9 +74,7 @@ class Generator:
         self.dataloader = self.buildDataLoader(
             self.dataset, self.mode, batch_size=batch_size, **kwargs
         )
-        self.num_entities = self.getNumEntities(
-            datacrawler, self.mode, **kwargs
-        )
+        self.num_entities = self.getNumEntities(datacrawler, self.mode, **kwargs)
 
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs

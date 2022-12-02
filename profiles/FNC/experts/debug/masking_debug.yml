@@ -1,32 +1,4 @@
 EXECUTION:
-  DATAREADER:
-    crawler_comment: We will use one of the efnd datasets here.
-    CRAWLER_ARGS: 
-      data_folder: Data
-      include: ["kagglefn_long"]
-    DATAREADER: AlbertReader
-    DATASET_ARGS:
-      classificationclass: ['fnews']
-      maxlen: 512
-      shardcache: True
-      shardsize: 500
-      shard_replace: True
-      shardpath: datashard-artifacts
-      shardname: efnd-shard-debug
-      mlm_probability: 0.15
-      masking: True
-      keyword_mask: True
-      keywords: ["doll"]
-      keytoken_mask: False
-      keytokens: ["▁better", "▁blow"]
-      word_mask: False
-      token_mask: False
-      shuffle: False
-      data_shuffle: False
-    GENERATOR: HFGenerator
-    GENERATOR_ARGS: 
-      tokenizer: HFAutoTokenizer
-      from_pretrained: albert-base-v2
   EPOCHS: 3
   FP16: False
   MODEL_SERVING: False
@@ -37,10 +9,37 @@ EXECUTION:
   TRAINER_ARGS: 
     accumulation_steps: 8
 
+DATAREADER:
+  crawler_comment: We will use one of the efnd datasets here.
+  CRAWLER_ARGS: 
+    data_folder: Data
+    include: ["kagglefn_long"]
+  DATAREADER: AlbertReader
+  DATASET_ARGS:
+    classificationclass: ['fnews']
+    maxlen: 512
+    shardcache: True
+    shardsize: 500
+    shard_replace: True
+    shardpath: datashard-artifacts
+    shardname: efnd-shard-debug
+    mlm_probability: 0.15
+    masking: True
+    keyword_mask: True
+    keywords: ["doll"]
+    keytoken_mask: False
+    keytokens: ["▁better", "▁blow"]
+    word_mask: False
+    token_mask: False
+    shuffle: False
+    data_shuffle: False
+  GENERATOR: HFGenerator
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: albert-base-v2
 
 TRANSFORMATION:
   BATCH_SIZE: 16
-
 
 SAVE:
   MODEL_VERSION: 1

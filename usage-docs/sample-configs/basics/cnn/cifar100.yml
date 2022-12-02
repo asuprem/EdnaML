@@ -5,20 +5,22 @@ EXECUTION:
   SKIPEVAL: True
   TEST_FREQUENCY: 5
   FP16: False
-  DATAREADER: 
-    DATAREADER: TorchvisionDatareader
-    GENERATOR_ARGS:
-      tv_dataset: CIFAR100
-      tv_args: 
-        root: "Data/"
-        args:
-          download: true
-    DATASET_ARGS:
-      label_name: label
-      num_labels:
   TRAINER: ClassificationTrainer
   TRAINER_ARGS: 
     accumulation_steps: 1
+
+DATAREADER: 
+  DATAREADER: TorchvisionDatareader
+  GENERATOR_ARGS:
+    tv_dataset: CIFAR100
+    tv_args: 
+      root: "Data/"
+      args:
+        download: true
+  DATASET_ARGS:
+    label_name: label
+    num_labels:
+
 
 SAVE:
   MODEL_VERSION: 1

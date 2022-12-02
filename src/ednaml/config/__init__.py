@@ -19,7 +19,9 @@ class BaseConfig(ABC):
 
     def to_json_string(self):
         """Serializes this instance to a JSON string."""
-        return json.dumps(self.to_dict(), indent=2, sort_keys=True, default=lambda o: o.__dict__)
+        return json.dumps(
+            self.to_dict(), indent=2, sort_keys=True, default=lambda o: o.__dict__
+        )
 
     def to_json_file(self, json_file_path):
         """Save this instance to a json file."""

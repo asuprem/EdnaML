@@ -49,13 +49,9 @@ class ResnetBasicBlock(nn.Module):
         super(ResnetBasicBlock, self).__init__()
         # Verify some base parameters
         if groups != 1 or base_width != 64:
-            raise ValueError(
-                "BasicBlock only supports groups=1 and base_width=64"
-            )
+            raise ValueError("BasicBlock only supports groups=1 and base_width=64")
         if dilation > 1:
-            raise NotImplementedError(
-                "Dilation > 1 not supported in BasicBlock"
-            )
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
         if attention is not None and attention not in ["cbam", "dbam"]:
             raise ValueError(
                 "attention parameter is unsupported value %s. Use one of"

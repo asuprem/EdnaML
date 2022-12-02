@@ -31,10 +31,7 @@ class CompactContrastiveLoss(Loss):
             negative_pairs = negative_pairs.cuda()
         if epoch % 2 == 0:
             loss = F.relu(
-                (
-                    features[positive_pairs[:, 0]]
-                    - features[positive_pairs[:, 1]]
-                )
+                (features[positive_pairs[:, 0]] - features[positive_pairs[:, 1]])
                 .pow(2)
                 .sum(1)
                 .sqrt()
@@ -44,10 +41,7 @@ class CompactContrastiveLoss(Loss):
         else:  # negative loss
             loss = F.relu(
                 self.nmargin
-                - (
-                    features[negative_pairs[:, 0]]
-                    - features[negative_pairs[:, 1]]
-                )
+                - (features[negative_pairs[:, 0]] - features[negative_pairs[:, 1]])
                 .pow(2)
                 .sum(1)
                 .sqrt()
@@ -68,13 +62,11 @@ class CompactContrastiveLoss(Loss):
             (labels[all_pairs[:, 0]] != labels[all_pairs[:, 1]]).nonzero()
         ]
 
-        negative_distances = distance_matrix[
-            negative_pairs[:, 0], negative_pairs[:, 1]
-        ]
+        negative_distances = distance_matrix[negative_pairs[:, 0], negative_pairs[:, 1]]
         negative_distances = negative_distances.cpu().data.numpy()
-        top_negatives = np.argpartition(
-            negative_distances, len(positive_pairs)
-        )[: len(positive_pairs)]
+        top_negatives = np.argpartition(negative_distances, len(positive_pairs))[
+            : len(positive_pairs)
+        ]
         top_negative_pairs = negative_pairs[torch.LongTensor(top_negatives)]
 
         return positive_pairs, top_negative_pairs

@@ -1,20 +1,4 @@
 EXECUTION:
-  DATAREADER:
-    CRAWLER_ARGS: 
-      data_folder: Data
-      include: ["coaid_news"]
-    DATAREADER: DataReader
-    DATASET_ARGS:
-      classificationclass: ['fnews', 'dataset']
-      maxlen: 512
-      memcache: True
-      mlm_probability: 0.15
-      masking: True
-    GENERATOR_ARGS: 
-      do_lower_case: True
-      spm_model_file: 30k-clean.model 
-      tokenizer: AlbertFullTokenizer
-      vocab_file: 30k-clean.vocab
   EPOCHS: 16
   FP16: False
   MODEL_SERVING: False
@@ -24,6 +8,23 @@ EXECUTION:
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
     accumulation_steps: 1
+
+DATAREADER:
+  CRAWLER_ARGS: 
+    data_folder: Data
+    include: ["coaid_news"]
+  DATAREADER: DataReader
+  DATASET_ARGS:
+    classificationclass: ['fnews', 'dataset']
+    maxlen: 512
+    memcache: True
+    mlm_probability: 0.15
+    masking: True
+  GENERATOR_ARGS: 
+    do_lower_case: True
+    spm_model_file: 30k-clean.model 
+    tokenizer: AlbertFullTokenizer
+    vocab_file: 30k-clean.vocab
 
 SAVE:
   MODEL_VERSION: 1

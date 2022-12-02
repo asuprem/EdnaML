@@ -7,6 +7,7 @@ from torchvision.datasets import VisionDataset
 import torch
 from ednaml.utils.LabelMetadata import LabelMetadata
 
+
 class TorchvisionGeneratorWrapper(ImageGenerator):
     """Generator for a TorchVision dataset.
 
@@ -18,8 +19,9 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         self.torchvision_dataset_class = kwargs.get("tv_dataset")
         self.torchvision_dataset_args = kwargs.get("tv_args")
 
-        
-    def buildDataset(self, datacrawler, mode: str, transform: List[object], **kwargs) -> TorchDataset:
+    def buildDataset(
+        self, datacrawler, mode: str, transform: List[object], **kwargs
+    ) -> TorchDataset:
         # We don't need the data crawler...
 
         dataset_class: VisionDataset = locate_class(
@@ -60,7 +62,6 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         else:
             raise NotImplementedError()
 
-
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         return TorchDataLoader(
             dataset,
@@ -73,5 +74,5 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         label_name = kwargs.get("label_name", "label")
         num_classes = kwargs.get("num_classes", None)
         if num_classes is None:
-            num_classes = torch.unique(torch.tensor(self.dataset.targets)).shape[0]
+            num_classes = torch.unique(self.dataset.targets.clone()).shape[0]
         return LabelMetadata({label_name: {"classes": num_classes}})

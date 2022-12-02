@@ -122,7 +122,8 @@ class FakedditModel(ModelAbstract):
                             position_ids=position_ids,
                             head_mask=head_mask)  # sequence_output, pooled_output, (hidden_states), (attentions)
         
-        pooled_output = self.pooler_layer(outputs)  # TODO -- have an option to either use the pooled output, the original output, or average the embeddings together, i.e. a layer that is either a lambda layer, or does some averaging...
+        # Options for which layer implemented in newer models...
+        pooled_output = self.pooler_layer(outputs)  
         pooled_output = self.dropout(pooled_output+0.1)
         logits = self.classifier(pooled_output)
         return logits, pooled_output, outputs[2:] # list of k scores; hidden states, attentions...
@@ -282,7 +283,7 @@ def main(config, mode):
     eml.addModelClass(FakedditModel)
     eml.addTrainerClass(FakedditTrainer)
 
-    eml.apply(input_size=(eml.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,eml.cfg.EXECUTION.DATAREADER.DATASET_ARGS["maxlen"]),
+    eml.apply(input_size=(eml.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,eml.cfg.DATAREADER.DATASET_ARGS["maxlen"]),
           dtypes=[torch.long])
 
     eml.train()

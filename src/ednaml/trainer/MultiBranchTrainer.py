@@ -68,9 +68,7 @@ class MultiBranchTrainer(BaseTrainer):
         }
         self.model_name_label_map = {
             item[0]: item[1]
-            for item in zip(
-                self.model.model_nameorder, self.model.model_labelorder
-            )
+            for item in zip(self.model.model_nameorder, self.model.model_labelorder)
         }
 
     # Steps through a batch of data
@@ -102,9 +100,12 @@ class MultiBranchTrainer(BaseTrainer):
             # Check if this is a loss for a soft target
             if lossname in self.model.soft_names:
                 # we need to adjust the labels...otherwise, we do not need to adjust labels...
-                akwargs["labels"] = torch.argmax(batch_kwargs["logits"][
-                    self.model_nameorder[self.model.soft_target_output_source]
-                ], dim=1)
+                akwargs["labels"] = torch.argmax(
+                    batch_kwargs["logits"][
+                        self.model_nameorder[self.model.soft_target_output_source]
+                    ],
+                    dim=1,
+                )
             else:
                 akwargs["labels"] = batch_kwargs["labels"][
                     :, self.data_labelorder[self.model_name_label_map[lossname]]
@@ -113,13 +114,13 @@ class MultiBranchTrainer(BaseTrainer):
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
         lossbackward = sum(loss.values())
-        #lossbackward.backward()
+        # lossbackward.backward()
 
         # for idx in range(self.num_losses):
         #    loss[idx].backward()
 
-        #self.stepOptimizers()
-        #self.stepLossOptimizers()
+        # self.stepOptimizers()
+        # self.stepLossOptimizers()
 
         for idx, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
@@ -171,17 +172,13 @@ class MultiBranchTrainer(BaseTrainer):
         for idx, lossname in enumerate(self.loss_fn):
             accuracy[idx] = (
                 logit_labels[self.model_nameorder[lossname]]
-                == labels[
-                    :, self.data_labelorder[self.model_name_label_map[lossname]]
-                ]
+                == labels[:, self.data_labelorder[self.model_name_label_map[lossname]]]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
                 f1_score(
                     labels[
                         :,
-                        self.data_labelorder[
-                            self.model_name_label_map[lossname]
-                        ],
+                        self.data_labelorder[self.model_name_label_map[lossname]],
                     ],
                     logit_labels[self.model_nameorder[lossname]],
                     average="micro",
@@ -191,9 +188,7 @@ class MultiBranchTrainer(BaseTrainer):
                 f1_score(
                     labels[
                         :,
-                        self.data_labelorder[
-                            self.model_name_label_map[lossname]
-                        ],
+                        self.data_labelorder[self.model_name_label_map[lossname]],
                     ],
                     logit_labels[self.model_nameorder[lossname]],
                     average="weighted",
@@ -201,8 +196,7 @@ class MultiBranchTrainer(BaseTrainer):
             )
 
         self.logger.info(
-            "Metrics\t"
-            + "\t".join(["%s" % lossname for lossname in self.loss_fn])
+            "Metrics\t" + "\t".join(["%s" % lossname for lossname in self.loss_fn])
         )
         self.logger.info(
             "Accuracy\t"

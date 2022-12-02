@@ -1,0 +1,12 @@
+SAVE:
+  MODEL_VERSION: 1
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: GoogleDrive
+    FREQUENCY: 1
+
+STORAGE:
+  - STORAGE_NAME: GoogleDrive
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./drive/MyDrive/Projects/SemanticMasking/Models/
+    STORAGE_ARGS: {}

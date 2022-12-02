@@ -322,7 +322,7 @@ def main(config, mode):
     eml.addModelClass(NELAModel)
     eml.addTrainerClass(NELATrainer)
 
-    eml.apply(input_size=(eml.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,eml.cfg.EXECUTION.DATAREADER.DATASET_ARGS["maxlen"]),
+    eml.apply(input_size=(eml.cfg.TRAIN_TRANSFORMATION.BATCH_SIZE,eml.cfg.DATAREADER.DATASET_ARGS["maxlen"]),
           dtypes=[torch.long])
 
     eml.train()

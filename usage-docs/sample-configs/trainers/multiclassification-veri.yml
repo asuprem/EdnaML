@@ -4,18 +4,19 @@ EXECUTION:
   EPOCHS: 11
   SKIPEVAL: True
   TEST_FREQUENCY: 5
-  DATAREADER: 
-    DATAREADER: VeRi
-    CRAWLER_ARGS:
-      data_folder: "Data/VeRi"
-    DATASET_ARGS: 
-      pathidx: 0
-      annotationidx: [3,4]
-      classificationclass: ['color','type']
-    GENERATOR: MultiClassificationGenerator
-    GENERATOR_ARGS: {}      
-    DATALOADER_ARGS: {}
   TRAINER: MultiClassificationTrainer
+
+DATAREADER: 
+  DATAREADER: VeRi
+  CRAWLER_ARGS:
+    data_folder: "Data/VeRi"
+  DATASET_ARGS: 
+    pathidx: 0
+    annotationidx: [3,4]
+    classificationclass: ['color','type']
+  GENERATOR: MultiClassificationGenerator
+  GENERATOR_ARGS: {}      
+  DATALOADER_ARGS: {}
 
 SAVE:
   MODEL_VERSION: 2

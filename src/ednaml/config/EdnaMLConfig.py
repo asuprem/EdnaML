@@ -7,6 +7,7 @@ import warnings
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
+from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
 from ednaml.config.ModelPluginConfig import ModelPluginConfig
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
@@ -22,8 +23,10 @@ from ednaml.config.ModelConfig import ModelConfig
 from ednaml.config.StorageConfig import StorageConfig
 from ednaml.utils import merge_dictionary_on_key_with_copy
 
+
 class EdnaMLConfig(BaseConfig):
     EXECUTION: ExecutionConfig
+    DATAREADER: ExecutionDatareaderConfig
     DEPLOYMENT: DeploymentConfig
     SAVE: SaveConfig
     TRAIN_TRANSFORMATION: TransformationConfig
@@ -31,31 +34,45 @@ class EdnaMLConfig(BaseConfig):
     MODEL: ModelConfig
     LOSS: List[LossConfig]
     MODEL_PLUGIN: Dict[str, ModelPluginConfig]
-    OPTIMIZER: List[
-        OptimizerConfig
-    ]  # one optimizer for each set of model params
+    OPTIMIZER: List[OptimizerConfig]  # one optimizer for each set of model params
     SCHEDULER: List[SchedulerConfig]  # one scheduler for each optimizer
-    LOSS_OPTIMIZER: List[
-        OptimizerConfig
-    ]  # one optimizer for each loss with params
-    LOSS_SCHEDULER: List[
-        SchedulerConfig
-    ]  # one scheduler for each loss_optimizer
+    LOSS_OPTIMIZER: List[OptimizerConfig]  # one optimizer for each loss with params
+    LOSS_SCHEDULER: List[SchedulerConfig]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
-    STORAGE: StorageConfig
+    STORAGE: Dict[str, StorageConfig]
 
     extensions: List[str]
 
     def __init__(
-        self, config_path: List[str], defaults: ConfigDefaults = ConfigDefaults(), **kwargs
+        self,
+        config_path: List[str],
+        defaults: ConfigDefaults = ConfigDefaults(),
+        **kwargs
     ):
-        self.extensions = ["EXECUTION", "SAVE", "STORAGE", "TRANSFORMATION", "MODEL", "LOSS", "OPTIMIZER", "SCHEDULER", "LOSS_OPTIMIZER", "LOSS_SCHEDULER", "LOGGING", "DEPLOYMENT", "MODEL_PLUGIN"]  # TODO deal with other bits and pieces here!!!!!
-        ydict = self.merge([self.read_path(config_component) for config_component in config_path])
+        self.extensions = [
+            "EXECUTION",
+            "DATAREADER",
+            "SAVE",
+            "STORAGE",
+            "TRANSFORMATION",
+            "MODEL",
+            "LOSS",
+            "OPTIMIZER",
+            "SCHEDULER",
+            "LOSS_OPTIMIZER",
+            "LOSS_SCHEDULER",
+            "LOGGING",
+            "DEPLOYMENT",
+            "MODEL_PLUGIN",
+        ]  # TODO deal with other bits and pieces here!!!!!
+        ydict = self.merge(
+            [self.read_path(config_component) for config_component in config_path]
+        )
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
         self._updateConfig(ydict, defaults, update_with_defaults=True)
-    
+
     def config_inject(self, ydict, config_inject: List[List[str]]):
         for inject in config_inject:
             inject_key = inject[0]
@@ -65,64 +82,98 @@ class EdnaMLConfig(BaseConfig):
             else:
                 inject_kwarg = None
             try:
-                self._setinject(ydict, inject_key.split("."), inject_value, inject_kwarg)
-                print("Injected key-value pair:  {key}, {value}".format(key=inject_key, value=inject_value))
+                self._setinject(
+                    ydict, inject_key.split("."), inject_value, inject_kwarg
+                )
+                print(
+                    "Injected key-value pair:  {key}, {value}".format(
+                        key=inject_key, value=inject_value
+                    )
+                )
             except KeyError:
                 pass
 
-
-    def _setinject(self, d, inject_key, inject_val, inject_kwarg = None):
+    def _setinject(self, d, inject_key, inject_val, inject_kwarg=None):
         for elem in inject_key[:-1]:
             d = d[elem]
         if inject_kwarg is not None:
-            d[inject_key[-1]][inject_kwarg] = inject_val    
+            d[inject_key[-1]][inject_kwarg] = inject_val
         else:
             d[inject_key[-1]] = inject_val
-
 
     def _has_extension_verifier(self, ydict, extension, verification):
         return False if ydict.get(extension, verification) == verification else True
 
-    def _updateConfig(self, ydict: Dict[str,str], defaults: ConfigDefaults, update_with_defaults: bool):
-        added_extensions = []   # add control to check if extension was added or default was used...
+    def _updateConfig(
+        self,
+        ydict: Dict[str, str],
+        defaults: ConfigDefaults,
+        update_with_defaults: bool,
+    ):
+        added_extensions = (
+            []
+        )  # add control to check if extension was added or default was used...
         for extension in self.extensions:
-            
+
             if extension == "EXECUTION":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
-                    self.EXECUTION = ExecutionConfig(ydict.get(extension, {}), defaults) 
+                    self.EXECUTION = ExecutionConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
             elif extension == "DEPLOYMENT":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
-                    self.DEPLOYMENT = DeploymentConfig(ydict.get(extension, {}), defaults)
+                    self.DEPLOYMENT = DeploymentConfig(
+                        ydict.get(extension, {}), defaults
+                    )
                     added_extensions.append([extension])
             elif extension == "STORAGE":
-                has_extension = self._has_extension_verifier(ydict, extension, {})
+                has_extension = self._has_extension_verifier(ydict, extension, [])
                 if has_extension or update_with_defaults:
-                    self.STORAGE = StorageConfig(ydict.get(extension, {}), defaults)
+                    storage_list: List[StorageConfig] = [
+                        StorageConfig(storage_item, defaults)
+                        for storage_item in ydict.get(extension, [])
+                    ]
+                    self.STORAGE = {item.STORAGE_NAME: item for item in storage_list}
                     added_extensions.append([extension])
             elif extension == "SAVE":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
                     self.SAVE = SaveConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
+            elif extension == "DATAREADER":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.DATAREADER = ExecutionDatareaderConfig(
+                        ydict.get(extension, {}), defaults
+                    )
+                    added_extensions.append([extension])
             elif extension == "TRANSFORMATION":
                 has_extension = self._has_extension_verifier(ydict, extension, {})
-                has_train = self._has_extension_verifier(ydict, "TRAIN_TRANSFORMATION", {})
+                has_train = self._has_extension_verifier(
+                    ydict, "TRAIN_TRANSFORMATION", {}
+                )
                 if (has_extension and has_train) or update_with_defaults:
                     self.TRAIN_TRANSFORMATION = TransformationConfig(
                         dict(
-                            merge_dictionary_on_key_with_copy(ydict.get(extension, {}), ydict.get("TRAIN_TRANSFORMATION", {}))
+                            merge_dictionary_on_key_with_copy(
+                                ydict.get(extension, {}),
+                                ydict.get("TRAIN_TRANSFORMATION", {}),
+                            )
                         ),
                         defaults,
                     )
                     added_extensions.append(["TRAIN_TRANSFORMATION"])
-                has_test = self._has_extension_verifier(ydict, "TEST_TRANSFORMATION", {})
+                has_test = self._has_extension_verifier(
+                    ydict, "TEST_TRANSFORMATION", {}
+                )
                 if (has_extension and has_test) or update_with_defaults:
                     self.TEST_TRANSFORMATION = TransformationConfig(
                         dict(
-                            merge_dictionary_on_key_with_copy(ydict.get(extension, {}), ydict.get("TEST_TRANSFORMATION", {}))
+                            merge_dictionary_on_key_with_copy(
+                                ydict.get(extension, {}),
+                                ydict.get("TEST_TRANSFORMATION", {}),
+                            )
                         ),
                         defaults,
                     )
@@ -137,7 +188,10 @@ class EdnaMLConfig(BaseConfig):
             elif extension == "MODEL_PLUGIN":
                 has_extension = self._has_extension_verifier(ydict, extension, [])
                 if has_extension or update_with_defaults:
-                    mp_list = [ModelPluginConfig(plugin_item, defaults) for plugin_item in ydict.get(extension, [])]
+                    mp_list: List[ModelPluginConfig] = [
+                        ModelPluginConfig(plugin_item, defaults)
+                        for plugin_item in ydict.get(extension, [])
+                    ]
                     self.MODEL_PLUGIN = {item.PLUGIN_NAME: item for item in mp_list}
                     added_extensions.append([extension])
             elif extension == "LOSS":
@@ -187,7 +241,9 @@ class EdnaMLConfig(BaseConfig):
                     self.LOGGING = LoggingConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
             else:
-                raise RuntimeError("Somehow received unhandled extension %s"%str(extension))
+                raise RuntimeError(
+                    "Somehow received unhandled extension %s" % str(extension)
+                )
         return added_extensions
         # Things without defaults that MUST be provided: model ✅, train_dataloader, loss ✅, trainer TODO
 
@@ -201,12 +257,14 @@ class EdnaMLConfig(BaseConfig):
         elif mode == "dict":
             return dicta
 
-    def extend(self, config_path: str, defaults: ConfigDefaults = ConfigDefaults(), **kwargs):
+    def extend(
+        self, config_path: str, defaults: ConfigDefaults = ConfigDefaults(), **kwargs
+    ):
         """Extends the existing config object with fields from the provided config
 
         Args:
             config_path (str): The path to the config file to extend with
-        """        
+        """
         responses = {}
         if type(config_path) is str:
             config_path = [config_path]
@@ -214,7 +272,7 @@ class EdnaMLConfig(BaseConfig):
             for cpath in config_path:
                 responses[cpath] = self._extend(cpath, defaults, **kwargs)
         else:
-            raise ValueError("Expected `list`, got %s"%type(config_path))
+            raise ValueError("Expected `list`, got %s" % type(config_path))
 
         return responses
 
@@ -223,12 +281,14 @@ class EdnaMLConfig(BaseConfig):
         config_inject = kwargs.get("config_inject", None)
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
-        added_extensions = self._updateConfig(ydict, defaults, update_with_defaults=False)
-        return "Extended with : %s"%", ".join([item[0] for item in added_extensions if len(item)>0])
+        added_extensions = self._updateConfig(
+            ydict, defaults, update_with_defaults=False
+        )
+        return "Extended with : %s" % ", ".join(
+            [item[0] for item in added_extensions if len(item) > 0]
+        )
 
-
-
-    def read_path(self, path: os.PathLike) -> Dict[str,str]:
+    def read_path(self, path: os.PathLike) -> Dict[str, str]:
         """Reads the config at the path and yields a dictionary of the config
 
         Args:
@@ -239,20 +299,25 @@ class EdnaMLConfig(BaseConfig):
 
         Returns:
             Dict[str,str]: Config as a python dictionary
-        """        
-        ydict = {} 
+        """
+        ydict = {}
 
         if len(path) > 0:
             if not os.path.exists(path):
-                raise FileNotFoundError(
-                    "No file found for config at : %s" % path
-                )
+                raise FileNotFoundError("No file found for config at : %s" % path)
             else:
                 with open(path, "r") as cfile:
-                    ydict = yaml.safe_load(cfile.read().strip()) #loading the configuration file.
+                    ydict = yaml.safe_load(
+                        cfile.read().strip()
+                    )  # loading the configuration file.
         return ydict
 
-    def _merge(self,base_config: Dict[str,str], extension: Dict[str,str], recursion_flag: bool = False):
+    def _merge(
+        self,
+        base_config: Dict[str, str],
+        extension: Dict[str, str],
+        recursion_flag: bool = False,
+    ):
         """Combines two config files
         If capital lettered key is present it'll be replaced
         If small lettered key is present, it'll be deleted and considered the key in second object only
@@ -262,32 +327,40 @@ class EdnaMLConfig(BaseConfig):
             second object: Dict (second config)
         Returns:
             Dict[str,str]: Config as a combined python dictionary
-        """   
-        #if(recursion_flag):
+        """
+        # if(recursion_flag):
         #    to_keep = lambda key: key.islower()
         #    {k: v for k, v in base_config.items() if k not in keyfilter(to_keep, base_config)}
         lower_flag = False
         upper_flag = False
         for extension_key in extension.keys():
             if extension_key in base_config:
-                if extension_key.islower(): # If NOT a built-in key, we will do a full replacement of the parent...
+                if (
+                    extension_key.islower()
+                ):  # If NOT a built-in key, we will do a full replacement of the parent...
                     lower_flag = True
-                else:   # If it is a built-in key
+                else:  # If it is a built-in key
                     upper_flag = True
-                    if isinstance(base_config[extension_key], dict):    # If it is a dict
+                    if isinstance(base_config[extension_key], dict):  # If it is a dict
                         if isinstance(extension[extension_key], dict):
                             # Recurse if key is a Dictionary with elements inside.
-                            base_config[extension_key] = self._merge(base_config[extension_key], extension[extension_key],recursion_flag=True)
+                            base_config[extension_key] = self._merge(
+                                base_config[extension_key],
+                                extension[extension_key],
+                                recursion_flag=True,
+                            )
                         else:
-                            base_config[extension_key]=extension[extension_key]
-                            warnings.warn("Key {key}: Dict key in base configuration is not a dictionary in replacement extension. \n\tBase: {base_str}\n\tExtension: {ext_str}".format(
-                                key=extension_key,
-                                base_str = str(base_config(extension_key)),
-                                ext_str = str(base_config(extension_key)),
-                            ))
-                    else:   # The base config key is not a dictionary...we just do replacement. Don't care if replacement is dictionary
-                        base_config[extension_key]=extension[extension_key] 
-            else:   # a key in extensionis NOT in base_config, so we don't really care...
+                            base_config[extension_key] = extension[extension_key]
+                            warnings.warn(
+                                "Key {key}: Dict key in base configuration is not a dictionary in replacement extension. \n\tBase: {base_str}\n\tExtension: {ext_str}".format(
+                                    key=extension_key,
+                                    base_str=str(base_config(extension_key)),
+                                    ext_str=str(base_config(extension_key)),
+                                )
+                            )
+                    else:  # The base config key is not a dictionary...we just do replacement. Don't care if replacement is dictionary
+                        base_config[extension_key] = extension[extension_key]
+            else:  # a key in extensionis NOT in base_config, so we don't really care...
                 base_config[extension_key] = extension[extension_key]
         if lower_flag and upper_flag:
             raise ValueError("built-in and custom keys cannot mix")
@@ -301,12 +374,15 @@ class EdnaMLConfig(BaseConfig):
             first object: Dict array (base config as index 0)
         Returns:
             Dict[str,str]: Config as a combined python dictionary
-        """  
+        """
         base_config = config_paths[0]
         for extension_config in config_paths[1:]:
             base_config = self._merge(base_config, extension_config)
         return base_config
 
+    def save(self, path: os.PathLike):
+        with open(path, "w") as write_file:
+            write_file.write(self.export())
 
 
 """

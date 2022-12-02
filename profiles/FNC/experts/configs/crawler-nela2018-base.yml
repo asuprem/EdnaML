@@ -1,0 +1,36 @@
+DATAREADER:
+  DATAREADER: HFReader
+  CRAWLER_ARGS: 
+    data_folder: Data
+    sub_folder: nela-gt-2018
+  DATASET_ARGS:
+    classificationclass: ['fnews']
+    maxlen: 512
+    shardcache: True
+    shardsize: 20000
+    shard_replace: False
+    shardpath: datashard-artifacts
+    shardname: fnc-nela18-shard
+    mlm_probability: 0.15
+    shuffle: False
+    data_shuffle: True
+    masking: False
+    keyword_mask: False
+    keywords: []
+    keytoken_mask: False
+    keytokens: []
+    label_idxs: [3] # This is the actual label...
+    annotation_idxs: [1,2]  # this is shares and likes
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: unknown
+
+TRANSFORMATION:
+  BATCH_SIZE: 16
+  WORKERS: 1
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: fnc-expert-nela2018
+  MODEL_BACKBONE: unknown
+  MODEL_QUALIFIER: nela_gt_2018

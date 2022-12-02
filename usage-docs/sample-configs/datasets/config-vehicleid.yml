@@ -4,22 +4,23 @@ EXECUTION:
   EPOCHS: 10
   SKIPEVAL: True
   TEST_FREQUENCY: 5
-  DATAREADER: 
-    DATAREADER: VehicleID
-    CRAWLER_ARGS:
-      data_folder: "Data/VehicleID"
-      train_folder: "image"
-      attribute_folder: "attribute"
-    DATASET_ARGS: 
-      pathidx: 0
-      annotationidx: 3
-      classificationclass: color
-    GENERATOR_ARGS: {}      
-    DATALOADER_ARGS: {}
   TRAINER: ClassificationTrainer
   TRAINER_ARGS: 
     accumulation_steps: 4
-    
+
+DATAREADER: 
+  DATAREADER: VehicleID
+  CRAWLER_ARGS:
+    data_folder: "Data/VehicleID"
+    train_folder: "image"
+    attribute_folder: "attribute"
+  DATASET_ARGS: 
+    pathidx: 0
+    annotationidx: 3
+    classificationclass: color
+  GENERATOR_ARGS: {}      
+  DATALOADER_ARGS: {}
+
 SAVE:
   MODEL_VERSION: 1
   MODEL_CORE_NAME: "colabel_devel"

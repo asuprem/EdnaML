@@ -1,10 +1,8 @@
 from types import FunctionType
 
 
-
 class IterableFile:
-
-    def __init__(self, file_path, chunk_size = 50000, line_callback: FunctionType = None):
+    def __init__(self, file_path, chunk_size=50000, line_callback: FunctionType = None):
         # TODO use chunk-size to preload some chunk into memory for ammortized overhead?
         self.row_count = self._bufcount(file_path)
         self.file_path = file_path

@@ -74,9 +74,9 @@ class PreTrainedAlbertModel(nn.Module):
 
         # Copy word embeddings from the previous weights
         num_tokens_to_copy = min(old_num_tokens, new_num_tokens)
-        new_embeddings.weight.data[
+        new_embeddings.weight.data[:num_tokens_to_copy, :] = old_embeddings.weight.data[
             :num_tokens_to_copy, :
-        ] = old_embeddings.weight.data[:num_tokens_to_copy, :]
+        ]
 
         return new_embeddings
 
@@ -144,9 +144,7 @@ class PreTrainedAlbertModel(nn.Module):
 
         # save new sets of pruned heads as union of previously stored pruned heads and newly pruned heads
         for layer, heads in heads_to_prune.items():
-            union_heads = set(self.config.pruned_heads.get(layer, [])) | set(
-                heads
-            )
+            union_heads = set(self.config.pruned_heads.get(layer, [])) | set(heads)
             self.config.pruned_heads[layer] = list(
                 union_heads
             )  # Unfortunately we have to store it as list for JSON
@@ -177,9 +175,7 @@ class PreTrainedAlbertModel(nn.Module):
         torch.save(model_to_save.state_dict(), output_model_file)
 
     @classmethod
-    def from_pretrained(
-        cls, pretrained_model_name_or_path, *model_args, **kwargs
-    ):
+    def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
         """
         Instantiate a pretrained pytorch model from a pre-trained model configuration.
         The model is set in evaluation mode by default using ``model.eval()`` (Dropout modules are deactivated)
@@ -278,10 +274,7 @@ class PreTrainedAlbertModel(nn.Module):
                 proxies=proxies,
             )
         except EnvironmentError as e:
-            if (
-                pretrained_model_name_or_path
-                in cls.pretrained_model_archive_map
-            ):
+            if pretrained_model_name_or_path in cls.pretrained_model_archive_map:
                 print(
                     "Couldn't reach server at '{}' to download pretrained"
                     " weights.".format(archive_file)
@@ -343,9 +336,7 @@ class PreTrainedAlbertModel(nn.Module):
             state_dict._metadata = metadata
 
         def load(module, prefix=""):
-            local_metadata = (
-                {} if metadata is None else metadata.get(prefix[:-1], {})
-            )
+            local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
             module._load_from_state_dict(
                 state_dict,
                 prefix,
@@ -374,8 +365,9 @@ class PreTrainedAlbertModel(nn.Module):
         load(model_to_load, prefix=start_prefix)
         if len(missing_keys) > 0:
             print(
-                "Weights of {} not initialized from pretrained model: {}"
-                .format(model.__class__.__name__, missing_keys)
+                "Weights of {} not initialized from pretrained model: {}".format(
+                    model.__class__.__name__, missing_keys
+                )
             )
         if len(unexpected_keys) > 0:
             print(

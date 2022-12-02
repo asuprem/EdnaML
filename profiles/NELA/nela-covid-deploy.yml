@@ -2,24 +2,25 @@ DEPLOYMENT:
   OUTPUT_ARGS:
     file_path: deploy-out.txt
   DEPLOY: BaseDeploy
-  DATAREADER:
-    CRAWLER_ARGS: 
-      azstorage: ednadatasets
-      azcontainer: edna-covid-raw
-      azfile: tweets-2020-01-22.json.gz
-    DATAREADER: AlbertReader
-    DATASET_ARGS:
-      classificationclass: ['reliability']
-      maxlen: 512
-      shardcache: True
-      shardsize: 50000
-      mlm_probability: 0
-      masking: False
-      shuffle: False
-      data_shuffle: False
-    GENERATOR_ARGS: 
-      do_lower_case: True
-      spm_model_file: 30k-clean.model 
-      tokenizer: AlbertFullTokenizer
-      vocab_file: 30k-clean.vocab
   FP16: False
+
+DATAREADER:
+  CRAWLER_ARGS: 
+    azstorage: ednadatasets
+    azcontainer: edna-covid-raw
+    azfile: tweets-2020-01-22.json.gz
+  DATAREADER: AlbertReader
+  DATASET_ARGS:
+    classificationclass: ['reliability']
+    maxlen: 512
+    shardcache: True
+    shardsize: 50000
+    mlm_probability: 0
+    masking: False
+    shuffle: False
+    data_shuffle: False
+  GENERATOR_ARGS: 
+    do_lower_case: True
+    spm_model_file: 30k-clean.model 
+    tokenizer: AlbertFullTokenizer
+    vocab_file: 30k-clean.vocab

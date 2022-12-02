@@ -67,7 +67,7 @@ class FNCCrawler(Crawler):
                             shutil.copyfileobj(f_in, f_out)
             else:
                 az_jsonfile = None
-        else:   # TODO possible sanity checks????
+        else:   
             az_jsonfile = test_file
 
 
@@ -88,7 +88,7 @@ class FNCCrawler(Crawler):
                             shutil.copyfileobj(f_in, f_out)
             else:
                 train_az_jsonfile = None
-        else:   # TODO possible sanity checks????
+        else:   
             train_az_jsonfile = train_file
 
         # set up class metadata

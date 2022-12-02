@@ -1,21 +1,4 @@
 EXECUTION:
-  DATAREADER:
-    CRAWLER_ARGS: 
-      data_folder: Data
-    DATAREADER: AlbertReader
-    DATASET_ARGS:
-      classificationclass: ['reliability']
-      maxlen: 512
-      shardcache: True
-      shardsize: 20000
-      mlm_probability: 0.15
-      masking: False
-      shuffle: False
-    GENERATOR_ARGS: 
-      do_lower_case: True
-      spm_model_file: 30k-clean.model 
-      tokenizer: AlbertFullTokenizer
-      vocab_file: 30k-clean.vocab
   EPOCHS: 15
   FP16: False
   MODEL_SERVING: False
@@ -25,6 +8,24 @@ EXECUTION:
   TRAINER: BaseTrainer
   TRAINER_ARGS: 
     accumulation_steps: 8
+
+DATAREADER:
+  CRAWLER_ARGS: 
+    data_folder: Data
+  DATAREADER: AlbertReader
+  DATASET_ARGS:
+    classificationclass: ['reliability']
+    maxlen: 512
+    shardcache: True
+    shardsize: 20000
+    mlm_probability: 0.15
+    masking: False
+    shuffle: False
+  GENERATOR_ARGS: 
+    do_lower_case: True
+    spm_model_file: 30k-clean.model 
+    tokenizer: AlbertFullTokenizer
+    vocab_file: 30k-clean.vocab
 
 SAVE:
   MODEL_VERSION: 3

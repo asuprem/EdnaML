@@ -37,8 +37,11 @@ def rename_state_dict_keys(source, key_transformation, target=None):
 
     torch.save(new_state_dict, target)
 
+
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.models.ModelAbstract import ModelAbstract
+
+
 def build_model_and_load_weights(
     config_file: str,
     model_class: Type[ModelAbstract] = None,
@@ -57,7 +60,7 @@ def build_model_and_load_weights(
     Returns:
         _type_: _description_
     """
-    from ednaml.core import EdnaML
+    from ednaml.core.EdnaML import EdnaML
 
     eml = EdnaML(
         config=config_file,

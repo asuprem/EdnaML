@@ -25,8 +25,7 @@ class LossBuilder(nn.Module):
         self.loss_labelname = kwargs.get("name", None)
         if self.loss_labelname is None:
             warnings.warn(
-                "No name given for this loss, using label as name %s"
-                % self.loss_label
+                "No name given for this loss, using label as name %s" % self.loss_label
             )
             self.loss_labelname = self.loss_label
 
@@ -55,8 +54,7 @@ class LossBuilder(nn.Module):
                 )
             )
             self.logger.info(
-                "Added {loss} with lambda = {lamb} and loss arguments {largs}"
-                .format(
+                "Added {loss} with lambda = {lamb} and loss arguments {largs}".format(
                     loss=loss_fn_name,
                     lamb=loss_lambda[idx],
                     largs=str(loss_kwargs[idx]),

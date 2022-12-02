@@ -15,7 +15,9 @@ from ednaml.generators import ImageGenerator
 
 class ClassificationDataset(TorchDataset):
     def __init__(self, dataset, transform=None, **kwargs):
-        self.dataset = dataset  # this is crawler.metadata["train"]["crawl"] -> [(), (), ()]
+        self.dataset = (
+            dataset  # this is crawler.metadata["train"]["crawl"] -> [(), (), ()]
+        )
         self.transform = transform
         self.pathidx = kwargs.get("pathidx", 0)
         self.annotationidx = kwargs.get("annotationidx", 1)
@@ -39,21 +41,18 @@ class ClassificationDataset(TorchDataset):
 
 
 class ClassificationGenerator(ImageGenerator):
-
-
     def buildDataset(
         self, datacrawler, mode: str, transform: List[object], **kwargs
     ) -> TorchDataset:
         if mode in ["train", "val", "test"]:
             return ClassificationDataset(
-                datacrawler.metadata[mode]["crawl"],
-                transform,
-                **kwargs
-            )    
+                datacrawler.metadata[mode]["crawl"], transform, **kwargs
+            )
         elif mode == "testval":
             # For testing, we combine images in the query and testing set to generate batches
             return ClassificationDataset(
-                datacrawler.metadata["val"]["crawl"]+datacrawler.metadata["test"]["crawl"],
+                datacrawler.metadata["val"]["crawl"]
+                + datacrawler.metadata["test"]["crawl"],
                 transform,
                 **kwargs
             )
@@ -71,7 +70,7 @@ class ClassificationGenerator(ImageGenerator):
     def buildDataLoader(self, dataset, mode, batch_size, **kwargs):
         if mode == "train":
             return TorchDataLoader(
-                dataset,    # ClassificationDataset
+                dataset,  # ClassificationDataset
                 batch_size=batch_size * self.gpus,
                 shuffle=kwargs.get("shuffle", True),
                 num_workers=self.workers,

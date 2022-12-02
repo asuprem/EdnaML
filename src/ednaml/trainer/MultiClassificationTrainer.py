@@ -94,13 +94,13 @@ class MultiClassificationTrainer(BaseTrainer):
             loss[lossname] = self.loss_fn[lossname](**akwargs)
 
         lossbackward = sum(loss.values())
-        #lossbackward.backward()
+        # lossbackward.backward()
 
         # for idx in range(self.num_losses):
         #    loss[idx].backward()
 
-        #self.stepOptimizers()
-        #self.stepLossOptimizers()
+        # self.stepOptimizers()
+        # self.stepLossOptimizers()
 
         for idx, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
@@ -146,12 +146,8 @@ class MultiClassificationTrainer(BaseTrainer):
         weighted_fscore = [[] for _ in range(self.model.number_outputs)]
         for idx, lossname in enumerate(self.loss_fn):
             accuracy[idx] = (
-                logit_labels[
-                    self.model_labelorder[self.loss_fn[lossname].loss_label]
-                ]
-                == labels[
-                    :, self.data_labelorder[self.loss_fn[lossname].loss_label]
-                ]
+                logit_labels[self.model_labelorder[self.loss_fn[lossname].loss_label]]
+                == labels[:, self.data_labelorder[self.loss_fn[lossname].loss_label]]
             ).sum().float() / float(labels.size(0))
             micro_fscore[idx] = np.mean(
                 f1_score(
@@ -178,15 +174,13 @@ class MultiClassificationTrainer(BaseTrainer):
                 )
             )
         self.logger.info(
-            "Metrics\t"
-            + "\t".join(["%s" % lossname for lossname in self.loss_fn])
+            "Metrics\t" + "\t".join(["%s" % lossname for lossname in self.loss_fn])
         )
         self.logger.info(
             "Accuracy\t"
             + "\t".join(
                 [
-                    "%s: %0.3f"
-                    % (self.labelMetadata.labels[idx], accuracy[idx].item())
+                    "%s: %0.3f" % (self.labelMetadata.labels[idx], accuracy[idx].item())
                     for idx in range(self.model.number_outputs)
                 ]
             )
