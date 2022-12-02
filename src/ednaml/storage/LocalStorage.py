@@ -81,9 +81,14 @@ class LocalStorage(BaseStorage):
 
     def download(self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False) -> bool:
         if self.getKey(ers_key=ers_key, canonical = canonical) is not None:
-            shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)), 
+            if canonical:
+                shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.canonical_path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)), 
                 destination_file_name)
-            return True
+                return True
+            else:
+                shutil.copy2(os.path.join(self.storage_path, self.run_dir, self.path_of_artifact(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact)), 
+                    destination_file_name)
+                return True
         return False
         
 
