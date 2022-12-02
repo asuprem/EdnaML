@@ -1,10 +1,9 @@
 SAVE:
+  MODEL_VERSION: 1
   BACKUP: 
     BACKUP: True
     STORAGE_NAME: GoogleDrive
     FREQUENCY: 1
-  LOG_BACKUP: # prevent log files from piling up...hopefully :/
-    FREQUENCY: 0
 
 STORAGE:
   - STORAGE_NAME: GoogleDrive

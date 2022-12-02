@@ -31,6 +31,3 @@ SAVE:
   MODEL_CORE_NAME: fnc-expert-fakeddit
   MODEL_BACKBONE: unknown
   MODEL_QUALIFIER: fakeddit
-  DRIVE_BACKUP: False
-  SAVE_FREQUENCY: 3 # Epoch
-  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"

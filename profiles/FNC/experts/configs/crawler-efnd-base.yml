@@ -32,4 +32,3 @@ SAVE:
   MODEL_CORE_NAME: fnc-expert-efnd
   MODEL_BACKBONE: unknown
   MODEL_QUALIFIER: cmu_miscov19
-  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/FNC/Models/"

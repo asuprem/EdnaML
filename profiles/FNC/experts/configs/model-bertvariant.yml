@@ -15,5 +15,5 @@ MODEL:
   PARAMETER_GROUPS: [opt-1]
 
 SAVE:
+  MODEL_VERSION: 1
   MODEL_BACKBONE: albert
-  MODEL_VERSION: 2  # to deal with other bugs...
