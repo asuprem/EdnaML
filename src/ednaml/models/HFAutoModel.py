@@ -34,6 +34,7 @@ class HFAutoModel(ModelAbstract):
     def model_attributes_setup(self, **kwargs):
         self.from_pretrained = kwargs.get("from_pretrained", self.model_base)
         self.auto_class = kwargs.get("auto_class", "AutoModel")
+        
 
     def model_setup(self, **kwargs):
         auto_class = locate_class(package="transformers", subpackage=self.auto_class)

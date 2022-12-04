@@ -1,0 +1,41 @@
+EXECUTION:
+  TRAINER: HFMLMSequenceTrainer
+
+DATAREADER:
+  GENERATOR_ARGS: 
+    tokenizer: HFAutoTokenizer
+    from_pretrained: albert-base-v2
+
+
+LOSS: 
+  - LOSSES: ['TorchLoss']
+    KWARGS: 
+      - loss_class: CrossEntropyLoss
+        loss_kwargs:
+          ignore_index: -1
+    LAMBDAS: [1.0]
+    NAME: mask_lm
+    LABEL: mask_lm
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    LABEL: fnews
+    NAME: classification
+
+
+MODEL:
+  BUILDER: hf_model_builder
+  MODEL_ARCH: HFMLMSequenceModel
+  MODEL_BASE: albert-base-v2
+  MODEL_KWARGS: 
+    config:
+      hidden_act: gelu
+      output_attentions: True
+      classifier_dropout_prob: 0.1
+    pool_method: pooled
+  MODEL_NORMALIZATION: bn
+  PARAMETER_GROUPS: [opt-1]
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_BACKBONE: albert-mlm
