@@ -22,8 +22,6 @@ class BaseTorchMetric(BaseMetric):
         self.state[self.metric_type][self.metric_name] = {}
 
     def post_init_val(self):
-        print('post-init check:', isinstance(self.metric_obj,torchmetrics))
-        pass#assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
-
+        pass
     def save(self, epoch, result):
         self.state[self.metric_type][self.metric_name][epoch] = result
