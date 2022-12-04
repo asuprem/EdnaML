@@ -382,9 +382,11 @@ class StorageManager:
         if self.performBackup(artifact_type=artifact) or (
             not self.storage_manager_strict
         ):
-            remote_step = storage[
-                self.getStorageNameForArtifact(artifact_type=artifact)
-            ].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
+            storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
+            if storage_name not in storage:
+                remote_step = None
+            else:
+                remote_step = storage[storage_name].getLatestStepOfArtifactWithEpoch(ers_key=ers_key)
         local_step = self.local_storage.getLatestStepOfArtifactWithEpoch(
             ers_key=ers_key
         )
@@ -408,9 +410,11 @@ class StorageManager:
         if self.performBackup(artifact_type=artifact) or (
             not self.storage_manager_strict
         ):
-            remote_epoch = storage[
-                self.getStorageNameForArtifact(artifact_type=artifact)
-            ].getLatestEpochOfArtifact(ers_key=ers_key)
+            storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
+            if storage_name not in storage:
+                remote_epoch = None
+            else:
+                remote_epoch = storage[storage_name].getLatestEpochOfArtifact(ers_key=ers_key)
         local_epoch = self.local_storage.getLatestEpochOfArtifact(ers_key=ers_key)
         if remote_epoch is None:
             return local_epoch  # Could be None or Greater
@@ -441,9 +445,11 @@ class StorageManager:
         if self.performBackup(artifact_type=artifact) or (
             not self.storage_manager_strict
         ):
-            remote_response = storage[
-                self.getStorageNameForArtifact(artifact_type=artifact)
-            ].checkEpoch(ers_key=ers_key)
+            storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
+            if storage_name not in storage:
+                remote_response = None
+            else:
+                remote_response = storage[storage_name].checkEpoch(ers_key=ers_key)
         local_response = self.local_storage.checkEpoch(ers_key=ers_key)
 
         if (remote_response is not None) or (local_response is not None):
@@ -464,9 +470,11 @@ class StorageManager:
         if self.performBackup(artifact_type=artifact) or (
             not self.storage_manager_strict
         ):
-            remote_response = storage[
-                self.getStorageNameForArtifact(artifact_type=artifact)
-            ].checkStep(ers_key=ers_key)
+            storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
+            if storage_name not in storage:
+                remote_response = None
+            else:
+                remote_response = storage[storage_name].checkStep(ers_key=ers_key)
         local_response = self.local_storage.checkStep(ers_key=ers_key)
 
         if (remote_response is not None) or (local_response is not None):
@@ -501,25 +509,43 @@ class StorageManager:
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
 
         if not os.path.exists(local_path):
-            if self.storage_manager_strict and not self.performBackup(
-                ers_key.storage.artifact
-            ):
+            if self.storage_mode == "empty":
                 self.log(
-                    "Not downloading ERSKey `{key}` from storage {storage} due to strict checking".format(
+                    "Not downloading ERSKey `{key}` from storage {storage} due to EmptyStorage".format(
                         key=ers_key.printKey(), storage=storage_name
                     )
                 )
                 return False
-            self.log(
-                "Downloading ERSKey `{key}` from storage {storage} into {path}".format(
-                    key=ers_key.printKey(), storage=storage_name, path=local_path
+            else:
+                if self.storage_manager_strict and not self.performBackup(
+                    ers_key.storage.artifact
+                ):
+                    self.log(
+                        "Not downloading ERSKey `{key}` from storage {storage} due to strict checking".format(
+                            key=ers_key.printKey(), storage=storage_name
+                        )
+                    )
+                    return False
+
+                if storage_name not in storage_dict:
+                    self.log(
+                        "Attempted downloading ERSKey `{key}` but Storage {storage} does not exist".format(
+                            key=ers_key.printKey(), storage=storage_name
+                        )
+                    )
+                    return False
+                self.log(
+                    "Downloading ERSKey `{key}` from storage {storage} into {path}".format(
+                        key=ers_key.printKey(), storage=storage_name, path=local_path
+                    )
                 )
-            )
-            return storage_dict[storage_name].download(
-                ers_key=ers_key,
-                destination_file_name=local_path,
-                canonical=self.backup_canonical_references[ers_key.storage.artifact],
-            )
+                return storage_dict[storage_name].download(
+                    ers_key=ers_key,
+                    destination_file_name=local_path,
+                    canonical=self.backup_canonical_references[
+                        ers_key.storage.artifact
+                    ],
+                )
         else:
             self.log(
                 "ERSKey `{key}` already exists locally. Skipping.".format(
@@ -538,6 +564,13 @@ class StorageManager:
         source_file_name = self.getLocalSavePath(ers_key=ers_key)
         storage_name = self.getStorageNameForArtifact(ers_key.storage.artifact)
 
+        if self.storage_mode == "empty":
+            self.log(
+                "Not uploading ERSKey `{key}` due to EmptyStorage".format(
+                    key=ers_key.printKey(), storage=storage_name
+                )
+            )
+            return False
         if os.path.exists(source_file_name):
             if (
                 self.storage_manager_strict
@@ -545,6 +578,13 @@ class StorageManager:
             ) and not self.performBackup(ers_key.storage.artifact):
                 self.log(
                     "Not uploading ERSKey `{key}` to storage {storage} due to strict checking or download_only mode".format(
+                        key=ers_key.printKey(), storage=storage_name
+                    )
+                )
+                return False
+            if storage_name not in storage_dict:
+                self.log(
+                    "Attempted uploading ERSKey `{key}` but Storage {storage} does not exist".format(
                         key=ers_key.printKey(), storage=storage_name
                     )
                 )
@@ -632,9 +672,7 @@ class StorageManager:
         # NOTE: We check remote tracking run if backup is allowed OR if we are in download_only/loose mode!!!
         if tracking_run is None:
             max_run_list = [
-                storage_dict[
-                    self.getStorageNameForArtifact(artifact_key)
-                ].getMaximumRun()
+                self._getMaximumRun(storage_dict, self.getStorageNameForArtifact(artifact_key))
                 if (
                     self.performBackup(artifact_key)
                     or (not self.storage_manager_strict)
@@ -643,7 +681,7 @@ class StorageManager:
                 for artifact_key in self.artifact_references
             ]
             max_run = max(max_run_list)
-            if max_run == -1:
+            if max_run < 0:
                 tracking_run = 0
             else:
                 tracking_run = max_run + int(new_run)
@@ -690,6 +728,11 @@ class StorageManager:
             if require_new_run
         """
 
+    def _getMaximumRun(self, storage_dict: Dict[str, BaseStorage], storage_name, ):
+        if storage_name in storage_dict:
+            return storage_dict[storage_name].getMaximumRun()
+        return -1
+
     def _setTrackingRun(
         self, storage_dict: Dict[str, BaseStorage], tracking_run: int
     ) -> None:
@@ -707,11 +750,17 @@ class StorageManager:
                 or not self.storage_manager_strict
             ):
                 storage_name = self.getStorageNameForArtifact(artifact_key)
-                storage_dict[storage_name].setTrackingRun(tracking_run)
-                self.log(
-                    "Tracking run for Artifact `%s` at Storage `%s` set to: %i"
-                    % (artifact_key.value, storage_name, tracking_run)
-                )
+                if storage_name not in storage_dict:
+                    self.log(
+                        "Did not set tracking run for Artifact `%s` at Storage `%s`. Storage %s does not exist."
+                        % (artifact_key.value, storage_name, storage_name)
+                    )
+                else:
+                    storage_dict[storage_name].setTrackingRun(tracking_run)
+                    self.log(
+                        "Tracking run for Artifact `%s` at Storage `%s` set to: %i"
+                        % (artifact_key.value, storage_name, tracking_run)
+                    )
 
         # Copy the files over??? Or save that for other methods to perform...
 
@@ -752,22 +801,29 @@ class StorageManager:
             self.performBackup(artifact_type=artifact)
             or not self.storage_manager_strict
         ):
-            if not self.storage_manager_strict:
+            storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
+            if storage_name not in storage_dict:
                 self.log(
-                    "Retrieving remote ERSKey because `storage_manager_mode` is not `strict`"
+                    "Not searching remote. Storage %s does not exist." % storage_name
                 )
+                remote_ers_key = None
             else:
-                self.log("Retrieving remote ERSKey because backup is allowed")
-            if self.backup_canonical_references[artifact]:
-                remote_ers_key: ERSKey = storage_dict[
-                    self.getStorageNameForArtifact(artifact_type=artifact)
-                ].getLatestStorageKey(
-                    self.getLatestERSKey(artifact=artifact), canonical=True
-                )
-            else:
-                remote_ers_key: ERSKey = storage_dict[
-                    self.getStorageNameForArtifact(artifact_type=artifact)
-                ].getLatestStorageKey(ers_key)
+                if not self.storage_manager_strict:
+                    self.log(
+                        "Retrieving remote ERSKey because `storage_manager_mode` is not `strict`"
+                    )
+                else:
+                    self.log("Retrieving remote ERSKey because backup is allowed")
+                if self.backup_canonical_references[artifact]:
+                    remote_ers_key: ERSKey = storage_dict[
+                        storage_name
+                    ].getLatestStorageKey(
+                        self.getLatestERSKey(artifact=artifact), canonical=True
+                    )
+                else:
+                    remote_ers_key: ERSKey = storage_dict[
+                        storage_name
+                    ].getLatestStorageKey(ers_key)
         else:
             remote_ers_key = None
         local_ers_key: ERSKey = self.local_storage.getLatestStorageKey(ers_key=ers_key)
