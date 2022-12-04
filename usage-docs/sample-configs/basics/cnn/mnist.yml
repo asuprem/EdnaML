@@ -35,11 +35,11 @@ EXECUTION:
         metric_args:
           task: 'multiclass'
           num_classes: 10
-          metric_params:
-            preds:
-              type: 'torch.tensor'
-            target:
-              type: 'torch.tensor'
+        metric_params:
+          preds:
+            type: 'torch.tensor'
+          target:
+            type: 'torch.tensor'
         subpackage: 'training'
         classfile: 'Accuracy'
 
