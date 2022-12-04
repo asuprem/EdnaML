@@ -17,7 +17,7 @@ EXECUTION:
     accumulation_steps: 2       # Number of steps for gradient accumulation
     METRICS:                      # Defining metrics to be tracked. This needs to be made top-level
       CustomAccuracyMetric:                     # An example of a tracked metric. Name is user-specified
-        metric_name: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
+        metric_class: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
         metric_type: EdnaML_TorchMetric
         metric_args:           # The arguments required to instantiate a metric
           task: 'multiclass'
@@ -27,7 +27,11 @@ EXECUTION:
             type: 'torch.tensor'
           target:
             type: 'torch.tensor'
+        subpackage: 'training'
+        classfile: 'Accuracy'
       CustomF1ScoreMetric:
+        metric_class: TorchF1ScoreMetric
+        metric_type: EdnaML_TorchMetric
         metric_args:
           task: 'multiclass'
           num_classes: 10
@@ -36,8 +40,8 @@ EXECUTION:
               type: 'torch.tensor'
             target:
               type: 'torch.tensor'
-
-
+        subpackage: 'training'
+        classfile: 'Accuracy'
 
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment

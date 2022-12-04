@@ -5,7 +5,7 @@ import os
 import torch
 import numpy as np
 from ednaml.trainer import BaseTrainer
-from ednaml.metrics.training.Accuracy import TorchAccuracyMetric
+from ednaml.utils import locate_class
 
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
@@ -14,13 +14,18 @@ class ClassificationTrainer(BaseTrainer):
         self.metrics = []
         for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
             if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
-                if metric_config['metric_name'] in ['TorchAccuracyMetric','TorchF1ScoreMetric']:
-                    metric = TorchAccuracyMetric(
-                        metric_name=metric_name,
-                        metric_args=metric_config['metric_args'],
-                        metric_params=metric_config['metric_params']
-                    )
-                    self.metrics.append(metric)
+                metric_class = locate_class(
+                    package='ednaml.metrics',
+                    subpackage=metric_config['subpackage'],
+                    classfile=metric_config['classfile'],
+                    classpackage=metric_config['metric_class'],
+                )
+                metric = metric_class(
+                    metric_name=metric_name,
+                    metric_args=metric_config['metric_args'],
+                    metric_params=metric_config['metric_params']
+                )
+                self.metrics.append(metric)
         print(self.metrics)
         print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
 
