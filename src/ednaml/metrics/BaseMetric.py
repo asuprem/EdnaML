@@ -2,6 +2,8 @@
 Module containing base classes for EdnaML metrics.
 """
 
+import json
+
 try:
     import torchmetrics
 except ImportError:
@@ -56,3 +58,6 @@ class BaseMetric:
             print(f'Parameters: {self.metric_params}')
         except NameError:
             print('WARNING: build_module has not set up metric params.')
+    def print_state(self):
+        print(f'STATE of metric {self.metric_name}:')
+        print(json.dumps(self.state,indent=2))

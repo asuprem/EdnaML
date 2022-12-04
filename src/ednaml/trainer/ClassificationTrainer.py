@@ -66,6 +66,7 @@ class ClassificationTrainer(BaseTrainer):
             for metric in self.metrics:
                 metric.print_info()
                 metric.update(epoch=self.global_epoch,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
+                metric.print_state()
             print('Metrics API Exit point')
         return lossbackward
 
