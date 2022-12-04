@@ -13,11 +13,8 @@ class ClassificationTrainer(BaseTrainer):
         # Initialize all metrics specified in config
         self.metrics = []
         for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
-            if metric_config['metric_type'] == 'EdnaML_TorchMetric':
-                if metric_config['metric_name'] == 'TorchAccuracyMetric': # Create only TorchAccuracyMetrics for now
-                    # Note, this is just a check to map the string 'TorchAccuracyMetric' in metric_config['metric_name']
-                    # to the TorchAccuracyMetric class constructor. So the name is NOT metric_config['metric_name']
-                    # but actually the key in the key-value pair being iterated upon (.items() call above)
+            if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
+                if metric_config['metric_name'] in ['TorchAccuracyMetric','TorchF1ScoreMetric']:
                     metric = TorchAccuracyMetric(
                         metric_name=metric_name,
                         metric_args=metric_config['metric_args'],
@@ -25,7 +22,7 @@ class ClassificationTrainer(BaseTrainer):
                     )
                     self.metrics.append(metric)
         print(self.metrics)
-        print('Metrics init complete!')
+        print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
 
     # Steps through a batch of data
     def step(self, batch): 
