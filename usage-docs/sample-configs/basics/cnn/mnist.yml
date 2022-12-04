@@ -20,7 +20,7 @@ EXECUTION:
         metric_name: TorchAccuracyMetric     # but definition, as seen here, lies in ednaml.metrics
         metric_type: EdnaML_TorchMetric
         metric_args:           # The arguments required to instantiate a metric
-          task: 'Multiclass'
+          task: 'multiclass'
           num_classes: 10
         metric_params:          # The arguments required for the update() call of the metric
           preds:
