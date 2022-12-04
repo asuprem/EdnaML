@@ -9,7 +9,7 @@ class BaseTorchMetric(BaseMetric):
         self.metric_params = metric_params
         self.metric_obj = None
         self.required_params = []
-        super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
+        super().__init__(metric_name, metric_type='EdnaML_TorchMetrics')
 
     def build_module(self):
         # Define Metric Object
@@ -22,5 +22,8 @@ class BaseTorchMetric(BaseMetric):
         self.state[self.metric_type][self.metric_name] = {}
 
     def post_init_val(self):
-        print('post-init:', type(self.metric), type(self.metric_obj), self.metric_obj)
+        print('post-init check:', isinstance(self.metric_obj,torchmetrics))
         pass#assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
+
+    def save(self, epoch, result):
+        self.state[self.metric_type][self.metric_name][epoch] = result

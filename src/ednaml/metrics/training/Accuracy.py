@@ -16,4 +16,4 @@ class TorchAccuracyMetric(BaseTorchMetric):
         required_kwargs = {param: value for param, value in kwargs.items() if param in self.required_params}
         result = self.metric_obj(**required_kwargs)
         # Save metric state
-        self.state[self.metric_type][self.metric_name][epoch] = result
+        self.save(epoch, result)
