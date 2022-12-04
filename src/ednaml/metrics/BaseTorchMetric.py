@@ -1,5 +1,5 @@
 from ednaml.metrics.BaseMetric import BaseMetric
-import torchmetrics
+import json
 
 class BaseTorchMetric(BaseMetric):
     """Wrapper class for TorchMetrics metrics for use in EdnaML."""
@@ -23,5 +23,10 @@ class BaseTorchMetric(BaseMetric):
 
     def post_init_val(self):
         pass
+
     def save(self, epoch, result):
+        try:
+            json.dumps(result)
+        except TypeError:
+            raise ValueError(f'The computed result of the EdnaML_TorchMetric \' {self.metric_name} \' ({result}) is not JSON-serializable.')
         self.state[self.metric_type][self.metric_name][epoch] = result

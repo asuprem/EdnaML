@@ -12,6 +12,7 @@ class TorchAccuracyMetric(BaseTorchMetric):
     def update(self,epoch,**kwargs):
         # Pick up the kwargs needed for update() from the full set of kwargs
         required_kwargs = {param: value for param, value in kwargs.items() if param in self.required_params}
-        result = self.metric_obj(**required_kwargs)
+        # Custom result handling, per-metric basis. Result must be JSON-serializable
+        result = self.metric_obj(**required_kwargs).item()
         # Save metric state
         self.save(epoch, result)
