@@ -1,0 +1,77 @@
+# EXECUTION manages ML training and evaluation. Use with EdnaML
+EXECUTION:
+  TRAINER: ClassificationTrainer
+  TRAINER_ARGS: 
+    accumulation_steps: 4
+  OPTIMIZER_BUILDER: ClassificationOptimizer
+  MODEL_SERVING: Unused
+  EPOCHS: 10
+  SKIPEVAL: False
+  TEST_FREQUENCY: 1
+  FP16: False
+  DATAREADER: 
+    DATAREADER: DataReader
+    CRAWLER_ARGS: {}
+    DATASET_ARGS: {}
+    GENERATOR: 
+    GENERATOR_ARGS: {}
+
+SAVE:
+  MODEL_VERSION: 1
+  MODEL_CORE_NAME: "origtoolimgs"
+  MODEL_BACKBONE: "singleclass"
+  MODEL_QUALIFIER: "color"
+  DRIVE_BACKUP: True
+  LOG_BACKUP: True
+  SAVE_FREQUENCY: 1 # Epoch
+  CHECKPOINT_DIRECTORY: "./drive/MyDrive/Projects/CarZam/Models/"
+
+TRANSFORMATION:
+  BATCH_SIZE: 32
+  WORKERS: 2
+  ARGS: 
+    i_shape: [200,200]
+    normalization_mean: 0.5
+    normalization_std: 0.5
+    normalization_scale: 0.5
+    channels: 3
+
+TRAIN_TRANSFORMATION:
+  ARGS:
+    h_flip: 0.5
+    t_crop: True
+    random_erase: True
+    random_erase_value: 0.3
+
+MODEL:
+  BUILDER: classification_model_builder
+  MODEL_ARCH: ClassificationResnet
+  MODEL_BASE: 'resnet18'
+  EMBEDDING_DIMENSIONS:
+  MODEL_NORMALIZATION: 'bn'
+  MODEL_KWARGS:
+  PARAMETER_GROUPS: 
+    - opt-1
+
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss']
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    NAME: out1
+
+OPTIMIZER:
+  - OPTIMIZER: "Adam"
+    OPTIMIZER_KWARGS: {}
+    BASE_LR: 0.001
+    LR_BIAS_FACTOR: 1.0
+    WEIGHT_DECAY: 0.0005
+    WEIGHT_BIAS_FACTOR: 0.0005
+
+SCHEDULER:
+  - LR_SCHEDULER: 'StepLR'
+    LR_KWARGS: 
+      step_size: 3
+      gamma: 0.1
+
+LOGGING:
+  STEP_VERBOSE: 100 # Batch

@@ -4,7 +4,7 @@ EXECUTION:
       pathidx: 0
       annotationidx: [2, 1]
       classificationclass: ['color','vtype']
-      GENERATOR: MultiClassificationGenerator
+    GENERATOR: MultiClassificationGenerator
   TRAINER: MultiClassificationTrainer
 
 

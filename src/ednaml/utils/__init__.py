@@ -287,3 +287,17 @@ def merge_dictionary_on_key(a, b, path=None): #make it more descriptive!!!
         else:
             a[key] = b[key]
     return a
+
+# https://stackoverflow.com/a/40389411/2601357
+def dict_to_table(myDict, colList=None):
+    """ Pretty print a list of dictionaries (myDict) as a dynamically sized table.
+    If column names (colList) aren't specified, they will show in random order.
+    Author: Thierry Husson - Use it as you want but don't blame me.
+    """
+    if not colList: colList = list(myDict[0].keys() if myDict else [])
+    myList = [colList] # 1st row = header
+    for item in myDict: myList.append([str(item[col] if item[col] is not None else '') for col in colList])
+    colSize = [max(map(len,col)) for col in zip(*myList)]
+    formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
+    myList.insert(1, ['-' * i for i in colSize]) # Seperating line
+    return "\n".join([formatStr.format(*item) for item in myList])
