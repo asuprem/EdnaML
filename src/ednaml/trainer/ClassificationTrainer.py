@@ -20,7 +20,11 @@ class ClassificationTrainer(BaseTrainer):
                     # Note, this is just a check to map the string 'TorchAccuracyMetric' in metric_config['metric_name']
                     # to the TorchAccuracyMetric class constructor. So the name is NOT metric_config['metric_name']
                     # but actually the key in the key-value pair being iterated upon (.items() call above)
-                    metric = TorchAccuracyMetric(metric_name,metric_params=metric_config['metric_params'])
+                    metric = TorchAccuracyMetric(
+                        metric_name=metric_name,
+                        metric_args=metric_config['metric_args'],
+                        metric_params=metric_config['metric_params']
+                    )
                     self.metrics.append(metric)
         print(self.metrics)
         print('Init complete!')
