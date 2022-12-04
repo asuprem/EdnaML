@@ -17,10 +17,10 @@ class BaseTorchMetric(BaseMetric):
         # Itemize list of required parameters for update(). Used to pick up all relevant params from update() kwargs
         for param in self.metric_params.keys():
             self.required_params.append(param)
+        # Initialize state
+        self.state[self.metric_type] = {}
+        self.state[self.metric_type][self.metric_name] = {}
 
     def post_init_val(self):
-        print('post-init:', type(self.metric))
+        print('post-init:', type(self.metric), type(self.metric_obj), self.metric_obj)
         pass#assert isinstance(self.metric, torchmetrics.Metric), 'The provided metric object is not a TorchMetric.'
-
-    def update(self,epoch,**kwargs):
-        raise NotImplementedError
