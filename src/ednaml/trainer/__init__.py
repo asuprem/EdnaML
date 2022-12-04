@@ -4,3 +4,4 @@ from ednaml.trainer.ClassificationTrainer import ClassificationTrainer
 from ednaml.trainer.MultiClassificationTrainer import MultiClassificationTrainer
 from ednaml.trainer.MultiBranchTrainer import MultiBranchTrainer
 from ednaml.trainer.HFTrainer import HFTrainer
+from ednaml.trainer.HFMLMSequenceTrainer import HFMLMSequenceTrainer

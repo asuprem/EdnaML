@@ -82,7 +82,6 @@ class HFMLMSequenceModel(ModelAbstract):
             position_ids=position_ids,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
-            labels=labels,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
         )

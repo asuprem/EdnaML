@@ -75,7 +75,7 @@ class HFMLMSequenceTrainer(BaseTrainer):
                 outputs = self.model(
                     all_input_ids,
                     token_type_ids=all_token_type_ids,
-                    attention_mask=all_attention_mask,
+                    attention_mask=None,
                     output_attentions=True,
                     output_hidden_states=True,
                     secondary_inputs=all_annotations,
