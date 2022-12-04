@@ -2,10 +2,6 @@ DATAREADER:
   DATAREADER: HFReader
   CRAWLER_ARGS: 
     split: 0.9
-    true_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_real.csv
-    fake_url: https://raw.githubusercontent.com/KaiDMML/FakeNewsNet/master/dataset/gossipcop_fake.csv
-    true_file: gossipcop_real.csv
-    fake_file: gossipcop_fake.csv
   DATASET_ARGS:
     classificationclass: ['fnews']
     maxlen: 512
@@ -13,7 +9,7 @@ DATAREADER:
     shardsize: 20000
     shard_replace: False
     shardpath: datashard-artifacts
-    shardname: fnc-gossipcop-shard
+    shardname: fnc-politifact-shard
     mlm_probability: 0.15
     shuffle: False
     data_shuffle: True
@@ -25,14 +21,12 @@ DATAREADER:
   GENERATOR_ARGS: 
     tokenizer: HFAutoTokenizer
     from_pretrained: unknown
-
-
 TRANSFORMATION:
   BATCH_SIZE: 16
   WORKERS: 1
 
 SAVE:
   MODEL_VERSION: 1
-  MODEL_CORE_NAME: fnc-gossipcop
+  MODEL_CORE_NAME: fnc-politifact
   MODEL_BACKBONE: unknown
-  MODEL_QUALIFIER: gossipcop
+  MODEL_QUALIFIER: politifact

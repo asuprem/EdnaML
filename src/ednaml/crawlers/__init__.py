@@ -7,10 +7,10 @@ class Crawler:
 
     classes: Dict[str, int]
 
-    def __init__(self, logger):
+    def __init__(self, logger, **kwargs):
         self.classes = {}
 
-    def __verify(self, folder):
+    def __verify__(self, folder):
         if not os.path.exists(folder):
             raise IOError(
                 "Folder {data_folder} does not exist".format(data_folder=folder)

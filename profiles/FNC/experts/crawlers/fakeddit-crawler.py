@@ -37,6 +37,7 @@ class FakedditCrawler(Crawler):
         
         # Row information for Fakeddit:
         #   -- 5:  clean text
+        # No shares information; leaving at 0
         #   -- 13:  score (likes)
         #   -- 17:  2 way label
         #   -- -1:  6-way label
