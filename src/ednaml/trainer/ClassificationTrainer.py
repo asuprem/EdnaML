@@ -10,8 +10,6 @@ from ednaml.metrics.training.Accuracy import TorchAccuracyMetric
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
         self.softaccuracy = []
-        print('printing kwargs')
-        print(kwargs)
         # Initialize all metrics specified in config
         self.metrics = []
         for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
@@ -27,7 +25,7 @@ class ClassificationTrainer(BaseTrainer):
                     )
                     self.metrics.append(metric)
         print(self.metrics)
-        print('Init complete!')
+        print('Metrics init complete!')
 
     # Steps through a batch of data
     def step(self, batch): 
