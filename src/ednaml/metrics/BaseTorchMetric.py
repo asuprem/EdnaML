@@ -11,12 +11,12 @@ class BaseTorchMetric(BaseMetric):
         self.required_params = []
         super().__init__(metric_name, metric_type='EdnaML_TorchMetric')
 
-    def build_module(self, **kwargs):
+    def build_module(self):
         # Define Metric Object
         self.metric_obj = self.metric(**self.metric_args) if self.metric_args else self.metric()
-        # Itemize list of required kwargs. Used to pick up relevant kwargs during the update() call
-        for arg in self.metric_params.keys():
-            self.required_args.append(arg)
+        # Itemize list of required parameters for update(). Used to pick up all relevant params from update() kwargs
+        for param in self.metric_params.keys():
+            self.required_params.append(param)
 
     def post_init_val(self):
         print('post-init:', type(self.metric))
