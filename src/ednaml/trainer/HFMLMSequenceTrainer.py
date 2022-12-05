@@ -113,7 +113,7 @@ class HFMLMSequenceTrainer(BaseTrainer):
         # loss_avg /= self.num_losses
         soft_avg = sum(self.softaccuracy[-100:]) / float(len(self.softaccuracy[-100:]))
         self.logger.info(
-            "Epoch{0}.{1}\tMaskedLM: {2:.3f}\Classification: {3:.3f}\tTraining Acc: {4:.3f}".format(
+            "Epoch{0}.{1}\tMaskedLM: {2:.3f}\tClassification: {3:.3f}\tTraining Acc: {4:.3f}".format(
                 self.global_epoch,
                 self.global_batch,
                 loss_avg[0],    # Assume masked_lm loss goes first
