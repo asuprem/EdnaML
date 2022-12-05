@@ -700,7 +700,7 @@ class BaseTrainer:
 
         if self.evaluateFlag:
             self.logger.info("Final: Evaluating model at test-frequency")
-            self.evaluate()
+            self.evaluate(save_log=True)
             self.evaluateFlag = False
         if self.saveFlag:
             self.logger.info(
@@ -738,7 +738,7 @@ class BaseTrainer:
                 self.accumulation_count = 0
                 if self.evaluateFlag:
                     self.logger.info("Evaluating model at test-frequency")
-                    self.evaluate()
+                    self.evaluate(save_log=True)
                     self.evaluateFlag = False
                 if self.saveFlag:
                     self.logger.info(
@@ -771,7 +771,7 @@ class BaseTrainer:
                 )
                 self.evaluateFlag = True
             else:
-                self.evaluate()
+                self.evaluate(save_log=True)
 
         self.check_epoch_save(self.global_epoch)
         # if self.global_epoch % self.save_frequency == 0:
@@ -886,9 +886,11 @@ class BaseTrainer:
             )
         )
 
-    def evaluate(self):
+    def evaluate(self, save_log = False):
         self.model.eval()
         logit_labels, true_labels, features = self.evaluate_impl()
+        if save_log:
+            self.saveLog()
         return logit_labels, true_labels, self.crawler.classes, features
 
     def evaluate_impl(self):
