@@ -283,10 +283,10 @@ class BaseTrainer:
         #      b. Request file from LogManager
         #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
         #      d. Ask StorageManager to upload the file
-        if save_epoch is None:
-            save_epoch = self.global_epoch
-        if save_step is None:
-            save_step = self.global_batch
+        if epoch is None:
+            epoch = self.global_epoch
+        if step is None:
+            step = self.global_batch
         self.logger.info("Flushing current logs")
         self.log_manager.flush()
         local_log_file = self.log_manager.getLocalLog()
