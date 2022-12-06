@@ -23,6 +23,8 @@ class MiDASCrawler(Crawler):
 
     self.data_folder = data_folder
     datasets_folders = glob.glob(os.path.join(data_folder, "*"))
+    if include[0] == "all":
+      include = ["cmu_miscov19" , "kagglefn_short" , "kagglefn_long" ,"cov19_fn_title" , "cov19_fn_text", "coaid_news" , "cov_rumor" , "covid_fn", "covid_cq"]
     datasets_folders = [item for item in datasets_folders if os.path.basename(item) in include]
     self.classes["dataset"] = len(datasets_folders)
 
