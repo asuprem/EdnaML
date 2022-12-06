@@ -24,7 +24,7 @@ DATAREADER:
     from_pretrained: unknown
 
 TRANSFORMATION:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 8
   WORKERS: 1
 
 SAVE:

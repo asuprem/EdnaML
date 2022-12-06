@@ -1,6 +1,7 @@
+# Use the SemanticMaskingFeaturesGenerator
 DEPLOYMENT:
   OUTPUT_ARGS:
     feature_file: training_features
-  DEPLOY: BaseDeploy
+  DEPLOY: SemanticMaskingFeaturesGenerator
   FP16: False
   EPOCHS: 1
