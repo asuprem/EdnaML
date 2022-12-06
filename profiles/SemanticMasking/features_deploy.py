@@ -15,6 +15,8 @@ class SemanticMaskingFeaturesGenerator(HFMLMSequenceDeploy):
       self.prev_idx = -1
     
     def output_step(self, logits, features: torch.LongTensor, secondary): 
+      if len(features.shape) == 3:
+        features = features[:,0,:]
       if self.written:
           feats = features.cpu().numpy()
           self.writer["features"].resize((self.writer["features"].shape[0] + feats.shape[0]), axis=0)
