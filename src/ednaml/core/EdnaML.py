@@ -1359,7 +1359,10 @@ class EdnaML(EdnaMLBase):
 
         if self.mode == "test":
             self.labelMetadata = self.test_generator.num_entities
-        self.log("Generated test data/query generator")
+        self.log(
+                "Generated test data generator with %i testing data points"
+                % len(self.test_generator.dataset)
+            )
 
     def printConfiguration(self, **kwargs):
         """Prints the EdnaML configuration"""
