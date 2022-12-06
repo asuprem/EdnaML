@@ -16,14 +16,14 @@ class SemanticMaskingFeaturesGenerator(HFMLMSequenceDeploy):
     
     def output_step(self, logits, features: torch.LongTensor, secondary): 
       if self.written:
-          feats = features.numpy()
+          feats = features.cpu().numpy()
           self.writer["features"].resize((self.writer["features"].shape[0] + feats.shape[0]), axis=0)
           self.writer["features"][-feats.shape[0]:] = feats        
       else:   # First time writing -- we will need to create the dataset.
-          self.writer.create_dataset("features", data=features.numpy(), compression = "gzip", chunks=True, maxshape=(None,features.shape[1]))
+          self.writer.create_dataset("features", data=features.cpu().numpy(), compression = "gzip", chunks=True, maxshape=(None,features.shape[1]))
           self.written = True
 
-      if self.writer["features"].shape[0]%5000 > self.prev_idx:
+      if self.writer["features"].shape[0]%5000 == 0:
           self.logger.debug("Chunked %i lines in deployment output %s"%(self.writer["features"].shape[0], self.output_file))
           self.prev_idx = self.writer["features"].shape[0]%5000
 
