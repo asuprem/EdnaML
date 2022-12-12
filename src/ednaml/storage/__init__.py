@@ -4,8 +4,7 @@ from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.LocalStorage import LocalStorage
-from ednaml.storage.EmptyStorage import EmptyStorage
-#from ednaml.storage.DriveStorage import DriveStorage
+from ednaml.storage.DriveStorage import DriveStorage
 from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 
@@ -46,7 +45,6 @@ class StorageManager:
         storage_manager_mode: str = "loose",  # Literal["loose", "strict", "download_only"]                # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
         storage_mode: str = "local",  # Literal["local", "empty"]                # Whether to save locally or not
         backup_mode: str = "hybrid",
-        backup_mode_canonical: List[str] = []
     ):  # Literal["canonical", "ers", "hybrid", "custom"],
         """_summary_
 
@@ -154,9 +152,6 @@ class StorageManager:
         elif self.backup_mode == "hybrid":
             ers = [StorageArtifactType.MODEL, StorageArtifactType.ARTIFACT]
             canonical = [item for item in self.artifact_references if item not in ers]
-        elif self.backup_mode == "custom":
-            canonical = [StorageArtifactType(canonical_item) for canonical_item in backup_mode_canonical]
-            ers = [item for item in self.artifact_references if item not in canonical]
         else:
             raise NotImplementedError()
         self.backup_canonical_references = {
@@ -674,9 +669,9 @@ class StorageManager:
         tracking_run: int = None,
         new_run: bool = False,
     ) -> None:
+        self.log("Tracking run with `new_run`: %s" % str(new_run))
         # NOTE: We check remote tracking run if backup is allowed OR if we are in download_only/loose mode!!!
         if tracking_run is None:
-            self.log("Searching for tracking run with `new_run`: %s" % str(new_run))
             max_run_list = [
                 self._getMaximumRun(storage_dict, self.getStorageNameForArtifact(artifact_key))
                 if (
@@ -696,8 +691,6 @@ class StorageManager:
             local_tracking_run = self.local_storage.getMaximumRun() + int(new_run)
             self.log("Local tracking run is %i" % tracking_run)
             tracking_run = max(tracking_run, local_tracking_run)
-        else:
-            self.log("Using provided `tracking_run`: %s" % str(tracking_run))
 
         # NOTE at this time, we ignore all this complication, and just save the config in the run directly.
         # Storage's uploadConfig handles doubles by renaming the existing config by including the most recent StorageKey from saved model(s)
