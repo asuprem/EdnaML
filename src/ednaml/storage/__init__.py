@@ -5,6 +5,8 @@ from ednaml.config.EdnaMLConfig import EdnaMLConfig
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.LocalStorage import LocalStorage
 from ednaml.storage.EmptyStorage import EmptyStorage
+#from ednaml.storage.DriveStorage import DriveStorage
+from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 
 
