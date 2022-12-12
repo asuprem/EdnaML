@@ -306,7 +306,8 @@ class EdnaML(EdnaMLBase):
             storage_trigger_mode (loose | strict): Default `loose`. With `strict`, check whether to backup at every training step. With `loose`, check whether to backupo every N steps. N obtained from LOGGING.STEP_VERBOSE, default 100.
             storage_manager_mode (loose | strict | download_only): Default `strict` for EdnaML, `download_only` for EdnaDeploy. With `loose`, always upload and download to remote if available, ignoring backup options. With `strict`, only upload and download from remote if backup is allowed. With `download_only`, download from remote whenever remote available, but upload only if backup allowed.
             storage_mode (local | empty): Default `local`. With `empty`, no artifacts will be generated. So, no artifacts will be backed up.
-            backup_mode (canonical | ers | hybrid): Default `hybrid`. Which `backup_mode` to use when performing backups
+            backup_mode (canonical | ers | hybrid): Default `hybrid`. Which `backup_mode` to use when performing backups. If `custom`, specify with `backup_mode_canonical`
+            backup_mode_canonical (List[str]): Default `[]`. List of artifacts, as lowercase string (e.g. ['model', 'code']) that should be backed up in canonical mode IF `backup_mode` is `custom`.
             tracking_run (int): Default None. An integer specifying a specific run to save to. Run will be created if it does not exist.
             new_run (bool): Default `False`. Specifies whether we should use a new run or log to the most recent run. If `tracking_run` is provided, `new_run` is ignored.
             skip_model (bool). Default `False`. Whether to skip building the model.
@@ -380,6 +381,7 @@ class EdnaML(EdnaMLBase):
             ),  # Use remote ONLY if allowed and provided
             storage_mode=kwargs.get("storage_mode", "local"),
             backup_mode=kwargs.get("backup_mode", "hybrid"),
+            backup_mode_canonical=kwargs.get("backup_mode_canonical", ["log", "config", "plugin", "metric", "code"])
         )
 
     def addStorage(self, storage_class_dict: Dict[str, BaseStorage]):

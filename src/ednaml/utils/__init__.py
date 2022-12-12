@@ -149,50 +149,6 @@ class KeyMethods:
             storage=KeyMethods.cloneStorageKey(ers_key.storage),
         )
 
-
-class StorageNameStruct:
-    model_core_name: str
-    model_version: str
-    model_backbone: str
-    model_qualifier: str
-    run: str
-    epoch: str
-    step: str
-    artifact_type: StorageArtifactType
-
-    def __init__(
-        self,
-        model_core_name,
-        model_version,
-        model_backbone,
-        model_qualifier,
-        run,
-        epoch,
-        step,
-        artifact_type,
-    ):
-        self.model_core_name = model_core_name
-        self.model_version = model_version
-        self.model_backbone = model_backbone
-        self.model_qualifier = model_qualifier
-        self.run = run
-        self.epoch = epoch
-        self.step = step
-        self.artifact_type = artifact_type
-
-    def getKey(self):
-        return (
-            self.model_core_name,
-            self.model_version,
-            self.model_backbone,
-            self.model_qualifier,
-            self.run,
-            self.epoch,
-            self.step,
-            self.artifact_type,
-        )
-
-
 def locate_class(
     package="ednaml",
     subpackage="core",
