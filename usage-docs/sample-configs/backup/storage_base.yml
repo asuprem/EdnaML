@@ -1,0 +1,49 @@
+STORAGE:
+  - STORAGE_NAME: local_backup
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./backup
+    STORAGE_ARGS: {}
+  - STORAGE_NAME: azuremodel
+    STORAGE_CLASS: AzureStorage
+    STORAGE_URL: ednadatasets.azure.blob.net
+    STORAGE_ARGS: {}
+  - STORAGE_NAME: azure2plugin
+    STORAGE_CLASS: AzureStorage
+    STORAGE_URL: ednadatasets.azure.blob.net
+    STORAGE_ARGS: {}
+  - STORAGE_NAME: guangzhou
+    STORAGE_CLASS: MlFlowStorage
+    STORAGE_URL: guangzhou.cc.gatech.edu
+    STORAGE_ARGS: {}
+
+
+SAVE:
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: local
+    FREQUENCY: 1
+    FREQUENCY_STEP: 200
+  MODEL_BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: azuremodel
+    FREQUENCY: 2
+    FREQUENCY_STEP: 200
+  PLUGIN_BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: azure2plugin
+    FREQUENCY: 1
+    FREQUENCY_STEP: 200
+  CONFIG_BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: guangzhou
+    FREQUENCY: 5
+    FREQUENCY_STEP: 200
+  METRIC_BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: guangzhou
+    FREQUENCY: 5
+    FREQUENCY_STEP: 200
+  LOG_BACKUP: 
+    BACKUP: False
+
+

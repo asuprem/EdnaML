@@ -1,15 +1,16 @@
 # EXECUTION manages ML training and evaluation. Use with EdnaML
 EXECUTION:
-  # A trainer to use, from ednaml.trainers. A custom trainer can be implicitly added
+  # A trainer to use, from ednaml.trainers. A custom trainer can be used with decorators. See decorator reference.
   TRAINER: BaseTrainer
-  # Arguments for the trainer
+  # Arguments for the trainer. Check Trainer class in ednaml.trainers for details, if using built-in trainer
   TRAINER_ARGS: 
+    # Default arguments for BaseTrainer is `accumulation_steps`, for gradient accumulation.
     accumulation_steps: 1
-  # An optimizer builder from ednaml.optimizers
+  # An optimizer builder from ednaml.optimizers. All optimizers in OPTIMIZER section will be built with this.
   OPTIMIZER_BUILDER: ClassificationOptimizer
   # Unused for now
   MODEL_SERVING: Unused
-  # Number of epochs to train with 
+  # Number of epochs to train with
   EPOCHS: 10
   # Whether to skip the initial evaluation
   SKIPEVAL: False
@@ -17,12 +18,12 @@ EXECUTION:
   TEST_FREQUENCY: 1
   # Unused
   FP16: False
-  # PLUGIN manages how plugins are used. Unused for EXECUTION
+  # Unused for EXECUTION. Used in DEPLOYMENT section. PLUGIN manages how plugins are used.
   PLUGIN:
-    # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
+    # Controls when plugins fire. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (different for each plugin)
     # `activated` means only plugins that are ready are used.
     HOOKS: always # always | warmup | activated
-    # Whether to reset already generated PLUGINS. Unused.
+    # Unused. Whether to reset already generated PLUGINS. 
     RESET: False
 
 # DEPLOYMENT manages ML model deployment or prediction. Use with EdnaDeploy
@@ -31,7 +32,7 @@ DEPLOYMENT:
   DEPLOY: BaseDeploy
   # Arguments for any output details for the Deploy. Refer to Deploy's documentation for specifics
   OUTPUT_ARGS:  {}
-  # Arguments for the Deploy itself. Refer to Deploy's documentation for specifics.
+  # Arguments for the Deploy constructor itself. Refer to Deploy's documentation for specifics.
   DEPLOYMENT_ARGS: {}
   # The number of epochs to run this Deployment.
   EPOCHS: 1
@@ -40,7 +41,8 @@ DEPLOYMENT:
     # Controls when plugins are used. `always` means plugins are always used. `warmup` means plugins are used only until they are ready (i.e. activated)
     # `activated` means only plugins that are ready are used.
     HOOKS: always # always | warmup | activated
-    # Whether to reset already generated PLUGINS.
+    # Unused. Whether to reset already generated PLUGINS.
+    RESET: False
 
 # DATAREADER is the data-ingest unit that determines the data source. 
 # It is defined in DATAREADER.DATAREADER below. A DataReader contains a 
@@ -53,17 +55,22 @@ DATAREADER:
   # Arguments for the DataReader's crawlers. The Crawler itself may be a custom Crawler, defined in a separate file. Custom Crawlers are implicitly added.
   CRAWLER_ARGS: {}
   # Arguments for the DataReader's Dataset. The Dataset itself may be a custom Dataset, defined in a separate file. Custom Dataset are implicitly added.
-  DATASET_ARGS: 
+  DATASET_ARGS: {}
   # Whether to switch out the Generator in the DataReader with another built-in Generator. Note: custom Generators are implicitly added
   GENERATOR: 
   # Arguments for the DataReader's Generator. The Generator itself may be a custom Generator, defined in a separate file. Custom Generator are implicitly added.
-  GENERATOR_ARGS: 
+  GENERATOR_ARGS: {}
 
-# Manages Storage connections for backup options (Backup options in SAVE)
+# Default is Empty List. Manages Storage connections for backup options (Backup options in SAVE)
 STORAGE:
+  # Each list entry MUST be fully specified. The following are NOT default options.
+    # Name of storage. It will act as a reference to this Storage.
   - STORAGE_NAME: storage-1 
-    STORAGE_CLASS: BaseStorage
-    STORAGE_URL: ./
+    # The built-in storage class to use. For custom storages provided with a decorator, it suffices to provide the name of the custom storage here.
+    STORAGE_CLASS: LocalStorage
+    # URL argument for Storage, indicating its location. 
+    STORAGE_URL: ./backup
+    # Any other class-specific arguments
     STORAGE_ARGS: {}
 
 # Manages the SAVE configuration of the EXECUTION or DEPLOYMENT, as well as file names. SAVE is essentially a readable unique identifier for a model
@@ -81,24 +88,24 @@ SAVE:
   # Provided options are the default for Backup Options. 
   BACKUP:
     BACKUP: False # False | True
-    STORAGE_NAME: storage-1  # A storage name defined in the STORAGE section, corresponding to STORAGE_NAME there as well
-    FREQUENCY: 1  # Frequency of backup, in epochs
+    STORAGE_NAME: reserved-empty-storage  # A storage name defined in the STORAGE section, corresponding to STORAGE_NAME there as well
+    FREQUENCY: 0  # Frequency of backup, in epochs
     FREQUENCY_STEP: 0 # Frequency of backup, in steps, per epoch. Default 0
-  # Log backup options, with alternative examples for options
+  # Log backup options, with alternative examples for options. The following are NOT DEFAULT.
   LOG_BACKUP:
     BACKUP: True  # Overrides False in BACKUP.BACKUP
     STORAGE_NAME: log_backup  # overrides `storage-1`
-    FREQUENCY: 1  # Overrides 0
-  # Config backup options
+    FREQUENCY: 5  # Overrides 1
+    FREQUENCY_STEP: 50 # Overrides 0
+  # Config backup options. STORAGE_NAME in this case is inherited, but ignored due to `BACKUP` False
   CONFIG_BACKUP:
     BACKUP: False
-    STORAGE_NAME: none
     FREQUENCY: 0
   # Model backup options
   MODEL_BACKUP:
     BACKUP: False
     STORAGE_NAME: none
-    FREQUENCY: 0
+    FREQUENCY_STEP: 100 # Overrides 0. FREQUENCY remains at 1
   # Model artifacts backup options. 
   ARTIFACTS_BACKUP: # fallback to MODEL_BACKUP if not available
     BACKUP: False
@@ -114,7 +121,6 @@ SAVE:
     BACKUP: False
     STORAGE_NAME: none
     FREQUENCY: 0
-
 
 
 # TRANSFORMATION manages data transformation for both training and testing subsets
@@ -156,7 +162,7 @@ MODEL:
   # The feature normalization, if used
   MODEL_NORMALIZATION: bn
   # Additional keyword arguments for the MODEL_ARCH provided. 
-  MODEL_KWARGS:
+  MODEL_KWARGS: {}
   # ModelAbstract models can be split into groups for more controlled optimization. A list of parameter groups can be provided here if your specific ModelAbstract, e.g. a GAN, supports it.
   PARAMETER_GROUPS: 
     - opt-1
@@ -164,7 +170,7 @@ MODEL:
 # LOSS manages the losses used in the model training. Unused with EdnaDeploy. LOSS is a list of losses, 
 # one for each output or label of a model. LOSSes are indexed with their name. Each entry in LOSS can be a sum of multiple loss functions.
 LOSS:
-    # A list of LOSSES. Each entry is a string reference to an implemented Loss in EdnaML. PyTorch's built-in losses are accessed as TorchLoss.
+    # A list of LOSSES. We provide non-default values below, as example. Each entry is a string reference to an implemented Loss in EdnaML. PyTorch's built-in losses are accessed as TorchLoss.
   - LOSSES: ['TorchLoss']
     # Keyword arguments for each Loss.
     KWARGS: [{}]
@@ -202,7 +208,7 @@ SCHEDULER:
     LR_KWARGS: 
       step_size: 20
 
-# MODEL_PLUGIN manages plugins that may be attached to a trained model.
+# Default is Empty List. MODEL_PLUGIN manages plugins that may be attached to a trained model. 
 MODEL_PLUGIN:
     # The name for this PLUGIN. This will be used as its identifier for this model
   - PLUGIN_NAME: mp-1
