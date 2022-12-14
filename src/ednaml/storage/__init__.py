@@ -818,6 +818,7 @@ class StorageManager:
             self.performBackup(artifact_type=artifact)
             or not self.storage_manager_strict
         ):
+            # 
             storage_name = self.getStorageNameForArtifact(artifact_type=artifact)
             if storage_name not in storage_dict:
                 self.log(
@@ -835,7 +836,7 @@ class StorageManager:
                     remote_ers_key: ERSKey = storage_dict[
                         storage_name
                     ].getLatestStorageKey(
-                        self.getLatestERSKey(artifact=artifact), canonical=True
+                        ers_key, canonical=True
                     )
                 else:
                     remote_ers_key: ERSKey = storage_dict[

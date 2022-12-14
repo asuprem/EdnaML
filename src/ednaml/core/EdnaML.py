@@ -311,6 +311,7 @@ class EdnaML(EdnaMLBase):
             tracking_run (int): Default None. An integer specifying a specific run to save to. Run will be created if it does not exist.
             new_run (bool): Default `False`. Specifies whether we should use a new run or log to the most recent run. If `tracking_run` is provided, `new_run` is ignored.
             skip_model (bool). Default `False`. Whether to skip building the model.
+            skip_weights (bool). Default `False`. Whether to load the latest weights from loaded Storage automatically.
             skip_model_summary (bool). Default `True`. Whether to skip printing model summary.
             skip_storage (bool): Default `False`. Whether to skip building the Storage. `reserved-empty-storage` will still be created.
             skip_pipeline (bool): Default `False`. Whether to skip building trainer/deployment.
@@ -347,8 +348,9 @@ class EdnaML(EdnaMLBase):
             # For test mode, load the most recent weights using LatestStorageKey unless explicit epoch-step provided
             # For train mode, load weights iff provided. Otherwise, Trainer will take care of it.
             # For EdnaDeploy, load the most recent weights using LatestStorageKey unless explicit epoch-step provided.
-            self.log("[APPLY] Loading latest weights, if available")
-            self.loadWeights()
+            if not kwargs.get("skip_weights", False):
+                self.log("[APPLY] Loading latest weights, if available")
+                self.loadWeights()
             # Generate a model summary
             self.log("[APPLY] Generating summary")
             self.getModelSummary(**kwargs)
