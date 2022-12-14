@@ -54,10 +54,14 @@ class ImageGenerator(Generator):
             and normalization_scale == 0
         ):
             return []
-
-        (normalization_mean, normalization_std,) = ednaml.utils.extend_mean_arguments(
-            [normalization_mean, normalization_std], channels
-        )
+        if type(normalization_mean) is not list:
+            (normalization_mean, normalization_std,) = ednaml.utils.extend_mean_arguments(
+                [normalization_mean, normalization_std], channels
+            )
+        if len(normalization_mean) != channels:
+            (normalization_mean, normalization_std,) = ednaml.utils.extend_mean_arguments(
+                [normalization_mean[0], normalization_std[0]], channels
+            )
         transformer_primitive = []
         transformer_primitive.append(T.Resize(size=i_shape))
         if kwargs.get("h_flip", 0) > 0:

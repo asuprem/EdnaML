@@ -74,5 +74,6 @@ class TorchvisionGeneratorWrapper(ImageGenerator):
         label_name = kwargs.get("label_name", "label")
         num_classes = kwargs.get("num_classes", None)
         if num_classes is None:
-            num_classes = torch.unique(self.dataset.targets.clone()).shape[0]
+            # We use this instead of clone() because of inconsistences between TorchVision's dataset.targets type
+            num_classes = torch.unique(torch.tensor(self.dataset.targets)).shape[0]
         return LabelMetadata({label_name: {"classes": num_classes}})

@@ -192,7 +192,7 @@ class BaseTrainer:
             save_step = self.global_batch
         if self.storage_manager.storage_mode == "local":
             self.logger.info(
-                "Attempting upload of artifact `%s` at epoch %i / step %i"
+                "Attempting save of artifact `%s` at epoch %i / step %i"
                 % (artifact.value, save_epoch, save_step)
             )
             # For whatever the artifact is, we will first perform a local save,
@@ -218,7 +218,7 @@ class BaseTrainer:
                 )
         else:  # TODO could this be more graceful / elegant
             self.logger.info(
-                "Not uploading artifact `%s` due to empty storage" % (artifact.value)
+                "Not saving or uploading artifact `%s` due to empty storage" % (artifact.value)
             )
 
         # TODO need to check if ModelAbstract contains the plugins that came with it...
@@ -699,7 +699,7 @@ class BaseTrainer:
             self.initial_evaluate()
         else:
             self.logger.info("Skipping initial evaluation.")
-
+        self.logger.info("Training for %i epochs" % self.epochs)
         self.logger.info("Starting training from Epoch %i" % continue_epoch)
         self.zeroGrad()
         self.evaluateFlag = False
