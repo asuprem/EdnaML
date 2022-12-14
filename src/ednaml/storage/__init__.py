@@ -202,6 +202,7 @@ class StorageManager:
                 if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0
                 else (lambda x: (x % self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0)),
             }
+            self.local_epoch_trigger = (lambda x: False) if self.cfg.SAVE.SAVE_FREQUENCY == 0 else (lambda x: (x % self.cfg.SAVE.SAVE_FREQUENCY == 0))
 
         elif self.storage_trigger_mode == "loose":
             self.epoch_triggers = {
@@ -224,6 +225,7 @@ class StorageManager:
                 if self.cfg.SAVE.LOG_BACKUP.FREQUENCY == 0
                 else LooseTriggerMethod(self.cfg.SAVE.LOG_BACKUP.FREQUENCY),
             }
+            self.local_epoch_trigger = (lambda x: False) if self.cfg.SAVE.SAVE_FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.SAVE_FREQUENCY)
         else:
             raise NotImplementedError()
 
@@ -252,6 +254,7 @@ class StorageManager:
                 if self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0
                 else (lambda x: (x % self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP == 0)),
             }
+            self.local_step_trigger = (lambda x: False) if self.cfg.SAVE.STEP_SAVE_FREQUENCY == 0 else (lambda x: (x % self.cfg.SAVE.STEP_SAVE_FREQUENCY == 0))
 
         elif self.storage_trigger_mode == "loose":
             self.step_triggers = {
@@ -286,6 +289,7 @@ class StorageManager:
                     self.cfg.SAVE.LOG_BACKUP.FREQUENCY_STEP, base=1
                 ),
             }
+            self.local_step_trigger = (lambda x: False) if self.cfg.SAVE.STEP_SAVE_FREQUENCY == 0 else LooseTriggerMethod(self.cfg.SAVE.STEP_SAVE_FREQUENCY, base=1)
         else:
             raise NotImplementedError()
         self.log("Generated StepTrigger checks")
@@ -659,6 +663,13 @@ class StorageManager:
         self, step: int, artifact_type: StorageArtifactType
     ) -> bool:
         return self.step_triggers[artifact_type](step)
+
+    def getSaveTriggerForEpoch(self, epoch: int) -> bool:
+        return self.local_epoch_trigger(epoch)
+    def getSaveTriggerForStep(self ,step: int) -> bool:
+        return self.local_step_trigger(step)
+    
+
 
     def performBackup(self, artifact_type: StorageArtifactType) -> bool:
         return self.artifact_references[artifact_type].BACKUP

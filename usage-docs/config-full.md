@@ -451,6 +451,7 @@ The following example sets up a KMeansProxy [1] and a LogitConfidence [2] plugin
 ```
 
 [1] Abhijit Suprem and Calton Pu (2022). Evaluating Generalizability of Fine-Tuned Models for Fake News Detection. IEEE CIC 2022.
+
 [2] Abhijit Suprem and Calton Pu (2022). MiDAS: Multi-integrated Domain Adaptive Supervision for Fake News Detection. CoRR.
 
 

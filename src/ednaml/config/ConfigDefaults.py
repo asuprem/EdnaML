@@ -94,7 +94,7 @@ class ConfigDefaults(BaseConfig):
         self.MODEL_QUALIFIER = kwargs.get("MODEL_QUALIFIER", "all")
         self.DRIVE_BACKUP = kwargs.get("DRIVE_BACKUP", False)
         self.LOG_BACKUP = kwargs.get("LOG_BACKUP", False)
-        self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 5)
+        self.SAVE_FREQUENCY = kwargs.get("SAVE_FREQUENCY", 1)
         self.STEP_SAVE_FREQUENCY = kwargs.get("STEP_SAVE_FREQUENCY", 0)
         self.CHECKPOINT_DIRECTORY = kwargs.get("CHECKPOINT_DIRECTORY", "checkpoint")
 

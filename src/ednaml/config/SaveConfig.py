@@ -8,6 +8,8 @@ class SaveConfig(BaseConfig):
     MODEL_CORE_NAME: str
     MODEL_BACKBONE: str
     MODEL_QUALIFIER: str
+    SAVE_FREQUENCY: int
+    STEP_SAVE_FREQUENCY: int
     BACKUP: BackupOptionsConfig
     DRIVE_BACKUP: BackupOptionsConfig
     LOG_BACKUP: BackupOptionsConfig
@@ -55,6 +57,9 @@ class SaveConfig(BaseConfig):
         self.METRICS_BACKUP = BackupOptionsConfig(
             save_dict.get("METRICS_BACKUP", save_dict.get("BACKUP", {})), defaults
         )
+
+        self.SAVE_FREQUENCY = save_dict.get("SAVE_FREQUENCY", defaults.SAVE_FREQUENCY)
+        self.STEP_SAVE_FREQUENCY = save_dict.get("STEP_SAVE_FREQUENCY", defaults.STEP_SAVE_FREQUENCY)
 
         # self.DRIVE_BACKUP = save_dict.get("DRIVE_BACKUP", defaults.DRIVE_BACKUP)
         # self.LOG_BACKUP = save_dict.get("LOG_BACKUP", defaults.LOG_BACKUP)

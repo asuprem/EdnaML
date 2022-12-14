@@ -535,8 +535,6 @@ class EdnaML(EdnaMLBase):
             # TODO -- change save_backup, backup_directory stuff. These are all in Storage.... We just need the model save name...
             self.trainer.apply(
                 step_verbose=self.cfg.LOGGING.STEP_VERBOSE,
-                # save_frequency=self.cfg.SAVE.SAVE_FREQUENCY,
-                # step_save_frequency = self.cfg.SAVE.STEP_SAVE_FREQUENCY,
                 test_frequency=self.cfg.EXECUTION.TEST_FREQUENCY,
                 # save_directory=self.saveMetadata.MODEL_SAVE_FOLDER,
                 # save_backup=self.cfg.SAVE.DRIVE_BACKUP,
