@@ -17,23 +17,12 @@ DATAREADER:
   DATASET_ARGS:
     label_name: mnist_digits
 
-STORAGE:
-  - STORAGE_NAME: local
-    STORAGE_CLASS: LocalStorage
-    STORAGE_URL: ./backup
-    STORAGE_ARGS: {}
-
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
   MODEL_BACKBONE: res18         # What backbone we are using here
   MODEL_QUALIFIER: mnist        # Any other details we want to capture in the name
-  BACKUP: 
-    BACKUP: True
-    STORAGE_NAME: local
-    FREQUENCY: 1
-    FREQUENCY_STEP: 200
-  
+
 
 TRANSFORMATION:
   BATCH_SIZE: 32                # The size of batches to provide to the model during training
@@ -43,17 +32,25 @@ TRANSFORMATION:
     normalization_mean: 0.1307
     normalization_std: 0.3081
     normalization_scale: 0.5
-    random_erase: False
-    random_erase_value: 0.5
     channels: 1
 
 TRAIN_TRANSFORMATION:           # Any replacements for the generator during training
   ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.1307
+    normalization_std: 0.3081
+    normalization_scale: 0.5
+    channels: 1
     h_flip: 0.5
     t_crop: True
 
 TEST_TRANSFORMATION:            # Any replacements for the generator during testing
   ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.1307
+    normalization_std: 0.3081
+    normalization_scale: 0.5
+    channels: 1
     h_flip: 0
 
 MODEL:                              # These are model-specific details
@@ -62,11 +59,6 @@ MODEL:                              # These are model-specific details
   MODEL_BASE: resnet18              # The base we are using for the architecture. For example, ClassificationResnet accepts resnet18, resnet34, resnet50, etc
   MODEL_KWARGS:
     initial_channels: 1             # Since MNIST is black and white with 1 channel, we use the `initial_channels` parameter of ClassificationResnet to set this
-
-METRICS:
-  MANAGER: JSONMetricsManager
-  MANAGER_ARGS: {}
-  METRICS:
 
 LOSS:
   - LOSSES: ['SoftmaxLogitsLoss']   # We use the basic softmax loss here
@@ -90,7 +82,5 @@ SCHEDULER:
       gamma: 0.1
 
 LOGGING:
-  MANAGER: LocalLogManager
-  MANAGER_ARGS: {}
   STEP_VERBOSE: 100                 # How often to print intermediate results
   INPUT_SIZE: [32, 1, 28, 28]       # The estimated shape of the input. 
