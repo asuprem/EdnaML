@@ -1,7 +1,7 @@
 EXECUTION:
   OPTIMIZER_BUILDER: ClassificationOptimizer
   MODEL_SERVING: False
-  EPOCHS: 5
+  EPOCHS: 1
   SKIPEVAL: False
   TEST_FREQUENCY: 1
   TRAINER: ClassificationTrainer

@@ -1,5 +1,5 @@
 EXECUTION:
-  EPOCHS: 10
+  EPOCHS: 3
 
 DATAREADER: 
   DATAREADER: TorchvisionDatareader

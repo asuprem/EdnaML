@@ -1,6 +1,6 @@
 # Here, we set up the EXECUTION cell, which controls the EdnaML experiment itself
 EXECUTION:
-  EPOCHS: 5  # We will execute for 5 epochs
+  EPOCHS: 1  # We will execute for 5 epochs
   TEST_FREQUENCY: 1 # We will test the model every 1 epoch
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
