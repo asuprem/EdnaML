@@ -18,6 +18,7 @@ TRANSFORMATION:
     normalization_mean: 0.5071
     normalization_std: 0.2675
     normalization_scale: 0.5
+    grayscale: True
     channels: 1
 
 TRAIN_TRANSFORMATION:
@@ -28,6 +29,7 @@ TRAIN_TRANSFORMATION:
     normalization_scale: 0.5
     h_flip: 0.5
     t_crop: True
+    grayscale: True
     channels: 1
 
 TEST_TRANSFORMATION:
@@ -38,4 +40,5 @@ TEST_TRANSFORMATION:
     normalization_scale: 0.5
     h_flip: 0
     channels: 1
+    grayscale: True
 

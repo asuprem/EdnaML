@@ -69,6 +69,8 @@ class ImageGenerator(Generator):
         if kwargs.get("t_crop", False):
             transformer_primitive.append(T.RandomCrop(size=i_shape))
         transformer_primitive.append(T.ToTensor())
+        if kwargs.get("grayscale", False):
+            transformer_primitive.append(T.Grayscale(num_output_channels=channels))
         transformer_primitive.append(
             T.Normalize(mean=normalization_mean, std=normalization_std)
         )
