@@ -1,0 +1,41 @@
+DATAREADER: 
+  DATAREADER: TorchvisionDatareader
+  GENERATOR_ARGS:
+    tv_dataset: CIFAR10
+    tv_args: 
+      root: "Data/"
+      args:
+        download: true
+  DATASET_ARGS:
+    label_name: cifar10_classes
+
+
+TRANSFORMATION:
+  BATCH_SIZE: 32
+  WORKERS: 2
+  ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.5071
+    normalization_std: 0.2675
+    normalization_scale: 0.5
+    channels: 1
+
+TRAIN_TRANSFORMATION:
+  ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.5071
+    normalization_std: 0.2675
+    normalization_scale: 0.5
+    h_flip: 0.5
+    t_crop: True
+    channels: 1
+
+TEST_TRANSFORMATION:
+  ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.5071
+    normalization_std: 0.2675
+    normalization_scale: 0.5
+    h_flip: 0
+    channels: 1
+

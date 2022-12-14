@@ -1,0 +1,26 @@
+STORAGE:
+  - STORAGE_NAME: local_backup
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./backup
+    STORAGE_ARGS: {}
+  - STORAGE_NAME: artifacts_backup
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./artifacts
+    STORAGE_ARGS: {}
+
+
+SAVE:
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: local_backup
+    FREQUENCY: 1
+    FREQUENCY_STEP: 200
+  LOG_BACKUP:
+    BACKUP: False
+  ARTIFACTS_BACKUP:
+    BACKUP: True
+    STORAGE_NAME: artifacts_backup
+    FREQUENCY: 1
+    FREQUENCY_STEP: 200
+
+

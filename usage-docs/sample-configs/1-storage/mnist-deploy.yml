@@ -1,0 +1,4 @@
+# Use the SemanticMaskingFeaturesGenerator
+DEPLOYMENT:
+  DEPLOY: ClassificationDeploy
+  EPOCHS: 1
