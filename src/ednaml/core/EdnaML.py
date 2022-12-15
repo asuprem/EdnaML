@@ -134,15 +134,13 @@ class EdnaML(EdnaMLBase):
         # os.makedirs(self.saveMetadata.MODEL_SAVE_FOLDER, exist_ok=True)
         # We create a cached directory for temporary logs while EdnaML starts up...
         # Or maybe we create the logger inside storage...!
-        log_manager_class = "FileLogManager"
-        log_kwargs = {"log_level": 10}  # 10 is DEBUG
         log_manager_class: Type[LogManager] = locate_class(
             subpackage="logging",
-            classfile=log_manager_class,
-            classpackage=log_manager_class,
+            classfile=self.cfg.LOGGING.LOG_MANAGER,
+            classpackage=self.cfg.LOGGING.LOG_MANAGER,
         )
         self.logManager = log_manager_class(
-            experiment_key=self.experiment_key, **log_kwargs
+            experiment_key=self.experiment_key, **self.cfg.LOGGING.LOG_MANAGER_KWARGS
         )
         self.logManager.apply()
         self.logger = self.logManager.getLogger()

@@ -149,3 +149,6 @@ class ConfigDefaults(BaseConfig):
         self.PLUGIN_NAME = "mp-1"
         self.PLUGIN = "ModelPlugin"
         self.PLUGIN_KWARGS = {}
+
+        self.LOG_MANAGER = "FileLogManager"
+        self.LOG_MANAGER_KWARGS = {}
