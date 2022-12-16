@@ -5,11 +5,32 @@ import os
 import torch
 import numpy as np
 from ednaml.trainer import BaseTrainer
-
+# Avinash entrypoint
+from ednaml.utils import locate_class
 
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
         self.softaccuracy = []
+        # Avinash entrypoint
+        # Initialize all metrics specified in config
+        self.metrics = []
+        for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
+            if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
+                metric_class = locate_class(
+                    package='ednaml.metrics',
+                    subpackage=metric_config['subpackage'],
+                    classfile=metric_config['classfile'],
+                    classpackage=metric_config['metric_class'],
+                )
+                metric = metric_class(
+                    metric_name=metric_name,
+                    metric_args=metric_config['metric_args'],
+                    metric_params=metric_config['metric_params']
+                )
+                self.metrics.append(metric)
+        print(self.metrics)
+        print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
+        # Avinash entrypoint
 
     # Steps through a batch of data
     def step(self, batch):
@@ -22,7 +43,6 @@ class ClassificationTrainer(BaseTrainer):
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
 
-        # TODO fix this with info about how many output are in the model...from the config file!!!!!
         loss = {loss_name: None for loss_name in self.loss_fn}
         for lossname in self.loss_fn:
             loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
@@ -46,6 +66,16 @@ class ClassificationTrainer(BaseTrainer):
         else:
             self.softaccuracy.append(0)
 
+        # Avinash entrypoint
+        if self.metrics: # Execute if metrics API usage is specified
+            print('Metrics API entry point')
+            for metric in self.metrics:
+                metric.print_info()
+                ## TODO: Feed batch into metric update/save
+                metric.update(epoch=self.global_epoch,batch=0,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
+                metric.print_state()
+            print('Metrics API Exit point')
+        # Avinash entrypoint
         return lossbackward
 
     def evaluate_impl(self):
