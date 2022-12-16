@@ -1,10 +1,8 @@
-import json, logging, os, shutil
+import  logging, shutil
 from logging import Logger
-from threading import local
 from typing import Dict, List, Tuple
 import torch
 from torch.utils.data import DataLoader
-from ednaml import storage
 from ednaml.core import EdnaMLContextInformation
 from ednaml.logging import LogManager
 import ednaml.loss.builders
@@ -14,6 +12,8 @@ from ednaml.models.ModelAbstract import ModelAbstract
 from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType, StorageKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage import BaseStorage, StorageManager
+from ednaml.utils import locate_class
+
 
 
 class BaseTrainer:
@@ -131,13 +131,33 @@ class BaseTrainer:
         #     crawler=crawler.classes,
         #     config=json.loads(config.export("json")),
         # )
-
+        self.metrics = []
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
         self.edna_context = context
         self.init_setup(**kwargs)
+        self.init_metrics(self, **kwargs)
+
+    def init_metrics(self, **kwargs):
+        
+        for metric_name, metric_config in self.config.METRICS.MODEL_METRICS: # Iterate over all metrics
+            if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
+                metric_class = locate_class(
+                    package='ednaml.metrics',
+                    subpackage=metric_config['subpackage'],
+                    classfile=metric_config['classfile'],
+                    classpackage=metric_config['metric_class'],
+                )
+                metric = metric_class(
+                    metric_name=metric_name,
+                    metric_args=metric_config['metric_args'],
+                    metric_params=metric_config['metric_params']
+                )
+                self.metrics.append(metric)
+        print(self.metrics)
+        print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:

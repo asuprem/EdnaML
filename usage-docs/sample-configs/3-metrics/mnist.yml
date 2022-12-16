@@ -10,19 +10,20 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
   MODEL_METRICS:
     - METRIC_NAME: CustomAccuracyMetric
       METRIC_CLASS: TorchAccuracyMetric
-      METRIC_ARGS:
-    
-    CustomAccuracyMetric:                     # An example of a tracked metric. Name is user-specified
-      metric_class: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
-      metric_type: EdnaML_TorchMetric
-      metric_args:           # The arguments required to instantiate a metric
-        task: 'multiclass'
-        num_classes: 10
-      metric_params:          # The arguments required for the update() call of the metric
+      METRIC_TYPE: training.Accuracy
+      METRIC_PARAMS:
         preds:
           type: 'torch.tensor'
         target:
           type: 'torch.tensor'
+      METRIC_ARGS:
+        task: 'multiclass'
+        num_classes: 10
+    - CustomAccuracyMetric:                     # An example of a tracked metric. Name is user-specified
+      metric_class: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
+      metric_type: EdnaML_TorchMetric
+      metric_args:           # The arguments required to instantiate a metric
+      metric_params:          # The arguments required for the update() call of the metric
       subpackage: 'training'
       classfile: 'Accuracy'
     CustomF1ScoreMetric:

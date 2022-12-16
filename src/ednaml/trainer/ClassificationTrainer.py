@@ -6,30 +6,13 @@ import torch
 import numpy as np
 from ednaml.trainer import BaseTrainer
 # Avinash entrypoint
-from ednaml.utils import locate_class
 
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
         self.softaccuracy = []
         # Avinash entrypoint
         # Initialize all metrics specified in config
-        self.metrics = []
-        for metric_name, metric_config in kwargs['METRICS'].items(): # Iterate over all metrics
-            if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
-                metric_class = locate_class(
-                    package='ednaml.metrics',
-                    subpackage=metric_config['subpackage'],
-                    classfile=metric_config['classfile'],
-                    classpackage=metric_config['metric_class'],
-                )
-                metric = metric_class(
-                    metric_name=metric_name,
-                    metric_args=metric_config['metric_args'],
-                    metric_params=metric_config['metric_params']
-                )
-                self.metrics.append(metric)
-        print(self.metrics)
-        print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
+        
         # Avinash entrypoint
 
     # Steps through a batch of data
