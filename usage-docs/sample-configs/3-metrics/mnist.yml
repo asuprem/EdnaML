@@ -1,0 +1,117 @@
+# Here, we set up the EXECUTION cell, which controls the EdnaML experiment itself
+EXECUTION:
+  EPOCHS: 2  # We will execute for 10 epochs
+  TEST_FREQUENCY: 1 # We will test the model every 1 epoch
+  TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
+  TRAINER_ARGS: 
+    accumulation_steps: 2       # Number of steps for gradient accumulation
+
+METRICS:                      # Defining metrics to be tracked. This needs to be made top-level
+  MODEL_METRICS:
+    - METRIC_NAME: CustomAccuracyMetric
+      METRIC_CLASS: TorchAccuracyMetric
+      METRIC_ARGS:
+    
+    CustomAccuracyMetric:                     # An example of a tracked metric. Name is user-specified
+      metric_class: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
+      metric_type: EdnaML_TorchMetric
+      metric_args:           # The arguments required to instantiate a metric
+        task: 'multiclass'
+        num_classes: 10
+      metric_params:          # The arguments required for the update() call of the metric
+        preds:
+          type: 'torch.tensor'
+        target:
+          type: 'torch.tensor'
+      subpackage: 'training'
+      classfile: 'Accuracy'
+    CustomF1ScoreMetric:
+      metric_class: TorchF1ScoreMetric
+      metric_type: EdnaML_TorchMetric
+      metric_args:
+        task: 'multiclass'
+        num_classes: 10
+      metric_params:
+        preds:
+          type: 'torch.tensor'
+        target:
+          type: 'torch.tensor'
+      subpackage: 'training'
+      classfile: 'Accuracy'
+  CONFIG_METRICS:
+
+
+
+DATAREADER: 
+  DATAREADER: TorchvisionDatareader   # We will use the built-in Torchvision Datareader to download and load MNIST
+  GENERATOR_ARGS:
+    tv_dataset: MNIST   # This tells our datareader that we want MNIST
+    tv_args: 
+      root: "Data/"     # This tells where to download the dataset
+      args:
+        download: true
+  DATASET_ARGS:
+    label_name: mnist_digits
+
+
+SAVE:
+  MODEL_VERSION: 1              # We are only running v1 of this experiment
+  MODEL_CORE_NAME: mnist_resnet # The core name for this model
+  MODEL_BACKBONE: res18         # What backbone we are using here
+  MODEL_QUALIFIER: mnist        # Any other details we want to capture in the name
+  DRIVE_BACKUP: False           # Whether we are performing remote backup of the model
+  LOG_BACKUP: False             # Whether we are performing remote backup of the log files
+  SAVE_FREQUENCY: 5             # How often to save the model locally, and perform backups, if desired
+
+TRANSFORMATION:
+  BATCH_SIZE: 8                # The size of batches to provide to the model during training
+  WORKERS: 2                    # The number of workers to use during training
+  ARGS:                         # Additional args for this Generator (e.g. ednaml.generators.TorchvisionGeneratorWrapper)
+    i_shape: [28,28]
+    normalization_mean: 0.1307
+    normalization_std: 0.3081
+    normalization_scale: 0.5
+    random_erase: False
+    random_erase_value: 0.5
+    channels: 1
+
+TRAIN_TRANSFORMATION:           # Any replacements for the generator during training
+  ARGS:
+    h_flip: 0.5
+    t_crop: True
+
+TEST_TRANSFORMATION:            # Any replacements for the generator during testing
+  ARGS:
+    h_flip: 0
+
+MODEL:                              # These are model-specific details
+  BUILDER: ednaml_model_builder     # ednaml_model_builder is a basic model_builder that verifies model arguments make sense
+  MODEL_ARCH: ClassificationResnet  # The built-in architecture we are using
+  MODEL_BASE: resnet18              # The base we are using for the architecture. For example, ClassificationResnet accepts resnet18, resnet34, resnet50, etc
+  MODEL_KWARGS:
+    initial_channels: 1             # Since MNIST is black and white with 1 channel, we use the `initial_channels` parameter of ClassificationResnet to set this
+  
+LOSS:
+  - LOSSES: ['SoftmaxLogitsLoss']   # We use the basic softmax loss here
+    KWARGS: [{}]
+    LAMBDAS: [1.0]
+    NAME: digit_out                 # The name for this loss
+    LABEL: mnist_digits             # The label this loss is targeting. This MUST match the EXECUTION.DATAREADER.DATASET_ARGS["label_name"] above
+
+OPTIMIZER:
+  - OPTIMIZER: Adam                 # We use the standard Adam optimizer
+    OPTIMIZER_KWARGS: {}
+    BASE_LR: 1.0e-3
+    LR_BIAS_FACTOR: 1.0
+    WEIGHT_DECAY: 0.0005
+    WEIGHT_BIAS_FACTOR: 0.0005
+  
+SCHEDULER:
+  - LR_SCHEDULER: StepLR            # The basic optimizer scheduler to adynamically adjust learning rate
+    LR_KWARGS: 
+      step_size: 2
+      gamma: 0.1
+
+LOGGING:
+  STEP_VERBOSE: 100                 # How often to print intermediate results
+  INPUT_SIZE: [32, 1, 28, 28]       # The estimated shape of the input. 
