@@ -12,6 +12,7 @@ requires = [
         "sentencepiece>=0.1.96",
         "sortedcontainers>=2.4.0",
         "pyyaml>=6.0",
+        "torchmetrics>=0.8.2",
     ]
 
 
