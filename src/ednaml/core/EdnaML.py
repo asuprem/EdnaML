@@ -463,6 +463,7 @@ class EdnaML(EdnaMLBase):
                     self.storage[
                         self.cfg.STORAGE[storage_element].STORAGE_NAME
                     ] = storage_class_reference(
+                        logger=self.logger,
                         storage_name=self.cfg.STORAGE[storage_element].STORAGE_NAME,
                         storage_url=self.cfg.STORAGE[storage_element].STORAGE_URL,
                         experiment_key=self.experiment_key,

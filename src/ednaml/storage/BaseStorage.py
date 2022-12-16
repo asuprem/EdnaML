@@ -1,21 +1,25 @@
+from abc import ABC, abstractmethod
+import logging
 import os
 from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey
 
 
-class BaseStorage:
+class BaseStorage(ABC):
     storage_name: str
     storage_url: str
     experiment_key: ExperimentKey
+    logger: logging.Logger
 
     def __init__(
-        self, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs
+        self, logger: logging.Logger, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs
     ):
         self.storage_name = storage_name
         self.storage_url = storage_url
         self.experiment_key = experiment_key
-
+        self.logger = logger
         self.apply(self.storage_url, **storage_kwargs)
 
+    @abstractmethod
     def apply(self, storage_url: str, **kwargs):
         """Builds the internal state of the Storage module
 
@@ -27,6 +31,7 @@ class BaseStorage:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def download(
         self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False
     ) -> bool:
@@ -37,7 +42,7 @@ class BaseStorage:
             destination_file_name (str): Destination file name to save retrieved file in
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def upload(
         self, source_file_name: str, ers_key: ERSKey, canonical: bool = False
     ) -> bool:
@@ -48,7 +53,7 @@ class BaseStorage:
             file_struct (StorageNameStruct): The key for the file to upload
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def getLatestStorageKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
         """Get the latest StorageKey in this Storage, given ERSKey with provided ExperimentKey,
         RunKey, and Artifact. If there is no latest StorageKey, return an ERSKey with -1 for epoch and storage.
@@ -59,7 +64,7 @@ class BaseStorage:
             ers_key (ERSKey): _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def getMaximumRun(self, artifact: StorageArtifactType = None) -> int:
         """Returns the maximum run for this Storage with the current `self.experiment_key`.
 
@@ -79,7 +84,7 @@ class BaseStorage:
             int: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def getLatestStepOfArtifactWithEpoch(self, ers_key: ERSKey) -> ERSKey:
         """Returns the latest artifact's ERSKey created (using the step as the comparator)
         with the provided Epoch. If there is no artifact, return None.
@@ -91,7 +96,7 @@ class BaseStorage:
             ERSKey: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def getLatestEpochOfArtifact(self, ers_key: ERSKey) -> ERSKey:
         """Return the latest epoch of the given artifact in ERS key. If no models exist, return None
 
@@ -105,7 +110,7 @@ class BaseStorage:
             ERSKey: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def getKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
         """Returns the key if it exists in the Storage, else return None.
 
@@ -116,7 +121,7 @@ class BaseStorage:
             ERSKey: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def checkEpoch(self, ers_key: ERSKey) -> ERSKey:
         """Returns the key if the epoch exists in the Storage, else return None
 
@@ -127,7 +132,7 @@ class BaseStorage:
             ERSKey: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def checkStep(self, ers_key: ERSKey) -> ERSKey:
         """Returns the key if epoch AND step exists in the Storage, else return None
 
@@ -138,7 +143,7 @@ class BaseStorage:
             ERSKey: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def setTrackingRun(self, tracking_run: int) -> None:
         """Set the current run for this experiment.
 
@@ -149,14 +154,14 @@ class BaseStorage:
             NotImplementedError: _description_
         """
         raise NotImplementedError()
-
+    @abstractmethod
     def uploadConfig(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadConfig(
         self,
         ers_key: ERSKey,
@@ -168,14 +173,14 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-
+    @abstractmethod
     def uploadLog(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadLog(
         self,
         ers_key: ERSKey,
@@ -187,14 +192,14 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-
+    @abstractmethod
     def uploadModel(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadModel(
         self,
         ers_key: ERSKey,
@@ -206,14 +211,14 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-
+    @abstractmethod
     def uploadModelArtifact(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadModelArtifact(
         self,
         ers_key: ERSKey,
@@ -225,14 +230,14 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-
+    @abstractmethod
     def uploadModelPlugin(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadModelPlugin(
         self,
         ers_key: ERSKey,
@@ -244,14 +249,14 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-
+    @abstractmethod
     def uploadMetric(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-
+    @abstractmethod
     def downloadMetric(
         self,
         ers_key: ERSKey,
@@ -263,3 +268,7 @@ class BaseStorage:
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
+
+
+    def log(self, msg):
+        self.logger.info("[BaseStorage]" + msg)

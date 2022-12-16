@@ -1,0 +1,34 @@
+Maybe We need a RecordBackup that records what things have been saved, maybe. This will help tie together plugins and models across multiple storages...?
+
+
+NOPE!!!! All of this (above and below) can be handled with metrics
+Just need a comprehensive MetricsManager that probably permeates the entire pipeline
+    ConfigMetrics (SaveRecord: Canonical / ERS, i.e. whether it is saved at this point, with canonical or ers mode)
+    ModelMetrics e.g. TorchMetrics (Acc: 45, Loss: 933, etc); SaveRecord -- whether metrics as a whole were saved at a <erskey> in canonical or ers mode
+    ArtifactMetrics e.g. TorchMetrics (NumParams: 550, WeightsL2: 43, etc, etc)
+    LogMetrics (FlushSuccess: True, etc)
+    PluginMetrics (?, e.g. PluginName: FRL-Midas, PluginActivated: True)
+    CodeMetrics (?) (CodeQuality: 93, CodeLength: 556, etc)
+    ExtrasMetrics (?)
+    MetricMetrics (?????????)
+
+
+When we save: config
+    RecordBackup records a config has been saved:
+        <experiment key, run key, epoch, step, artifact, storage_name, storage_type (class), record_name>
+        <mnist, 1, simple, mnist, 1, 4, 600, config, local, LocalStorage, config>
+
+    Model:
+        <mnist, 1, simple, mnist, 1, 4, 600, model, local, LocalStorage, model>
+    
+    Log
+        <mnist, 1, simple, mnist, 1, 4, 600, log, logstorage, EmptyStorage, log>
+
+    Plugin
+        <mnist, 1, simple, mnist, 1, 4, 600, config, local, LocalStorage, config>
+    
+    
+    Metrics
+        <mnist, 1, simple, mnist, 1, 4, 600, metrics, metrics, MLFlowStorage, metrics>
+
+    

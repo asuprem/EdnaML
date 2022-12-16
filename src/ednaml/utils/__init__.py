@@ -15,6 +15,7 @@ class StorageArtifactType(enum.Enum):
     METRIC = "metric"
     ARTIFACT = "artifact"
     CODE = "code"
+    EXTRAS= "extras"
 
 
 class ExperimentKey:
@@ -54,6 +55,14 @@ class ExperimentKey:
 
     def __str__(self) -> str:
         return self.getExperimentName()
+
+    def todict(self):
+        return {
+            "model_core_name": self.model_core_name,
+            "model_version": self.model_version,
+            "model_backbone": self.model_backbone,
+            "model_qualifier": self.model_backbone,
+        }
 
 
 class RunKey:
