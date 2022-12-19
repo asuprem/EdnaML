@@ -8,6 +8,14 @@ EXECUTION:
 
 METRICS:                      # Defining metrics to be tracked. This needs to be made top-level
   MODEL_METRICS:
+    - METRIC_NAME: acc
+      METRIC_CLASS: Torchmetric_Accuracy
+      METRIC_ARGS:
+        task: 'multiclass'
+        num_classes: 10
+      METRIC_PARAMS: 
+        preds: preds
+        targets: targets  # basically, key is what the metric expects, value is what WILL be there, e.g. HFTrainer could have labels, not targets, so it would be targets: labels
     - METRIC_NAME: CustomAccuracyMetric
       METRIC_CLASS: TorchAccuracyMetric
       METRIC_TYPE: training.Accuracy

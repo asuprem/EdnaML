@@ -1,6 +1,6 @@
 import  logging, shutil
 from logging import Logger
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Type
 import torch
 from torch.utils.data import DataLoader
 from ednaml.core import EdnaMLContextInformation
@@ -13,6 +13,7 @@ from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType, StorageKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage import BaseStorage, StorageManager
 from ednaml.utils import locate_class
+from ednaml.metrics import BaseMetric
 
 
 
@@ -51,6 +52,7 @@ class BaseTrainer:
     saveFlag_localonly: bool
 
     current_ers_key: ERSKey
+    metrics: Dict[str, BaseMetric]
 
     def __init__(
         self,
@@ -131,7 +133,7 @@ class BaseTrainer:
         #     crawler=crawler.classes,
         #     config=json.loads(config.export("json")),
         # )
-        self.metrics = []
+        self.metrics = {}
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
         self.evaluateFlag = False
@@ -141,8 +143,34 @@ class BaseTrainer:
         self.init_metrics(self, **kwargs)
 
     def init_metrics(self, **kwargs):
+        """We initialize any MODEL_METRICS and ARTIFACT_METRICS here.
+
+        Each MODEL_METRICS and ARTIFACT_METRICS object contains four fields:
+        1. Metric name: this is the name of the metric. This can be used to distinguish multiple metrics that are functionally the same tool tracking different KPIs, such as accuracy on each output for a Multiclassification Model.
+        2. Metric class: This is used to instantiate the metric. It can be a built-in class, or a custom class
+        3. Metric type: potentially unneeded. 
+        4. Metric params: Parameters that the metrics needs. Not needed for everything.
+        5. Metric arguments: arguments to instantiate the metric
+        """
         
-        for metric_name, metric_config in self.config.METRICS.MODEL_METRICS: # Iterate over all metrics
+        for metric_option_config in self.config.METRICS.MODEL_METRICS: # Iterate over all metrics
+            # Identify the metric class
+            metric_class: Type[BaseMetric] = locate_class(
+                subpackage = "metrics",
+                classpackage=metric_option_config.METRIC_CLASS, # "TorchMetricAccuracy"
+                classfile = "model"
+            )
+            # Instantiate the metric
+            self.metrics[metric_option_config.METRIC_NAME] = metric_class(
+                metric_name = metric_option_config.METRIC_NAME,
+                metric_type = metric_option_config.METRIC_TYPE,
+            )
+            #APply the arguments
+            self.metrics[metric_option_config.METRIC_NAME].apply(metric_option_config.METRIC_ARGS, metric_option_config.METRIC_PARAMS)
+
+
+
+
             if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
                 metric_class = locate_class(
                     package='ednaml.metrics',

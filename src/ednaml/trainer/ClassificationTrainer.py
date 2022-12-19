@@ -10,10 +10,6 @@ from ednaml.trainer import BaseTrainer
 class ClassificationTrainer(BaseTrainer):
     def init_setup(self, **kwargs):
         self.softaccuracy = []
-        # Avinash entrypoint
-        # Initialize all metrics specified in config
-        
-        # Avinash entrypoint
 
     # Steps through a batch of data
     def step(self, batch):

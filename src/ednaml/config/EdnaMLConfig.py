@@ -16,6 +16,7 @@ from ednaml.config.ExecutionConfig import ExecutionConfig
 from ednaml.config.LoggingConfig import LoggingConfig
 from ednaml.config.LossConfig import LossConfig
 from ednaml.config.OptimizerConfig import OptimizerConfig
+from ednaml.config.MetricsConfig import MetricsConfig
 from ednaml.config.SaveConfig import SaveConfig
 from ednaml.config.SchedulerConfig import SchedulerConfig
 from ednaml.config.TransformationConfig import TransformationConfig
@@ -40,6 +41,7 @@ class EdnaMLConfig(BaseConfig):
     LOSS_SCHEDULER: List[SchedulerConfig]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
     STORAGE: Dict[str, StorageConfig]
+    METRCS: MetricsConfig
 
     extensions: List[str]
 
@@ -59,6 +61,7 @@ class EdnaMLConfig(BaseConfig):
             "LOSS",
             "OPTIMIZER",
             "SCHEDULER",
+            "METRICS",
             "LOSS_OPTIMIZER",
             "LOSS_SCHEDULER",
             "LOGGING",
@@ -140,6 +143,11 @@ class EdnaMLConfig(BaseConfig):
                 has_extension = self._has_extension_verifier(ydict, extension, {})
                 if has_extension or update_with_defaults:
                     self.SAVE = SaveConfig(ydict.get(extension, {}), defaults)
+                    added_extensions.append([extension])
+            elif extension == "METRICS":
+                has_extension = self._has_extension_verifier(ydict, extension, {})
+                if has_extension or update_with_defaults:
+                    self.METRICS = MetricsConfig(ydict.get(extension, {}), defaults)
                     added_extensions.append([extension])
             elif extension == "DATAREADER":
                 has_extension = self._has_extension_verifier(ydict, extension, {})

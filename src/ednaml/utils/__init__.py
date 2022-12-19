@@ -167,7 +167,10 @@ def locate_class(
 ):
     """Locate an object by name or dotted path, importing as necessary."""
     if classpackage is None:
-        parts = package.split(".") + [subpackage]
+        if subpackage is not None:
+            parts = package.split(".") + [subpackage]
+        else:
+            parts = package.split(".")
     else:
         if classfile is None:
             parts = package.split(".") + [subpackage, classpackage]
