@@ -36,7 +36,7 @@ class BaseMetric(ABC):
     metric_name: str                    # Name for metric (unique across all metrics in workspace)
     metric_type: StorageArtifactType    # Type for metric, e.g. MODEL, CONFIG, LOG, etc...
     state: Dict[str, Any]               # The state parameters for this metric, for use in saving metric state. Unused for now.
-    memory: List[Tuple(int, int, float)]                 # Temporary memory for recent metric computations, for batching metric uploads. Useful if not saving itself.
+    memory: List[Tuple[int, int, float]]                 # Temporary memory for recent metric computations, for batching metric uploads. Useful if not saving itself.
     params_dict: Dict[str,str]          # Dictionary of key-value pairs. Key are arguments for _compute_metric, and values are corresponding keys in respective params
     metric_storage: BaseStorage         # If provided, metric will save to this storage
     to_serialize: bool                  # Whether to serialize into a list of tuples [()], or save to file
@@ -158,7 +158,7 @@ class BaseMetric(ABC):
         return success
 
     @abstractmethod
-    def _get_required_params(self, params: Dict[str, Any]) -> dict[str, Any]:
+    def _get_required_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Obtain the subset of required parameters from the `params` dictionary provided by the metrics caller.
 
         Required parameters are provided in the METRIC_PARAMS key in the metric's configuration.

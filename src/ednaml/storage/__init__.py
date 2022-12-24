@@ -10,6 +10,7 @@ from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey,
 if TYPE_CHECKING:
     from ednaml.config.EdnaMLConfig import EdnaMLConfig
 
+
 class StorageManager:
     """StorageManager is a helper class for storage-related tasks in EdnaML
 
@@ -28,7 +29,7 @@ class StorageManager:
     storage_trigger_strict: bool
     storage_mode: str
     backup_mode: str
-    cfg: EdnaMLConfig
+    cfg: 'EdnaMLConfig'
     run_key: RunKey
     latest_storage_key: StorageKey
     local_save_directory: str
@@ -40,7 +41,7 @@ class StorageManager:
     def __init__(
         self,
         logger: logging.Logger,
-        cfg: EdnaMLConfig,
+        cfg: 'EdnaMLConfig',
         experiment_key: ExperimentKey,
         storage_trigger_mode: str = "loose",  # Literal["loose", "strict"]                # Trigger mode determines how often we check whether we should upload
         storage_manager_mode: str = "loose",  # Literal["loose", "strict", "download_only"]                # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
