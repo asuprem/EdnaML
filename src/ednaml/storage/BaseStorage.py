@@ -94,7 +94,7 @@ class BaseStorage(ABC):
         """
         raise NotImplementedError()
 
-        
+    @abstractmethod
     def upload_impl(self, source_file_name: str, ers_key: ERSKey, canonical: bool = False) -> bool:
         """Users should implement this.
 
@@ -216,14 +216,14 @@ class BaseStorage(ABC):
 
 
     #------------------------------------------------------------------------------------------
-    @abstractmethod
+
     def uploadConfig(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadConfig(
         self,
         ers_key: ERSKey,
@@ -235,14 +235,14 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
+
     def uploadLog(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadLog(
         self,
         ers_key: ERSKey,
@@ -254,14 +254,14 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
+
     def uploadModel(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadModel(
         self,
         ers_key: ERSKey,
@@ -273,14 +273,14 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
+
     def uploadModelArtifact(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadModelArtifact(
         self,
         ers_key: ERSKey,
@@ -292,14 +292,14 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
+
     def uploadModelPlugin(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadModelPlugin(
         self,
         ers_key: ERSKey,
@@ -311,14 +311,14 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
+
     def uploadMetric(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadMetric(
         self,
         ers_key: ERSKey,
@@ -331,14 +331,14 @@ class BaseStorage(ABC):
             canonical=canonical,
         )
 
-    @abstractmethod
+
     def uploadCode(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadCode(
         self,
         ers_key: ERSKey,
@@ -352,14 +352,13 @@ class BaseStorage(ABC):
         )
 
 
-    @abstractmethod
     def uploadExtras(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
+
     def downloadExtras(
         self,
         ers_key: ERSKey,
