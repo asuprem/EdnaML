@@ -385,6 +385,7 @@ class EdnaML(EdnaMLBase):
         # First, we instantiate all metrics
         # Internally, MM also records whether MM will save a Metric, whether it will track a specific Storage, or whether it will save itself
         # Finally, we create an AdHocMetric. This is useful to track any random thing we want to also track. (metric-type is adhoc)
+        self.log("Building Metrics Manager")
         self.metricsManager = MetricsManager(
             metrics_config=self.cfg.METRICS,
             logger=self.logger,

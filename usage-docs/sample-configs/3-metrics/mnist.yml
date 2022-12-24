@@ -53,31 +53,38 @@ DATAREADER:
 SAVE:
   MODEL_VERSION: 1              # We are only running v1 of this experiment
   MODEL_CORE_NAME: mnist_resnet # The core name for this model
-  MODEL_BACKBONE: res18         # What backbone we are using here
+  MODEL_BACKBONE: simple         # What backbone we are using here
   MODEL_QUALIFIER: mnist        # Any other details we want to capture in the name
-  DRIVE_BACKUP: False           # Whether we are performing remote backup of the model
-  LOG_BACKUP: False             # Whether we are performing remote backup of the log files
-  SAVE_FREQUENCY: 5             # How often to save the model locally, and perform backups, if desired
+  SAVE_FREQUENCY: 1
+  STEP_SAVE_FREQUENCY: 400         # How often to save the model locally, and perform backups, if desired
 
 TRANSFORMATION:
-  BATCH_SIZE: 8                # The size of batches to provide to the model during training
+  BATCH_SIZE: 32                # The size of batches to provide to the model during training
   WORKERS: 2                    # The number of workers to use during training
   ARGS:                         # Additional args for this Generator (e.g. ednaml.generators.TorchvisionGeneratorWrapper)
     i_shape: [28,28]
     normalization_mean: 0.1307
     normalization_std: 0.3081
     normalization_scale: 0.5
-    random_erase: False
-    random_erase_value: 0.5
     channels: 1
 
 TRAIN_TRANSFORMATION:           # Any replacements for the generator during training
   ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.1307
+    normalization_std: 0.3081
+    normalization_scale: 0.5
+    channels: 1
     h_flip: 0.5
     t_crop: True
 
 TEST_TRANSFORMATION:            # Any replacements for the generator during testing
   ARGS:
+    i_shape: [28,28]
+    normalization_mean: 0.1307
+    normalization_std: 0.3081
+    normalization_scale: 0.5
+    channels: 1
     h_flip: 0
 
 MODEL:                              # These are model-specific details

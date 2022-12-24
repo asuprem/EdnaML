@@ -972,8 +972,8 @@ class BaseTrainer:
         #         self.set_save_flag()
         #     else:
         #         self.save()
-        self.updateStepMetrics()
-        self.updateBatchMetrics()
+        self.updateStepMetrics(self.global_epoch, self.global_batch)
+        self.updateBatchMetrics(self.global_epoch, self.global_batch)
         self.logger.info(
             "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
         )
@@ -1075,7 +1075,7 @@ class BaseTrainer:
 
         self.logger.info(
             "Epoch{0}.{1} Completed. Metrics: {metrics}".format(
-                self.global_epoch, self.global_batch, print_metrics
+                self.global_epoch, self.global_batch, metrics = print_metrics
             ))
 
     def evaluate(self, save_log = False):

@@ -85,7 +85,7 @@ class MetricsManager:
                 )
                 #Apply the arguments
                 self.metrics[metric_option_config.METRIC_NAME].apply(metric_option_config.METRIC_ARGS, metric_option_config.METRIC_PARAMS)
-
+                self.log("Added metric %s with class %s"%(metric_option_config.METRIC_NAME, metric_option_config.METRIC_CLASS))
                 if self.metrics[metric_option_config.METRIC_NAME].will_save_itself:
                     self.will_save_itself.append(metric_option_config.METRIC_NAME)
                 else:

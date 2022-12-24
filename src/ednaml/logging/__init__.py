@@ -177,10 +177,10 @@ class LogManager:
         self.logger.warning(msg=msg, *args, **kwargs)    
         self.warn_logs+=1
     def info(self, msg, *args, **kwargs):
-        self.logger.critical(msg=msg, *args, **kwargs)
+        self.logger.info(msg=msg, *args, **kwargs)
         self.info_logs+=1
     def debug(self, msg, *args, **kwargs):
-        self.logger.critical(msg=msg, *args, **kwargs)
+        self.logger.debug(msg=msg, *args, **kwargs)
         self.debug_logs+=1
     
 
