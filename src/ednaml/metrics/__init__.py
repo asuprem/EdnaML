@@ -75,7 +75,6 @@ class MetricsManager:
                 metric_class: Type[BaseMetric] = locate_class(
                     subpackage = "metrics",
                     classpackage=metric_option_config.METRIC_CLASS, # "TorchMetricAccuracy"
-                    classfile = "model"
                 )
                 # Instantiate the metric
                 self.metrics[metric_option_config.METRIC_NAME] = metric_class(
