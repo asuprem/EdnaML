@@ -1,0 +1,13 @@
+STORAGE:
+  - STORAGE_NAME: local_backup
+    STORAGE_CLASS: LocalStorage
+    STORAGE_URL: ./backup
+    STORAGE_ARGS: {}
+
+
+SAVE:
+  BACKUP: 
+    BACKUP: True
+    STORAGE_NAME: local_backup
+    FREQUENCY: 1
+

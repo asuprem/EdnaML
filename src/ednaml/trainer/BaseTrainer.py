@@ -484,7 +484,7 @@ class BaseTrainer:
         if local_metrics_file != storage_metrics_file:
             self.logger.info(
                 "Transferring compatible Metrics file at {metricspath} to StorageManager path at {stpath}".format(
-                    logpath=local_metrics_file, stpath=storage_metrics_file
+                    metricspath=local_metrics_file, stpath=storage_metrics_file
                 )
             )
             shutil.copy2(local_metrics_file, storage_metrics_file)
