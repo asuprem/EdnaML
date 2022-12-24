@@ -104,7 +104,7 @@ class MetricsManager:
             self.storage_groups[self.will_need_storage[metric_name]].append(metric_name)
 
 
-        self.ad_hoc_metric = AdHocMetric(metric_name="reserved-adhoc-metric", metric_type="reserved-type")
+        self.ad_hoc_metric = AdHocMetric(metric_name="reserved-adhoc-metric", metric_type="reserved-type", metric_trigger = "other")
         self.ad_hoc_metric.apply(metric_kwargs={}, metric_params={
             "metric_name":"metric_name",
             "metric_val":"metric_val",
@@ -150,8 +150,8 @@ class MetricsManager:
     # So, in our custom trainer, without dealing with all the brouhaha, we can manually compute the attention-l2, then
     # self.log_metric("attention_l2", val)
     # In turn, log_metric in trainer calls MM.logMetric(attention_l2, self.global_epocj, self.global_batch, val, LOG)
-    def log_metric(self, metric_name, epoch, step, value, metric_class = "model"):
-        self.ad_hoc_metric.update(epoch=epoch, step=step,params={"metric_name":metric_name, "metric_type": "adhoc", "metric_val": value, "metric_class":metric_class})
+    def log_metric(self, metric_name, epoch, step, value, metric_type = "model"):
+        self.ad_hoc_metric.update(epoch=epoch, step=step,params={"metric_name":metric_name, "metric_type": metric_type, "metric_val": value, "metric_class":"adhoc"})
 
 
     def getLogMetrics(self) -> List[BaseMetric]:
@@ -189,7 +189,7 @@ class MetricsManager:
                 elif metric.metric_trigger == "batch":
                     self.batch_metrics.append(metric.metric_name)
                 else:
-                    raise ValueError("metric_trigger %s is not supported"%metric.metric_trigger)
+                    self.logger.info("metric_trigger %s is not supported. Assuming this is AdHoc metric."%metric.metric_trigger)
             self.metrics_enable = True
         else:
             self.metrics_enable = False

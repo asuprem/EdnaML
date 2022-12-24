@@ -40,7 +40,7 @@ class BaseMetric(ABC):
     params_dict: Dict[str,str]          # Dictionary of key-value pairs. Key are arguments for _compute_metric, and values are corresponding keys in respective params
     metric_storage: BaseStorage         # If provided, metric will save to this storage
     to_serialize: bool                  # Whether to serialize into a list of tuples [()], or save to file
-    trigger: str                        # How often to trigger the metric, from METRIC_TRIGER. `once`, `always`
+    metric_trigger: str                        # How often to trigger the metric, from METRIC_TRIGER. `once`, `always`
 
     # Note: serialization format:   [(metric_name, metric_type, metric_class, epoch, step, metric_value)]. This is combined with ers-key in the storage.
 

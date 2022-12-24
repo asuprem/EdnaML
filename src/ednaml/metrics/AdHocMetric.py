@@ -15,6 +15,7 @@ class AdHocMetric(BaseMetric):
         self.memory.append(
             (params["metric_name"], params["metric_type"], params["metric_class"], epoch, step, params["metric_val"])
         )
+        # e.g. (loss, model, adhoc, 4, 100, 0.4)
 
         return True
 
