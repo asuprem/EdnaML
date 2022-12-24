@@ -120,6 +120,7 @@ class StorageManager:
 
         if self.storage_mode == "local":
             self.local_storage = LocalStorage(
+                logger=self.logger,
                 experiment_key=self.experiment_key,
                 storage_name="ednaml-local-storage-reserved",
                 storage_url="./",

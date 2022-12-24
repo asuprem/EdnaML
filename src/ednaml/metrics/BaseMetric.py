@@ -117,7 +117,6 @@ class BaseMetric(ABC):
         """
         self.params_dict = self._add_params(metric_params)
 
-    @abstractmethod
     def _add_params(self, metric_params: Dict[str, str]) -> Dict[str, str]:
         """Internal method to add params. Override for custom _add_params.
 
@@ -157,7 +156,6 @@ class BaseMetric(ABC):
         success = self._add_value(epoch, step, response)
         return success
 
-    @abstractmethod
     def _get_required_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Obtain the subset of required parameters from the `params` dictionary provided by the metrics caller.
 
@@ -188,8 +186,7 @@ class BaseMetric(ABC):
             float: The compute metric value.
         """
         raise NotImplementedError()
-
-    @abstractmethod
+    
     def _add_value(self, epoch: int, step: int, metric_value: float) -> bool:
         """Add the provided metric value at the provided epoch-step pair into memory. 
 
@@ -211,11 +208,9 @@ class BaseMetric(ABC):
         self._clear_state()
         self._clear_memory()
     
-    @abstractmethod
     def _clear_state(self, **kwargs):
         self.state = {}
 
-    @abstractmethod
     def _clear_memory(self, **kwargs):
         self.memory = []
 
@@ -290,17 +285,14 @@ class BaseMetric(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def backup(self, **kwargs):
         """Perform backup/sync to cloud."""
         raise NotImplementedError
 
-    @abstractmethod
     def _LocalMetricSave(self, **kwargs):
         """Save computation results locally."""
         raise NotImplementedError
 
-    @abstractmethod
     def _RemoteMetricSave(self, **kwargs):
         """Save computation results to remote location specified in config YAML."""
         raise NotImplementedError

@@ -1,5 +1,5 @@
 
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, List
 from ednaml.metrics import BaseMetric
 
 
@@ -17,6 +17,25 @@ class AdHocMetric(BaseMetric):
         )
 
         return True
+
+    def _compute_metric(self, epoch: int, step: int, **kwargs) -> float:
+        return super()._compute_metric(epoch, step, **kwargs)
+
+
+    def _serialize_to_string(self, delimiter=",", **kwargs) -> Tuple[bool, Any]:
+        nstr = []
+        for saved_entry in self.memory:
+            nstr.append(
+                ",".join(saved_entry) + "\n"
+            )
+
+
+    def _serialize(self, **kwargs) -> Tuple[bool, List[Tuple[str, str, str, int, int, float]]]:
+        return self.memory
+
+
+    def _clear_state(self, **kwargs):
+        pass
 
     # TODO need to implement serialization code as well...
 

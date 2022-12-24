@@ -531,6 +531,7 @@ class EdnaML(EdnaMLBase):
             )
         self.debug("Building `reserved-empty-storage` as fallback option")
         self.storage["reserved-empty-storage"] = EmptyStorage(
+            logger = self.logger,
             experiment_key=self.experiment_key,
             storage_name="reserved-empty-storage",
             storage_url="./",
@@ -654,6 +655,7 @@ class EdnaML(EdnaMLBase):
         self.logManager.updateERSKey(
             ers_key=ers_key,
             file_name=self.storageManager.getLocalSavePath(ers_key=ers_key),
+            storage_manager = self.storageManager
         )
 
     def setLatestStorageKey(self):

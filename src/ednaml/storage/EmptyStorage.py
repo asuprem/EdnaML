@@ -16,12 +16,12 @@ class EmptyStorage(BaseStorage):
     def canonical_path_of_artifact(self, *args, **kwargs):
         return ""
 
-    def download(
+    def download_impl(
         self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False
     ) -> bool:
         return False
 
-    def upload(
+    def upload_impl(
         self, source_file_name: str, ers_key: ERSKey, canonical: bool = False
     ) -> bool:
         return False
