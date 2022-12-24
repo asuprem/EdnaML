@@ -28,7 +28,7 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
     - METRIC_NAME: avgloss
       METRIC_CLASS: BaseTorchMetric
       METRIC_ARGS:
-        metric_class: Mean
+        metric_class: MeanMetric
         aggregate: 100
         metric_kwargs:
           warn_strategy: ignore

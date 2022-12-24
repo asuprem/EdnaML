@@ -24,7 +24,7 @@ class BaseTorchMetric(BaseMetric):
     def update(self, epoch: int, step: int, params: Dict[str, Any]) -> bool:
         required_params = self._get_required_params(params=params)
         response = self._compute_metric(epoch, step, **required_params)
-        if self.aggregate:
+        if not self.aggregate:
             success = self._add_value(epoch, step, self._metric.compute())
         else:
             success = True
