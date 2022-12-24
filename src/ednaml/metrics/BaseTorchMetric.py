@@ -28,7 +28,7 @@ class BaseTorchMetric(BaseMetric):
             success = self._add_value(epoch, step, self._metric.compute())
         else:
             success = True
-            if (step+1)%self.aggregate == 0:    # deals with potential zero step...
+            if step%self.aggregate == 0: 
                 success = self._add_value(epoch, step, self._metric.compute())
                 self._metric.reset()
         return success
@@ -36,7 +36,8 @@ class BaseTorchMetric(BaseMetric):
     def _compute_metric(self, epoch: int, step: int, **kwargs) -> float:
         return self._metric(**kwargs)
 
-
+    def getLastVal(self):
+        return "%.3f"%self.last_val
 
 
     # TODO: finish the metric compute

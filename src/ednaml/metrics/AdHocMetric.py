@@ -9,7 +9,7 @@ class AdHocMetric(BaseMetric):
         pass
 
     def post_init_val(self, **kwargs):
-        pass
+        return (True, "")
 
     def update(self, epoch: int, step: int, params: Dict[str, Any]) -> bool:
         self.memory.append(

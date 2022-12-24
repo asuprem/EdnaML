@@ -171,7 +171,6 @@ class BaseTrainer:
         self.edna_context = context
         
         self.init_setup(**kwargs)
-        self.init_metrics(self, **kwargs)
 
 
     def addModelMetrics(self, metrics_list: List[BaseMetric], epoch, step):
@@ -1069,23 +1068,15 @@ class BaseTrainer:
         self.zeroGradLossOptimizers()
 
     def printStepInformation(self):
-        loss_avg = 0.0
-        for lossname in self.losses:
-            loss_avg += (
-                sum(self.losses[lossname][-self.step_verbose :]) / self.step_verbose
-            )
-        loss_avg /= self.num_losses
-        if len(self.softaccuracy[-100:]) > 0:
-            soft_avg = sum(self.softaccuracy[-100:]) / float(
-                len(self.softaccuracy[-100:])
-            )
-        else:
-            soft_avg = 0
+        
+        
+        print_metrics = "\t".join(["{mname}:  {mval}".format(mname=metric_name, mval=self.metrics_manager.metrics[metric_name].getLastVal()) for metric_name in self.config.LOGGING.PRINT_METRICS])
+
+
         self.logger.info(
-            "Epoch{0}.{1}\tTotal Avg Loss: {2:.3f} Softmax: {3:.3f}".format(
-                self.global_epoch, self.global_batch, loss_avg, soft_avg
+            "Epoch{0}.{1} Completed. Metrics: {metrics}".format(
+                self.global_epoch, self.global_batch, print_metrics
             )
-        )
 
     def evaluate(self, save_log = False):
         self.model.eval()

@@ -152,3 +152,4 @@ class ConfigDefaults(BaseConfig):
 
         self.LOG_MANAGER = "FileLogManager"
         self.LOG_MANAGER_KWARGS = {}
+        self.PRINT_METRICS = []

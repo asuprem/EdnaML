@@ -41,6 +41,7 @@ class BaseMetric(ABC):
     metric_storage: BaseStorage         # If provided, metric will save to this storage
     to_serialize: bool                  # Whether to serialize into a list of tuples [()], or save to file
     metric_trigger: str                        # How often to trigger the metric, from METRIC_TRIGER. `once`, `always`
+    last_val: float
 
     # Note: serialization format:   [(metric_name, metric_type, metric_class, epoch, step, metric_value)]. This is combined with ers-key in the storage.
 
@@ -53,6 +54,7 @@ class BaseMetric(ABC):
         self.params_dict = {}
         self.metric_trigger = metric_trigger
         self.metric_class = self.__class__.__name__
+        self.last_val = 0.0
         self.clear()
 
         # This is for forward compatibility for when we enable fine-grained storage
@@ -201,7 +203,11 @@ class BaseMetric(ABC):
             bool: Success in adding the value. 
         """
         self.memory.append((epoch, step, metric_value))
+        self.last_val = metric_value
         return True
+
+    def getLastVal(self):
+        return "%.3f"%self.last_val
 
     def clear(self, **kwargs):
         """Clear/reset object computation memory as well as state."""
