@@ -197,6 +197,39 @@ def locate_class(
     return object
 
 
+# def locate_class(
+#     package="ednaml",
+#     subpackage="core",
+#     classpackage=None,
+#     classfile=None,
+#     forceload=0,
+# ):
+#     """Locate an object by name or dotted path, importing as necessary."""
+#     if classpackage is None:
+#         parts = package.split(".") + [subpackage]
+#     else:
+#         if classfile is None:
+#             parts = package.split(".") + [subpackage, classpackage]
+#         else:
+#             parts = package.split(".") + [subpackage, classfile, classpackage]
+#     module, nval = None, 0
+#     while nval < len(parts):
+#         nextmodule = safeimport(".".join(parts[: nval + 1]), forceload)
+#         if nextmodule:
+#             module, nval = nextmodule, nval + 1
+#         else:
+#             break
+#     if module:
+#         object = module
+#     else:
+#         object = builtins
+#     for part in parts[nval:]:
+#         try:
+#             object = getattr(object, part)
+#         except AttributeError:
+#             return None
+#     return object
+
 def safeimport(path, forceload=0, cache={}):
     """Import a module; handle errors; return None if the module isn't found.
     If the module *is* found but an exception occurs, it's wrapped in an
