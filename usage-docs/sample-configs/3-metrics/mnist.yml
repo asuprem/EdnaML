@@ -15,7 +15,7 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
     - METRIC_NAME: avgacc
       METRIC_CLASS: BaseTorchMetric
       METRIC_ARGS:
-        metric_name: Accuracy
+        metric_class: Accuracy
         aggregate: 100
         metric_kwargs:
           task: 'multiclass'
@@ -28,7 +28,7 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
     - METRIC_NAME: avgloss
       METRIC_CLASS: BaseTorchMetric
       METRIC_ARGS:
-        metric_name: Mean
+        metric_class: Mean
         aggregate: 100
         metric_kwargs:
           warn_strategy: ignore

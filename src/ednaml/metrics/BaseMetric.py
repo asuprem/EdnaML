@@ -55,7 +55,6 @@ class BaseMetric(ABC):
         self.metric_trigger = metric_trigger
         self.metric_class = self.__class__.__name__
         self.last_val = 0.0
-        self.clear()
 
         # This is for forward compatibility for when we enable fine-grained storage
         self.metric_storage = None

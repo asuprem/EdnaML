@@ -16,7 +16,7 @@ class BaseTorchMetric(BaseMetric):
         self._metric = metric_class(**metric_kwargs)
         self.metric_class = "TorchMetric"+self.metric_class
 
-    def post_init_val(self):
+    def post_init_val(self, **kwargs):
         pass # TODO???
         return (True, "")
 
