@@ -986,59 +986,42 @@ class BaseTrainer:
     # we save model; we just save it in the artifact location, rather than the model location
     def check_step_save(self, step):
         # MODEL and MODEL_ARTIFACTS
-        local_model_save = self.storage_manager.getSaveTriggerForStep(step=step)
+        local_save = self.storage_manager.getSaveTriggerForStep(step=step)
         model_upload = self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.MODEL)
-        if local_model_save or model_upload:
+        if local_save or model_upload:
             # For gradient accumulation
             if model_upload:
                 self.set_save_flag(epoch=self.global_epoch, step=step, local_only = False)
             else:
                 self.set_save_flag(epoch=self.global_epoch, step=step, local_only = True)
 
-        if self.storage_manager.getUploadTriggerForStep(
-            step, StorageArtifactType.PLUGIN
-        ):
-            self.save(artifact=StorageArtifactType.PLUGIN, save_step=step)
-        if self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG):
-            self.save(artifact=StorageArtifactType.LOG, save_step=step)
-        if self.storage_manager.getUploadTriggerForStep(
-            step, StorageArtifactType.METRIC
-        ):
-            self.save(artifact=StorageArtifactType.METRIC, save_step=step)
-        if self.storage_manager.getUploadTriggerForStep(
-            step, StorageArtifactType.CONFIG
-        ):
-            self.save(artifact=StorageArtifactType.CONFIG, save_step=step)
+        if local_save:
+            self.save(artifact=StorageArtifactType.PLUGIN, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.PLUGIN))
+            self.save(artifact=StorageArtifactType.LOG, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG))
+            self.save(artifact=StorageArtifactType.METRIC, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.METRIC))
+            self.save(artifact=StorageArtifactType.CONFIG, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.CONFIG))
+
 
     def check_epoch_save(self, epoch):  # TODO off by one errors
         self.logger.debug("Checking epoch save status at Epoch %i" % epoch)
         
         # MODEL and MODEL_ARTIFACTS
-        local_model_save = self.storage_manager.getSaveTriggerForEpoch(epoch=epoch)
+        local_save = self.storage_manager.getSaveTriggerForEpoch(epoch=epoch)
         model_upload = self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.MODEL)
-        if local_model_save or model_upload:
+        if local_save or model_upload:
             # For gradient accumulation
             if model_upload:
                 self.set_save_flag(epoch=epoch, step=self.global_batch, local_only = False)
             else:
                 self.set_save_flag(epoch=epoch, step=self.global_batch, local_only = True)
         
-        if self.storage_manager.getUploadTriggerForEpoch(
-            epoch, StorageArtifactType.PLUGIN
-        ):
-            self.save(artifact=StorageArtifactType.PLUGIN, save_epoch=epoch)
-        if self.storage_manager.getUploadTriggerForEpoch(
-            epoch, StorageArtifactType.LOG
-        ):
-            self.save(artifact=StorageArtifactType.LOG, save_epoch=epoch)
-        if self.storage_manager.getUploadTriggerForEpoch(
-            epoch, StorageArtifactType.METRIC
-        ):
-            self.save(artifact=StorageArtifactType.METRIC, save_epoch=epoch)
-        if self.storage_manager.getUploadTriggerForStep(
-            epoch, StorageArtifactType.CONFIG
-        ):
-            self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch)
+
+        if local_save:
+            self.save(artifact=StorageArtifactType.PLUGIN, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.PLUGIN))
+            self.save(artifact=StorageArtifactType.LOG, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.LOG))
+            self.save(artifact=StorageArtifactType.METRIC, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.METRIC))
+            self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.CONFIG))
+
 
     def set_save_flag(self, epoch, step, local_only = False):
         self.saveFlag = True

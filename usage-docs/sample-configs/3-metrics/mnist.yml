@@ -22,7 +22,7 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
           num_classes: 10
       METRIC_PARAMS: 
         preds: logits
-        targets: labels  # basically, key is what the metric expects, value is what WILL be there, e.g. HFTrainer could have labels, not targets, so it would be targets: labels
+        target: labels  # basically, key is what the metric expects, value is what WILL be there, e.g. HFTrainer could have labels, not targets, so it would be targets: labels
       METRIC_TRIGGER: step
       METRIC_STORAGE: null
     - METRIC_NAME: avgloss
@@ -32,6 +32,8 @@ METRICS:                      # Defining metrics to be tracked. This needs to be
         aggregate: 100
         metric_kwargs:
           warn_strategy: ignore
+      METRIC_PARAMS: 
+        value: loss
       METRIC_TRIGGER: step
       METRIC_STORAGE: null
     

@@ -47,7 +47,7 @@ class StorageManager:
         storage_manager_mode: str = "loose",  # Literal["loose", "strict", "download_only"]                # Manager mode determines whether StorageManager will check performBackup before downloading or uploading
         storage_mode: str = "local",  # Literal["local", "empty"]                # Whether to save locally or not
         backup_mode: str = "hybrid",
-        backup_mode_canonical: List[str] = []
+        backup_mode_canonical: List[str] = ["log", "config", "plugin", "metric", "code"]
     ):  # Literal["canonical", "ers", "hybrid", "custom"],
         """_summary_
 
