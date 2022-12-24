@@ -232,7 +232,7 @@ class EdnaML(EdnaMLBase):
         self._storageInstanceQueue = None
         self._storageClassQueue = None
 
-    def resetQueues(self):
+    def resetQueues(self, **kwargs):
         """Resets the `apply()` queue"""
         self.debug("Resetting declarative queues.")
         for queue_function in self.resetQueueArray:

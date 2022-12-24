@@ -29,7 +29,7 @@ class ClassificationTrainer(BaseTrainer):
         loss = {loss_name: None for loss_name in self.loss_fn}
         for lossname in self.loss_fn:
             loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
-            self.model_params["loss"+"lossname"] = loss[lossname].cpu().tem()
+            self.model_params["loss"+"lossname"] = loss[lossname].cpu().item()
         # if self.fp16 and self.apex is not None:
         #    with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
         #        scaled_loss.backward()

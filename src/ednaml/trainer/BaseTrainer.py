@@ -938,9 +938,9 @@ class BaseTrainer:
                 if (self.global_batch + 1) % self.step_verbose == 0:
                     self.check_step_save(self.global_batch + 1)
 
-            self.updateStepMetrics()
+            self.updateStepMetrics(self.global_epoch, self.global_batch)
             if (self.global_batch + 1)%self.step_verbose == 0:
-                self.updateBatchMetrics()
+                self.updateBatchMetrics(self.global_epoch, self.global_batch)
 
 
             if (self.global_batch + 1) % self.step_verbose == 0:
@@ -1076,7 +1076,7 @@ class BaseTrainer:
         self.logger.info(
             "Epoch{0}.{1} Completed. Metrics: {metrics}".format(
                 self.global_epoch, self.global_batch, print_metrics
-            )
+            ))
 
     def evaluate(self, save_log = False):
         self.model.eval()
