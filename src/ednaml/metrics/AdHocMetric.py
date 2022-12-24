@@ -27,8 +27,9 @@ class AdHocMetric(BaseMetric):
         nstr = []
         for saved_entry in self.memory:
             nstr.append(
-                ",".join(saved_entry) + "\n"
+                delimiter.join(saved_entry) + "\n"
             )
+        return (True, "".join(nstr))
 
 
     def _serialize(self, **kwargs) -> Tuple[bool, List[Tuple[str, str, str, int, int, float]]]:

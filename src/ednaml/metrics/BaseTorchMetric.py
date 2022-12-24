@@ -64,12 +64,13 @@ class BaseTorchMetric(BaseMetric):
         nstr = []
         for saved_entry in self.memory:
             nstr.append(
-                ",".join([self.metric_name, self.metric_type.value, self.metric_class, str(saved_entry[0]), str(saved_entry[1]), str(saved_entry[2])]) + "\n"
+                delimiter.join([self.metric_name, self.metric_type.value, self.metric_class, str(saved_entry[0]), str(saved_entry[1]), str(saved_entry[2])]) + "\n"
             )
+        return (True, "".join(nstr))
 
 
     def _serialize(self, **kwargs) -> Tuple[bool, List[Tuple[str, str, str, int, int, float]]]:
-        return [(self.metric_name, self.metric_type.value, self.metric_class, saved_entry[0], saved_entry[1], saved_entry[2]) for saved_entry in self.memory]
+        return (True, [(self.metric_name, self.metric_type.value, self.metric_class, saved_entry[0], saved_entry[1], saved_entry[2]) for saved_entry in self.memory])
 
 
     def _clear_state(self, **kwargs):
