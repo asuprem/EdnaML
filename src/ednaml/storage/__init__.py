@@ -785,7 +785,7 @@ class StorageManager:
         self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None
     ) -> None:
         """Check local storage as well as remote storage(s), if backup is performed on a remote storage, for the latest epoch-step pair when something was saved.
-
+        
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
             artifact (StorageArtifactType, optional): _description_. Defaults to None.

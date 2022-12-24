@@ -21,10 +21,15 @@ class ClassificationTrainer(BaseTrainer):
         # logits, features, labels
         batch_kwargs["logits"], batch_kwargs["features"], _ = self.model(img)
         batch_kwargs["epoch"] = self.global_epoch  # For CompactContrastiveLoss
-
+        self.model_params["logits"] = batch_kwargs["logits"]
+        self.model_params["features"] = batch_kwargs["features"]
+        self.model_params["epoch"] = batch_kwargs["epoch"]
+        self.model_params["step"] = self.global_batch
+        self.model_params["labels"] = batch_kwargs["labels"]
         loss = {loss_name: None for loss_name in self.loss_fn}
         for lossname in self.loss_fn:
             loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
+            self.model_params["loss"+"lossname"] = loss[lossname].cpu().tem()
         # if self.fp16 and self.apex is not None:
         #    with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
         #        scaled_loss.backward()
@@ -35,25 +40,25 @@ class ClassificationTrainer(BaseTrainer):
         for _, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
 
-        if batch_kwargs["logits"] is not None:
-            softmax_accuracy = (
-                (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"])
-                .float()
-                .mean()
-            )
-            self.softaccuracy.append(softmax_accuracy.cpu().item())
-        else:
-            self.softaccuracy.append(0)
+        # if batch_kwargs["logits"] is not None:
+        #     softmax_accuracy = (
+        #         (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"])
+        #         .float()
+        #         .mean()
+        #     )
+        #     self.softaccuracy.append(softmax_accuracy.cpu().item())
+        # else:
+        #     self.softaccuracy.append(0)
 
         # Avinash entrypoint
-        if self.metrics: # Execute if metrics API usage is specified
-            print('Metrics API entry point')
-            for metric in self.metrics:
-                metric.print_info()
-                ## TODO: Feed batch into metric update/save
-                metric.update(epoch=self.global_epoch,batch=0,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
-                metric.print_state()
-            print('Metrics API Exit point')
+        # if self.metrics: # Execute if metrics API usage is specified
+        #     print('Metrics API entry point')
+        #     for metric in self.metrics:
+        #         metric.print_info()
+        #         ## TODO: Feed batch into metric update/save
+        #         metric.update(epoch=self.global_epoch,batch=0,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
+        #         metric.print_state()
+        #     print('Metrics API Exit point')
         # Avinash entrypoint
         return lossbackward
 

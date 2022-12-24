@@ -5,49 +5,36 @@ EXECUTION:
   TRAINER: ClassificationTrainer  # We will use a built-in trainer for Classification
   TRAINER_ARGS: 
     accumulation_steps: 2       # Number of steps for gradient accumulation
+  LOG_PARAMS:
+    MODEL:
+      PARAM: loss # TODO
+      FREQUENCY: step
 
 METRICS:                      # Defining metrics to be tracked. This needs to be made top-level
   MODEL_METRICS:
-    - METRIC_NAME: acc
-      METRIC_CLASS: Torchmetric_Accuracy
+    - METRIC_NAME: avgacc
+      METRIC_CLASS: BaseTorchMetric
       METRIC_ARGS:
-        task: 'multiclass'
-        num_classes: 10
+        metric_name: Accuracy
+        aggregate: 100
+        metric_kwargs:
+          task: 'multiclass'
+          num_classes: 10
       METRIC_PARAMS: 
-        preds: preds
-        targets: targets  # basically, key is what the metric expects, value is what WILL be there, e.g. HFTrainer could have labels, not targets, so it would be targets: labels
-    - METRIC_NAME: CustomAccuracyMetric
-      METRIC_CLASS: TorchAccuracyMetric
-      METRIC_TYPE: training.Accuracy
-      METRIC_PARAMS:
-        preds:
-          type: 'torch.tensor'
-        target:
-          type: 'torch.tensor'
+        preds: logits
+        targets: labels  # basically, key is what the metric expects, value is what WILL be there, e.g. HFTrainer could have labels, not targets, so it would be targets: labels
+      METRIC_TRIGGER: step
+      METRIC_STORAGE: null
+    - METRIC_NAME: avgloss
+      METRIC_CLASS: BaseTorchMetric
       METRIC_ARGS:
-        task: 'multiclass'
-        num_classes: 10
-    - CustomAccuracyMetric:                     # An example of a tracked metric. Name is user-specified
-      metric_class: TorchAccuracyMetric        # but definition, as seen here, lies in ednaml.metrics
-      metric_type: EdnaML_TorchMetric
-      metric_args:           # The arguments required to instantiate a metric
-      metric_params:          # The arguments required for the update() call of the metric
-      subpackage: 'training'
-      classfile: 'Accuracy'
-    CustomF1ScoreMetric:
-      metric_class: TorchF1ScoreMetric
-      metric_type: EdnaML_TorchMetric
-      metric_args:
-        task: 'multiclass'
-        num_classes: 10
-      metric_params:
-        preds:
-          type: 'torch.tensor'
-        target:
-          type: 'torch.tensor'
-      subpackage: 'training'
-      classfile: 'Accuracy'
-  CONFIG_METRICS:
+        metric_name: Mean
+        aggregate: 100
+        metric_kwargs:
+          warn_strategy: ignore
+      METRIC_TRIGGER: step
+      METRIC_STORAGE: null
+    
 
 
 

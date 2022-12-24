@@ -2,13 +2,14 @@
 import os
 import json
 from turtle import update
-from typing import Dict, List
+from typing import Any, Dict, List
 import warnings
 import yaml
 from ednaml.config import BaseConfig
 from ednaml.config.DeploymentConfig import DeploymentConfig
 from ednaml.config.ExecutionDatareaderConfig import ExecutionDatareaderConfig
 from ednaml.config.ModelPluginConfig import ModelPluginConfig
+from ednaml.metrics.BaseMetric import BaseMetric
 from ednaml.utils import config_serializer
 from ednaml.config.ConfigDefaults import ConfigDefaults
 
@@ -41,9 +42,21 @@ class EdnaMLConfig(BaseConfig):
     LOSS_SCHEDULER: List[SchedulerConfig]  # one scheduler for each loss_optimizer
     LOGGING: LoggingConfig
     STORAGE: Dict[str, StorageConfig]
-    METRCS: MetricsConfig
+    METRICS: MetricsConfig
 
     extensions: List[str]
+
+
+    params: Dict[str, Any]
+    metrics_enable: bool
+    always_enable: bool
+    step_enable: bool
+    batch_enable: bool
+    metrics: Dict[str, BaseMetric]
+    always_metrics: List[str]
+    immediate_metrics: List[str]
+    step_metrics: List[str]
+    batch_metrics: List[str]
 
     def __init__(
         self,
@@ -51,6 +64,7 @@ class EdnaMLConfig(BaseConfig):
         defaults: ConfigDefaults = ConfigDefaults(),
         **kwargs
     ):
+        self.params = {}
         self.extensions = [
             "EXECUTION",
             "DATAREADER",
@@ -75,6 +89,18 @@ class EdnaMLConfig(BaseConfig):
         if config_inject is not None and type(config_inject) is list:
             self.config_inject(ydict, config_inject)
         self._updateConfig(ydict, defaults, update_with_defaults=True)
+
+        self.metrics_enable = False
+        self.always_enable = False
+        self.step_enable = False
+        self.batch_enable = False
+
+        self.always_metrics = []
+        self.immediate_metrics = []
+        self.step_metrics = []
+        self.batch_metrics = []
+
+        self.metrics = {}
 
     def config_inject(self, ydict, config_inject: List[List[str]]):
         for inject in config_inject:
@@ -391,6 +417,54 @@ class EdnaMLConfig(BaseConfig):
     def save(self, path: os.PathLike):
         with open(path, "w") as write_file:
             write_file.write(self.export())
+
+
+    def addMetrics(self, metrics_list: List[BaseMetric], epoch, step):
+        self.immediate_metrics: List[BaseMetric] = []
+        if len(metrics_list) > 0:
+            # Check for metrics that are executed only once, e.g. now
+            for metric in metrics_list:
+                self.metrics[metric.metric_name] = metric
+                if metric.metric_trigger == "once":
+                    # Metric is triggered only once.
+                    # We will trigger it at the end of addMetrics()
+
+                    self.immediate_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "always":
+                    # Metric is `always` triggered. Always has different meanings for each Manager. We will add it to our bookkeeping
+                    self.always_metrics.append(metric.metric_name)
+
+                elif metric.metric_trigger == "step":
+                    self.step_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "batch":
+                    self.batch_metrics.append(metric.metric_name)
+                else:
+                    raise ValueError("metric_trigger %s is not supported"%metric.metric_trigger)
+            self.metrics_enable = True
+        else:
+            self.metrics_enable = False
+
+        if self.metrics_enable:
+            for metric_name in self.immediate_metrics:
+                self.metrics[metric_name].update(epoch, step, params=self.params)
+
+            if len(self.always_metrics):
+                self.always_enable = True # Enable always metrics
+            if len(self.step_metrics):
+                self.step_enable = True # Enable step metrics
+            if len(self.batch_metrics):
+                self.batch_enable = True # Enable batch metrics
+
+    # For now, we ignore always metrics
+    def updateStepMetrics(self, epoch, step):
+        for metric_name in self.step_metrics:
+            self.metrics[metric_name].update(epoch=epoch, step=step, params=self.params)
+
+    def updateBatchMetrics(self, epoch, step):
+        for metric_name in self.batch_metrics:
+            self.metrics[metric_name].update(epoch=epoch, step=step, params=self.params)
+
+
 
 
 """

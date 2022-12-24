@@ -10,6 +10,7 @@ from torchinfo import ModelStatistics, summary
 from ednaml import storage
 
 import ednaml.core.decorators
+from ednaml.metrics import MetricsManager
 from ednaml.storage.EmptyStorage import EmptyStorage
 import ednaml.utils
 import ednaml.utils.web
@@ -333,6 +334,11 @@ class EdnaML(EdnaMLBase):
         # Set up the LogManager. LogManager either writes to file OR logs to some log server by itself.
         self.log("[APPLY] Updating Logger with Latest ERSKey")
         self.updateLoggerWithERS()
+        # Set up the MetricsManager. MetricsManager controls multiple metrics for multiple other Managers, and has 3 modes of saving: Save to File, Save to Storage (direct), or Metrics handle themselves
+        #           For Save to Storage and Metrics handle themselves, a SaveRecord is required. Currently unimplemented. When done, we will throw an error if there is a validation mismatch
+        #           Current implemented approach is save to file: (i) MM provides other Managers their Metrics to use in internal callbacks; (ii) BaseTrainer calls save() in MM. (iii) BaseTrainer requests file, transfers to LocalStorage, then Transfers to Remote.
+        self.log("[APPLY] Building MetricsManager")
+        self.buildMetricsManager(**kwargs)
         # Download pre-trained weights, if such a link is provided in built-in model paths
         self.log("[APPLY] Downloading pre-trained weights, if available")
         self.downloadModelWeights()
@@ -368,9 +374,59 @@ class EdnaML(EdnaMLBase):
             self.log("[APPLY] Building trainer")
             self.buildTrainer()
             # Reset the queues. TODO Maybe clear the plugins and storage queues as well??
-        self.resetQueues()
+        # Add metrics to each manager: EdnaMLConfig (Config); LogManager (Log); BaseTrainer (Model, Artifact); BaseDeploy (Plugin); MetricManager (Metric) 
+        self.log("[APPLY] Instantiating metrics tracking")
+        self.updateManagersWithMetrics(**kwargs)
+        self.log("[APPLY] Resetting queues.")
+        self.resetQueues(**kwargs)
 
-    def buildStorageManager(self, **kwargs):  # TODO after I get a handle on the rest...
+    def buildMetricsManager(self, **kwargs):
+        
+        # First, we instantiate all metrics
+        # Internally, MM also records whether MM will save a Metric, whether it will track a specific Storage, or whether it will save itself
+        # Finally, we create an AdHocMetric. This is useful to track any random thing we want to also track. (metric-type is adhoc)
+        self.metricsManager = MetricsManager(
+            metrics_config=self.cfg.METRICS,
+            logger=self.logger,
+            storage_manager=self.storageManager,
+            storage = self.storage,
+            skip_metrics=kwargs.get("skip_metrics", [])
+        )
+
+    
+    def updateManagersWithMetrics(self, **kwargs):
+        # Add metrics to each manager: EdnaMLConfig (Config); LogManager (Log); BaseTrainer (Model, Artifact); BaseDeploy (Plugin); MetricManager (Metric) 
+        ers_key = self.storageManager.getLatestERSKey()
+        epoch, step = ers_key.storage.epoch, ers_key.storage.step
+        self.logManager.addMetrics(self.metricsManager.getLogMetrics(), epoch, step)
+
+        self.cfg.addMetrics(self.metricsManager.getConfigMetrics(), epoch, step)
+
+        self.metricsManager.addMetrics(self.metricsManager.getMetricMetrics(), epoch, step)
+
+        self.trainer.addModelMetrics(self.metricsManager.getModelMetrics(), epoch, step)
+        self.trainer.addArtifactMetrics(self.metricsManager.getArtifactMetrics(), epoch, step)
+
+        # NOTE: for deployment, we add model, artifact, AND plugin metrics...
+
+    # Aaaaand, that's it. Next, we will update managers to add the metrics and perform the params_specify work (with some optimization)
+    # Note -- we need one mopre argument in metrics: a METRIC_TRIGGER: once, and always. This determines basically when it will be called.
+    # Next, we add the add_metrics bit in the managers
+    # Finally, we add the save component (to file, later will deal with serialization)
+
+
+
+
+    def buildStorageManager(self, **kwargs):
+        """Generates a StorageManager to track explicit backend storages, as well as basic querying. 
+
+        Kwargs:
+            storage_trigger_mode (str)
+            storage_manager_mode (str)
+            storage_mode (str)
+            backup_mode (str)
+            backup_mode_canonical (List[str])
+        """
         self.storageManager = StorageManager(
             logger=self.logger,
             cfg=self.cfg,
@@ -541,6 +597,7 @@ class EdnaML(EdnaMLBase):
                 # save_backup=self.cfg.SAVE.DRIVE_BACKUP,
                 # backup_directory=self.saveMetadata.CHECKPOINT_DIRECTORY,
                 storage_manager=self.storageManager,
+                metrics_manager=self.metricsManager,
                 log_manager=self.logManager,
                 gpus=self.gpus,
                 fp16=self.cfg.EXECUTION.FP16,
@@ -603,7 +660,9 @@ class EdnaML(EdnaMLBase):
         """Query the storages, local and remote, to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
         StorageManager.
 
-        We query MODEL only
+        We query MODEL only.
+
+        TODO When SaveRecord is available, we should use it.
         """
         self.storageManager.setLatestStorageKey(
             storage_dict=self.storage,

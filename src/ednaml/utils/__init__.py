@@ -110,7 +110,7 @@ class ERSKey:
     run: RunKey
     storage: StorageKey
 
-    def __init__(self, experiment, run, storage):
+    def __init__(self, experiment: ExperimentKey, run: RunKey, storage: StorageKey):
         self.experiment = experiment
         self.run = run
         self.storage = storage
@@ -157,6 +157,8 @@ class KeyMethods:
             run=KeyMethods.cloneRunKey(ers_key.run),
             storage=KeyMethods.cloneStorageKey(ers_key.storage),
         )
+
+
 
 def locate_class(
     package="ednaml",

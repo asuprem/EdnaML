@@ -1,3 +1,188 @@
+Run.run
+Run.execution
+
+
+TODO: automate the num_classes bit for metrics
+Our wrapper should be able to use labelMetadata, perhaps
+we will need to use BaseTrainer, after it receives everything, pass LabelMetadata to all metrics, with updateMetadata
+
+
+
+How we use Run.execution
+    -- inside a run, each time we execute, we increment the execution value
+    -- it is, in a way, just like run, except they are not separated
+    -- execution allows us to chain multiple executions of the same experiment together by playing around with the learning rate and other values as and when
+    -- to properly reconstruct an experiment, we will record, in config, what the prior experiment key was if we started from some starting point
+    . 
+
+    -- Then, reproducing an experiment can be backwards and forwards
+        forwards: we dictate an experiment-run to execute. We start from beginning, and at each branching point, we ask which branch to continue with
+        backwards: we provide the end state we want to achieve. EdnaML constructs the back chain and uses the config to run the experiment.
+
+
+
+
+
+
+
+Managers need 2 functionalities:
+
+    serialize
+        if STORAGE needs the data only (data formatting is dependent on type)
+            LOG: list of strings since last call
+            PLUGIN: state_dict()
+            MODEL: state_dict()
+            MODEL_ARTIFACT: state_dict()
+            CONFIG: json obj, e.g. dict
+            METRIC: list of tuple
+            CODE: string??
+
+
+    serialize_to_file
+        if STORAGE needs files
+            in each case, serialized is written to file (with appropos conversion that needs to be reconstructed)
+
+Here are the Managers:
+    Log: LogManager
+    Model/Artifacts: Trainer
+    Plugin: Deployment
+    Metrics: MetricsManager
+    Config: EdnaMLConfig
+    Code: CodeManager, later
+
+Each manager can save in the following ways. Some managers, like plugin and metrics are more complicated because subcomponents can do more things (different metrics can also save)
+    Serialize
+    Serialize_to_file
+    Serialize_to_storage
+    Manage save by itself
+
+A storage can have the following config option of how it accepts an artifact:
+    Must be serialized
+    Must be serialized to file
+    Is not accepted
+
+
+
+BaseTrainer OR Deployment, as core pipeline abstractions, dictate when saving occurs
+    Either with StrictTrigger or LooseTrigger, Trainer/Deployment, at end of step, check what artifact needs to be saved
+
+    For each artifact, contact Manager and inform that save needs to occur. This is a blocking operation.
+    Recall: storageManager captures which storage saves what...
+
+        Trainer: self.saveModel(epoch, step); self.saveArtifact(epoch, step)
+        Deployment: self.savePlugin(epoch, step)
+        LogManager: logManager.save(epoch, step)
+        MetricsManager: metricsManager.save(epoch, step)
+        ConfigManager: self.config.save(epoch, step)
+
+    Each manger has access to storage_manager
+    Each manager implements the same pattern for save, when it is called.
+
+    save pattern:
+        if manager is supposed to serialize:
+            first get storage's serialization capabilities (storage_manager.getStorageForMe().serialize_mode)
+            If stream_serialize:
+                getStorageForMe.save(self.stream_serialize())
+                storage_manager.recordSave()
+            if file_serialize:
+                self.file_serialize
+                getFileNameFromStorageManager
+                transfer file_serialize to FileNameFromStorageManager
+                self.storage_manager.upload()
+            if will_handle_by_itself:
+                self.handle_save_by_myself()
+                storage_manager.recordSave()
+
+    to consider -- how will LocalStorage keep track of what we saved? file_serialize is easy. It's what we have already done.
+    to consider -- having them connect to random storages -- this seems more trouble that it is worth, especially in terms of tracking most recent upload
+
+    the solution: divorce saving and epoch tracking from the file names, especially in local storage
+
+    Just like in data-bases, we need a foreign key for all.
+    Call this SaveRecord
+
+    This needs to be stored to use EdnaML's automatic inference and management of saving
+    A SaveRecord stores whatever epoch was used to save something. It is what we would use to quickly get latest key for a model-artifact, for example
+
+    In our case, so far, we have tied SaveRecord to the actual act of saving something, so it is technically distributed across a bunch of storages.
+    We want to tie these together for tighter integration
+
+    Basically, we now save one more artifact that is always saved locally, and may be saved remotely -- called SaveRecord
+        (ers-key, timestamp, canonical, storage_name, storage_type, execution-id, previous-ers-key) 
+        (previous-ers-key helps in multi-run experiments with changing configs, etc...)
+        (now, to construct a chain for muti-experiment...we can query save-record for all unique execution ids for a specific er-key
+            Then, get the latest timestmap or erskey for each unique execution id, and identify latest unique execution id
+            Then, construct chain back: for each unique execution id, find earliest save, get its previous-ers-key, repeat till you get to first, with null previous-ers-key
+            (this allows us to span multiple experiments as well!!!!!)
+
+            Now, for the earliest previous-ers-key, get the config (either the first config, or the canonical config). Voila.
+
+            One more note -- canonical saves are tied to the execution-id
+            So, without SaveRecord, we can't really do much with just the execution-id...!
+
+
+        LocalStorage SaveRecord --> append to a save-record file. Can be Canonical or ERS-Mode.
+            In ERS-Mode, we first find the latest one. Then check inside for the latest save-record
+            In canonical mode, we just check in the same file for the latest save-record
+            if both are present because we switched between ers and canonical, we will have to open canonical and latest ers-mode file and compare.
+        Error handling
+            if save-record is used, and we are continuing existing experiments, and all storages are not present, we can throw an error for configuration-storage-mismatch
+
+
+    SaveRecord can help us piece together an experiment (e.g. where was config stored. Then we can query that storage for some details, etc)
+
+    Questions -- what if we do not have a way to save a SaveRecord. What is a fallback option...?
+      Ok, some validation stages:
+        CANNOT have managers handle things themselves WITHOUT a SaveRecord
+        CANNOT have managers handle things by only stream serialize WITHOUT a SaveRecord
+        CANNOT have managers do canonical saving WITHOUT a SaveRecord
+        Current method -- can do without a SaveRecord
+
+    So, when SaveRecord is provided, we StorageManager checks in SaveRecord to track current run, latest ers key, etc, etc
+    When SaveRecord is NOT provided...StorageManager falls back to its regular approach of querying each storage about its contents, and querying local storage about contents
+        NOTE: when managers can save their own things, or for streaming serialize without a file, or canonical saving, we can no longer track latest ers key properly.
+
+    So, for now, we deal with simple save, and will implement SaveRecord later...and serialization thingamazigs, later...
+
+
+    So, for now, metrics do NOT handle themselves, and HAVE to save to file...
+
+
+
+
+
+
+
+
+    Manager checks 
+
+
+
+
+(FUTURE) Each Manager exists as a service, with communication through a message passing layer, and a controller
+    EdnaController keeps track of epoch, step. 
+    Trainer/Deployment updates controller with epoch, step
+    EdnaController checks each time if there is a signal to save or not.
+    
+    
+    Approach: Each manager polls message-queue (MQ) for their saving/not saving. Manager's components work as futures, so if they are working on saving while they are called, they will wait to finish saving. Manager handles component serialization to stream or file as necessary, and sends it along to Storage through MQ. Need to synchronize on MQ topics between managers and storage. Alternatively, Manager signals component to save itself.
+
+    Here, EdnaML and Deploy are special cases that contain the entire pipeline, by themselves. Controller just signals them.
+
+
+
+
+
+
+
+So, how does this change things...
+    
+
+
+
+
+
+
 Maybe We need a RecordBackup that records what things have been saved, maybe. This will help tie together plugins and models across multiple storages...?
 
 

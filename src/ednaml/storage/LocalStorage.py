@@ -86,7 +86,7 @@ class LocalStorage(BaseStorage):
         else:
             raise NotImplementedError()
 
-    def upload(
+    def upload_impl(
         self, source_file_name: str, ers_key: ERSKey, canonical: bool = False
     ) -> bool:
         if os.path.exists(source_file_name):
@@ -114,7 +114,7 @@ class LocalStorage(BaseStorage):
             return True
         return False
 
-    def download(
+    def download_impl(
         self, ers_key: ERSKey, destination_file_name: str, canonical: bool = False
     ) -> bool:
         if self.getKey(ers_key=ers_key, canonical=canonical) is not None:
@@ -147,6 +147,94 @@ class LocalStorage(BaseStorage):
                 )
                 return True
         return False
+
+
+    def uploadMetric(self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False):
+        """UploadMetric needs to take a fragmented metric file and save it to remote.
+
+        StorageManager provides serialized or file containing all metrics since the last call to uploadMetric(). 
+
+        In regular mode, we simply save this file in remote.
+
+        In canonical mode, we append all entries to remote file.
+
+        TODO: deal with multiple executions in same run potentially starting at different times, with either SaveRecord, or adding an entry to run key -- run.run is the overall run, run.execution is continuation.
+
+        Args:
+            source_file_name (os.PathLike): _description_
+            ers_key (ERSKey): _description_
+            canonical (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
+        if os.path.exists(source_file_name):
+            if canonical:
+                artifact_path = os.path.join(
+                    self.storage_path,
+                    self.run_dir,
+                    self.canonical_path_of_artifact(
+                        epoch=ers_key.storage.epoch,
+                        step=ers_key.storage.step,
+                        artifact=ers_key.storage.artifact,
+                    ),
+                )
+            else:
+                artifact_path = os.path.join(
+                    self.storage_path,
+                    self.run_dir,
+                    self.path_of_artifact(
+                        epoch=ers_key.storage.epoch,
+                        step=ers_key.storage.step,
+                        artifact=ers_key.storage.artifact,
+                    ),
+                )
+
+            if canonical:   # we append
+                with open(artifact_path, "a") as afile:
+                    with open(source_file_name, "r") as rfile:
+                        for line in rfile:
+                            afile.write(line)
+            else:           # we copy
+                shutil.copy2(source_file_name, artifact_path)
+            return True
+        return False
+        
+
+    def downloadMetric(self, ers_key: ERSKey, destination_file_name: os.PathLike, canonical: bool = False):
+        if self.getKey(ers_key=ers_key, canonical=canonical) is not None:
+            if canonical:
+                shutil.copy2(
+                    os.path.join(
+                        self.storage_path,
+                        self.run_dir,
+                        self.canonical_path_of_artifact(
+                            epoch=ers_key.storage.epoch,
+                            step=ers_key.storage.step,
+                            artifact=ers_key.storage.artifact,
+                        ),
+                    ),
+                    destination_file_name,
+                )
+                return True
+            else:
+                shutil.copy2(
+                    os.path.join(
+                        self.storage_path,
+                        self.run_dir,
+                        self.path_of_artifact(
+                            epoch=ers_key.storage.epoch,
+                            step=ers_key.storage.step,
+                            artifact=ers_key.storage.artifact,
+                        ),
+                    ),
+                    destination_file_name,
+                )
+                return True
+        return False
+
+
+
 
     def getLatestStepOfArtifactWithEpoch(self, ers_key: ERSKey) -> ERSKey:
         ers_key = KeyMethods.cloneERSKey(ers_key=ers_key)

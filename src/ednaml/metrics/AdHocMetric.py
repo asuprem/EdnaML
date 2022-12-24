@@ -1,4 +1,5 @@
 
+from typing import Any, Dict
 from ednaml.metrics import BaseMetric
 
 
@@ -10,8 +11,15 @@ class AdHocMetric(BaseMetric):
     def post_init_val(self, **kwargs):
         pass
 
-    def _compute_metric(self, epoch, step, metric_name, metric_val, metric_type) -> float:
-        return (metric_name, metric_type, "adhoc", epoch, step, metric_val)
+    def update(self, epoch: int, step: int, params: Dict[str, Any]) -> bool:
+        self.memory.append(
+            (params["metric_name"], params["metric_type"], params["metric_class"], epoch, step, params["metric_val"])
+        )
+
+        return True
+
+    # TODO need to implement serialization code as well...
+
 
     
 

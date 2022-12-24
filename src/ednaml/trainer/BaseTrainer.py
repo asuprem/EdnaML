@@ -1,6 +1,6 @@
 import  logging, shutil
 from logging import Logger
-from typing import Dict, List, Tuple, Type
+from typing import Dict, List, Tuple, Type, Any
 import torch
 from torch.utils.data import DataLoader
 from ednaml.core import EdnaMLContextInformation
@@ -13,7 +13,7 @@ from ednaml.utils import ERSKey, KeyMethods, StorageArtifactType, StorageKey
 from ednaml.utils.LabelMetadata import LabelMetadata
 from ednaml.storage import BaseStorage, StorageManager
 from ednaml.utils import locate_class
-from ednaml.metrics import BaseMetric
+from ednaml.metrics import BaseMetric, MetricsManager
 
 
 
@@ -40,6 +40,7 @@ class BaseTrainer:
     logger: logging.Logger
     storage: Dict[str, BaseStorage]
     storage_manager: StorageManager
+    metrics_manager: MetricsManager
     log_manager: LogManager
     storage_mode_strict: bool
 
@@ -52,7 +53,20 @@ class BaseTrainer:
     saveFlag_localonly: bool
 
     current_ers_key: ERSKey
-    metrics: Dict[str, BaseMetric]
+    model_metrics: Dict[str, BaseMetric]
+    artifact_metrics: Dict[str, BaseMetric]
+    model_params: Dict[str, Any]
+    artifact_params: Dict[str, Any]
+    model_metrics_enable: bool
+    artifact_metrics_enable: bool
+    model_always_metrics: List[str]
+    model_immediate_metrics: List[str]
+    model_step_metrics: List[str]
+    model_batch_metrics: List[str]
+    artifact_always_metrics: List[str]
+    artifact_immediate_metrics: List[str]
+    artifact_step_metrics: List[str]
+    artifact_batch_metrics: List[str]
 
     def __init__(
         self,
@@ -74,6 +88,8 @@ class BaseTrainer:
         context: EdnaMLContextInformation,
         **kwargs
     ):
+        self.model_params = {}
+        self.artifact_params = {}
         self.model = model
         self.parameter_groups = list(self.model.parameter_groups.keys())
         self.loss_fn_order = {
@@ -133,59 +149,134 @@ class BaseTrainer:
         #     crawler=crawler.classes,
         #     config=json.loads(config.export("json")),
         # )
-        self.metrics = {}
+        self.model_metrics = {}
+        self.model_always_metrics = []
+        self.model_immediate_metrics = []
+        self.model_step_metrics = []
+        self.model_batch_metrics = []
+        self.model_metrics_enable = False
+
+        self.artifact_metrics = {}
+        self.artifact_always_metrics = []
+        self.artifact_immediate_metrics = []
+        self.artifact_step_metrics = []
+        self.artifact_batch_metrics = []
+        self.artifact_metrics_enable = False
+
+        
         self.accumulation_steps = kwargs.get("accumulation_steps")
         self.accumulation_count = 0
         self.evaluateFlag = False
         self.saveFlag = False
         self.edna_context = context
+        
         self.init_setup(**kwargs)
         self.init_metrics(self, **kwargs)
 
-    def init_metrics(self, **kwargs):
-        """We initialize any MODEL_METRICS and ARTIFACT_METRICS here.
 
-        Each MODEL_METRICS and ARTIFACT_METRICS object contains four fields:
-        1. Metric name: this is the name of the metric. This can be used to distinguish multiple metrics that are functionally the same tool tracking different KPIs, such as accuracy on each output for a Multiclassification Model.
-        2. Metric class: This is used to instantiate the metric. It can be a built-in class, or a custom class
-        3. Metric type: potentially unneeded. 
-        4. Metric params: Parameters that the metrics needs. Not needed for everything.
-        5. Metric arguments: arguments to instantiate the metric
-        """
+    def addModelMetrics(self, metrics_list: List[BaseMetric], epoch, step):
+        self.model_immediate_metrics: List[BaseMetric] = []
+        if len(metrics_list) > 0:
+            # Check for metrics that are executed only once, e.g. now
+            for metric in metrics_list:
+                self.model_metrics[metric.metric_name] = metric
+                if metric.metric_trigger == "once":
+                    # Metric is triggered only once.
+                    # We will trigger it at the end of addMetrics()
+
+                    self.model_immediate_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "always":
+                    # Metric is `always` triggered. Always has different meanings for each Manager. We will add it to our bookkeeping
+                    self.model_always_metrics.append(metric.metric_name)
+
+                elif metric.metric_trigger == "step":
+                    self.model_step_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "batch":
+                    self.model_batch_metrics.append(metric.metric_name)
+                else:
+                    raise ValueError("metric_trigger %s is not supported"%metric.metric_trigger)
+            self.model_metrics_enable = True
+        else:
+            self.model_metrics_enable = False
+
+        if self.model_metrics_enable:
+            # TODO should we get the next key or the latest key?
+            for metric_name in self.model_immediate_metrics:
+                self.model_metrics[metric_name].update(epoch, step, params=self.params)
+
+            # Unused for now
+            if len(self.model_always_metrics):
+                self.model_always_enable = True # Enable always metrics
+            if len(self.model_step_metrics):
+                self.model_step_enable = True # Enable step metrics
+            if len(self.model_batch_metrics):
+                self.model_batch_enable = True # Enable batch metrics
+
+    def addArtifactMetrics(self, metrics_list: List[BaseMetric], epoch, step):
+        self.artifact_immediate_metrics: List[BaseMetric] = []
+        if len(metrics_list) > 0:
+            # Check for metrics that are executed only once, e.g. now
+            for metric in metrics_list:
+                self.artifact_metrics[metric.metric_name] = metric
+                if metric.metric_trigger == "once":
+                    # Metric is triggered only once.
+                    # We will trigger it at the end of addMetrics()
+
+                    self.artifact_immediate_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "always":
+                    # Metric is `always` triggered. Always has different meanings for each Manager. We will add it to our bookkeeping
+                    self.artifact_always_metrics.append(metric.metric_name)
+
+                elif metric.metric_trigger == "step":
+                    self.artifact_step_metrics.append(metric.metric_name)
+                elif metric.metric_trigger == "batch":
+                    self.artifact_batch_metrics.append(metric.metric_name)
+                else:
+                    raise ValueError("metric_trigger %s is not supported"%metric.metric_trigger)
+            self.artifact_metrics_enable = True
+        else:
+            self.artifact_metrics_enable = False
+
+        if self.artifact_metrics_enable:
+            # TODO should we get the next key or the latest key?
+            for metric_name in self.artifact_immediate_metrics:
+                self.artifact_metrics[metric_name].update(epoch, step, params=self.params)
+
+            # Unused for now
+            if len(self.artifact_always_metrics):
+                self.artifact_always_enable = True # Enable always metrics
+            if len(self.artifact_step_metrics):
+                self.artifact_step_enable = True # Enable step metrics
+            if len(self.artifact_batch_metrics):
+                self.artifact_batch_enable = True # Enable batch metrics
+
+    
+    # For now, we ignore always metrics
+    def updateStepMetrics(self, epoch, step):
+        for metric_name in self.model_step_metrics:
+            self.model_metrics[metric_name].update(epoch=epoch, step=step, params=self.model_params)
+        for metric_name in self.artifact_step_metrics:
+            self.artifact_metrics[metric_name].update(epoch=epoch, step=step, params=self.artifact_params)
+
+
+        self.log_manager.updateStepMetrics(epoch, step)
+        self.metrics_manager.updateStepMetrics(epoch, step)
+        self.config.updateStepMetrics(epoch, step)
+        # Code metrics
+        # Plugin Metrics
+        # Storage metrics????
+
+    def updateBatchMetrics(self, epoch, step):
+        for metric_name in self.model_batch_metrics:
+            self.model_metrics[metric_name].update(epoch=epoch, step=step, params=self.model_params)
+        for metric_name in self.artifact_batch_metrics:
+            self.artifact_metrics[metric_name].update(epoch=epoch, step=step, params=self.artifact_params)
+
+
+        self.log_manager.updateBatchMetrics(epoch, step)
+        self.metrics_manager.updateBatchMetrics(epoch, step)
+        self.config.updateBatchMetrics(epoch, step)
         
-        for metric_option_config in self.config.METRICS.MODEL_METRICS: # Iterate over all metrics
-            # Identify the metric class
-            metric_class: Type[BaseMetric] = locate_class(
-                subpackage = "metrics",
-                classpackage=metric_option_config.METRIC_CLASS, # "TorchMetricAccuracy"
-                classfile = "model"
-            )
-            # Instantiate the metric
-            self.metrics[metric_option_config.METRIC_NAME] = metric_class(
-                metric_name = metric_option_config.METRIC_NAME,
-                metric_type = metric_option_config.METRIC_TYPE,
-            )
-            #APply the arguments
-            self.metrics[metric_option_config.METRIC_NAME].apply(metric_option_config.METRIC_ARGS, metric_option_config.METRIC_PARAMS)
-
-
-
-
-            if metric_config['metric_type'] == 'EdnaML_TorchMetric': # Only consider TorchMetrics for now
-                metric_class = locate_class(
-                    package='ednaml.metrics',
-                    subpackage=metric_config['subpackage'],
-                    classfile=metric_config['classfile'],
-                    classpackage=metric_config['metric_class'],
-                )
-                metric = metric_class(
-                    metric_name=metric_name,
-                    metric_args=metric_config['metric_args'],
-                    metric_params=metric_config['metric_params']
-                )
-                self.metrics.append(metric)
-        print(self.metrics)
-        print(f'Metrics initialization complete! Created {len(self.metrics)} metric(s).')
 
     def buildMetadata(self, **kwargs):
         for keys in kwargs:
@@ -199,6 +290,7 @@ class BaseTrainer:
         test_frequency: int = 5,
         storage_manager: StorageManager = None,
         log_manager: LogManager = None,
+        metrics_manager: MetricsManager = None,
         storage_mode: str = "loose",  # loose | strict
         gpus: int = 1,
         fp16: bool = False,
@@ -208,6 +300,7 @@ class BaseTrainer:
         self.step_save_frequency = step_save_frequency
         self.test_frequency = test_frequency
         self.storage_manager = storage_manager
+        self.metrics_manager = metrics_manager
         self.log_manager = log_manager
         self.model_save_name = self.storage_manager.experiment_key.getExperimentName()
         self.gpus = gpus
@@ -223,6 +316,10 @@ class BaseTrainer:
         self.fp16 = fp16
         # if self.fp16 and self.apex is not None:
         #    self.model, self.optimizer = self.apex.amp.initialize(self.model, self.optimizer, opt_level='O1')
+
+        # Update the Metrics Metadata with LabelMetadata
+        self.metrics_manager.updateMetadata(label_metadata = self.labelMetadata)
+
 
     def saveMetadata(self):
         print("NOT saving metadata. saveMetadata() function not set up.")
@@ -366,17 +463,36 @@ class BaseTrainer:
                 # self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
 
     def saveMetrics(self, epoch: int, step: int, local_only: bool = False):
-        # MetricManager writes to one-file-per-metric, or to remote server (or both).
-        # We call MetricManager once in a while to dump in-memory data to disk, or to batch send them to backend server
+        
+        if epoch is None:
+            epoch = self.global_epoch
+        if step is None:
+            step = self.global_batch
+        self.logger.info("Flushing metrics")    
+        self.metrics_manager.flush()
+        # First generate the compatible Metrics file (if metrics are uploading themselves, this file may be empty)
+        # We will deal with serialization later...
+        self.metrics_manager.save(epoch, step)
+        # TODO can be serialized...
+
+
+        local_metrics_file = self.metrics_manager.getLocalFile()
         metrics_ers_key = self.storage_manager.getERSKey(
             epoch=epoch, step=step, artifact_type=StorageArtifactType.METRIC
         )
-        # metrics_filename = self.storage_manager.getLocalSavePath(metrics_ers_key)
-        # NOTE: There can be multiple metrics files, with pattern: [metric_name].metrics.json
+        storage_metrics_file = self.storage_manager.getLocalSavePath(ers_key=metrics_ers_key)
+
+        if local_metrics_file != storage_metrics_file:
+            self.logger.info(
+                "Transferring compatible Metrics file at {metricspath} to StorageManager path at {stpath}".format(
+                    logpath=local_metrics_file, stpath=storage_metrics_file
+                )
+            )
+            shutil.copy2(local_metrics_file, storage_metrics_file)
+
         if not local_only:
             if self.storage_manager.performBackup(StorageArtifactType.METRIC):
                 self.storage_manager.upload(self.storage, metrics_ers_key)
-                # self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadMetric(source_file_name=metrics_filename,ers_key=metrics_ers_key)
 
     def savePlugin(self, epoch: int, step: int, local_only: bool = False):
         self.logger.debug("Not saving model plugins")  # TODO
@@ -793,9 +909,14 @@ class BaseTrainer:
             self.model.train()  # train == we are tracking all numbers and computation graph
             batch = self.move_to_device(batch)
             loss: torch.Tensor = self.step(batch)  # perform function and returns loss
+            self.model_params["raw_loss"] = loss.cpu().item()
             loss = loss / self.accumulation_steps
+            self.model_params["scaled_loss"] = loss.cpu().item()
+            self.model_params["loss"] = self.model_params["scaled_loss"]
             loss.backward()
             self.accumulation_count += 1
+            # TODO params pattern as property!!!!
+            self.model_params["accumulation_count"] = self.accumulation_count
 
             if self.accumulation_count % self.accumulation_steps == 0:
                 self.updateGradients()
@@ -817,6 +938,11 @@ class BaseTrainer:
             else:  # We check every step_verbose steps
                 if (self.global_batch + 1) % self.step_verbose == 0:
                     self.check_step_save(self.global_batch + 1)
+
+            self.updateStepMetrics()
+            if (self.global_batch + 1)%self.step_verbose == 0:
+                self.updateBatchMetrics()
+
 
             if (self.global_batch + 1) % self.step_verbose == 0:
                 self.printStepInformation()
@@ -847,6 +973,8 @@ class BaseTrainer:
         #         self.set_save_flag()
         #     else:
         #         self.save()
+        self.updateStepMetrics()
+        self.updateBatchMetrics()
         self.logger.info(
             "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
         )

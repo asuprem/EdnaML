@@ -32,8 +32,9 @@ class FileLogManager(LogManager):
             "Generated logger object with experiment key %s"
             % self.experiment_key.getExperimentName()
         )
+        self.params["has_logger"] = True
 
-    def updateERSKey(self, ers_key: ERSKey, file_name: str):
+    def _registerSaveInformation(self, ers_key: ERSKey, file_name: str):
         """Add a filehandler pointing to the provided file_name. FileLogManager will append to this file.
 
         When using in conjunction with LocalStorage, or NAS-type Storages, it is best if the Storages keep
