@@ -260,6 +260,7 @@ class MetricsManager:
             for metric_name in self.will_need_serializing:
                 success, serialized_metrics = self.metrics[metric_name].serializer()
                 lfile.write(serialized_metrics) # serialized_metrics format is a string, each line is a csv object
+                self.metrics[metric_name].clear()
             success, serialized_metrics = self.ad_hoc_metric.serializer()
             if len(serialized_metrics):
                 lfile.write(serialized_metrics) # serialized_metrics format is a string, each line is a csv object
@@ -270,6 +271,7 @@ class MetricsManager:
                 for metric_name in self.storage_groups[storage_name]:
                     success, serialized_metrics = self.metrics[metric_name].serializer()
                     lfile.write(serialized_metrics)
+                self.metrics[metric_name].clear()
             
             upload_ers_key = self.storage_manager.getERSKey(epoch=epoch, step=step, artifact_type=StorageArtifactType.METRIC)
             self.storage[storage_name].upload(
@@ -280,6 +282,7 @@ class MetricsManager:
 
         for metric_name in self.will_save_itself:
             self.metrics[metric_name].save()
+            self.metrics[metric_name].clear()
 
         # TODO SaveRecords???
 
