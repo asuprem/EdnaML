@@ -5,7 +5,6 @@ Module containing base classes for EdnaML metrics.
 from configparser import NoOptionError
 import json
 from abc import ABC, abstractmethod
-from types import NoneType
 from typing import List, Dict, Any, Tuple
 from ednaml.utils import StorageArtifactType
 from ednaml.storage import BaseStorage

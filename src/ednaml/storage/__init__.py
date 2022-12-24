@@ -1,12 +1,14 @@
 import logging, os
 from typing import Callable, Dict, List, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
-from ednaml.config.EdnaMLConfig import EdnaMLConfig
+from typing import TYPE_CHECKING
+
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.LocalStorage import LocalStorage
 from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
-
+if TYPE_CHECKING:
+    from ednaml.config.EdnaMLConfig import EdnaMLConfig
 
 class StorageManager:
     """StorageManager is a helper class for storage-related tasks in EdnaML
