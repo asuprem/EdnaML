@@ -4,7 +4,7 @@ from ednaml.metrics.BaseTorchMetric import BaseTorchMetric
 from ednaml.config.MetricsConfig import MetricsConfig
 from ednaml.metrics.AdHocMetric import AdHocMetric
 from typing import Dict, Type, List, Any
-from ednaml.utils import StorageArtifactType, locate_class
+from ednaml.utils import ERSKey, StorageArtifactType, locate_class
 from ednaml.storage import BaseStorage
 from ednaml.storage import StorageManager
 from ednaml.utils.LabelMetadata import LabelMetadata
@@ -41,9 +41,8 @@ class MetricsManager:
     storage: Dict[str, BaseStorage]
 
 
-    def __init__(self, metrics_config: MetricsConfig, logger: logging.Logger, storage_manager: StorageManager, storage: Dict[str, BaseStorage], skip_metrics: List[str] = []):
+    def __init__(self, metrics_config: MetricsConfig, logger: logging.Logger, storage: Dict[str, BaseStorage], skip_metrics: List[str] = []):
         # Called in EdnaML's apply()--> buildMetricsManager()
-        self.storage_manager = storage_manager
         self.storage = storage
         self.metrics = {}
         self.params = {}
@@ -256,7 +255,7 @@ class MetricsManager:
 
 
     def save(self,epoch, step):
-        with open(self.local_file, "w") as lfile:
+        with open(self.local_file, "a") as lfile:
             for metric_name in self.will_need_serializing:
                 success, serialized_metrics = self.metrics[metric_name].serializer()
                 lfile.write(serialized_metrics) # serialized_metrics format is a string, each line is a csv object
@@ -267,7 +266,7 @@ class MetricsManager:
 
         for storage_name in self.storage_groups:
             storage_file = "_".join([storage_name, "metrics"])+".json"
-            with open(storage_file, "w") as lfile:
+            with open(storage_file, "a") as lfile:
                 for metric_name in self.storage_groups[storage_name]:
                     success, serialized_metrics = self.metrics[metric_name].serializer()
                     lfile.write(serialized_metrics)
@@ -298,4 +297,38 @@ class MetricsManager:
 
     def getLocalFile(self) -> str:
         return self.local_file
+
+
+    def updateERSKey(self, ers_key: ERSKey, file_name: str, storage_manager: StorageManager):
+        """Update the logger with the run information from the ERSKey. The StorageKey is also available
+        if this logger indexes logs as such.
+
+        The file_name is the local file where logs can be dumped. A Log Storage will upload this local file
+        to its remote Storage with the latest ERS-Key. This means a batch of logs is generally indexed by the
+        logging backup frequency (depending on how the Log Storage takes care of files)
+
+        Args:
+            ers_key (ERSKey): _description_
+            file_name (str): _description_
+        """
+        self._registerStorageManager(storage_manager)
+        self._registerSaveInformation(ers_key, file_name)
+        
+        
+    def _registerStorageManager(self, storage_manager: StorageManager):
+        self.storage_manager = storage_manager
+
+    def _registerSaveInformation(self, ers_key: ERSKey, file_name: str):
+        """We update the local file with the provided file.
+
+        Args:
+            ers_key (ERSKey): _description_
+            file_name (str): _description_
+        """
+        self.local_file = file_name
+        if file_name == "":
+            self.logger.info("Not writing metrics due to Empty storage.") # TODO
+        else:
+            self.logger.info("Will write serializable metrics to local file {fname}".format(fname = file_name))
+
 

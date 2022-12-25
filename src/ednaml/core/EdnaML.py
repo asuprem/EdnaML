@@ -339,6 +339,8 @@ class EdnaML(EdnaMLBase):
         #           Current implemented approach is save to file: (i) MM provides other Managers their Metrics to use in internal callbacks; (ii) BaseTrainer calls save() in MM. (iii) BaseTrainer requests file, transfers to LocalStorage, then Transfers to Remote.
         self.log("[APPLY] Building MetricsManager")
         self.buildMetricsManager(**kwargs)
+        self.log("[APPLY] Updating MetricsManager to latest ERSKey")
+        self.updateMetricsManagerWithERS()
         # Download pre-trained weights, if such a link is provided in built-in model paths
         self.log("[APPLY] Downloading pre-trained weights, if available")
         self.downloadModelWeights()
@@ -389,7 +391,6 @@ class EdnaML(EdnaMLBase):
         self.metricsManager = MetricsManager(
             metrics_config=self.cfg.METRICS,
             logger=self.logger,
-            storage_manager=self.storageManager,
             storage = self.storage,
             skip_metrics=kwargs.get("skip_metrics", [])
         )
@@ -658,6 +659,46 @@ class EdnaML(EdnaMLBase):
             file_name=self.storageManager.getLocalSavePath(ers_key=ers_key),
             storage_manager = self.storageManager
         )
+
+    def updateMetricsManagerWithERS(self):
+        """Download the latest ERSKey metrics file so we can append to it (in case of file serialization)"""
+
+        # self.log("Using latest ERSKey to search for log file")
+        self.log("Searching for latest generated metrics file")
+        # So, we either get the latestERSKey or the actual metrics ERSKey, depending on canonical setting for log
+        ers_key = KeyMethods.cloneERSKey(
+            self.storageManager.searchLatestERSKey(
+                self.storage, artifact=StorageArtifactType.METRIC
+            )
+        )
+        if ers_key.storage.epoch == -1:
+            self.log(
+                "Latest ERSKey's StorageKey is empty. Resetting StorageKey component."
+            )
+            ers_key.storage.epoch = 0
+            ers_key.storage.step = 0
+
+        # If this is a new experiment, the latest_ers_key, before anything has started, is set at -1/-1
+        self.log("Writig metrics with base ERSKey : {key}".format(key=ers_key.printKey()))
+
+        success = self.storageManager.download(
+            storage_dict=self.storage, ers_key=ers_key
+        )
+        if success:
+            self.log(
+                "Downloaded remote metrics to %s"
+                % self.storageManager.getLocalSavePath(ers_key=ers_key)
+            )
+        else:
+            self.log(
+                "No remote metrics exists. Will create new metrics file at above ERSKey"
+            )
+        self.metricsManager.updateERSKey(
+            ers_key=ers_key,
+            file_name=self.storageManager.getLocalSavePath(ers_key=ers_key),
+            storage_manager = self.storageManager
+        )
+
 
     def setLatestStorageKey(self):
         """Query the storages, local and remote, to obtain the last epoch-step pair when something was saved. Save this as the latest_storage_key
