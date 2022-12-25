@@ -263,6 +263,7 @@ class MetricsManager:
             success, serialized_metrics = self.ad_hoc_metric.serializer()
             if len(serialized_metrics):
                 lfile.write(serialized_metrics) # serialized_metrics format is a string, each line is a csv object
+            self.ad_hoc_metric.clear()
 
         for storage_name in self.storage_groups:
             storage_file = "_".join([storage_name, "metrics"])+".json"
