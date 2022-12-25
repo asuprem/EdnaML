@@ -27,7 +27,7 @@ class AdHocMetric(BaseMetric):
         nstr = []
         for saved_entry in self.memory:
             nstr.append(
-                delimiter.join(saved_entry) + "\n"
+                delimiter.join([saved_entry[0], saved_entry[1], saved_entry[2], str(saved_entry[3]), str(saved_entry[4]), str(saved_entry[5])]) + "\n"
             )
         return (True, "".join(nstr))
 
