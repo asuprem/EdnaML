@@ -864,6 +864,7 @@ class BaseTrainer:
             self.logger.info("Skipping initial evaluation.")
         self.logger.info("Training for %i epochs" % self.epochs)
         self.logger.info("Starting training from Epoch %i" % continue_epoch)
+        self.beginning_of_training_hook()
         self.zeroGrad()
         self.evaluateFlag = False
         self.saveFlag = False
@@ -937,7 +938,7 @@ class BaseTrainer:
             else:  # We check every step_verbose steps
                 if (self.global_batch + 1) % self.step_verbose == 0:
                     self.check_step_save(self.global_batch + 1)
-
+            self.end_of_step_metrics()
             self.updateStepMetrics(self.global_epoch, self.global_batch)
             if (self.global_batch + 1)%self.step_verbose == 0:
                 self.updateBatchMetrics(self.global_epoch, self.global_batch)
@@ -976,6 +977,22 @@ class BaseTrainer:
         self.updateBatchMetrics(self.global_epoch, self.global_batch)
         self.logger.info(
             "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
+        )
+    
+
+    def end_of_step_metrics(self):
+        """Log any additional metrics at the end of a step
+        """
+        pass
+
+    def beginning_of_training_hook(self):
+        pass
+
+
+
+    def log_metric(self, metric_name, metric_val):
+        self.metrics_manager.log_metric(
+            metric_name=metric_name,epoch=self.global_epoch, step=self.global_batch, value=metric_val,metric_type="model"
         )
 
     # Check whether to save each of the artifacts at the current global_batch step.
