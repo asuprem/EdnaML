@@ -141,14 +141,7 @@ class BaseTrainer:
         self.crawler: Crawler = crawler
         self.config: EdnaMLConfig = config
         self.storage = storage
-        # Add later -- download data from Azure/other file instance
-        # self.downloadData()
 
-        # self.buildMetadata(
-        #     # TODO This is not gonna work with the torchvision wrapper -- ned to fix that; because crawler is not set up for that pattern...?
-        #     crawler=crawler.classes,
-        #     config=json.loads(config.export("json")),
-        # )
         self.model_metrics = {}
         self.model_always_metrics = []
         self.model_immediate_metrics = []
@@ -169,8 +162,8 @@ class BaseTrainer:
         self.evaluateFlag = False
         self.saveFlag = False
         self.edna_context = context
+        self.model_params["model"] = self.model
         
-        self.init_setup(**kwargs)
 
 
     def addModelMetrics(self, metrics_list: List[BaseMetric], epoch, step):

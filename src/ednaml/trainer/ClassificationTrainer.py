@@ -8,9 +8,6 @@ from ednaml.trainer import BaseTrainer
 # Avinash entrypoint
 
 class ClassificationTrainer(BaseTrainer):
-    def init_setup(self, **kwargs):
-        self.softaccuracy = []
-
     # Steps through a batch of data
     def step(self, batch):
         batch_kwargs = {}
@@ -30,36 +27,10 @@ class ClassificationTrainer(BaseTrainer):
         for lossname in self.loss_fn:
             loss[lossname] = self.loss_fn[lossname](**batch_kwargs)
             self.model_params["loss"+"lossname"] = loss[lossname].cpu().item()
-        # if self.fp16 and self.apex is not None:
-        #    with self.apex.amp.scale_loss(loss, self.optimizer) as scaled_loss:
-        #        scaled_loss.backward()
-        # else:
-        #    loss.backward()
         lossbackward = sum(loss.values())
 
         for _, lossname in enumerate(self.loss_fn):
             self.losses[lossname].append(loss[lossname].cpu().item())
-
-        # if batch_kwargs["logits"] is not None:
-        #     softmax_accuracy = (
-        #         (batch_kwargs["logits"].max(1)[1] == batch_kwargs["labels"])
-        #         .float()
-        #         .mean()
-        #     )
-        #     self.softaccuracy.append(softmax_accuracy.cpu().item())
-        # else:
-        #     self.softaccuracy.append(0)
-
-        # Avinash entrypoint
-        # if self.metrics: # Execute if metrics API usage is specified
-        #     print('Metrics API entry point')
-        #     for metric in self.metrics:
-        #         metric.print_info()
-        #         ## TODO: Feed batch into metric update/save
-        #         metric.update(epoch=self.global_epoch,batch=0,preds=batch_kwargs['logits'].detach(),target=batch_kwargs['labels'].detach())
-        #         metric.print_state()
-        #     print('Metrics API Exit point')
-        # Avinash entrypoint
         return lossbackward
 
     def evaluate_impl(self):

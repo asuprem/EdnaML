@@ -27,6 +27,11 @@ class MongoStorage(BaseStorage):
         BaseStorage (_type_): _description_
     """
     def apply(self, storage_url: str, **kwargs):
+        """We set up a connection to the Mongo Backend.
+
+        Args:
+            storage_url (str): _description_
+        """
         from pymongo import MongoClient
         # Set up client
         self.mc = MongoClient(
