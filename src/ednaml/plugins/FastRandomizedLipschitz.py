@@ -120,6 +120,8 @@ class FastRandomizedLipschitz(ModelPlugin):
         self.high_density_thresholds = []
 
         self.lipschitz_threshold = None
+        self.proxy_smooth_lipshitz = None
+        self.proxy_lipshitz = None
         self.lipschitz_threshold_mean = None
         self.smooth_lipschitz_threshold = None
         self.smooth_lipschitz_threshold_mean = None
@@ -130,6 +132,8 @@ class FastRandomizedLipschitz(ModelPlugin):
     def post_forward(
         self, x, feature_logits, features, secondary_outputs, model, **kwargs
     ):
+        if len(features.shape) == 3:
+            features = features[:,0,:]
         if not self._classifier_setup:
             self._classifier = {
                 mname: mlayer for mname, mlayer in model.named_modules()
@@ -315,8 +319,10 @@ class FastRandomizedLipschitz(ModelPlugin):
                         smooththreshmean[idx] = torch.mean(smooth_lscores).item()
 
                 self.lipschitz_threshold = max(lthresh)
+                self.proxy_lipshitz = lthresh
                 self.lipschitz_threshold_mean = sum(lthreshmean) / len(lthreshmean)
                 self.smooth_lipschitz_threshold = max(smooththresh)
+                self.proxy_smooth_lipshitz = smooththresh
                 self.smooth_lipschitz_threshold_mean = sum(smooththreshmean) / len(
                     smooththreshmean
                 )
@@ -433,13 +439,12 @@ class FastRandomizedLipschitz(ModelPlugin):
 
         self.high_density_thresholds = [None] * self.proxies
         for proxy in range(self.proxies):
-            # TODO: adjust self.neighbors here using alpha...BUT NOT PERTURBATION NEIGHBORS!
-            import pdb
-
-            pdb.set_trace()
-            self.high_density_thresholds[proxy] = np.percentile(
-                distance_bins[proxy], self.alpha * 100
-            )
+            if len(distance_bins[proxy]):
+              self.high_density_thresholds[proxy] = np.percentile(
+                  distance_bins[proxy], self.alpha * 100
+              )
+            else:
+              self.high_density_thresholds[proxy] = 1e-9
         print("Completed High Density threshold estimation")
         data.close()
 

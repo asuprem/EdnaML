@@ -99,6 +99,9 @@ class FastKMeansProxy(ModelPlugin):
     def post_forward(
         self, x, feature_logits, features, secondary_outputs, model, **kwargs
     ):
+        if len(features.shape ) == 3:   # TODO add an argument to deal with this
+            features = features[:,0,:]  # Get the [CLS] token...
+
         if not self._classifier_setup:
             self._classifier = {
                 mname: mlayer for mname, mlayer in model.named_modules()
@@ -228,13 +231,12 @@ class FastKMeansProxy(ModelPlugin):
         import numpy as np
 
         for proxy in range(self.proxies):
-            # TODO verify this is working
-            import pdb
-
-            pdb.set_trace()
-            self.high_density_thresholds[proxy] = np.percentile(
-                distance_bins[proxy], self.alpha * 100
-            )
+            if len(distance_bins[proxy]):
+                self.high_density_thresholds[proxy] = np.percentile(
+                    distance_bins[proxy], self.alpha * 100
+                )
+            else:
+                self.high_density_thresholds[proxy] = 1e-9
         print("Completed High Density threshold estimation")
         data.close()
 

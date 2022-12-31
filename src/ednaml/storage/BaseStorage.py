@@ -132,7 +132,6 @@ class BaseStorage(ABC):
             ERSKey: _description_
         """
         raise NotImplementedError()
-    @abstractmethod
     def checkStep(self, ers_key: ERSKey) -> ERSKey:
         """Returns the key if epoch AND step exists in the Storage, else return None
 
@@ -143,7 +142,6 @@ class BaseStorage(ABC):
             ERSKey: _description_
         """
         raise NotImplementedError()
-    @abstractmethod
     def setTrackingRun(self, tracking_run: int) -> None:
         """Set the current run for this experiment.
 
@@ -154,14 +152,12 @@ class BaseStorage(ABC):
             NotImplementedError: _description_
         """
         raise NotImplementedError()
-    @abstractmethod
     def uploadConfig(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadConfig(
         self,
         ers_key: ERSKey,
@@ -173,14 +169,12 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
     def uploadLog(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadLog(
         self,
         ers_key: ERSKey,
@@ -192,14 +186,12 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
     def uploadModel(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadModel(
         self,
         ers_key: ERSKey,
@@ -211,14 +203,12 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
     def uploadModelArtifact(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadModelArtifact(
         self,
         ers_key: ERSKey,
@@ -230,14 +220,12 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
     def uploadModelPlugin(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadModelPlugin(
         self,
         ers_key: ERSKey,
@@ -249,14 +237,12 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
-    @abstractmethod
     def uploadMetric(
         self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
         )
-    @abstractmethod
     def downloadMetric(
         self,
         ers_key: ERSKey,
