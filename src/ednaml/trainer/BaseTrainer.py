@@ -471,12 +471,19 @@ class BaseTrainer:
 
         if not local_only:
             self.logger.info(
-                "Uploading {artifact} with key {metrics_key}".format(
+                "Can upload {artifact} with key {metrics_key}".format(
                     artifact=artifact.value,
                     metrics_key=artifact_ers_key.printKey()
                 )
             )
             if self.storage_manager.performBackup(artifact):
+                self.logger.info(
+                    "Attempting upload of {artifact} at StorageManager path {stpath} with key {metrics_key}".format(
+                        artifact=artifact.value,
+                        stpath=storage_artifact_file,
+                        metrics_key=artifact_ers_key.printKey()
+                    )
+                )
                 self.storage_manager.upload(self.storage, artifact_ers_key)
     
 
