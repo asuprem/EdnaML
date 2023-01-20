@@ -329,8 +329,8 @@ class BaseTrainer:
             save_step = self.global_batch
         if self.storage_manager.storage_mode == "local":
             self.logger.info(
-                "Attempting save of artifact `%s` at epoch %i / step %i"
-                % (artifact.value, save_epoch, save_step)
+                "Attempting save of artifact `%s` at epoch %i / step %i, in `local_only=%s` mode."
+                % (artifact.value, save_epoch, save_step, str(local_only))
             )
             # For whatever the artifact is, we will first perform a local save,
             # then perform a backup IF backup_perform is true...
@@ -347,7 +347,7 @@ class BaseTrainer:
                 self.saveLog(epoch=save_epoch, step=save_step, local_only = local_only)
             elif artifact == StorageArtifactType.CONFIG:
                 self.saveConfig(epoch=save_epoch, step=save_step, local_only = local_only)
-            elif artifact == StorageArtifactType.METRIC:  # TODO skip for now
+            elif artifact == StorageArtifactType.METRIC:
                 self.saveMetrics(epoch=save_epoch, step=save_step, local_only = local_only)
             else:
                 raise ValueError(
