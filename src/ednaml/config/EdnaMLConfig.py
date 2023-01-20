@@ -2,7 +2,7 @@
 import os
 import json
 from turtle import update
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 import warnings
 import yaml
 from ednaml.config import BaseConfig
@@ -322,11 +322,11 @@ class EdnaMLConfig(BaseConfig):
             [item[0] for item in added_extensions if len(item) > 0]
         )
 
-    def read_path(self, path: os.PathLike) -> Dict[str, str]:
+    def read_path(self, path: Union[str, os.PathLike]) -> Dict[str, str]:
         """Reads the config at the path and yields a dictionary of the config
 
         Args:
-            path (os.PathLike): Path to the config
+            path (Union[str, os.PathLike]): Path to the config
 
         Raises:
             FileNotFoundError: Raised if path does not exist
@@ -414,7 +414,7 @@ class EdnaMLConfig(BaseConfig):
             base_config = self._merge(base_config, extension_config)
         return base_config
 
-    def save(self, path: os.PathLike):
+    def save(self, path: Union[str, os.PathLike]):
         with open(path, "w") as write_file:
             write_file.write(self.export())
 
