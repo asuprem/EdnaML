@@ -38,6 +38,7 @@ class MongoStorage(BaseStorage):
         """
         from pymongo import MongoClient
         # Set up client
+        self.log("Initializing MongoClient")
         self.mc = MongoClient(
             host=self.storage_url,
             **kwargs.get("mongo_client")
@@ -45,18 +46,23 @@ class MongoStorage(BaseStorage):
 
         # Set up database
         self.db_name= kwargs.get("db_name", "ednaml")
+        self.log("Connecting to database {db_name}".format(db_name=self.db_name))
         self.db = self.mc[self.db_name]
         
         # Set up collections if they do not already exist
 
         # Set up experiments collection. Experiments collection tracks the experiments (by names) plus the runs. 
         # In future, we will add SaveRecords to this as well, so we can track ERSKeys here (the actual file or content associated with the key goes elsewhere)
+        self.log("Setting up `experiments` collection")
         self.experiments = self.db["experiments"]
         # Set up runs collection
+        self.log("Setting up `runs` collection")
         self.runs = self.db["runs"]
         # Set up config collection
+        self.log("Setting up `configs` collection")
         self.configs = self.db["configs"]
         # set up metrics collection
+        self.log("Setting up `metrics` collection")
         self.metrics = self.db["metrics"]
         # set up logs collection (eventually)
         # self.logs = self.db["logs"]
@@ -88,16 +94,19 @@ class MongoStorage(BaseStorage):
     def _addExperimentKey(self, experiment_key: ExperimentKey) -> ObjectId:
         experiment_exists = self.experiments.find_one(experiment_key.todict())
         if experiment_exists is None:
+            self.log("Inserting experiment key {ekey}".format(ekey=experiment_key.getExperimentName()))
             response = self.experiments.insert_one(
                 experiment_key.todict()
             )
             self.local_cache["experiments"][experiment_key.getKey()] = response.inserted_id
             return response.inserted_id
         else:
+            self.log("Experiment key {ekey} already exists".format(ekey=experiment_key.getExperimentName()))
             self.local_cache["experiments"][experiment_key.getKey()] = experiment_exists["_id"]
             return experiment_exists["_id"]
 
     def setTrackingRun(self, tracking_run: int) -> None:
+        self.log("Setting tracking run to {run}".format(run=tracking_run))
         self.run_id = self._addRun(tracking_run)
         self._setTrackingRun(tracking_run=tracking_run)
 
@@ -374,6 +383,9 @@ class MongoStorage(BaseStorage):
 
     # TODO //////////////////////////////////////////////////////////////////////////////////////////////////////////
     def uploadConfig(self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False):
+        self.log("Config backup requested with ers_key {ers_key}".format(ers_key=ers_key.printKey()))
+        import pdb
+        pdb.set_trace()
         experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
         if run_id is None:
             raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
@@ -397,3 +409,5 @@ class MongoStorage(BaseStorage):
             return True
         return False
 
+    def log(self, msg):
+        self.logger.info("[MongoStorage]" + msg)

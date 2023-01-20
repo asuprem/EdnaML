@@ -156,6 +156,8 @@ class LogManager:
         """
         pass
 
+    def save(self, epoch, step):
+        pass
 
     def log(self, level, msg, *args, **kwargs):
         self.logger.log(level=self.log_levels[level], msg = msg, *args)
@@ -194,6 +196,9 @@ class LogManager:
             str: Path to log file
         """
         raise NotImplementedError()
+
+    def getLocalFile(self):
+        return self.getLocalLog()
 
     def addMetrics(self, metrics_list: List[BaseMetric], epoch, step):
         self.immediate_metrics: List[BaseMetric] = []

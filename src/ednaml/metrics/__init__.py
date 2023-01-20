@@ -254,7 +254,7 @@ class MetricsManager:
     #       Then, we can call the appropriate serializer for model, logs, config, etc: serialize(), save(), bSerialize(), streamSerialize, bStreamSerialize
 
 
-    def save(self,epoch, step):
+    def save(self, epoch, step):
         with open(self.local_file, "a") as lfile:
             for metric_name in self.will_need_serializing:
                 success, serialized_metrics = self.metrics[metric_name].serializer()

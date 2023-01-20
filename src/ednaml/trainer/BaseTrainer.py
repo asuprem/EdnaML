@@ -1,6 +1,6 @@
 import  logging, shutil
 from logging import Logger
-from typing import Dict, List, Tuple, Type, Any
+from typing import Dict, List, Tuple, Type, Any, Union
 import torch
 from torch.utils.data import DataLoader
 from ednaml.core import EdnaMLContextInformation
@@ -424,78 +424,61 @@ class BaseTrainer:
                 self.storage_manager.upload(self.storage, artifact_ers_key)
 
     def saveLog(self, epoch: int = None, step: int = None, local_only: bool = False):
-        # 3. During saving, BaseTrainer does a few things:
-        #      a. First, flush the LogManager
-        #      b. Request file from LogManager
-        #      c. If file path is NOT the same as current ERSKey, copy file to local ERSKey
-        #      d. Ask StorageManager to upload the file
-        if epoch is None:
-            epoch = self.global_epoch
-        if step is None:
-            step = self.global_batch
-        self.logger.info("Flushing current logs")
-        self.log_manager.flush()
-        local_log_file = self.log_manager.getLocalLog()
-        # LogManager writes to file OR writes to a remote server. Storage takes care of "missing" files by skipping them.
-        log_ers_key = self.storage_manager.getERSKey(
-            epoch=epoch, step=step, artifact_type=StorageArtifactType.LOG
-        )
-        storage_log_file = self.storage_manager.getLocalSavePath(log_ers_key)
-        if local_log_file != storage_log_file:
-            self.logger.info(
-                "Transferring LogManager log at {logpath} to StorageManager path at {stpath}".format(
-                    logpath=local_log_file, stpath=storage_log_file
-                )
-            )
-            shutil.copy2(local_log_file, storage_log_file)
-        # log_filename = self.storage_manager.getLocalSavePath(log_ers_key)
-        if not local_only:
-            if self.storage_manager.performBackup(StorageArtifactType.LOG):
-                self.storage_manager.upload(self.storage, log_ers_key)
-                # self.storage[self.storage_manager.getStorageNameForArtifact(artifact)].uploadLog(source_file_name=log_filename,ers_key=log_ers_key)
+        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.log_manager,artifact=StorageArtifactType.LOG)
 
     def saveMetrics(self, epoch: int, step: int, local_only: bool = False):
-        
-        if epoch is None:
-            epoch = self.global_epoch
-        if step is None:
-            step = self.global_batch
-        self.logger.info("Flushing metrics")    
-        self.metrics_manager.flush()
-        # First generate the compatible Metrics file (if metrics are uploading themselves, this file may be empty)
-        # We will deal with serialization later...
-        self.metrics_manager.save(epoch, step)
-        # TODO can be serialized...
-
-
-        local_metrics_file = self.metrics_manager.getLocalFile()
-        metrics_ers_key = self.storage_manager.getERSKey(
-            epoch=epoch, step=step, artifact_type=StorageArtifactType.METRIC
-        )
-        storage_metrics_file = self.storage_manager.getLocalSavePath(ers_key=metrics_ers_key)
-
-        if local_metrics_file != storage_metrics_file:
-            self.logger.info(
-                "Transferring compatible Metrics file at {metricspath} to StorageManager path at {stpath}".format(
-                    metricspath=local_metrics_file, stpath=storage_metrics_file
-                )
-            )
-            shutil.copy2(local_metrics_file, storage_metrics_file)
-
-        if not local_only:
-            self.logger.info(
-                "Uploading metrics with key {metrics_key}".format(
-                    metrics_key=metrics_ers_key.printKey()
-                )
-            )
-            if self.storage_manager.performBackup(StorageArtifactType.METRIC):
-                self.storage_manager.upload(self.storage, metrics_ers_key)
+        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.metrics_manager,artifact=StorageArtifactType.METRIC)
 
     def savePlugin(self, epoch: int, step: int, local_only: bool = False):
         self.logger.debug("Not saving model plugins")  # TODO
 
     def saveConfig(self, epoch: int, step: int, local_only: bool = False):
-        self.logger.debug("Not uploading config")  # TODO
+        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.config,artifact=StorageArtifactType.CONFIG)
+
+
+
+    def _generic_save(self, epoch: int, step: int, manager: Union[MetricsManager,LogManager,EdnaMLConfig], local_only: bool, artifact: StorageArtifactType):
+        #      Flush the Manager
+        #      Request Manager to save file
+        #      Request file from Manager
+        #      If file path is NOT the same as current ERSKey, copy file to local ERSKey
+        #      Ask StorageManager to upload the file if backup is allowed.
+        if epoch is None:
+            epoch = self.global_epoch
+        if step is None:
+            step = self.global_batch
+        self.logger.info("Flushing {artifact}".format(artifact=artifact.value))    
+        # manager --> LogManager, MetricsManager, EdnaMLConfig, CodeManager (future)
+        
+        manager.flush()     # Dumps running processes
+        # We will deal with serialization later...
+        manager.save(epoch, step)   # Generate file. Some managers generate file during flushing, and not during save()
+        # TODO can be serialized...
+
+        local_artifact_file = manager.getLocalFile()
+        artifact_ers_key = self.storage_manager.getERSKey(
+            epoch=epoch, step=step, artifact_type=artifact
+        )
+        storage_artifact_file = self.storage_manager.getLocalSavePath(ers_key=artifact_ers_key)
+
+        if local_artifact_file != storage_artifact_file and local_artifact_file != "":
+            self.logger.info(
+                "Transferring compatible {artifact} file at {metricspath} to StorageManager path at {stpath}".format(
+                    artifact=artifact.value, metricspath=local_artifact_file, stpath=storage_artifact_file
+                )
+            )
+            shutil.copy2(local_artifact_file, storage_artifact_file)
+
+        if not local_only:
+            self.logger.info(
+                "Uploading {artifact} with key {metrics_key}".format(
+                    artifact=artifact.value,
+                    metrics_key=artifact_ers_key.printKey()
+                )
+            )
+            if self.storage_manager.performBackup(artifact):
+                self.storage_manager.upload(self.storage, artifact_ers_key)
+    
 
     def saveCode(self, epoch: int, step: int, local_only: bool = False):
         pass
