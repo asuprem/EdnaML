@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import logging
 import os
+from typing import Union
 from ednaml.utils import ERSKey, ExperimentKey, StorageArtifactType, StorageKey
 
 
@@ -9,6 +10,7 @@ class BaseStorage(ABC):
     storage_url: str
     experiment_key: ExperimentKey
     logger: logging.Logger
+    run: int
 
     def __init__(
         self, logger: logging.Logger, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs
@@ -17,6 +19,7 @@ class BaseStorage(ABC):
         self.storage_url = storage_url
         self.experiment_key = experiment_key
         self.logger = logger
+        self.run = None
 
         self.upload_reference = {
             StorageArtifactType.MODEL: self.uploadModel,
@@ -204,7 +207,7 @@ class BaseStorage(ABC):
         raise NotImplementedError()
     @abstractmethod
     def setTrackingRun(self, tracking_run: int) -> None:
-        """Set the current run for this experiment.
+        """Set the current run for this experiment. Make sure to call _setTrackingRun() from here.
 
         Args:
             tracking_run (int): The run for this experiment
@@ -214,11 +217,19 @@ class BaseStorage(ABC):
         """
         raise NotImplementedError()
 
+    def _setTrackingRun(self, tracking_run: int) -> None:
+        """Sets the tracking run for this Storage internally. Call this within setTrackingRun()
 
+        Args:
+            tracking_run (int): _description_
+
+        Returns:
+            _type_: _description_
+        """
     #------------------------------------------------------------------------------------------
 
     def uploadConfig(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -227,7 +238,7 @@ class BaseStorage(ABC):
     def downloadConfig(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -237,7 +248,7 @@ class BaseStorage(ABC):
         )
 
     def uploadLog(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -246,7 +257,7 @@ class BaseStorage(ABC):
     def downloadLog(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -256,7 +267,7 @@ class BaseStorage(ABC):
         )
 
     def uploadModel(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -265,7 +276,7 @@ class BaseStorage(ABC):
     def downloadModel(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -275,7 +286,7 @@ class BaseStorage(ABC):
         )
 
     def uploadModelArtifact(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -284,7 +295,7 @@ class BaseStorage(ABC):
     def downloadModelArtifact(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -294,7 +305,7 @@ class BaseStorage(ABC):
         )
 
     def uploadModelPlugin(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -303,7 +314,7 @@ class BaseStorage(ABC):
     def downloadModelPlugin(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -313,7 +324,7 @@ class BaseStorage(ABC):
         )
 
     def uploadMetric(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -322,7 +333,7 @@ class BaseStorage(ABC):
     def downloadMetric(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -333,7 +344,7 @@ class BaseStorage(ABC):
 
 
     def uploadCode(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -342,7 +353,7 @@ class BaseStorage(ABC):
     def downloadCode(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
@@ -353,7 +364,7 @@ class BaseStorage(ABC):
 
 
     def uploadExtras(
-        self, source_file_name: os.PathLike, ers_key: ERSKey, canonical: bool = False
+        self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False
     ):
         return self.upload_impl(
             source_file_name=source_file_name, ers_key=ers_key, canonical=canonical
@@ -362,7 +373,7 @@ class BaseStorage(ABC):
     def downloadExtras(
         self,
         ers_key: ERSKey,
-        destination_file_name: os.PathLike,
+        destination_file_name: Union[str, os.PathLike],
         canonical: bool = False,
     ):
         return self.download_impl(
