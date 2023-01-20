@@ -101,6 +101,7 @@ class EdnaMLConfig(BaseConfig):
         self.batch_metrics = []
 
         self.metrics = {}
+        self.local_file = "_eml_generated_config.yml"
 
     def config_inject(self, ydict, config_inject: List[List[str]]):
         for inject in config_inject:
@@ -414,10 +415,19 @@ class EdnaMLConfig(BaseConfig):
             base_config = self._merge(base_config, extension_config)
         return base_config
 
-    def save(self, path: Union[str, os.PathLike]):
-        with open(path, "w") as write_file:
+    def flush(self,):
+        pass
+
+    def getLocalFile(self):
+        return self.local_file
+
+    def save(self, epoch, step):
+        with open(self.local_file, "w") as write_file:
             write_file.write(self.export())
 
+    def save_to_path(self, path: Union[str, os.PathLike]):
+        with open(path, "w") as write_file:
+            write_file.write(self.export())
 
     def addMetrics(self, metrics_list: List[BaseMetric], epoch, step):
         self.immediate_metrics: List[BaseMetric] = []
