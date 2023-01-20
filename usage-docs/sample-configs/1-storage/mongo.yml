@@ -4,10 +4,14 @@ STORAGE:
     STORAGE_CLASS: LocalStorage
     STORAGE_URL: ./backup
     STORAGE_ARGS: {}
-  - STORAGE_NAME: artifacts_backup
-    STORAGE_CLASS: LocalStorage
-    STORAGE_URL: ./artifacts
-    STORAGE_ARGS: {}
+  - STORAGE_NAME: mongo
+    STORAGE_CLASS: MongoStorage
+    STORAGE_URL: mongodb+srv://homer.uiknd5k.mongodb.net/odyssey
+    STORAGE_ARGS: 
+      mongo_client:
+        username: test
+        password: test
+      db_name: ednaml
 
 
 SAVE:
@@ -18,10 +22,14 @@ SAVE:
     FREQUENCY_STEP: 200
   LOG_BACKUP:
     BACKUP: False
-  ARTIFACTS_BACKUP:
+  METRICS_BACKUP:
     BACKUP: True
-    STORAGE_NAME: artifacts_backup
+    STORAGE_NAME: mongo
     FREQUENCY: 1
     FREQUENCY_STEP: 200
+  CONFIG_BACKUP:
+    BACKUP: True
+    STORAGE_NAME: mongo
+    FREQUENCY: 1
 
 

@@ -1,3 +1,4 @@
+# Configuration to remove logs storage
 # Here, we set up the EXECUTION cell, which controls the EdnaML experiment itself
 EXECUTION:
   EPOCHS: 5  # We will execute for 10 epochs

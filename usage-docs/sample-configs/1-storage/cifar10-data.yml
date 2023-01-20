@@ -1,3 +1,4 @@
+# Configuration to work with CIFAR data. No model or save or execution information.
 DATAREADER: 
   DATAREADER: TorchvisionDatareader
   GENERATOR_ARGS:

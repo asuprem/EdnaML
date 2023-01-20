@@ -208,4 +208,5 @@ metafiles
 
 # Don't need the todo file
 TODO*
+local_notes
 
