@@ -148,7 +148,8 @@ class LocalStorage(BaseStorage):
                 return True
         return False
 
-
+    # TODO uploadMetric appends to existing metric file in canonical mode
+    # TODO downloadMetric something something...
 
 
 

@@ -84,6 +84,10 @@ SAVE:
   MODEL_BACKBONE: "backbone"
   # Any additional qualifiers for this model
   MODEL_QUALIFIER: "all"
+  # How often (in epochs) to save artifacts (EXCEPT `model` and `model_artifacts`) to local storage. This should be Greatest Common Factor of FREQUENCY of all backup options
+  SAVE_FREQUENCY: 1
+  # How often (in steps) to save artifacts ((EXCEPT `model` and `model_artifacts`) to local storage. This should be Greatest Common Factor of FREQUENCY_STEP of all backup options
+  STEP_SAVE_FREQUENCY: 0
   # Backup Options, for overall. If any subsequent options are missing, we fall back on Backup options.
   # Provided options are the default for Backup Options. 
   BACKUP:

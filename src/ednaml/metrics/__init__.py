@@ -188,7 +188,7 @@ class MetricsManager:
                 elif metric.metric_trigger == "batch":
                     self.batch_metrics.append(metric.metric_name)
                 else:
-                    self.logger.info("metric_trigger %s is not supported. Assuming this is AdHoc metric."%metric.metric_trigger)
+                    self.log("metric_trigger %s is not supported. Assuming this is AdHoc metric."%metric.metric_trigger)
             self.metrics_enable = True
         else:
             self.metrics_enable = False
@@ -329,8 +329,8 @@ class MetricsManager:
         """
         self.local_file = file_name
         if file_name == "":
-            self.logger.info("Not writing metrics due to Empty storage.") # TODO
+            self.log("Not writing metrics due to Empty storage.") # TODO
         else:
-            self.logger.info("Will write serializable metrics to local file {fname}".format(fname = file_name))
+            self.log("Will write serializable metrics to local file {fname}".format(fname = file_name))
 
 

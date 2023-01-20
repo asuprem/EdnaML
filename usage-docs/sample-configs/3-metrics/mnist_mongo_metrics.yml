@@ -31,5 +31,6 @@ SAVE:
     BACKUP: True
     STORAGE_NAME: mongo
     FREQUENCY: 1
+    FREQUENCY_STEP: 0
 
 

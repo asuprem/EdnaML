@@ -1,5 +1,5 @@
 from ednaml.metrics.BaseMetric import BaseMetric
-import json
+import json, torch
 from ednaml.utils import locate_class
 from typing import Type, Any, Tuple, List, Dict
 
@@ -25,13 +25,24 @@ class BaseTorchMetric(BaseMetric):
         required_params = self._get_required_params(params=params)
         response = self._compute_metric(epoch, step, **required_params)
         if not self.aggregate:
-            success = self._add_value(epoch, step, self._metric.compute())
+            success = self._add_value(epoch, step, self._getPrimitive(self._metric.compute()))
         else:
             success = True
             if step%self.aggregate == 0: 
-                success = self._add_value(epoch, step, self._metric.compute())
+                success = self._add_value(epoch, step, self._getPrimitive(self._metric.compute()))
                 self._metric.reset()
         return success
+
+    def _getPrimitive(self, data: torch.Tensor):
+        """Converts the torch tensor to primitive. TODO update this for ConfusionMatrix and other variants that return an array...
+
+        Args:
+            data (torch.Tensor): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return data.item()
 
     def _compute_metric(self, epoch: int, step: int, **kwargs) -> float:
         return self._metric(**kwargs)

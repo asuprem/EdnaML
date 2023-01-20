@@ -22,7 +22,7 @@ what is saved in serialized metric:
 
 What is stored in a fully specified metric:
 
-experiment_key, run_key, epoch, step, metric_name, metric_type, metric_class, metric_value
+experiment_key, run_key, <metric_name, metric_type, metric_class, epoch, step,  metric_value>
 
 
 

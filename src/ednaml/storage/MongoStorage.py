@@ -384,8 +384,6 @@ class MongoStorage(BaseStorage):
     # TODO //////////////////////////////////////////////////////////////////////////////////////////////////////////
     def uploadConfig(self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False):
         self.log("Config backup requested with ers_key {ers_key}".format(ers_key=ers_key.printKey()))
-        import pdb
-        pdb.set_trace()
         experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
         if run_id is None:
             raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
@@ -394,7 +392,7 @@ class MongoStorage(BaseStorage):
 
         config_document = None
         with open(source_file_name, "r") as s_file:
-            config_document = yaml.load(s_file.read().strip())
+            config_document = yaml.safe_load(s_file.read().strip())
 
         
 
@@ -409,5 +407,46 @@ class MongoStorage(BaseStorage):
             return True
         return False
 
+    # We do not download metrics...maybe...
+    # Unless we use the SaveRecord and download all metrics between SaveRecords...
+    # But, for now, we DO NOT download metrics...
+    def downloadMetric(self, ers_key: ERSKey, destination_file_name: Union[str, os.PathLike], canonical: bool = False):
+        return False
+
+    def uploadMetric(self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False):
+        self.log("Config backup requested with ers_key {ers_key}".format(ers_key=ers_key.printKey()))
+        experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
+        if run_id is None:
+            raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
+        if not os.path.exists(source_file_name):
+            return False
+
+        metrics_document = None
+        metric_items = []
+        with open(source_file_name, "r") as metrics_file:
+            for line in metrics_file:
+                metric_items.append(line.strip().split(","))
+
+        #      0              1           2           3      4        5
+        #  (metric_name, metric_type, metric_class, epoch, step, metric_value)
+        metrics_document = [
+            {
+                "experiment": self.experiment_id,
+                "run": self.run_id,
+                "epoch": metric_item[3],
+                "step": metric_item[4],
+                "name": metric_item[0],
+                "type": metric_item[1],
+                "class": metric_item[2],
+                "value": metric_item[5],
+            }
+            for metric_item in metric_items
+        ]
+
+        response = self.configs.insert_many(metrics_document)
+        if response.acknowledged:
+            return True
+        return False
+        
     def log(self, msg):
         self.logger.info("[MongoStorage]" + msg)
