@@ -51,6 +51,7 @@ class MetricsManager:
         self.will_need_storage = {}             # metrics that save to a defined Storage
         self.will_need_serializing = []         # Metrics saved to file (or serialized (TODO alter))
         self.local_file = "metrics.json"
+        self.local_save_mode = "w"
         # TODO update this to not JUST model metrics...a
         self.model_metrics = []
         self.log_metrics, self.model_metrics, self.artifact_metrics, self.plugin_metrics, self.config_metrics, self.code_metrics, self.metric_metrics = [],[],[],[],[],[],[]
@@ -255,7 +256,7 @@ class MetricsManager:
 
 
     def save(self, epoch, step):
-        with open(self.local_file, "a") as lfile:
+        with open(self.local_file, self.local_save_mode) as lfile:
             for metric_name in self.will_need_serializing:
                 success, serialized_metrics = self.metrics[metric_name].serializer()
                 lfile.write(serialized_metrics) # serialized_metrics format is a string, each line is a csv object
