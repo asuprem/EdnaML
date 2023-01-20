@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from glob import glob
 import os, shutil
 import re, warnings
@@ -48,7 +48,7 @@ class LocalStorage(BaseStorage):
 
     def path_of_artifact(
         self, epoch: int, step: int, artifact: StorageArtifactType
-    ) -> os.PathLike:
+    ) -> Union[str, os.PathLike]:
         return (
             "_".join([self.file_basename, "epoch" + str(epoch), "step" + str(step)])
             + self.path_ends[artifact]
@@ -56,11 +56,11 @@ class LocalStorage(BaseStorage):
 
     def canonical_path_of_artifact(
         self, epoch: int, step: int, artifact: StorageArtifactType
-    ) -> os.PathLike:
+    ) -> Union[str, os.PathLike]:
         return self.canonical_path_ends[artifact]
 
     def setTrackingRun(self, tracking_run: int) -> None:
-
+        self._setTrackingRun(tracking_run=tracking_run)
         self.run_dir = str(tracking_run)
         os.makedirs(os.path.join(self.storage_path, self.run_dir), exist_ok=True)
 
