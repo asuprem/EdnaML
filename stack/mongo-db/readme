@@ -1,0 +1,118 @@
+# MongoDB
+
+The built-in MongoStorage offers a flexible way to save configurations and metrics for an experiment, as well as save-records for each Save of unsupported artifacts, such as plugins, logs, models, model-artifacts, and code
+
+MongoStorage can be enabled for a pipeline with the following entry into the STORAGE section of the configuration:
+
+```
+STORAGE:
+    - STORAGE_NAME: storage_name
+      STORAGE_CLASS: MongoStorage
+      STORAGE_URL: url-for-mongo-server
+      STORAGE_ARGS: 
+        username: user-name
+```
+
+The `STORAGE_ARGS` are passed into `MongoClient()` (from pymongo) to instantiate a connection to a database. For example, to connect to a Mongo Atlas hosted database, one might use the following configuration:
+
+```
+STORAGE:
+    - STORAGE_NAME: eml-primary
+      STORAGE_CLASS: MongoStorage
+      STORAGE_URL: mongodb+srv://homer.uiknd5k.mongodb.net/odyssey
+      STORAGE_ARGS: 
+        username: odysseus
+```
+
+
+## MongoStorage internals
+
+Here, we show the collections that MongoStorage creates, as well as the fields MongoStorage populates for each document within the collection.
+
+
+```
+experiments: Stores a list of experiment keys
+    {
+        model_core_name: str
+        model_version: str
+        model_backbone: str
+        model_qualifier: str
+    }
+```
+
+```
+runs: Stores the runs for each experiment
+    {
+        experiment: <experiments>.ID
+        run: int
+    }
+```
+
+```
+save-records: Stores a record of each save called on an artifact, if this option is enabled in the configuration
+    {
+        artifact_name: [config | metrics | plugin | model | artifact | log | code | etc... ]
+        experiment: <experiments>.ID
+        run: <runs>.ID
+        epoch: int
+        step: int
+        timestamp: int
+        storage_name: str
+        storage_type: str
+
+    }
+```
+
+For the configurations, something to note. First, MongoStorage saves the experiment key, run key, epoch, and storage directly inside the document. 
+
+```
+configs: Stores configurations for experiments, specific to an ERSKey
+    {
+        experiment: <experiments>.ID
+        run: <runs>.ID
+        epoch: int
+        step: int
+        canonical: bool; if canonical, epoch and step are NOT provided, and vice versa
+        .
+        .
+        .
+        configuration_yaml_to_fields: All fields and keys (including nested) are are saved. a few examples are given below:
+        SAVE: {
+            MODEL_VERSION: 1,
+            MODEL_CORE_NAME: mnist_resnet
+            .
+            .
+            .
+        }
+    }
+```
+
+
+
+```
+metrics: Stores any metrics designated for this MongoStorage
+    {
+        experiment: <experiments>.ID
+        run: <runs>.ID
+        epoch: int
+        step: int
+        canonical: bool
+        metric_name: str
+        metric_type: str (the artifact this metric was attached to)
+        metric_class: str (the class for this metric)
+        metric_value: float (the value for this metric)
+    }
+
+```
+
+
+## Future of saving unsupported artifacts
+
+We do not wish to save logs, models, model artifacts, plugins, or code to mongo. 
+
+GridFS is currently unsupported.
+
+In future, we plan to support a mechanism where a BaseStorage can be designated with a StorageRecorder label. Multiple StorageRecorders may be defined. A Storage with the StorageRecorder essentially records the SaveRecord with a few additional fields:
+    - URL where the file can be accessed
+    - any arguments necessary to access the file (except protected arguments like username and password)
+
