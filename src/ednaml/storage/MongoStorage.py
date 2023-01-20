@@ -414,7 +414,7 @@ class MongoStorage(BaseStorage):
         return False
 
     def uploadMetric(self, source_file_name: Union[str, os.PathLike], ers_key: ERSKey, canonical: bool = False):
-        self.log("Config backup requested with ers_key {ers_key}".format(ers_key=ers_key.printKey()))
+        self.log("Metrics backup requested with ers_key {ers_key}".format(ers_key=ers_key.printKey()))
         experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
         if run_id is None:
             raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
@@ -442,8 +442,8 @@ class MongoStorage(BaseStorage):
             }
             for metric_item in metric_items
         ]
-
-        response = self.configs.insert_many(metrics_document)
+        self.log("Backing up {number} metrics to {ers_key}".format(number = str(len(metric_items)), ers_key=ers_key.printKey()))
+        response = self.metrics.insert_many(metrics_document)
         if response.acknowledged:
             return True
         return False
