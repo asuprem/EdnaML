@@ -483,6 +483,11 @@ class BaseTrainer:
             shutil.copy2(local_metrics_file, storage_metrics_file)
 
         if not local_only:
+            self.logger.info(
+                "Uploading metrics with key {metrics_key}".format(
+                    metrics_key=metrics_ers_key.printKey()
+                )
+            )
             if self.storage_manager.performBackup(StorageArtifactType.METRIC):
                 self.storage_manager.upload(self.storage, metrics_ers_key)
 
@@ -966,7 +971,7 @@ class BaseTrainer:
         #         self.set_save_flag()
         #     else:
         #         self.save()
-        self.updateStepMetrics(self.global_epoch, self.global_batch)
+        #self.updateStepMetrics(self.global_epoch, self.global_batch)   # ALREADY DONE EARLIER
         self.updateBatchMetrics(self.global_epoch, self.global_batch)
         self.logger.info(
             "{0} Completed epoch {1} {2}".format("*" * 10, self.global_epoch, "*" * 10)
