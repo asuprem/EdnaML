@@ -5,7 +5,10 @@ import os, shutil
 import re, warnings
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.utils import ERSKey, ExperimentKey, KeyMethods, RunKey, StorageArtifactType, StorageKey
-from bson.objectid import ObjectId
+try:
+    from bson.objectid import ObjectId
+except:
+    ObjectId = None
 import yaml
 
 class MongoStorage(BaseStorage):
@@ -393,8 +396,3 @@ class MongoStorage(BaseStorage):
             return True
         return False
 
-    
-
-        
-
-mg = MongoStorage()

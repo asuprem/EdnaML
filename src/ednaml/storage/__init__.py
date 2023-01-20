@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from ednaml.storage.BaseStorage import BaseStorage
 from ednaml.storage.LocalStorage import LocalStorage
+from ednaml.storage.MongoStorage import MongoStorage
 from ednaml.storage.EmptyStorage import EmptyStorage
 from ednaml.utils import StorageArtifactType, ExperimentKey, RunKey, StorageKey, ERSKey
 if TYPE_CHECKING:

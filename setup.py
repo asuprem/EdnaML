@@ -13,7 +13,6 @@ requires = [
         "sortedcontainers>=2.4.0",
         "pyyaml>=6.0",
         "torchmetrics>=0.8.2",
-        "bson>=0.5.10"
     ]
 
 
