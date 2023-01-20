@@ -62,6 +62,7 @@ class MongoStorage(BaseStorage):
         # self.logs = self.db["logs"]
 
         # Add the experiment key into the experiments collection and get the id
+        self.local_cache = {"runs":{}, "experiments":{}, "configs":{}, "metrics":{}}
         self.experiment_id = self._addExperimentKey(self.experiment_key)
 
 
@@ -76,7 +77,7 @@ class MongoStorage(BaseStorage):
             StorageArtifactType.EXTRAS: False,
         }
 
-        self.local_cache = {"runs":{}, "experiments":{}, "configs":{}, "metrics":{}}
+        
         # Only supported artifacts here.
         self.collection_reference = {
             StorageArtifactType.CONFIG: self.configs,
