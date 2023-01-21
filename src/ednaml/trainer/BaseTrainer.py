@@ -1001,6 +1001,8 @@ class BaseTrainer:
                 self.set_save_flag(epoch=self.global_epoch, step=step, local_only = True)
 
         if local_save:
+            import pdb
+            pdb.set_trace()
             self.save(artifact=StorageArtifactType.PLUGIN, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.PLUGIN))
             self.save(artifact=StorageArtifactType.LOG, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG))
             self.save(artifact=StorageArtifactType.METRIC, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.METRIC))
