@@ -50,7 +50,7 @@ class BaseTrainer:
     edna_context: EdnaMLContextInformation
     saveFlag_epoch: int
     saveFlag_step: int
-    saveFlag_localonly: bool
+    upload: bool
 
     current_ers_key: ERSKey
     model_metrics: Dict[str, BaseMetric]
@@ -134,7 +134,7 @@ class BaseTrainer:
         self.global_epoch = 0
         self.saveFlag_epoch = 0
         self.saveFlag_step = 0
-        self.saveFlag_localonly = True
+        self.upload = False
 
         self.metadata = {}
         self.labelMetadata = labels
@@ -321,7 +321,7 @@ class BaseTrainer:
         save_epoch: int = None,
         save_step: int = None,
         artifact: StorageArtifactType = StorageArtifactType.MODEL,
-        local_only = False
+        upload = False
     ):
         if save_epoch is None:
             save_epoch = self.global_epoch
@@ -329,26 +329,26 @@ class BaseTrainer:
             save_step = self.global_batch
         if self.storage_manager.storage_mode == "local":
             self.logger.info(
-                "Attempting save of artifact `%s` at epoch %i / step %i, in `local_only=%s` mode."
-                % (artifact.value, save_epoch, save_step, str(local_only))
+                "Attempting save of artifact `%s` at epoch %i / step %i, in `upload=%s` mode."
+                % (artifact.value, save_epoch, save_step, str(upload))
             )
             # For whatever the artifact is, we will first perform a local save,
             # then perform a backup IF backup_perform is true...
             if artifact == StorageArtifactType.MODEL:
-                self.saveModel(epoch=save_epoch, step=save_step, local_only = local_only)
-                self.saveArtifact(epoch=save_epoch, step=save_step, local_only = local_only)
+                self.saveModel(epoch=save_epoch, step=save_step, upload = upload)
+                self.saveArtifact(epoch=save_epoch, step=save_step, upload = upload)
             elif artifact == StorageArtifactType.ARTIFACT:
                 raise ValueError(
                     "Cannot save MODEL_ARTIFACT by itself. Call `save()` for MODEL to save MODEL_ARTIFACT."
                 )
             elif artifact == StorageArtifactType.PLUGIN:
-                self.savePlugin(epoch=save_epoch, step=save_step, local_only = local_only)
+                self.savePlugin(epoch=save_epoch, step=save_step, upload = upload)
             elif artifact == StorageArtifactType.LOG:
-                self.saveLog(epoch=save_epoch, step=save_step, local_only = local_only)
+                self.saveLog(epoch=save_epoch, step=save_step, upload = upload)
             elif artifact == StorageArtifactType.CONFIG:
-                self.saveConfig(epoch=save_epoch, step=save_step, local_only = local_only)
+                self.saveConfig(epoch=save_epoch, step=save_step, upload = upload)
             elif artifact == StorageArtifactType.METRIC:
-                self.saveMetrics(epoch=save_epoch, step=save_step, local_only = local_only)
+                self.saveMetrics(epoch=save_epoch, step=save_step, upload = upload)
             else:
                 raise ValueError(
                     "Unexpected value for artifact type %s" % artifact.value
@@ -364,7 +364,7 @@ class BaseTrainer:
 
     # load is called by self.train() when being initialized...
 
-    def saveModel(self, epoch: int, step: int, local_only: bool = False):
+    def saveModel(self, epoch: int, step: int, upload: bool = False):
         model_ers_key: ERSKey = self.storage_manager.getERSKey(
             epoch=epoch, step=step, artifact_type=StorageArtifactType.MODEL
         )
@@ -376,13 +376,13 @@ class BaseTrainer:
             self.model.state_dict(),
             model_local_storage_savepath,
         )
-        if not local_only:
+        if upload:
             if self.storage_manager.performBackup(
                 StorageArtifactType.MODEL
             ):  # TODO under strict/loose modes, storageManager can take care of all of these.
                 self.storage_manager.upload(self.storage, model_ers_key)
 
-    def saveArtifact(self, epoch: int, step: int, local_only: bool = False):
+    def saveArtifact(self, epoch: int, step: int, upload: bool = False):
         save_dict = {}
         save_dict["optimizer"] = {
             pgn: self.optimizer[pgn].state_dict() for pgn in self.parameter_groups
@@ -417,27 +417,27 @@ class BaseTrainer:
             artifact_ers_key
         )
         torch.save(save_dict, artifact_local_storage_savepath)
-        if not local_only:
+        if upload:
             if self.storage_manager.performBackup(
                 StorageArtifactType.ARTIFACT
             ):  # TODO under strict/loose modes, storageManager can take care of all of these.
                 self.storage_manager.upload(self.storage, artifact_ers_key)
 
-    def saveLog(self, epoch: int = None, step: int = None, local_only: bool = False):
-        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.log_manager,artifact=StorageArtifactType.LOG)
+    def saveLog(self, epoch: int = None, step: int = None, upload: bool = False):
+        self._generic_save(epoch=epoch,step=step,upload=upload,manager=self.log_manager,artifact=StorageArtifactType.LOG)
 
-    def saveMetrics(self, epoch: int, step: int, local_only: bool = False):
-        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.metrics_manager,artifact=StorageArtifactType.METRIC)
+    def saveMetrics(self, epoch: int, step: int, upload: bool = False):
+        self._generic_save(epoch=epoch,step=step,upload=upload,manager=self.metrics_manager,artifact=StorageArtifactType.METRIC)
 
-    def savePlugin(self, epoch: int, step: int, local_only: bool = False):
+    def savePlugin(self, epoch: int, step: int, upload: bool = False):
         self.logger.debug("Not saving model plugins")  # TODO
 
-    def saveConfig(self, epoch: int, step: int, local_only: bool = False):
-        self._generic_save(epoch=epoch,step=step,local_only=local_only,manager=self.config,artifact=StorageArtifactType.CONFIG)
+    def saveConfig(self, epoch: int, step: int, upload: bool = False):
+        self._generic_save(epoch=epoch,step=step,upload=upload,manager=self.config,artifact=StorageArtifactType.CONFIG)
 
 
 
-    def _generic_save(self, epoch: int, step: int, manager: Union[MetricsManager,LogManager,EdnaMLConfig], local_only: bool, artifact: StorageArtifactType):
+    def _generic_save(self, epoch: int, step: int, manager: Union[MetricsManager,LogManager,EdnaMLConfig], upload: bool, artifact: StorageArtifactType):
         #      Flush the Manager
         #      Request Manager to save file
         #      Request file from Manager
@@ -469,7 +469,7 @@ class BaseTrainer:
             )
             shutil.copy2(local_artifact_file, storage_artifact_file)
 
-        if not local_only:
+        if upload:
             self.logger.info(
                 "Can upload {artifact} with key {metrics_key}".format(
                     artifact=artifact.value,
@@ -487,7 +487,7 @@ class BaseTrainer:
                 self.storage_manager.upload(self.storage, artifact_ers_key)
     
 
-    def saveCode(self, epoch: int, step: int, local_only: bool = False):
+    def saveCode(self, epoch: int, step: int, upload: bool = False):
         pass
 
     def load(
@@ -873,12 +873,12 @@ class BaseTrainer:
             self.logger.info(
                 "Final: Saving model at save-frequency. Saving Logs as well."
             )
-            self.save(self.saveFlag_epoch, self.saveFlag_step, local_only = self.saveFlag_localonly)
+            self.save(self.saveFlag_epoch, self.saveFlag_step, upload = self.upload)
             self.save(
                 self.saveFlag_epoch,
                 self.saveFlag_step,
                 artifact=StorageArtifactType.LOG,
-                local_only = self.saveFlag_localonly
+                upload = self.upload
             )
             self.saveFlag = False
         self.logger.info("Finished training")
@@ -918,7 +918,7 @@ class BaseTrainer:
                         "Saving model at save-frequency, at epoch %i, step %i"
                         % (self.saveFlag_epoch, self.saveFlag_step)
                     )
-                    self.save(self.saveFlag_epoch, self.saveFlag_step, local_only = self.saveFlag_localonly)
+                    self.save(self.saveFlag_epoch, self.saveFlag_step, upload = self.upload)
                     self.saveFlag = False
 
             if self.storage_manager.storage_trigger_strict:
@@ -996,17 +996,17 @@ class BaseTrainer:
         if local_save or model_upload:
             # For gradient accumulation
             if model_upload:
-                self.set_save_flag(epoch=self.global_epoch, step=step, local_only = False)
+                self.set_save_flag(epoch=self.global_epoch, step=step, upload = True)
             else:
-                self.set_save_flag(epoch=self.global_epoch, step=step, local_only = True)
+                self.set_save_flag(epoch=self.global_epoch, step=step, upload = False)
 
         if local_save:
             import pdb
             pdb.set_trace()
-            self.save(artifact=StorageArtifactType.PLUGIN, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.PLUGIN))
-            self.save(artifact=StorageArtifactType.LOG, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG))
-            self.save(artifact=StorageArtifactType.METRIC, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.METRIC))
-            self.save(artifact=StorageArtifactType.CONFIG, save_step=step, local_only=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.CONFIG))
+            self.save(artifact=StorageArtifactType.PLUGIN, save_step=step, upload=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.PLUGIN))
+            self.save(artifact=StorageArtifactType.LOG, save_step=step, upload=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.LOG))
+            self.save(artifact=StorageArtifactType.METRIC, save_step=step, upload=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.METRIC))
+            self.save(artifact=StorageArtifactType.CONFIG, save_step=step, upload=self.storage_manager.getUploadTriggerForStep(step, StorageArtifactType.CONFIG))
 
 
     def check_epoch_save(self, epoch):  # TODO off by one errors
@@ -1018,23 +1018,23 @@ class BaseTrainer:
         if local_save or model_upload:
             # For gradient accumulation
             if model_upload:
-                self.set_save_flag(epoch=epoch, step=self.global_batch, local_only = False)
+                self.set_save_flag(epoch=epoch, step=self.global_batch, upload = True)
             else:
-                self.set_save_flag(epoch=epoch, step=self.global_batch, local_only = True)
+                self.set_save_flag(epoch=epoch, step=self.global_batch, upload = False)
         
 
         if local_save:
-            self.save(artifact=StorageArtifactType.PLUGIN, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.PLUGIN))
-            self.save(artifact=StorageArtifactType.LOG, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.LOG))
-            self.save(artifact=StorageArtifactType.METRIC, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.METRIC))
-            self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch, local_only=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.CONFIG))
+            self.save(artifact=StorageArtifactType.PLUGIN, save_epoch=epoch, upload=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.PLUGIN))
+            self.save(artifact=StorageArtifactType.LOG, save_epoch=epoch, upload=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.LOG))
+            self.save(artifact=StorageArtifactType.METRIC, save_epoch=epoch, upload=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.METRIC))
+            self.save(artifact=StorageArtifactType.CONFIG, save_epoch=epoch, upload=self.storage_manager.getUploadTriggerForEpoch(epoch, StorageArtifactType.CONFIG))
 
 
-    def set_save_flag(self, epoch, step, local_only = False):
+    def set_save_flag(self, epoch, step, upload = False):
         self.saveFlag = True
         self.saveFlag_epoch = epoch
         self.saveFlag_step = step
-        self.saveFlag_localonly = local_only
+        self.upload = upload
 
     def set_evaluate_flag(self):
         pass
