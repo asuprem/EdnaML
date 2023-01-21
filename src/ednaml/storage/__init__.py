@@ -176,12 +176,12 @@ class StorageManager:
             def __call__(self, check_value: int) -> bool:
                 # Get the quotient, i.e. whether we are at a multiplicative factor of the trigger_frequency
                 cv = int(check_value / self.trigger_frequency)
-                if cv != self.state:  # Check if same multiplicative factor as before
-                    self.state = cv
-                    if (
-                        cv >= self.base
-                    ):  # Check if we are above the lowest threshold. 0 for EPOCH, 1 for STEP.
-                        return True
+                #if cv != self.state:  # UPDATE 1.20.23-> making it declarative;  before: Check if same multiplicative factor as before and if so, ignore
+                self.state = cv
+                if (
+                    cv >= self.base
+                ):  # Check if we are above the lowest threshold. 0 for EPOCH, 1 for STEP.
+                    return True
                 return False
 
         # Trigger methods tell us whether to trigger an upload or not. To improve speed, we cache many of the parameters here.
