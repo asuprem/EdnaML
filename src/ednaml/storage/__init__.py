@@ -38,6 +38,8 @@ class StorageManager:
     artifact_references: Dict[StorageArtifactType, BackupOptionsConfig]
     epoch_triggers: Dict[StorageArtifactType, Callable[[int], bool]]
     step_triggers: Dict[StorageArtifactType, Callable[[int], bool]]
+    storage: Dict[str, BaseStorage]
+    save_records = List[str]
 
     def __init__(
         self,
@@ -68,7 +70,8 @@ class StorageManager:
             _type_: _description_
         """
         self.logger = logger
-
+        self.storage = {}
+        self.save_records = []
         self.experiment_key = experiment_key
         self.storage_manager_mode = self.validate(
             "storage_manager_mode",
@@ -306,6 +309,13 @@ class StorageManager:
             msg (str): Message to log
         """
         self.logger.debug("[StorageManager] %s" % msg)
+
+    def registerStorage(self, storage: Dict[str, BaseStorage], storage_name: str):
+        self.storage[storage_name] = storage[storage_name]
+        # Collect storages that kepp SaveRecords
+        if self.storage[storage_name].save_record:
+            self.save_records.append(storage_name)
+
 
     def getERSKey(
         self,
@@ -568,7 +578,9 @@ class StorageManager:
         return True  # Already exists.
 
     def upload(self, storage_dict: Dict[str, BaseStorage], ers_key: ERSKey) -> bool:
-        """Upload the file(s) corresponding to the ERSKey. If they already exist, Storage will throw an error.
+        """Upload the file(s) corresponding to the ERSKey. If they already exist, Storage should throw an error.
+
+        Also save a SaveRecord in corresponding SaveRecord storages.
 
         Args:
             storage_dict (Dict[str, BaseStorage]): _description_
@@ -612,6 +624,7 @@ class StorageManager:
                 source_file_name=source_file_name,
                 canonical=self.backup_canonical_references[ers_key.storage.artifact],
             )
+            self.record_save(epoch=ers_key.storage.epoch, step=ers_key.storage.step, artifact=ers_key.storage.artifact, storage_name = storage_name)
             return True
         else:
             self.log(
@@ -620,6 +633,12 @@ class StorageManager:
                 )
             )
         return False  # Could not upload due to file not found
+
+    def record_save(self, epoch: int, step: int, artifact: StorageArtifactType, storage_name: str):
+        for record_storage_name in self.save_records:
+            self.storage[record_storage_name].recordArtifactSave(
+                epoch=epoch, step=step, artifact=artifact, storage_name=storage_name, storage_class=self.storage[storage_name].__class__.__name__, storage_url=self.storage[storage_name].storage_url
+            )
 
     def getLocalFileName(self, ers_key: ERSKey) -> Union[str, os.PathLike]:
         """Creates the local file name for the provided StorageKey. This does not contain experiment details, or run details.

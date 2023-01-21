@@ -11,6 +11,7 @@ class BaseStorage(ABC):
     experiment_key: ExperimentKey
     logger: logging.Logger
     run: int
+    save_record: bool
 
     def __init__(
         self, logger: logging.Logger, experiment_key: ExperimentKey, storage_name, storage_url, **storage_kwargs
@@ -44,8 +45,11 @@ class BaseStorage(ABC):
             StorageArtifactType.EXTRAS: self.downloadExtras,
         }
 
-
+        self.set_save_record()
         self.apply(self.storage_url, **storage_kwargs)
+
+    def set_save_record(self):
+        self.save_record = False
 
     @abstractmethod
     def apply(self, storage_url: str, **kwargs):
@@ -381,6 +385,28 @@ class BaseStorage(ABC):
             destination_file_name=destination_file_name,
             canonical=canonical,
         )
+
+
+    def recordArtifactSave(self, epoch: int, step: int, artifact: StorageArtifactType, storage_name: str, storage_class: str, storage_url: str)-> bool:
+        if self.save_record:
+            return self._recordArtifactSave(
+                epoch = epoch,
+                step = step,
+                artifact = artifact,
+                storage_name = storage_name,
+                storage_class = storage_class,
+                storage_url = storage_url,
+                experiment_key = self.experiment_key,
+                run = self.run
+            )
+        return False
+
+    def _recordArtifactSave(self, epoch: int, step: int, artifact: StorageArtifactType, storage_name: str, storage_class: str, experiment_key: ExperimentKey, run: int)-> bool:
+        raise NotImplementedError()
+
+
+
+
 
 
     def log(self, msg):

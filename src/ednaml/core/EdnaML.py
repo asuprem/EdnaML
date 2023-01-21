@@ -527,6 +527,7 @@ class EdnaML(EdnaMLBase):
                         experiment_key=self.experiment_key,
                         **self.cfg.STORAGE[storage_element].STORAGE_ARGS
                     )
+                    self.storageManager.registerStorage(self.storage, self.cfg.STORAGE[storage_element].STORAGE_NAME)
         else:
             self.logger.warn(
                 "Skipping storage building. This can cause instability in pipeline operations."
@@ -538,6 +539,7 @@ class EdnaML(EdnaMLBase):
             storage_name="reserved-empty-storage",
             storage_url="./",
         )
+        self.storageManager.registerStorage(self.storage, "reserved-empty-storage")
 
     def train(self, **kwargs):
         if self.mode == "test":

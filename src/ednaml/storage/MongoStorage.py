@@ -30,6 +30,9 @@ class MongoStorage(BaseStorage):
     Args:
         BaseStorage (_type_): _description_
     """
+    def set_save_record(self):
+        self.save_record = True
+
     def apply(self, storage_url: str, **kwargs):
         """We set up a connection to the Mongo Backend.
 
@@ -64,6 +67,9 @@ class MongoStorage(BaseStorage):
         # set up metrics collection
         self.log("Setting up `metrics` collection")
         self.metrics = self.db["metrics"]
+        # set up records collection
+        self.log("Setting up `records` collection")
+        self.records = self.db["records"]
         # set up logs collection (eventually)
         # self.logs = self.db["logs"]
 
@@ -433,8 +439,8 @@ class MongoStorage(BaseStorage):
             {
                 "experiment": self.experiment_id,
                 "run": self.run_id,
-                "epoch": metric_item[3],
-                "step": metric_item[4],
+                "epoch": int(metric_item[3]),
+                "step": int(metric_item[4]),
                 "name": metric_item[0],
                 "type": metric_item[1],
                 "class": metric_item[2],
@@ -444,6 +450,37 @@ class MongoStorage(BaseStorage):
         ]
         self.log("Backing up {number} metrics to {ers_key}".format(number = str(len(metric_items)), ers_key=ers_key.printKey()))
         response = self.metrics.insert_many(metrics_document)
+        if response.acknowledged:
+            return True
+        return False
+
+
+    def _recordArtifactSave(self, epoch: int, step: int, artifact: StorageArtifactType, storage_name: str, storage_class: str, storage_url: str, experiment_key: ExperimentKey, run: int) -> bool:
+        self.log("Generating SaveRecord for {artifact} at epoch-step <{epoch}-{step}>".format(
+            artifact = artifact.value,
+            epoch = epoch,
+            step = step
+        ))
+        ers_key = ERSKey(
+            experiment=experiment_key,
+            run=run,
+            storage=StorageKey(epoch=-1,step=-1,artifact=StorageArtifactType.MODEL)
+        )
+        experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
+        if run_id is None:
+            raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
+        
+        save_record_document = {
+                "experiment": self.experiment_id,
+                "run": self.run_id,
+                "epoch": epoch,
+                "step": step,
+                "artifact": artifact.value,
+                "storage_name": storage_name,
+                "storage_class": storage_class,
+                "storage_url": storage_url
+        }
+        response = self.records.insert_one(save_record_document)
         if response.acknowledged:
             return True
         return False
