@@ -324,6 +324,9 @@ class MongoStorage(BaseStorage):
                 return -1
             return run_value["_id"]
 
+
+
+
     def getLatestStorageKey(self, ers_key: ERSKey, canonical: bool = False) -> ERSKey:
         if ers_key.storage.artifact is not StorageArtifactType.MODEL:
             warnings.warn(
@@ -485,5 +488,23 @@ class MongoStorage(BaseStorage):
             return True
         return False
         
+    def _construct_maxsaverecord_aggregate_query(self, experiment_id: ObjectId, run_id: ObjectId):
+        return [{"$match":{"experiment": experiment_id, "run": run_id}},
+                            {"$sort":{"epoch": -1, "step": -1}},
+                            {"$limit": 1}] 
+    def getLatestSaveRecordStorageKey(self) -> ERSKey:
+        aggregate_pipeline = self._construct_maxsaverecord_aggregate_query(experiment_id=self.experiment_id, run_id=self.run_id)
+        run_response = self.records.aggregate(aggregate_pipeline)
+
+        run_value = next(run_response,None)
+        ers_key = ERSKey(experiment=self.experiment_key, run=RunKey(run=self.run),storage=StorageKey(epoch=-1, step=-1, artifact=StorageArtifactType.MODEL))
+        if run_value is None:
+            return ers_key
+        ers_key.storage.epoch = run_value["epoch"]
+        ers_key.storage.step = run_value["step"]
+        ers_key.storage.artifact = StorageArtifactType[run_value["artifact"]]
+        return ers_key
+        
+    
     def log(self, msg):
         self.logger.info("[MongoStorage]" + msg)

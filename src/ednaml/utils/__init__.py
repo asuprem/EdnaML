@@ -8,14 +8,14 @@ import enum
 
 
 class StorageArtifactType(enum.Enum):
-    MODEL = "model"
-    LOG = "log"
-    CONFIG = "config"
-    PLUGIN = "plugin"
-    METRIC = "metric"
-    ARTIFACT = "artifact"
-    CODE = "code"
-    EXTRAS= "extras"
+    MODEL = "MODEL"
+    LOG = "LOG"
+    CONFIG = "CONFIG"
+    PLUGIN = "PLUGIN"
+    METRIC = "METRIC"
+    ARTIFACT = "ARTIFACT"
+    CODE = "CODE"
+    EXTRAS= "EXTRAS"
 
 
 class ExperimentKey:

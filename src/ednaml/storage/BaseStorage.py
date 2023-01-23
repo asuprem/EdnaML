@@ -405,7 +405,13 @@ class BaseStorage(ABC):
         raise NotImplementedError()
 
 
+    def getLatestSaveRecordStorageKey(self) -> ERSKey:
+        """Return the latest StorageKey saved through SaveRecords (if available) in this Storage. If there are no SaveRecords, return -1/-1 for epoch and step
 
+        Returns:
+            ERSKey: ERSKey containing latest Storage Key, with reference Artifact of the SaveRecord
+        """
+        raise NotImplementedError()
 
 
 

@@ -1,5 +1,5 @@
 import logging, os
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Tuple, Union
 from ednaml.config.BackupOptionsConfig import BackupOptionsConfig
 from typing import TYPE_CHECKING
 
@@ -710,7 +710,7 @@ class StorageManager:
         # NOTE: We check remote tracking run if backup is allowed OR if we are in download_only/loose mode!!!
         if tracking_run is None:
             self.log("Searching for tracking run with `new_run`: %s" % str(new_run))
-            max_run_list = [
+            max_artifact_run_list = [
                 self._getMaximumRun(storage_dict, self.getStorageNameForArtifact(artifact_key))
                 if (
                     self.performBackup(artifact_key)
@@ -719,6 +719,12 @@ class StorageManager:
                 else -1
                 for artifact_key in self.artifact_references
             ]
+            # getMaximumRun works with both SaveRecords and with regular entries.
+            max_save_record_run_list = [
+                self._getMaximumRun(storage_dict=storage_dict, storage_name=storage_name) for storage_name in self.save_records
+            ]
+            max_run_list = max_artifact_run_list + max_save_record_run_list
+
             max_run = max(max_run_list)
             if max_run < 0:
                 tracking_run = 0
@@ -785,6 +791,9 @@ class StorageManager:
         self.local_storage.setTrackingRun(tracking_run)
 
         # Inform the storages that we have a run:
+        self.log(
+            "Setting Tracking Run to %i for artifact storages" % tracking_run
+        )
         for artifact_key in self.artifact_references:
             if (
                 self.performBackup(artifact_type=artifact_key)
@@ -802,6 +811,18 @@ class StorageManager:
                         "Tracking run for Artifact `%s` at Storage `%s` set to: %i"
                         % (artifact_key.value, storage_name, tracking_run)
                     )
+        # Record runs in SaveRecord storages as well...
+        self.log(
+            "Setting Tracking Run to %i for SaveRecord storages" % tracking_run
+        )
+        for storage_name in self.save_records:
+            storage_dict[storage_name].setTrackingRun(tracking_run)
+            self.log(
+                "Tracking run for Artifact `%s` at Storage `%s` set to: %i"
+                % (artifact_key.value, storage_name, tracking_run)
+            )
+
+
 
         # Copy the files over??? Or save that for other methods to perform...
 
@@ -838,6 +859,10 @@ class StorageManager:
             % artifact.value
         )
         ers_key: ERSKey = self.getERSKey(epoch=-1, step=-1, artifact_type=artifact)
+        self.log(
+            "Will check remote ERSKey for reference artifact: %s"
+            % artifact.value
+        )
         if (
             self.performBackup(artifact_type=artifact)
             or not self.storage_manager_strict
@@ -868,6 +893,26 @@ class StorageManager:
                     ].getLatestStorageKey(ers_key)
         else:
             remote_ers_key = None
+
+        self.log(
+            "Will check remote Latest ERSKey in SaveRecords"
+            % artifact.value
+        )
+        # TODO pass erskey and clone it inside getLatest....
+        save_record_ers_keys: List[ERSKey] = [ers_key]
+        for storage_name in self.save_records:
+            save_record_ers_keys.append(
+                storage_dict[storage_name].getLatestSaveRecordStorageKey()
+            )
+            self.log(
+                "Searched {storage_name}: Found remote SaveRecord for artifact {artifact} with epoch-step <{epoch},{step}> in {storage_class} named {storage_name}".format(
+                    storage_name=storage_name,
+                    artifact = save_record_ers_keys[-1].storage.artifact.value,
+                    epoch = save_record_ers_keys[-1].storage.epoch,
+                    step = save_record_ers_keys[-1].storage.step
+                )
+            )
+    
         local_ers_key: ERSKey = self.local_storage.getLatestStorageKey(ers_key=ers_key)
 
         if remote_ers_key is None:
@@ -875,6 +920,7 @@ class StorageManager:
                 "Did not find any remote ERSKey because backup is not enabled for reference artifact: %s"
                 % (artifact.value)
             )
+            remote_ers_key = ers_key
         else:
             self.log(
                 "Found remote ERSKey `%s` with reference artifact: %s"
@@ -885,29 +931,40 @@ class StorageManager:
             % (local_ers_key.printKey(), artifact.value)
         )
 
-        final_ers_key = None
-        if remote_ers_key is None:
-            final_ers_key = local_ers_key
-        else:
-            if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:
-                final_ers_key = local_ers_key
-            elif remote_ers_key.storage.epoch > local_ers_key.storage.epoch:
-                final_ers_key = remote_ers_key
-            elif local_ers_key.storage.epoch == remote_ers_key.storage.epoch:
-                if local_ers_key.storage.step > remote_ers_key.storage.step:
-                    final_ers_key = local_ers_key
-                elif remote_ers_key.storage.step > local_ers_key.storage.step:
-                    final_ers_key = remote_ers_key
-                elif local_ers_key.storage.step == remote_ers_key.storage.step:
-                    final_ers_key = local_ers_key
-                else:
-                    raise RuntimeError()
-            else:
-                raise RuntimeError()
+
+        sorted_save_records = sorted(save_record_ers_keys, key = lambda x : (x.storage.epoch, x.storage.step), reverse=True)
+
+        query_storage_keys:List[Tuple[str,ERSKey]] = [("remote", remote_ers_key), ("local", local_ers_key), ("SaveRecord", sorted_save_records[0])]
+        sorted_query = sorted(
+            query_storage_keys, key = lambda x : (x[1].storage.epoch, x[1].storage.step), reverse=True
+        )
+
+        final_ers_key = sorted_query[0][1]
+        final_ers_location = sorted_query[0][0]
+
+        # final_ers_key = None
+        # if remote_ers_key is None:
+        #     final_ers_key = local_ers_key
+        # else:
+        #     if local_ers_key.storage.epoch > remote_ers_key.storage.epoch:
+        #         final_ers_key = local_ers_key
+        #     elif remote_ers_key.storage.epoch > local_ers_key.storage.epoch:
+        #         final_ers_key = remote_ers_key
+        #     elif local_ers_key.storage.epoch == remote_ers_key.storage.epoch:
+        #         if local_ers_key.storage.step > remote_ers_key.storage.step:
+        #             final_ers_key = local_ers_key
+        #         elif remote_ers_key.storage.step > local_ers_key.storage.step:
+        #             final_ers_key = remote_ers_key
+        #         elif local_ers_key.storage.step == remote_ers_key.storage.step:
+        #             final_ers_key = local_ers_key
+        #         else:
+        #             raise RuntimeError()
+        #     else:
+        #         raise RuntimeError()
 
         self.log(
-            "Obtained latest StorageKey at (%i,%i), with reference artifact: %s"
-            % (final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value)
+            "Obtained latest StorageKey from `%s` at (%i,%i), with reference artifact: %s"
+            % (final_ers_location, final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value)
         )
         return final_ers_key
 
