@@ -471,7 +471,7 @@ class MongoStorage(BaseStorage):
         )
         experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
         if run_id is None:
-            raise KeyError("Expected `experiment` with key %s in MongoStorage. Could not find."%str(ers_key.experiment.getKey()))
+            raise KeyError("Expected `experiment` with key %s with run %i in MongoStorage. Could not find."%(str(ers_key.experiment.getKey()), ers_key.run.run))
         
         save_record_document = {
                 "experiment": self.experiment_id,
