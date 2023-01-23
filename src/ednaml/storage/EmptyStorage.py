@@ -52,4 +52,4 @@ class EmptyStorage(BaseStorage):
         return None
 
     def setTrackingRun(self, tracking_run: int) -> None:
-        self.run = tracking_run
+        self._setTrackingRun(tracking_run=tracking_run)
