@@ -55,13 +55,13 @@ class MetricsManager:
         # TODO update this to not JUST model metrics...a
         self.model_metrics = []
         self.log_metrics, self.model_metrics, self.artifact_metrics, self.plugin_metrics, self.config_metrics, self.code_metrics, self.metric_metrics = [],[],[],[],[],[],[]
-        metric_mappings = {"log": (metrics_config.LOG_METRICS, self.log_metrics),
-                                                            "model": (metrics_config.MODEL_METRICS, self.model_metrics),
-                                                            "artifact": (metrics_config.ARTIFACT_METRICS, self.artifact_metrics),
-                                                            "plugin": (metrics_config.PLUGIN_METRICS, self.plugin_metrics),
-                                                            "config": (metrics_config.CONFIG_METRICS, self.config_metrics),
-                                                            "code": (metrics_config.CODE_METRICS, self.code_metrics),
-                                                            "metric": (metrics_config.METRIC_METRICS, self.metric_metrics),
+        metric_mappings = {"LOG": (metrics_config.LOG_METRICS, self.log_metrics),
+                                                            "MODEL": (metrics_config.MODEL_METRICS, self.model_metrics),
+                                                            "ARTIFACT": (metrics_config.ARTIFACT_METRICS, self.artifact_metrics),
+                                                            "PLUGIN": (metrics_config.PLUGIN_METRICS, self.plugin_metrics),
+                                                            "CONFIG": (metrics_config.CONFIG_METRICS, self.config_metrics),
+                                                            "CODE": (metrics_config.CODE_METRICS, self.code_metrics),
+                                                            "METRIC": (metrics_config.METRIC_METRICS, self.metric_metrics),
                                                             }
         for metric_type in metric_mappings:
             if metric_type in skip_metrics:
