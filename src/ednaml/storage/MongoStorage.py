@@ -466,7 +466,7 @@ class MongoStorage(BaseStorage):
         ))
         ers_key = ERSKey(
             experiment=experiment_key,
-            run=run,
+            run=RunKey(run=run),
             storage=StorageKey(epoch=-1,step=-1,artifact=StorageArtifactType.MODEL)
         )
         experiment_id, run_id = self._getERIdIfExists(ers_key=ers_key)
