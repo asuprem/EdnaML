@@ -895,8 +895,7 @@ class StorageManager:
             remote_ers_key = None
 
         self.log(
-            "Will check remote Latest ERSKey in SaveRecords"
-            % artifact.value
+            "Will check remote for Latest ERSKey in SaveRecords"
         )
         # TODO pass erskey and clone it inside getLatest....
         save_record_ers_keys: List[ERSKey] = [ers_key]
