@@ -495,7 +495,7 @@ class BaseTrainer:
         load_epoch: int = None,
         load_step: int = None,
         artifact: StorageArtifactType = StorageArtifactType.MODEL,
-        ignore_if_error: bool = False,
+        ignore_if_error: bool = False,  # Whether to raise the file not found error
     ):
         """_summary_
 
@@ -647,6 +647,7 @@ class BaseTrainer:
         pass
 
     def train(self, continue_epoch: int = None, continue_step: int = None, **kwargs):
+        ignore_load_error = kwargs.get("ignore_load_error", False) # Whether to ignore if weights are not found
         ers_key = self.storage_manager.getLatestERSKey(
             artifact=StorageArtifactType.MODEL
         )
@@ -778,10 +779,16 @@ class BaseTrainer:
                 if not response:
                     # This is for non-initial epoch/step
                     if continue_epoch or continue_step:
-                        raise RuntimeError(
-                            "Could not load weights at epoch-step %i/%i."
-                            % (continue_epoch, continue_step)
-                        )
+                        if ignore_load_error:
+                            self.logger.warning(
+                                "Could not load weights at epoch-step %i/%i."
+                                % (continue_epoch, continue_step)
+                            )
+                        else:
+                            raise RuntimeError(
+                                "Could not load weights at epoch-step %i/%i."
+                                % (continue_epoch, continue_step)
+                            )
                     # self.logger.info()
                     self.logger.info(
                         "Could not load weights since there is no model saved yet."
