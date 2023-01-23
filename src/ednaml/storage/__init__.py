@@ -904,7 +904,7 @@ class StorageManager:
                 storage_dict[storage_name].getLatestSaveRecordStorageKey()
             )
             self.log(
-                "Searched {storage_name}: Found remote SaveRecord for artifact {artifact} with epoch-step <{epoch},{step}> in {storage_class} named {storage_name}".format(
+                "Searched {storage_name}: Found remote SaveRecord for artifact {artifact} with epoch-step <{epoch},{step}> in Storage named {storage_name}".format(
                     storage_name=storage_name,
                     artifact = save_record_ers_keys[-1].storage.artifact.value,
                     epoch = save_record_ers_keys[-1].storage.epoch,
