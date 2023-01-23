@@ -230,6 +230,8 @@ class BaseStorage(ABC):
         Returns:
             _type_: _description_
         """
+        self.run = tracking_run
+        
     #------------------------------------------------------------------------------------------
 
     def uploadConfig(
