@@ -843,7 +843,7 @@ class StorageManager:
         if artifact is None:
             artifact = StorageArtifactType.MODEL
         final_ers_key = self.searchLatestERSKey(
-            storage_dict=storage_dict, artifact=artifact
+            storage_dict=storage_dict, artifact=artifact, keep_artifact=False
         )
         self.latest_storage_key = StorageKey(
             epoch=final_ers_key.storage.epoch,
@@ -852,7 +852,7 @@ class StorageManager:
         )
 
     def searchLatestERSKey(
-        self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None
+        self, storage_dict: Dict[str, BaseStorage], artifact: StorageArtifactType = None, keep_artifact = True
     ) -> ERSKey:
         self.log(
             "Intializing reference StorageKey to (-1,-1), with reference artifact: %s"
@@ -965,6 +965,14 @@ class StorageManager:
             "Obtained latest StorageKey from `%s` at (%i,%i), with reference artifact: %s"
             % (final_ers_location, final_ers_key.storage.epoch, final_ers_key.storage.step, artifact.value)
         )
+        if keep_artifact and artifact is not None and final_ers_key.storage.artifact != artifact:
+            final_ers_key.storage.artifact = artifact
+            self.log(
+                "Fixed artifact in found ERSKey because `keep_artifact` is True:  %s"
+                % artifact.value
+                )
+
+
         return final_ers_key
 
     def updateStorageKey(self, ers_key: ERSKey) -> None:
