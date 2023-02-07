@@ -64,10 +64,10 @@ class HFDataset(Dataset):
              masking (bool): Whether to use any masking. Specific masking options are next. Can also be `train_only` for masking during training only.
              token_mask: Whether to use random token masking, with `mlm_probability`
              word_mask: Whether to use random word masking, with `mlm_probability`
-             keytoken_mask: Whether to use specific token masking, with `keytokens`
-             keyword_mask: Whether to use specific word masking, with `keywords`
-             keywords: What words to mask
-             keytokens: What tokens to mask
+             keytoken_mask: Whether to use specific token masking, with `keytokens`. Can be a tuple with proxy lookup.
+             keyword_mask: Whether to use specific word masking, with `keywords`. Can be a tuple with proxy lookup.
+             keywords: What words to mask. Can be a tuple with proxy lookup.
+             keytokens: What tokens to mask. Can be a tuple with proxy lookup.
              stopword_mask: Whether to use a stopword mask.
              label_idxs: List of indices for labels. Defaults to [1].
              annotation_idxs: List of indices for inputs. Defaults to [].

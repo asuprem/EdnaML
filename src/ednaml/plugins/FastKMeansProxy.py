@@ -228,10 +228,6 @@ class FastKMeansProxy(ModelPlugin):
         import numpy as np
 
         for proxy in range(self.proxies):
-            # TODO verify this is working
-            import pdb
-
-            pdb.set_trace()
             self.high_density_thresholds[proxy] = np.percentile(
                 distance_bins[proxy], self.alpha * 100
             )

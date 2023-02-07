@@ -1,6 +1,6 @@
 import  logging, shutil
 from logging import Logger
-from typing import Dict, List, Tuple, Type, Any, Union
+from typing import Dict, List, Tuple, Any, Union
 import torch
 from torch.utils.data import DataLoader
 from ednaml.core import EdnaMLContextInformation
