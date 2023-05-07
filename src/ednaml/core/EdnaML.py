@@ -123,7 +123,7 @@ class EdnaML(EdnaMLBase):
             self.cfg = EdnaMLConfig([self.config], **kwargs)
         else:
             self.cfg = EdnaMLConfig(self.config, **kwargs)
-
+        print("Initializing configuration with injections")
         self.experiment_key = ExperimentKey(
             self.cfg.SAVE.MODEL_CORE_NAME,
             self.cfg.SAVE.MODEL_VERSION,
