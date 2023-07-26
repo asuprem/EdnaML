@@ -10,7 +10,7 @@ docutils==0.15.2
 idna==2.8
 imagesize==1.1.0
 Jinja2==2.10.1
-joblib==0.13.2
+joblib==1.2.0
 kaptan==0.5.12
 MarkupSafe==1.1.1
 mkl-fft==1.0.12
